@@ -1,0 +1,9 @@
+[package]
+name = "cargo-generate"
+version = "0.0.0"
+authors = ["Ashley Williams <ashley666ashley@gmail.com>"]
+license = "MIT/Apache-2.0"
+repository = "https://github.com/ashleygwilliams/cargo-generate"
+readme = "README.md"
+
+[dependencies]
