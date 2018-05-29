@@ -1,2 +1,2 @@
 # cargo-generate
-ssshhhh
+> cargo, make me a project
