@@ -46,12 +46,12 @@ main!(|args: Cli| {
 
     let engine = liquid::ParserBuilder::new().build();
     let mut placeholders = liquid::Object::new();
-    placeholders.insert("project-name".to_owned(), liquid::Value::scalar(&name));
+    placeholders.insert(String::from("project-name"), liquid::Value::scalar(&name));
     placeholders.insert(
-        "crate_name".to_owned(),
+        String::from("crate_name"),
         liquid::Value::scalar(&ident_case::RenameRule::SnakeCase.apply_to_field(&name)),
     );
-    placeholders.insert("authors".to_owned(), liquid::Value::scalar(&get_authors()?));
+    placeholders.insert(String::from("authors"), liquid::Value::scalar(&get_authors()?));
 
     let progress = indicatif::ProgressBar::new_spinner();
     progress.tick();
