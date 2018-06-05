@@ -107,6 +107,9 @@ fn query_name() -> Result<String> {
     Ok(name)
 }
 
+/// Taken from cargo ans thus (c) 2018 Cargo Developers
+///
+/// cf. https://github.com/rust-lang/cargo/blob/d33c65cbd9d6f7ba1e18b2cdb85fea5a09973d3b/src/cargo/ops/cargo_new.rs#L595-L645
 fn get_authors() -> Result<String> {
     fn get_environment_variable(variables: &[&str]) -> Option<String> {
         variables.iter().filter_map(|var| env::var(var).ok()).next()
