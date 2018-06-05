@@ -41,8 +41,7 @@ main!(|args: Cli| {
     let _template = GitRepository::clone(&args.git, &project_dir)
         .with_context(|_e| format!("Couldn't clone `{}`", &args.git))?;
 
-    fs::remove_dir_all(&project_dir.join(".git"))
-        .context("Error cleaning up cloned template")?;
+    fs::remove_dir_all(&project_dir.join(".git")).context("Error cleaning up cloned template")?;
 
     let engine = liquid::ParserBuilder::new().build();
     let mut placeholders = liquid::Object::new();
@@ -51,7 +50,10 @@ main!(|args: Cli| {
         String::from("crate_name"),
         liquid::Value::scalar(&ident_case::RenameRule::SnakeCase.apply_to_field(&name)),
     );
-    placeholders.insert(String::from("authors"), liquid::Value::scalar(&get_authors()?));
+    placeholders.insert(
+        String::from("authors"),
+        liquid::Value::scalar(&get_authors()?),
+    );
 
     let progress = indicatif::ProgressBar::new_spinner();
     progress.tick();
@@ -72,8 +74,13 @@ main!(|args: Cli| {
 
         let filename = entry.path();
         progress.set_message(&filename.display().to_string());
-        let new_contents = engine.clone().parse_file(&filename)?.render(&placeholders)
-            .with_context(|_e| format!("Error replacing placeholders in `{}`", filename.display()))?;
+        let new_contents = engine
+            .clone()
+            .parse_file(&filename)?
+            .render(&placeholders)
+            .with_context(|_e| {
+                format!("Error replacing placeholders in `{}`", filename.display())
+            })?;
         fs::write(&filename, new_contents)
             .with_context(|_e| format!("Error writing `{}`", filename.display()))?;
     }
