@@ -8,6 +8,11 @@ matrix:
   - rust: stable
     script:
     - cargo test --all --locked
+    env: RUST_BACKTRACE=1
+
+  # rustfmt passes
+  - rust: stable
+    script:
     - rustup component add rustfmt-preview
     - cargo fmt --all -- --check
-    env: RUST_BACKTRACE=1
+    env: RUSTFMT_ONLY=true
