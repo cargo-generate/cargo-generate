@@ -8,3 +8,16 @@ repository = "https://github.com/ashleygwilliams/cargo-generate"
 readme = "README.md"
 
 [dependencies]
+dialoguer = "0.1.0"
+indicatif = "0.9.0"
+quicli = { version = "0.2.0", git = "https://github.com/killercup/quicli" }
+git2 = "0.7.1"
+tempfile = "3.0.2"
+regex = "1.0.0"
+ident_case = "1.0.0"
+liquid = "0.14.3"
+walkdir = "2.1.4"
+
+[dev-dependencies]
+assert_cli = "0.6.1"
+tempfile = "3.0.2"
