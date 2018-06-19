@@ -1,0 +1,18 @@
+language: rust
+sudo: false
+
+matrix:
+  include:
+
+  # tests pass
+  - rust: stable
+    script:
+    - cargo test --all --locked
+    env: RUST_BACKTRACE=1
+
+  # rustfmt passes
+  - rust: stable
+    script:
+    - rustup component add rustfmt-preview
+    - cargo fmt --all -- --check
+    env: RUSTFMT_ONLY=true
