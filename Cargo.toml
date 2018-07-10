@@ -19,5 +19,6 @@ liquid = "0.14.3"
 walkdir = "2.1.4"
 
 [dev-dependencies]
-assert_cli = "0.6.1"
+predicates = "0.5.0"
+assert_cmd = "0.4"
 tempfile = "3.0.2"
