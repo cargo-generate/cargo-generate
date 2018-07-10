@@ -1,7 +1,7 @@
 extern crate assert_cmd;
+extern crate git2;
 extern crate predicates;
 extern crate tempfile;
-extern crate git2;
 
 // actual tests
 
@@ -32,15 +32,15 @@ mod helpers {
         root: PathBuf,
     }
 
-    pub fn project() -> ProjectBuilder {
+    pub fn dir(name: &str) -> ProjectBuilder {
         ProjectBuilder {
             files: Vec::new(),
-            root: root(),
+            root: root(name),
             git: false,
         }
     }
 
-    fn root() -> PathBuf {
+    fn root(name: &str) -> PathBuf {
         let idx = IDX.with(|x| *x);
 
         let mut me = env::current_exe().expect("couldn't find current exe");
@@ -48,7 +48,7 @@ mod helpers {
         me.pop(); // chop off `deps`
         me.pop(); // chop off `debug` / `release`
         me.push("generated-tests");
-        me.push(&format!("test{}", idx));
+        me.push(&format!("test-{}-{}", idx, name));
         return me;
     }
 
@@ -65,10 +65,17 @@ mod helpers {
 
         pub fn build(self) -> Project {
             drop(fs::remove_dir_all(&self.root));
+            fs::create_dir_all(&self.root)
+                .expect(&format!("couldn't create {:?} directory", self.root));
 
             for &(ref file, ref contents) in self.files.iter() {
                 let dst = self.root.join(file);
-                fs::create_dir_all(dst.parent().expect(&format!("couldn't find parent dir of {:?}", dst))).expect(&format!("couldn't create {:?} directory", dst.parent()));
+
+                fs::create_dir_all(
+                    dst.parent()
+                        .expect(&format!("couldn't find parent dir of {:?}", dst)),
+                ).expect(&format!("couldn't create {:?} directory", dst.parent()));
+
                 fs::File::create(&dst)
                     .expect(&format!("couldn't create file {:?}", dst))
                     .write_all(contents.as_ref())
@@ -76,7 +83,27 @@ mod helpers {
             }
 
             if self.git {
-                let _repo = git2::Repository::init_opts(&self.root, git2::RepositoryInitOptions::new().bare(false)).expect(&format!("couldn't init git repo at {:?}", self.root));
+                use assert_cmd::prelude::*;
+                use std::process::Command;
+
+                Command::new("git")
+                    .arg("init")
+                    .current_dir(&self.root)
+                    .assert()
+                    .success();
+                Command::new("git")
+                    .arg("add")
+                    .arg("--all")
+                    .current_dir(&self.root)
+                    .assert()
+                    .success();
+                Command::new("git")
+                    .arg("commit")
+                    .arg("--message")
+                    .arg("initial commit")
+                    .current_dir(&self.root)
+                    .assert()
+                    .success();
             }
 
             Project { root: self.root }
