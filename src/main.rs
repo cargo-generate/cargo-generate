@@ -9,7 +9,10 @@ extern crate regex;
 extern crate walkdir;
 
 use dialoguer::Input;
-use git2::{Config as GitConfig, Repository as GitRepository, RepositoryInitOptions};
+use git2::{
+    build::CheckoutBuilder, build::RepoBuilder, Config as GitConfig, Repository as GitRepository,
+    RepositoryInitOptions,
+};
 use quicli::prelude::*;
 use std::{env, fs};
 use walkdir::WalkDir;
@@ -57,7 +60,10 @@ main!(|args: Cli| {
         project_dir.display()
     );
 
-    let _template = GitRepository::clone(&args.git, &project_dir)
+    let _template = RepoBuilder::new()
+        .bare(false)
+        .with_checkout(CheckoutBuilder::new())
+        .clone(&args.git, &project_dir)
         .with_context(|_e| format!("Couldn't clone `{}`", &args.git))?;
 
     fs::remove_dir_all(&project_dir.join(".git")).context("Error cleaning up cloned template")?;
@@ -77,15 +83,7 @@ main!(|args: Cli| {
     let progress = indicatif::ProgressBar::new_spinner();
     progress.tick();
 
-    for entry in WalkDir::new(&project_dir)
-        .into_iter()
-        .filter_entry(|entry| {
-            entry
-                .file_name()
-                .to_str()
-                .map(|s| s.starts_with(".git"))
-                .unwrap_or(false)
-        }) {
+    for entry in WalkDir::new(&project_dir) {
         let entry = entry?;
         if entry.metadata()?.is_dir() {
             continue;
@@ -93,6 +91,7 @@ main!(|args: Cli| {
 
         let filename = entry.path();
         progress.set_message(&filename.display().to_string());
+
         let new_contents = engine
             .clone()
             .parse_file(&filename)?
