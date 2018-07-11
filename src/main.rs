@@ -9,11 +9,33 @@ extern crate regex;
 extern crate walkdir;
 
 use dialoguer::Input;
-use git2::{Config as GitConfig, Repository as GitRepository, RepositoryInitOptions};
+use git2::{
+    build::CheckoutBuilder, build::RepoBuilder, Config as GitConfig, Repository as GitRepository,
+    RepositoryInitOptions,
+};
 use quicli::prelude::*;
 use std::{env, fs};
 use walkdir::WalkDir;
 
+/// Generate a new Cargo project from a given template
+///
+/// Right now, only git repositories can be used as templates. Just execute
+///
+/// $ cargo generate --git https://github.com/user/template.git --name foo
+///
+/// and a new Cargo project called foo will be generated.
+///
+/// TEMPLATES:
+///
+/// In templates, the following placeholders can be used:
+///
+/// - `project-name`: Name of the project, in dash-case
+///
+/// - `crate_name`: Name of the project, but in a case valid for a Rust
+///   identifier, i.e., snake_case
+///
+/// - `authors`: Author names, taken from usual environment variables (i.e.
+///   those which are also used by Cargo and git)
 #[derive(Debug, StructOpt)]
 struct Cli {
     #[structopt(long = "git")]
@@ -38,7 +60,10 @@ main!(|args: Cli| {
         project_dir.display()
     );
 
-    let _template = GitRepository::clone(&args.git, &project_dir)
+    let _template = RepoBuilder::new()
+        .bare(false)
+        .with_checkout(CheckoutBuilder::new())
+        .clone(&args.git, &project_dir)
         .with_context(|_e| format!("Couldn't clone `{}`", &args.git))?;
 
     fs::remove_dir_all(&project_dir.join(".git")).context("Error cleaning up cloned template")?;
@@ -58,15 +83,7 @@ main!(|args: Cli| {
     let progress = indicatif::ProgressBar::new_spinner();
     progress.tick();
 
-    for entry in WalkDir::new(&project_dir)
-        .into_iter()
-        .filter_entry(|entry| {
-            entry
-                .file_name()
-                .to_str()
-                .map(|s| s.starts_with(".git"))
-                .unwrap_or(false)
-        }) {
+    for entry in WalkDir::new(&project_dir) {
         let entry = entry?;
         if entry.metadata()?.is_dir() {
             continue;
@@ -74,6 +91,7 @@ main!(|args: Cli| {
 
         let filename = entry.path();
         progress.set_message(&filename.display().to_string());
+
         let new_contents = engine
             .clone()
             .parse_file(&filename)?
