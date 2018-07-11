@@ -7,6 +7,7 @@ extern crate indicatif;
 extern crate liquid;
 extern crate regex;
 extern crate walkdir;
+extern crate remove_dir_all;
 
 use dialoguer::Input;
 use git2::{
@@ -16,6 +17,7 @@ use git2::{
 use quicli::prelude::*;
 use std::{env, fs};
 use walkdir::WalkDir;
+use remove_dir_all::remove_dir_all;
 
 /// Generate a new Cargo project from a given template
 ///
@@ -66,7 +68,7 @@ main!(|args: Cli| {
         .clone(&args.git, &project_dir)
         .with_context(|_e| format!("Couldn't clone `{}`", &args.git))?;
 
-    fs::remove_dir_all(&project_dir.join(".git")).context("Error cleaning up cloned template")?;
+    remove_dir_all(&project_dir.join(".git")).context("Error cleaning up cloned template")?;
 
     let engine = liquid::ParserBuilder::new().build();
     let mut placeholders = liquid::Object::new();
