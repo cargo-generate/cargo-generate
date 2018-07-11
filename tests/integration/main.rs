@@ -1,5 +1,4 @@
 extern crate assert_cmd;
-extern crate git2;
 extern crate predicates;
 extern crate tempfile;
 
@@ -16,8 +15,6 @@ mod helpers {
     use std::path::{Path, PathBuf};
     use std::str;
     use std::sync::atomic::*;
-
-    use git2;
 
     static CNT: AtomicUsize = ATOMIC_USIZE_INIT;
     thread_local!(static IDX: usize = CNT.fetch_add(1, Ordering::SeqCst));
