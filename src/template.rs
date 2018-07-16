@@ -11,11 +11,8 @@ fn engine() -> liquid::Parser {
     liquid::ParserBuilder::new().build()
 }
 
-pub fn new() -> liquid::Object {
-    liquid::Object::new()
-}
-
-pub fn substitute(name: &str, mut template: liquid::Object) -> Result<liquid::Object> {
+pub fn substitute(name: &str) -> Result<liquid::Object> {
+    let mut template = liquid::Object::new();
     template.insert(String::from("project-name"), liquid::Value::scalar(name));
     template.insert(
         String::from("crate_name"),

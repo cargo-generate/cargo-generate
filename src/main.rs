@@ -64,8 +64,7 @@ main!(|args: Cli| {
     git::create(&project_dir, args)?;
     git::remove_history(&project_dir)?;
 
-    let mut template = template::new();
-    template = template::substitute(&name, template)?;
+    let template = template::substitute(&name)?;
 
     let pbar = progressbar::new();
     pbar.tick();
