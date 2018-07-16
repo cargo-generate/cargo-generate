@@ -11,10 +11,10 @@ extern crate walkdir;
 mod cargo;
 mod interactive;
 mod git;
+mod template;
 
 use quicli::prelude::*;
-use std::{env, fs};
-use walkdir::WalkDir;
+use std::env;
 
 /// Generate a new Cargo project from a given template
 ///
@@ -62,40 +62,13 @@ main!(|args: Cli| {
     git::create(&project_dir, args)?;
     git::remove_history(&project_dir)?;
 
-    let engine = liquid::ParserBuilder::new().build();
-    let mut placeholders = liquid::Object::new();
-    placeholders.insert(String::from("project-name"), liquid::Value::scalar(&name));
-    placeholders.insert(
-        String::from("crate_name"),
-        liquid::Value::scalar(&ident_case::RenameRule::SnakeCase.apply_to_field(&name)),
-    );
-    placeholders.insert(
-        String::from("authors"),
-        liquid::Value::scalar(&cargo::get_authors()?),
-    );
+    let mut template = template::new();
+    template = template::substitute(&name, template)?;
 
     let progress = indicatif::ProgressBar::new_spinner();
     progress.tick();
 
-    for entry in WalkDir::new(&project_dir) {
-        let entry = entry?;
-        if entry.metadata()?.is_dir() {
-            continue;
-        }
-
-        let filename = entry.path();
-        progress.set_message(&filename.display().to_string());
-
-        let new_contents = engine
-            .clone()
-            .parse_file(&filename)?
-            .render(&placeholders)
-            .with_context(|_e| {
-                format!("Error replacing placeholders in `{}`", filename.display())
-            })?;
-        fs::write(&filename, new_contents)
-            .with_context(|_e| format!("Error writing `{}`", filename.display()))?;
-    }
+    template::walk_dir(&project_dir, template);
 
     git::init(&project_dir)?;
 
