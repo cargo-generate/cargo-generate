@@ -6,6 +6,7 @@ extern crate ident_case;
 extern crate indicatif;
 extern crate liquid;
 extern crate regex;
+extern crate remove_dir_all;
 extern crate walkdir;
 
 mod cargo;
