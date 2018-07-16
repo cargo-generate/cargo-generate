@@ -1,5 +1,5 @@
 use indicatif::ProgressBar;
 
 pub fn new() -> ProgressBar {
-  ProgressBar::new_spinner()
+    ProgressBar::new_spinner()
 }

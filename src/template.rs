@@ -8,27 +8,27 @@ use std::path::PathBuf;
 use walkdir::WalkDir;
 
 fn engine() -> liquid::Parser {
-  liquid::ParserBuilder::new().build()
+    liquid::ParserBuilder::new().build()
 }
 
 pub fn new() -> liquid::Object {
-  liquid::Object::new()
+    liquid::Object::new()
 }
 
 pub fn substitute(name: &str, mut template: liquid::Object) -> Result<liquid::Object> {
-  template.insert(String::from("project-name"), liquid::Value::scalar(name));
-  template.insert(
-      String::from("crate_name"),
-      liquid::Value::scalar(&ident_case::RenameRule::SnakeCase.apply_to_field(name)),
-  );
-  template.insert(
-      String::from("authors"),
-      liquid::Value::scalar(&cargo::get_authors()?),
-  );
-  Ok(template)
+    template.insert(String::from("project-name"), liquid::Value::scalar(name));
+    template.insert(
+        String::from("crate_name"),
+        liquid::Value::scalar(&ident_case::RenameRule::SnakeCase.apply_to_field(name)),
+    );
+    template.insert(
+        String::from("authors"),
+        liquid::Value::scalar(&cargo::get_authors()?),
+    );
+    Ok(template)
 }
 
-pub fn walk_dir(project_dir: &PathBuf, template: liquid::Object, pbar: ProgressBar) -> Result<()>{
+pub fn walk_dir(project_dir: &PathBuf, template: liquid::Object, pbar: ProgressBar) -> Result<()> {
     let engine = engine();
     for entry in WalkDir::new(project_dir) {
         let entry = entry?;

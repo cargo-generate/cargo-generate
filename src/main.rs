@@ -9,8 +9,8 @@ extern crate regex;
 extern crate walkdir;
 
 mod cargo;
-mod interactive;
 mod git;
+mod interactive;
 mod progressbar;
 mod template;
 
