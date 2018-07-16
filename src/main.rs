@@ -11,6 +11,7 @@ extern crate walkdir;
 mod cargo;
 mod interactive;
 mod git;
+mod progressbar;
 mod template;
 
 use quicli::prelude::*;
@@ -65,13 +66,12 @@ main!(|args: Cli| {
     let mut template = template::new();
     template = template::substitute(&name, template)?;
 
-    let progress = indicatif::ProgressBar::new_spinner();
-    progress.tick();
+    let pbar = progressbar::new();
+    pbar.tick();
 
-    template::walk_dir(&project_dir, template);
+    template::walk_dir(&project_dir, template, pbar)?;
 
     git::init(&project_dir)?;
 
-    progress.finish_and_clear();
     println!("Done!");
 });
