@@ -6,18 +6,18 @@ extern crate ident_case;
 extern crate indicatif;
 extern crate liquid;
 extern crate regex;
-extern crate walkdir;
 extern crate remove_dir_all;
+extern crate walkdir;
+
+mod cargo;
 
 use dialoguer::Input;
-use git2::{
-    build::CheckoutBuilder, build::RepoBuilder, Config as GitConfig, Repository as GitRepository,
-    RepositoryInitOptions,
-};
+use git2::{build::CheckoutBuilder, build::RepoBuilder, Repository as GitRepository,
+           RepositoryInitOptions};
 use quicli::prelude::*;
+use remove_dir_all::remove_dir_all;
 use std::{env, fs};
 use walkdir::WalkDir;
-use remove_dir_all::remove_dir_all;
 
 /// Generate a new Cargo project from a given template
 ///
@@ -79,7 +79,7 @@ main!(|args: Cli| {
     );
     placeholders.insert(
         String::from("authors"),
-        liquid::Value::scalar(&get_authors()?),
+        liquid::Value::scalar(&cargo::get_authors()?),
     );
 
     let progress = indicatif::ProgressBar::new_spinner();
@@ -125,68 +125,4 @@ fn query_name() -> Result<String> {
         }
     };
     Ok(name)
-}
-
-/// Taken from cargo ans thus (c) 2018 Cargo Developers
-///
-/// cf. https://github.com/rust-lang/cargo/blob/d33c65cbd9d6f7ba1e18b2cdb85fea5a09973d3b/src/cargo/ops/cargo_new.rs#L595-L645
-fn get_authors() -> Result<String> {
-    fn get_environment_variable(variables: &[&str]) -> Option<String> {
-        variables.iter().filter_map(|var| env::var(var).ok()).next()
-    }
-
-    fn discover_author() -> Result<(String, Option<String>)> {
-        let cwd = env::current_dir()?;
-        let git_config = if let Ok(repo) = GitRepository::discover(&cwd) {
-            repo.config()
-                .ok()
-                .or_else(|| GitConfig::open_default().ok())
-        } else {
-            GitConfig::open_default().ok()
-        };
-        let git_config = git_config.as_ref();
-        let name_variables = [
-            "CARGO_NAME",
-            "GIT_AUTHOR_NAME",
-            "GIT_COMMITTER_NAME",
-            "USER",
-            "USERNAME",
-            "NAME",
-        ];
-        let name = get_environment_variable(&name_variables[0..3])
-            .or_else(|| git_config.and_then(|g| g.get_string("user.name").ok()))
-            .or_else(|| get_environment_variable(&name_variables[3..]));
-
-        let name = match name {
-            Some(name) => name,
-            None => {
-                let username_var = if cfg!(windows) { "USERNAME" } else { "USER" };
-                bail!(
-                    "could not determine the current user, please set ${}",
-                    username_var
-                )
-            }
-        };
-        let email_variables = [
-            "CARGO_EMAIL",
-            "GIT_AUTHOR_EMAIL",
-            "GIT_COMMITTER_EMAIL",
-            "EMAIL",
-        ];
-        let email = get_environment_variable(&email_variables[0..3])
-            .or_else(|| git_config.and_then(|g| g.get_string("user.email").ok()))
-            .or_else(|| get_environment_variable(&email_variables[3..]));
-
-        let name = name.trim().to_string();
-        let email = email.map(|s| s.trim().to_string());
-
-        Ok((name, email))
-    }
-
-    let author = match discover_author()? {
-        (name, Some(email)) => format!("{} <{}>", name, email),
-        (name, None) => name,
-    };
-
-    Ok(author)
 }
