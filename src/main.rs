@@ -6,16 +6,13 @@ extern crate ident_case;
 extern crate indicatif;
 extern crate liquid;
 extern crate regex;
-extern crate remove_dir_all;
 extern crate walkdir;
 
 mod cargo;
 mod interactive;
+mod git;
 
-use git2::{build::CheckoutBuilder, build::RepoBuilder, Repository as GitRepository,
-           RepositoryInitOptions};
 use quicli::prelude::*;
-use remove_dir_all::remove_dir_all;
 use std::{env, fs};
 use walkdir::WalkDir;
 
@@ -39,7 +36,7 @@ use walkdir::WalkDir;
 /// - `authors`: Author names, taken from usual environment variables (i.e.
 ///   those which are also used by Cargo and git)
 #[derive(Debug, StructOpt)]
-struct Cli {
+pub struct Cli {
     #[structopt(long = "git")]
     git: String,
     #[structopt(long = "name")]
@@ -62,13 +59,8 @@ main!(|args: Cli| {
         project_dir.display()
     );
 
-    let _template = RepoBuilder::new()
-        .bare(false)
-        .with_checkout(CheckoutBuilder::new())
-        .clone(&args.git, &project_dir)
-        .with_context(|_e| format!("Couldn't clone `{}`", &args.git))?;
-
-    remove_dir_all(&project_dir.join(".git")).context("Error cleaning up cloned template")?;
+    git::create(&project_dir, args)?;
+    git::remove_history(&project_dir)?;
 
     let engine = liquid::ParserBuilder::new().build();
     let mut placeholders = liquid::Object::new();
@@ -105,8 +97,7 @@ main!(|args: Cli| {
             .with_context(|_e| format!("Error writing `{}`", filename.display()))?;
     }
 
-    let _repo = GitRepository::init_opts(&project_dir, RepositoryInitOptions::new().bare(false))
-        .context("Couldn't init new repository")?;
+    git::init(&project_dir)?;
 
     progress.finish_and_clear();
     println!("Done!");
