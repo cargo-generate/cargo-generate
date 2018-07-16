@@ -10,8 +10,8 @@ extern crate remove_dir_all;
 extern crate walkdir;
 
 mod cargo;
+mod interactive;
 
-use dialoguer::Input;
 use git2::{build::CheckoutBuilder, build::RepoBuilder, Repository as GitRepository,
            RepositoryInitOptions};
 use quicli::prelude::*;
@@ -49,7 +49,7 @@ struct Cli {
 main!(|args: Cli| {
     let name = match &args.name {
         Some(ref n) => n.to_string(),
-        None => query_name()?,
+        None => interactive::name()?,
     };
 
     let project_dir = env::current_dir()
@@ -111,18 +111,3 @@ main!(|args: Cli| {
     progress.finish_and_clear();
     println!("Done!");
 });
-
-fn query_name() -> Result<String> {
-    let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;
-    let name = loop {
-        let name = Input::new("The project's name is").interact()?;
-        if valid_ident.is_match(&name) {
-            let name = ident_case::RenameRule::KebabCase.apply_to_field(&name);
-            println!("Nice, I'll call your project `{}`", name);
-            break name;
-        } else {
-            eprintln!("Sorry, that is not a valid crate name :(");
-        }
-    };
-    Ok(name)
-}
