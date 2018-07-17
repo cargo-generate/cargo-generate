@@ -2,7 +2,10 @@
 name = "cargo-generate"
 description = "cargo, make me a project"
 version = "0.0.0"
-authors = ["Ashley Williams <ashley666ashley@gmail.com>"]
+authors = [
+    "Ashley Williams <ashley666ashley@gmail.com>",
+    "Pascal Hertleif <killercup@gmail.com>",
+]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/ashleygwilliams/cargo-generate"
 readme = "README.md"
