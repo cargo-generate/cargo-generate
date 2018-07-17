@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate quicli;
+extern crate console;
 extern crate dialoguer;
 extern crate git2;
 extern crate ident_case;
@@ -10,6 +11,7 @@ extern crate remove_dir_all;
 extern crate walkdir;
 
 mod cargo;
+mod emoji;
 mod git;
 mod interactive;
 mod progressbar;
@@ -73,5 +75,5 @@ main!(|args: Cli| {
 
     git::init(&project_dir)?;
 
-    println!("Done!");
+    println!("{} Done!", emoji::SPARKLE);
 });
