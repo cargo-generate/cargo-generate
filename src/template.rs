@@ -1,4 +1,5 @@
 use cargo;
+use console::style;
 use emoji;
 use ident_case;
 use indicatif::ProgressBar;
@@ -42,10 +43,21 @@ pub fn walk_dir(project_dir: &PathBuf, template: liquid::Object, pbar: ProgressB
             .parse_file(&filename)?
             .render(&template)
             .with_context(|_e| {
-                format!("{} Error replacing placeholders in `{}`", emoji::ERROR, filename.display())
+                format!(
+                    "{} {} `{}`",
+                    emoji::ERROR,
+                    style("Error replacing placeholders").bold().red(),
+                    style(filename.display()).bold()
+                )
             })?;
-        fs::write(&filename, new_contents)
-            .with_context(|_e| format!("{} Error writing `{}`", emoji::ERROR, filename.display()))?;
+        fs::write(&filename, new_contents).with_context(|_e| {
+            format!(
+                "{} {} `{}`",
+                emoji::ERROR,
+                style("Error writing").bold().red(),
+                style(filename.display()).bold()
+            )
+        })?;
     }
     pbar.finish_and_clear();
     Ok(())

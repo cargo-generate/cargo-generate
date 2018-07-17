@@ -17,6 +17,7 @@ mod interactive;
 mod progressbar;
 mod template;
 
+use console::style;
 use quicli::prelude::*;
 use std::env;
 
@@ -75,5 +76,12 @@ main!(|args: Cli| {
 
     git::init(&project_dir)?;
 
-    println!("{} Done!", emoji::SPARKLE);
+    let dir_string = &project_dir.to_str().unwrap_or("");
+    println!(
+        "{} {} {} {}",
+        emoji::SPARKLE,
+        style("Done!").bold().green(),
+        style("New project created").bold(),
+        style(dir_string).underlined()
+    );
 });
