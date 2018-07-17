@@ -1,4 +1,6 @@
+use console::style;
 use dialoguer::Input;
+use emoji;
 use ident_case;
 use quicli::prelude::Error;
 use regex;
@@ -6,13 +8,29 @@ use regex;
 pub fn name() -> Result<String, Error> {
     let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;
     let name = loop {
-        let name = Input::new("The project's name is").interact()?;
+        let name = Input::new(&format!(
+            "{} {}",
+            emoji::SHRUG,
+            style("Project Name").bold()
+        )).interact()?;
         if valid_ident.is_match(&name) {
             let name = ident_case::RenameRule::KebabCase.apply_to_field(&name);
-            println!("Nice, I'll call your project `{}`", name);
+            println!(
+                "{} {} `{}`{}",
+                emoji::WRENCH,
+                style("Creating project called").bold(),
+                style(&name).bold().yellow(),
+                style("...").bold()
+            );
             break name;
         } else {
-            eprintln!("Sorry, that is not a valid crate name :(");
+            eprintln!(
+                "{} {} \"{}\" {}",
+                emoji::WARN,
+                style("Sorry,").bold().red(),
+                style(&name).bold().yellow(),
+                style("is not a valid crate name").bold().red()
+            );
         }
     };
     Ok(name)

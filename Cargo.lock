@@ -73,6 +73,7 @@ name = "cargo-generate"
 version = "0.0.0"
 dependencies = [
  "assert_cmd 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "console 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "dialoguer 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "git2 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "ident_case 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
