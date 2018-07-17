@@ -8,7 +8,10 @@
 `cargo-generate` is a developer tool to help you get up and running quickly with a new Rust
 project by leveraging a pre-existing git repository as a template. 
 
+Here's an example of using `cargo-generate` with [this template]:
 ![demo.gif](./demo.gif)
+
+[this template]: https://github.com/ashleygwilliams/wasm-pack-template
 
 ## Installation
 
@@ -29,6 +32,20 @@ You can also pass the name of your project to the tool using the `--name` flag:
 ```
 cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject
 ```
+
+## Templates
+
+Templates are git repositories whose files contain placeholders. The current
+supported placeholders are:
+
+- `{{authors}}`: this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.
+- `{{project-name}}`: this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
+- `{{crate_name}}`: the snake_case_version of `project-name`
+
+Here's an [example](https://github.com/ashleygwilliams/wasm-pack-template).
+If you have a great template that you'd like to feature here, please [file an issue]!
+
+[file an issue]: https://github.com/ashleygwilliams/cargo-generate/issues
 
 ## License
 
