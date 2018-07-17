@@ -1,6 +1,7 @@
 extern crate assert_cmd;
 extern crate predicates;
 extern crate tempfile;
+extern crate remove_dir_all;
 
 // actual tests
 
@@ -15,6 +16,8 @@ mod helpers {
     use std::path::{Path, PathBuf};
     use std::str;
     use std::sync::atomic::*;
+
+    use remove_dir_all::remove_dir_all;
 
     static CNT: AtomicUsize = ATOMIC_USIZE_INIT;
     thread_local!(static IDX: usize = CNT.fetch_add(1, Ordering::SeqCst));
@@ -61,7 +64,7 @@ mod helpers {
         }
 
         pub fn build(self) -> Project {
-            drop(fs::remove_dir_all(&self.root));
+            drop(remove_dir_all(&self.root));
             fs::create_dir_all(&self.root)
                 .expect(&format!("couldn't create {:?} directory", self.root));
 
