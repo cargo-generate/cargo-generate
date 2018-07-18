@@ -1,6 +1,6 @@
 extern crate predicates;
 
-use super::helpers::*;
+use helpers::project_builder::dir;
 
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
