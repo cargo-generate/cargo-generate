@@ -24,13 +24,13 @@ cargo install cargo-generate
 Standard usage is to pass a `--git` flag to `cargo generate`. This will prompt you to enter the name of your project.
 
 ```
-cargo generate --git https://github.com/githubusername/mytemplate.git
+cargo-generate --git https://github.com/githubusername/mytemplate.git
 ```
 
 You can also pass the name of your project to the tool using the `--name` flag:
 
 ```
-cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject
+cargo-generate --git https://github.com/githubusername/mytemplate.git --name myproject
 ```
 
 ## Templates
