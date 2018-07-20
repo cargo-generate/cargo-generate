@@ -3,9 +3,9 @@ use git2::{build::CheckoutBuilder, build::RepoBuilder, Repository as GitReposito
 use quicli::prelude::*;
 use remove_dir_all::remove_dir_all;
 use std::path::PathBuf;
-use Cli;
+use Args;
 
-pub fn create(project_dir: &PathBuf, args: Cli) -> Result<GitRepository> {
+pub fn create(project_dir: &PathBuf, args: Args) -> Result<GitRepository> {
     Ok(RepoBuilder::new()
         .bare(false)
         .with_checkout(CheckoutBuilder::new())

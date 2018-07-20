@@ -40,15 +40,23 @@ use std::env;
 ///
 /// - `authors`: Author names, taken from usual environment variables (i.e.
 ///   those which are also used by Cargo and git)
+#[derive(StructOpt)]
+#[structopt(bin_name = "cargo")]
+pub enum Cli {
+    #[structopt(name = "generate")]
+    Generate(Args),
+}
+
 #[derive(Debug, StructOpt)]
-pub struct Cli {
+pub struct Args {
     #[structopt(long = "git")]
     git: String,
     #[structopt(long = "name")]
     name: Option<String>,
 }
 
-main!(|args: Cli| {
+main!(|_cli: Cli| {
+    let Cli::Generate(args) = Cli::from_args();
     let name = match &args.name {
         Some(ref n) => n.to_string(),
         None => interactive::name()?,
