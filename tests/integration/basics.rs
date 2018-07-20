@@ -25,6 +25,7 @@ authors = ["{{authors}}"]
 
     Command::main_binary()
         .unwrap()
+        .arg("generate")
         .arg("--git")
         .arg(template.path())
         .arg("--name")
