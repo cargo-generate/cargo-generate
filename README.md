@@ -6,7 +6,7 @@
 [![Build Status](https://travis-ci.com/ashleygwilliams/cargo-generate.svg?branch=master)](https://travis-ci.com/ashleygwilliams/cargo-generate)
 
 `cargo-generate` is a developer tool to help you get up and running quickly with a new Rust
-project by leveraging a pre-existing git repository as a template. 
+project by leveraging a pre-existing git repository as a template.
 
 Here's an example of using `cargo-generate` with [this template]:
 ![demo.gif](./demo.gif)
@@ -18,6 +18,17 @@ Here's an example of using `cargo-generate` with [this template]:
 ```
 cargo install cargo-generate
 ```
+
+`cargo-generate` has a few dependencies that need to be available before it can be installed and used.
+
+* `openssl`: See the [`openssl-sys` crate readme] on how to obtain the openssl library for your system.
+* [`git`]: It is used to download the templates.
+* `cmake`: Check if it is installed by typing `cmake --version` in a terminal or command line window. If it is not available, check your package
+  manager or see the [cmake homepage].
+
+[`openssl-sys` crate readme]: https://crates.io/crates/openssl-sys
+[`git`]: https://git-scm.com/downloads
+[cmake homepage]: https://cmake.org/download/
 
 ## Usage
 
