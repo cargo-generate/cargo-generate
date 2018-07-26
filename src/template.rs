@@ -1,7 +1,6 @@
 use cargo;
 use console::style;
 use emoji;
-use ident_case;
 use indicatif::ProgressBar;
 use liquid;
 use quicli::prelude::*;
@@ -18,13 +17,17 @@ pub fn substitute(name: &str) -> Result<liquid::Object> {
     template.insert(String::from("project-name"), liquid::Value::scalar(name));
     template.insert(
         String::from("crate_name"),
-        liquid::Value::scalar(&ident_case::RenameRule::SnakeCase.apply_to_field(name)),
+        liquid::Value::scalar(&hyphen_to_lodash(name)),
     );
     template.insert(
         String::from("authors"),
         liquid::Value::scalar(&cargo::get_authors()?),
     );
     Ok(template)
+}
+
+fn hyphen_to_lodash(string: &str) -> String {
+    string.to_string().replace("-", "_")
 }
 
 pub fn walk_dir(project_dir: &PathBuf, template: liquid::Object, pbar: ProgressBar) -> Result<()> {
