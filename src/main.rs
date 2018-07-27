@@ -15,9 +15,11 @@ mod emoji;
 mod git;
 mod interactive;
 mod progressbar;
+mod projectname;
 mod template;
 
 use console::style;
+use projectname::ProjectName;
 use quicli::prelude::*;
 use std::env;
 
@@ -58,13 +60,21 @@ pub struct Args {
 main!(|_cli: Cli| {
     let Cli::Generate(args) = Cli::from_args();
     let name = match &args.name {
-        Some(ref n) => n.to_string(),
-        None => interactive::name()?,
+        Some(ref n) => ProjectName::new(n),
+        None => ProjectName::new(&interactive::name()?),
     };
+
+    println!(
+        "{} {} `{}`{}",
+        emoji::WRENCH,
+        style("Creating project called").bold(),
+        style(&name.kebab_case).bold().yellow(),
+        style("...").bold()
+    );
 
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
-        .join(&name);
+        .join(&name.kebab_case);
 
     ensure!(
         !project_dir.exists(),
@@ -75,7 +85,7 @@ main!(|_cli: Cli| {
     git::create(&project_dir, args)?;
     git::remove_history(&project_dir)?;
 
-    let template = template::substitute(&name)?;
+    let template = template::substitute(&name.kebab_case)?;
 
     let pbar = progressbar::new();
     pbar.tick();
