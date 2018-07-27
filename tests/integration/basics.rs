@@ -41,7 +41,7 @@ version = "0.1.0"
 }
 
 #[test]
-fn it_snakecases_projectname_when_passed_to_flag() {
+fn it_kebabcases_projectname_when_passed_to_flag() {
     let template = dir("template")
         .file(
             "Cargo.toml",
