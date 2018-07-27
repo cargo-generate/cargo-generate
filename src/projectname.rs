@@ -1,5 +1,7 @@
 use heck::{KebabCase, SnakeCase};
 
+/// Stores user inputted name and provides convenience methods
+/// for handling casing.
 pub struct ProjectName {
     user_input: String,
 }
