@@ -3,7 +3,7 @@ extern crate quicli;
 extern crate console;
 extern crate dialoguer;
 extern crate git2;
-extern crate ident_case;
+extern crate heck;
 extern crate indicatif;
 extern crate liquid;
 extern crate regex;

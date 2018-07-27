@@ -1,7 +1,7 @@
 use console::style;
 use dialoguer::Input;
 use emoji;
-use ident_case;
+use heck::KebabCase;
 use quicli::prelude::Error;
 use regex;
 
@@ -14,12 +14,12 @@ pub fn name() -> Result<String, Error> {
             style("Project Name").bold()
         )).interact()?;
         if valid_ident.is_match(&name) {
-            let name = ident_case::RenameRule::KebabCase.apply_to_field(&name);
+
             println!(
                 "{} {} `{}`{}",
                 emoji::WRENCH,
                 style("Creating project called").bold(),
-                style(&name).bold().yellow(),
+                style(&name.to_kebab_case()).bold().yellow(),
                 style("...").bold()
             );
             break name;
