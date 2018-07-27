@@ -68,13 +68,13 @@ main!(|_cli: Cli| {
         "{} {} `{}`{}",
         emoji::WRENCH,
         style("Creating project called").bold(),
-        style(&name.kebab_case).bold().yellow(),
+        style(&name.kebab_case()).bold().yellow(),
         style("...").bold()
     );
 
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
-        .join(&name.kebab_case);
+        .join(&name.kebab_case());
 
     ensure!(
         !project_dir.exists(),

@@ -1,15 +1,21 @@
 use heck::{KebabCase, SnakeCase};
 
 pub struct ProjectName {
-    pub kebab_case: String,
-    pub snake_case: String,
+    user_input: String,
 }
 
 impl ProjectName {
     pub fn new(name: &str) -> ProjectName {
         ProjectName {
-            kebab_case: name.to_kebab_case(),
-            snake_case: name.to_snake_case(),
+            user_input: name.to_string(),
         }
+    }
+
+    pub fn kebab_case(&self) -> String {
+        self.user_input.to_kebab_case()
+    }
+
+    pub fn snake_case(&self) -> String {
+        self.user_input.to_snake_case()
     }
 }
