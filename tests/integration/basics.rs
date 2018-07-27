@@ -41,6 +41,40 @@ version = "0.1.0"
 }
 
 #[test]
+fn it_snakecases_projectname_when_passed_to_flag() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar_project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(
+        dir.read("foobar-project/Cargo.toml")
+            .contains("foobar-project")
+    );
+}
+
+#[test]
 fn it_substitutes_cratename_in_a_rust_file() {
     let template = dir("template")
         .file(
