@@ -85,7 +85,7 @@ main!(|_cli: Cli| {
     git::create(&project_dir, args)?;
     git::remove_history(&project_dir)?;
 
-    let template = template::substitute(&name.kebab_case)?;
+    let template = template::substitute(&name)?;
 
     let pbar = progressbar::new();
     pbar.tick();
