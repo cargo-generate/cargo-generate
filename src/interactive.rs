@@ -1,7 +1,6 @@
 use console::style;
 use dialoguer::Input;
 use emoji;
-use heck::KebabCase;
 use quicli::prelude::Error;
 use regex;
 
@@ -14,14 +13,6 @@ pub fn name() -> Result<String, Error> {
             style("Project Name").bold()
         )).interact()?;
         if valid_ident.is_match(&name) {
-
-            println!(
-                "{} {} `{}`{}",
-                emoji::WRENCH,
-                style("Creating project called").bold(),
-                style(&name.to_kebab_case()).bold().yellow(),
-                style("...").bold()
-            );
             break name;
         } else {
             eprintln!(
