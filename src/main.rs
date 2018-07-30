@@ -29,6 +29,10 @@ use std::env;
 ///
 /// $ cargo generate --git https://github.com/user/template.git --name foo
 ///
+/// or
+///
+/// $ cargo gen --git https://github.com/user/template.git --name foo
+///
 /// and a new Cargo project called foo will be generated.
 ///
 /// TEMPLATES:
