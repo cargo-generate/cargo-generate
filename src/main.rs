@@ -29,6 +29,10 @@ use std::env;
 ///
 /// $ cargo generate --git https://github.com/user/template.git --name foo
 ///
+/// or
+///
+/// $ cargo gen --git https://github.com/user/template.git --name foo
+///
 /// and a new Cargo project called foo will be generated.
 ///
 /// TEMPLATES:
@@ -47,6 +51,8 @@ use std::env;
 pub enum Cli {
     #[structopt(name = "generate")]
     Generate(Args),
+    #[structopt(name = "gen")]
+    Gen(Args),
 }
 
 #[derive(Debug, StructOpt)]
@@ -58,7 +64,11 @@ pub struct Args {
 }
 
 main!(|_cli: Cli| {
-    let Cli::Generate(args) = Cli::from_args();
+    let args: Args = match Cli::from_args() {
+        Cli::Generate(args) => args,
+        Cli::Gen(args) => args,
+    };
+
     let name = match &args.name {
         Some(ref n) => ProjectName::new(n),
         None => ProjectName::new(&interactive::name()?),

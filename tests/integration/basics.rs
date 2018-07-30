@@ -104,3 +104,37 @@ extern crate {{crate_name}};
     assert!(file.contains("foobar_project"));
     assert!(!file.contains("foobar-project"));
 }
+
+#[test]
+fn short_commands_work() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(
+        dir.read("foobar-project/Cargo.toml")
+            .contains("foobar-project")
+    );
+}

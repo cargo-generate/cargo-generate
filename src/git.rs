@@ -1,5 +1,6 @@
-use git2::{build::CheckoutBuilder, build::RepoBuilder, Repository as GitRepository,
-           RepositoryInitOptions};
+use git2::{
+    build::CheckoutBuilder, build::RepoBuilder, Repository as GitRepository, RepositoryInitOptions,
+};
 use quicli::prelude::*;
 use remove_dir_all::remove_dir_all;
 use std::path::PathBuf;
