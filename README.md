@@ -32,7 +32,7 @@ cargo install cargo-generate
 
 ## Usage
 
-Standard usage is to pass a `--git` flag to `cargo generate`. This will prompt you to enter the name of your project.
+Standard usage is to pass a `--git` flag to `cargo generate` or short `cargo gen`. This will prompt you to enter the name of your project.
 
 ```
 cargo generate --git https://github.com/githubusername/mytemplate.git
