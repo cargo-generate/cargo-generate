@@ -59,7 +59,7 @@ pub enum Cli {
 pub struct Args {
     #[structopt(long = "git")]
     git: String,
-    #[structopt(long = "name")]
+    #[structopt(long = "name", short = "n")]
     name: Option<String>,
 }
 

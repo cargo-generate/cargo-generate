@@ -126,7 +126,7 @@ version = "0.1.0"
         .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("--name")
+        .arg("-n")
         .arg("foobar-project")
         .current_dir(&dir.path())
         .assert()

@@ -38,7 +38,7 @@ Standard usage is to pass a `--git` flag to `cargo generate` or short `cargo gen
 cargo generate --git https://github.com/githubusername/mytemplate.git
 ```
 
-You can also pass the name of your project to the tool using the `--name` flag:
+You can also pass the name of your project to the tool using the `--name` or `-n` flag:
 
 ```
 cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject
