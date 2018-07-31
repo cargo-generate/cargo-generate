@@ -53,10 +53,10 @@ supported placeholders are:
 - `{{project-name}}`: this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
 - `{{crate_name}}`: the snake_case_version of `project-name`
 
-Here's an [example](https://github.com/ashleygwilliams/wasm-pack-template).
-If you have a great template that you'd like to feature here, please [file an issue]!
+Here's a list of [currently available templates](TEMPLATES.md).
+If you have a great template that you'd like to feature here, please [file an issue or a PR]!
 
-[file an issue]: https://github.com/ashleygwilliams/cargo-generate/issues
+[file an issue or a PR]: https://github.com/ashleygwilliams/cargo-generate/issues
 
 ## License
 
