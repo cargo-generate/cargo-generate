@@ -22,6 +22,7 @@ use console::style;
 use projectname::ProjectName;
 use quicli::prelude::*;
 use std::env;
+use std::path::PathBuf;
 
 /// Generate a new Cargo project from a given template
 ///
@@ -74,37 +75,37 @@ main!(|_cli: Cli| {
         None => ProjectName::new(&interactive::name()?),
     };
 
+    let project_dir = create_project_dir(&name);
+
+    create_git(&project_dir, args, &name);
+
+    gen_success(&project_dir);
+});
+
+fn create_project_dir(name: &ProjectName) -> PathBuf {
     println!(
         "{} {} `{}`{}",
         emoji::WRENCH,
         style("Creating project called").bold(),
-        style(&name.kebab_case()).bold().yellow(),
+        style(name.kebab_case()).bold().yellow(),
         style("...").bold()
     );
 
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
-        .join(&name.kebab_case());
-
+        .join(name.kebab_case());
+    /*
     ensure!(
         !project_dir.exists(),
         "Target directory `{}` already exists, aborting.",
         project_dir.display()
     );
+    */
+    project_dir
+}
 
-    git::create(&project_dir, args)?;
-    git::remove_history(&project_dir)?;
-
-    let template = template::substitute(&name)?;
-
-    let pbar = progressbar::new();
-    pbar.tick();
-
-    template::walk_dir(&project_dir, template, pbar)?;
-
-    git::init(&project_dir)?;
-
-    let dir_string = &project_dir.to_str().unwrap_or("");
+fn gen_success(dir: &PathBuf) {
+    let dir_string = dir.to_str().unwrap_or("");
     println!(
         "{} {} {} {}",
         emoji::SPARKLE,
@@ -112,4 +113,18 @@ main!(|_cli: Cli| {
         style("New project created").bold(),
         style(dir_string).underlined()
     );
-});
+}
+
+fn create_git(dir: &PathBuf, args: Args, name: &ProjectName){
+    git::create(dir, args).unwrap();
+    git::remove_history(dir).unwrap();
+
+    let template = template::substitute(name).unwrap();
+
+    let pbar = progressbar::new();
+    pbar.tick();
+
+    template::walk_dir(dir, template, pbar).unwrap();
+
+    git::init(dir).unwrap();
+}
