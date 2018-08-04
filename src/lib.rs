@@ -1,4 +1,3 @@
-#[macro_use]
 extern crate quicli;
 extern crate console;
 extern crate dialoguer;
@@ -13,9 +12,9 @@ extern crate walkdir;
 mod cargo;
 mod emoji;
 mod git;
-mod interactive;
+pub mod interactive;
 mod progressbar;
-mod projectname;
+pub mod projectname;
 mod template;
 
 use console::style;
@@ -64,24 +63,6 @@ pub struct Args {
     name: Option<String>,
 }
 
-main!(|_cli: Cli| {
-    let args: Args = match Cli::from_args() {
-        Cli::Generate(args) => args,
-        Cli::Gen(args) => args,
-    };
-
-    let name = match &args.name {
-        Some(ref n) => ProjectName::new(n),
-        None => ProjectName::new(&interactive::name()?),
-    };
-
-    let project_dir = create_project_dir(&name);
-
-    create_git(&project_dir, args, &name);
-
-    gen_success(&project_dir);
-});
-
 fn create_project_dir(name: &ProjectName) -> PathBuf {
     println!(
         "{} {} `{}`{}",
@@ -115,16 +96,39 @@ fn gen_success(dir: &PathBuf) {
     );
 }
 
-fn create_git(dir: &PathBuf, args: Args, name: &ProjectName){
-    git::create(dir, args).unwrap();
-    git::remove_history(dir).unwrap();
+pub fn create_git(args: Args, name: &ProjectName) {
+    let dir = &create_project_dir(&name);
 
-    let template = template::substitute(name).unwrap();
+    match git::create(dir, args){
+        Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir)),
+        Err(e) => println!("Error: {}", e),
+    };
+
+}
+
+fn progress(name: &ProjectName, dir: &PathBuf) {
+    let template = template::substitute(name).expect("ERROR");
 
     let pbar = progressbar::new();
     pbar.tick();
 
-    template::walk_dir(dir, template, pbar).unwrap();
+    template::walk_dir(dir, template, pbar).expect("ERROR");
 
-    git::init(dir).unwrap();
+    git::init(dir).expect("ERROR");
+
+    gen_success(dir);
+}
+
+pub fn generate(_cli: Cli) {
+    let args: Args = match Cli::from_args() {
+        Cli::Generate(args) => args,
+        Cli::Gen(args) => args,
+    };
+
+    let name = match &args.name {
+        Some(ref n) => ProjectName::new(n),
+        None => ProjectName::new(&interactive::name().unwrap()),
+    };
+
+    create_git(args, &name);
 }
