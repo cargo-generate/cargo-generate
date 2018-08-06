@@ -17,11 +17,11 @@ pub fn substitute(name: &ProjectName) -> Result<liquid::Object> {
     let mut template = liquid::Object::new();
     template.insert(
         String::from("project-name"),
-        liquid::Value::scalar(&name.kebab_case()),
+        liquid::Value::scalar(&name.kebab_case_name),
     );
     template.insert(
         String::from("crate_name"),
-        liquid::Value::scalar(&name.snake_case()),
+        liquid::Value::scalar(&name.snake_case_name),
     );
     template.insert(
         String::from("authors"),
