@@ -74,6 +74,18 @@ main!(|_cli: Cli| {
         None => ProjectName::new(&interactive::name()?),
     };
 
+    if name.force_renaming() {
+        println!(
+            "{} {} `{}` {} `{}`{}",
+            emoji::WARN,
+            style("Renaming project called").bold(),
+            style(&name.user_input).bold().yellow(),
+            style("to").bold(),
+            style(&name.kebab_case_name).bold().green(),
+            style("...").bold()
+        );
+    }
+
     println!(
         "{} {} `{}`{}",
         emoji::WRENCH,
