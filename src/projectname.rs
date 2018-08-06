@@ -17,5 +17,7 @@ impl ProjectName {
         }
     }
 
+    pub fn force_renaming(&self) -> bool {
+        self.user_input != self.kebab_case_name
     }
 }
