@@ -9,6 +9,7 @@ use Args;
 pub fn create(project_dir: &PathBuf, args: Args) -> Result<GitRepository> {
     Ok(RepoBuilder::new()
         .bare(false)
+        .branch(&args.branch)
         .with_checkout(CheckoutBuilder::new())
         .clone(&args.git, &project_dir)?)
 }

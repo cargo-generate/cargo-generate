@@ -64,6 +64,8 @@ pub struct Args {
     /// Enforce to create a new project without case conversion of project name
     #[structopt(long = "force", short = "f")]
     force: bool,
+    #[structopt(long = "branch", default_value = "master")]
+    branch: String,
 }
 
 main!(|_cli: Cli| {
