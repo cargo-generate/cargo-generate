@@ -1,11 +1,10 @@
-#[macro_use]
-extern crate quicli;
 extern crate console;
 extern crate dialoguer;
 extern crate git2;
 extern crate heck;
 extern crate indicatif;
 extern crate liquid;
+extern crate quicli;
 extern crate regex;
 extern crate remove_dir_all;
 extern crate walkdir;
@@ -13,15 +12,16 @@ extern crate walkdir;
 mod cargo;
 mod emoji;
 mod git;
-mod interactive;
+pub mod interactive;
 mod progressbar;
-mod projectname;
+pub mod projectname;
 mod template;
 
 use console::style;
 use projectname::ProjectName;
 use quicli::prelude::*;
 use std::env;
+use std::path::PathBuf;
 
 /// Generate a new Cargo project from a given template
 ///
@@ -63,7 +63,8 @@ pub struct Args {
     name: Option<String>,
 }
 
-main!(|_cli: Cli| {
+///Takes the command line arguments and starts generating the project
+pub fn generate(_cli: Cli) {
     let args: Args = match Cli::from_args() {
         Cli::Generate(args) => args,
         Cli::Gen(args) => args,
@@ -71,40 +72,70 @@ main!(|_cli: Cli| {
 
     let name = match &args.name {
         Some(ref n) => ProjectName::new(n),
-        None => ProjectName::new(&interactive::name()?),
+        None => ProjectName::new(&interactive::name().unwrap()),
     };
 
+    create_git(args, &name);
+}
+
+pub fn create_git(args: Args, name: &ProjectName) {
+    if let Some(dir) = &create_project_dir(&name) {
+        match git::create(dir, args) {
+            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir)),
+            Err(e) => println!(
+                "{} {} {}",
+                emoji::ERROR,
+                style("Git Error:").bold().red(),
+                style(e).bold().red(),
+            ),
+        };
+    } else {
+        println!(
+            "{} {}",
+            emoji::ERROR,
+            style("Target directory already exists, aborting!")
+                .bold()
+                .red(),
+        );
+    }
+}
+
+fn create_project_dir(name: &ProjectName) -> Option<PathBuf> {
     println!(
         "{} {} `{}`{}",
         emoji::WRENCH,
-        style("Creating project called").bold(),
-        style(&name.kebab_case()).bold().yellow(),
+        style("Trying to create project called").bold(),
+        style(name.kebab_case()).bold().yellow(),
         style("...").bold()
     );
 
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
-        .join(&name.kebab_case());
+        .join(name.kebab_case());
 
-    ensure!(
-        !project_dir.exists(),
-        "Target directory `{}` already exists, aborting.",
-        project_dir.display()
-    );
+    if project_dir.exists() {
+        None
+    } else {
+        Some(project_dir)
+    }
+}
 
-    git::create(&project_dir, args)?;
-    git::remove_history(&project_dir)?;
-
-    let template = template::substitute(&name)?;
+//TODO: better error handling for progress?
+fn progress(name: &ProjectName, dir: &PathBuf) {
+    let template = template::substitute(name).expect("Error: Can't substitute the given name.");
 
     let pbar = progressbar::new();
     pbar.tick();
 
-    template::walk_dir(&project_dir, template, pbar)?;
+    template::walk_dir(dir, template, pbar).expect("Error: Can't walk the directory");
 
-    git::init(&project_dir)?;
+    git::init(dir).expect("Error: Can't init git repo");
 
-    let dir_string = &project_dir.to_str().unwrap_or("");
+    gen_success(dir);
+}
+
+fn gen_success(dir: &PathBuf) {
+    let dir_string = dir.to_str().unwrap(); //unwrap is safe here
     println!(
         "{} {} {} {}",
         emoji::SPARKLE,
@@ -112,4 +143,4 @@ main!(|_cli: Cli| {
         style("New project created").bold(),
         style(dir_string).underlined()
     );
-});
+}
