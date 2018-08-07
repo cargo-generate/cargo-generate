@@ -74,14 +74,14 @@ main!(|_cli: Cli| {
         None => ProjectName::new(&interactive::name()?),
     };
 
-    if name.force_renaming() {
+    if ! name.is_crate_name() {
         println!(
             "{} {} `{}` {} `{}`{}",
             emoji::WARN,
             style("Renaming project called").bold(),
             style(&name.user_input).bold().yellow(),
             style("to").bold(),
-            style(&name.kebab_case_name).bold().green(),
+            style(&name.kebab_case()).bold().green(),
             style("...").bold()
         );
     }
@@ -90,13 +90,13 @@ main!(|_cli: Cli| {
         "{} {} `{}`{}",
         emoji::WRENCH,
         style("Creating project called").bold(),
-        style(&name.kebab_case_name).bold().yellow(),
+        style(&name.kebab_case()).bold().yellow(),
         style("...").bold()
     );
 
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
-        .join(&name.kebab_case_name);
+        .join(&name.kebab_case());
 
     ensure!(
         !project_dir.exists(),
