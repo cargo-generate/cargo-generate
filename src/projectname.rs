@@ -4,20 +4,24 @@ use heck::{KebabCase, SnakeCase};
 /// for handling casing.
 pub struct ProjectName {
     pub user_input: String,
-    pub kebab_case_name: String,
-    pub snake_case_name: String,
 }
 
 impl ProjectName {
     pub fn new(name: &str) -> ProjectName {
         ProjectName {
             user_input: name.to_string(),
-            kebab_case_name: name.to_kebab_case(),
-            snake_case_name: name.to_snake_case(),
         }
     }
 
-    pub fn force_renaming(&self) -> bool {
-        self.user_input != self.kebab_case_name
+    pub fn kebab_case(&self) -> String {
+        self.user_input.to_kebab_case()
+    }
+
+    pub fn snake_case(&self) -> String {
+        self.user_input.to_snake_case()
+    }
+
+    pub fn is_crate_name(&self) -> bool {
+        self.user_input == self.kebab_case()
     }
 }
