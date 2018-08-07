@@ -82,7 +82,12 @@ pub fn create_git(args: Args, name: &ProjectName) {
     if let Some(dir) = &create_project_dir(&name) {
         match git::create(dir, args) {
             Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir)),
-            Err(e) => println!("Git Error: {}", e),
+            Err(e) => println!(
+                "{} {} {}",
+                emoji::ERROR,
+                style("Git Error:").bold().red(),
+                style(e).bold().red(),
+            ),
         };
     } else {
         println!(
@@ -99,7 +104,7 @@ fn create_project_dir(name: &ProjectName) -> Option<PathBuf> {
     println!(
         "{} {} `{}`{}",
         emoji::WRENCH,
-        style("Creating project called").bold(),
+        style("Trying to create project called").bold(),
         style(name.kebab_case()).bold().yellow(),
         style("...").bold()
     );
@@ -115,22 +120,22 @@ fn create_project_dir(name: &ProjectName) -> Option<PathBuf> {
     }
 }
 
-//TODO: better error handling for progress
+//TODO: better error handling for progress?
 fn progress(name: &ProjectName, dir: &PathBuf) {
-    let template = template::substitute(name).expect("ERROR");
+    let template = template::substitute(name).expect("Error: Can't substitute the given name.");
 
     let pbar = progressbar::new();
     pbar.tick();
 
-    template::walk_dir(dir, template, pbar).expect("ERROR");
+    template::walk_dir(dir, template, pbar).expect("Error: Can't walk the directory");
 
-    git::init(dir).expect("ERROR");
+    git::init(dir).expect("Error: Can't init git repo");
 
     gen_success(dir);
 }
 
 fn gen_success(dir: &PathBuf) {
-    let dir_string = dir.to_str().unwrap_or(""); // Just unwrap here because we can guarantee a string?
+    let dir_string = dir.to_str().unwrap(); //unwrap is safe here
     println!(
         "{} {} {} {}",
         emoji::SPARKLE,
