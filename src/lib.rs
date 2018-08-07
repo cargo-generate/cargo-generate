@@ -1,10 +1,10 @@
-extern crate quicli;
 extern crate console;
 extern crate dialoguer;
 extern crate git2;
 extern crate heck;
 extern crate indicatif;
 extern crate liquid;
+extern crate quicli;
 extern crate regex;
 extern crate remove_dir_all;
 extern crate walkdir;
@@ -63,6 +63,38 @@ pub struct Args {
     name: Option<String>,
 }
 
+///Takes the command line arguments and starts generating the project
+pub fn generate(_cli: Cli) {
+    let args: Args = match Cli::from_args() {
+        Cli::Generate(args) => args,
+        Cli::Gen(args) => args,
+    };
+
+    let name = match &args.name {
+        Some(ref n) => ProjectName::new(n),
+        None => ProjectName::new(&interactive::name().unwrap()),
+    };
+
+    create_git(args, &name);
+}
+
+pub fn create_git(args: Args, name: &ProjectName) {
+    if let Some(dir) = &create_project_dir(&name) {
+        match git::create(dir, args) {
+            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir)),
+            Err(e) => println!("Git Error: {}", e),
+        };
+    } else {
+        println!(
+            "{} {}",
+            emoji::ERROR,
+            style("Target directory already exists, aborting!")
+                .bold()
+                .red(),
+        );
+    }
+}
+
 fn create_project_dir(name: &ProjectName) -> Option<PathBuf> {
     println!(
         "{} {} `{}`{}",
@@ -75,36 +107,11 @@ fn create_project_dir(name: &ProjectName) -> Option<PathBuf> {
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
         .join(name.kebab_case());
-    //FIXME: check if directory exists and handle error
-    /*
-    ensure!(
-        !project_dir.exists(),
-        "Target directory `{}` already exists, aborting.",
-        project_dir.display()
-    );
-    */
-    Some(project_dir)
-}
 
-fn gen_success(dir: &PathBuf) {
-    let dir_string = dir.to_str().unwrap_or(""); // Just unwrap here because we can guarntee a string?
-    println!(
-        "{} {} {} {}",
-        emoji::SPARKLE,
-        style("Done!").bold().green(),
-        style("New project created").bold(),
-        style(dir_string).underlined()
-    );
-}
-
-pub fn create_git(args: Args, name: &ProjectName) {
-    if let Some(dir) = &create_project_dir(&name) {
-        match git::create(dir, args){
-            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir)),
-            Err(e) => println!("Git Error: {}", e),
-        };
+    if project_dir.exists() {
+        None
     } else {
-        println!("Upsy")
+        Some(project_dir)
     }
 }
 
@@ -122,17 +129,13 @@ fn progress(name: &ProjectName, dir: &PathBuf) {
     gen_success(dir);
 }
 
-///Takes the command line arguments and starts generating the project
-pub fn generate(_cli: Cli) {
-    let args: Args = match Cli::from_args() {
-        Cli::Generate(args) => args,
-        Cli::Gen(args) => args,
-    };
-
-    let name = match &args.name {
-        Some(ref n) => ProjectName::new(n),
-        None => ProjectName::new(&interactive::name().unwrap()),
-    };
-
-    create_git(args, &name);
+fn gen_success(dir: &PathBuf) {
+    let dir_string = dir.to_str().unwrap_or(""); // Just unwrap here because we can guarantee a string?
+    println!(
+        "{} {} {} {}",
+        emoji::SPARKLE,
+        style("Done!").bold().green(),
+        style("New project created").bold(),
+        style(dir_string).underlined()
+    );
 }
