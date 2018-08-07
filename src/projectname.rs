@@ -13,6 +13,10 @@ impl ProjectName {
         }
     }
 
+    pub fn raw(&self) -> String {
+        self.user_input.to_owned()
+    }
+
     pub fn kebab_case(&self) -> String {
         self.user_input.to_kebab_case()
     }

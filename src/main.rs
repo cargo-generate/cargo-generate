@@ -61,6 +61,9 @@ pub struct Args {
     git: String,
     #[structopt(long = "name", short = "n")]
     name: Option<String>,
+    /// Enforce to create a new project without case conversion of project name
+    #[structopt(long = "force", short = "f")]
+    force: bool,
 }
 
 main!(|_cli: Cli| {
@@ -73,6 +76,7 @@ main!(|_cli: Cli| {
         Some(ref n) => ProjectName::new(n),
         None => ProjectName::new(&interactive::name()?),
     };
+    let force = args.force;
 
     println!(
         "{} {} `{}`{}",
@@ -82,9 +86,10 @@ main!(|_cli: Cli| {
         style("...").bold()
     );
 
+    let dir_name = if force { name.raw() } else { name.kebab_case() };
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
-        .join(&name.kebab_case());
+        .join(dir_name);
 
     ensure!(
         !project_dir.exists(),
@@ -95,7 +100,7 @@ main!(|_cli: Cli| {
     git::create(&project_dir, args)?;
     git::remove_history(&project_dir)?;
 
-    let template = template::substitute(&name)?;
+    let template = template::substitute(&name, force)?;
 
     let pbar = progressbar::new();
     pbar.tick();
