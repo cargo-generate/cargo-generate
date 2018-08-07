@@ -63,7 +63,7 @@ pub struct Args {
     name: Option<String>,
 }
 
-fn create_project_dir(name: &ProjectName) -> PathBuf {
+fn create_project_dir(name: &ProjectName) -> Option<PathBuf> {
     println!(
         "{} {} `{}`{}",
         emoji::WRENCH,
@@ -75,6 +75,7 @@ fn create_project_dir(name: &ProjectName) -> PathBuf {
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
         .join(name.kebab_case());
+    //FIXME: check if directory exists and handle error
     /*
     ensure!(
         !project_dir.exists(),
@@ -82,11 +83,11 @@ fn create_project_dir(name: &ProjectName) -> PathBuf {
         project_dir.display()
     );
     */
-    project_dir
+    Some(project_dir)
 }
 
 fn gen_success(dir: &PathBuf) {
-    let dir_string = dir.to_str().unwrap_or("");
+    let dir_string = dir.to_str().unwrap_or(""); // Just unwrap here because we can guarntee a string?
     println!(
         "{} {} {} {}",
         emoji::SPARKLE,
@@ -97,15 +98,17 @@ fn gen_success(dir: &PathBuf) {
 }
 
 pub fn create_git(args: Args, name: &ProjectName) {
-    let dir = &create_project_dir(&name);
-
-    match git::create(dir, args){
-        Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir)),
-        Err(e) => println!("Error: {}", e),
-    };
-
+    if let Some(dir) = &create_project_dir(&name) {
+        match git::create(dir, args){
+            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir)),
+            Err(e) => println!("Git Error: {}", e),
+        };
+    } else {
+        println!("Upsy")
+    }
 }
 
+//TODO: better error handling for progress
 fn progress(name: &ProjectName, dir: &PathBuf) {
     let template = template::substitute(name).expect("ERROR");
 
@@ -119,6 +122,7 @@ fn progress(name: &ProjectName, dir: &PathBuf) {
     gen_success(dir);
 }
 
+///Takes the command line arguments and starts generating the project
 pub fn generate(_cli: Cli) {
     let args: Args = match Cli::from_args() {
         Cli::Generate(args) => args,
