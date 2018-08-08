@@ -80,7 +80,7 @@ pub fn generate(_cli: Cli) {
     create_git(args, &name);
 }
 
-pub fn create_git(args: Args, name: &ProjectName) {
+fn create_git(args: Args, name: &ProjectName) {
     let force = args.force;
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, args) {
