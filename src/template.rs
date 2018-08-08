@@ -13,11 +13,14 @@ fn engine() -> liquid::Parser {
     liquid::ParserBuilder::new().build()
 }
 
-pub fn substitute(name: &ProjectName) -> Result<liquid::Object> {
+pub fn substitute(name: &ProjectName, force: bool) -> Result<liquid::Object> {
+    let project_name =
+        if force { name.raw() } else { name.kebab_case() };
+
     let mut template = liquid::Object::new();
     template.insert(
         String::from("project-name"),
-        liquid::Value::scalar(&name.kebab_case()),
+        liquid::Value::scalar(project_name),
     );
     template.insert(
         String::from("crate_name"),
