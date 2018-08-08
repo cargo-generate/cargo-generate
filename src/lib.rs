@@ -61,6 +61,9 @@ pub struct Args {
     git: String,
     #[structopt(long = "name", short = "n")]
     name: Option<String>,
+    /// Enforce to create a new project without case conversion of project name
+    #[structopt(long = "force", short = "f")]
+    force: bool,
 }
 
 ///Takes the command line arguments and starts generating the project
@@ -74,14 +77,14 @@ pub fn generate(_cli: Cli) {
         Some(ref n) => ProjectName::new(n),
         None => ProjectName::new(&interactive::name().unwrap()),
     };
-
     create_git(args, &name);
 }
 
 pub fn create_git(args: Args, name: &ProjectName) {
-    if let Some(dir) = &create_project_dir(&name) {
+    let force = args.force;
+    if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, args) {
-            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir)),
+            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force)),
             Err(e) => println!(
                 "{} {} {}",
                 emoji::ERROR,
@@ -100,7 +103,7 @@ pub fn create_git(args: Args, name: &ProjectName) {
     }
 }
 
-fn create_project_dir(name: &ProjectName) -> Option<PathBuf> {
+fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
     println!(
         "{} {} `{}`{}",
         emoji::WRENCH,
@@ -109,9 +112,10 @@ fn create_project_dir(name: &ProjectName) -> Option<PathBuf> {
         style("...").bold()
     );
 
+    let dir_name = if force { name.raw() } else { name.kebab_case() };
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
-        .join(name.kebab_case());
+        .join(dir_name);
 
     if project_dir.exists() {
         None
@@ -121,8 +125,8 @@ fn create_project_dir(name: &ProjectName) -> Option<PathBuf> {
 }
 
 //TODO: better error handling for progress?
-fn progress(name: &ProjectName, dir: &PathBuf) {
-    let template = template::substitute(name).expect("Error: Can't substitute the given name.");
+fn progress(name: &ProjectName, dir: &PathBuf, force: bool) {
+    let template = template::substitute(name, force).expect("Error: Can't substitute the given name.");
 
     let pbar = progressbar::new();
     pbar.tick();
