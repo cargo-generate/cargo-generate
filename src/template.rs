@@ -14,7 +14,8 @@ fn engine() -> liquid::Parser {
 }
 
 pub fn substitute(name: &ProjectName, force: bool) -> Result<liquid::Object> {
-    let project_name = if force { name.raw() } else { name.kebab_case() };
+    let project_name =
+        if force { name.raw() } else { name.kebab_case() };
 
     let mut template = liquid::Object::new();
     template.insert(

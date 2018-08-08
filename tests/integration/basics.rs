@@ -16,7 +16,8 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
     let dir = dir("main").build();
@@ -49,7 +50,8 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
     let dir = dir("main").build();
@@ -80,7 +82,8 @@ fn it_substitutes_cratename_in_a_rust_file() {
             r#"
 extern crate {{crate_name}};          
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
     let dir = dir("main").build();
@@ -112,7 +115,8 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
     let dir = dir("main").build();
@@ -145,7 +149,8 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
     let dir = dir("main").build();

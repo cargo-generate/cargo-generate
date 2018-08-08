@@ -75,7 +75,7 @@ pub fn generate(_cli: Cli) {
 
     let name = match &args.name {
         Some(ref n) => ProjectName::new(n),
-        None => ProjectName::new(&interactive::name().unwrap()),
+        None => ProjectName::new(&interactive::name().expect("Failed to give it a project name")),
     };
     create_git(args, &name);
 }
@@ -112,7 +112,8 @@ fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
         style("...").bold()
     );
 
-    let dir_name = if force { name.raw() } else { name.kebab_case() };
+    let dir_name =
+        if force { name.raw() } else { name.kebab_case() };
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
         .join(dir_name);
@@ -126,7 +127,8 @@ fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
 
 //TODO: better error handling for progress?
 fn progress(name: &ProjectName, dir: &PathBuf, force: bool) {
-    let template = template::substitute(name, force).expect("Error: Can't substitute the given name.");
+    let template =
+        template::substitute(name, force).expect("Error: Can't substitute the given name.");
 
     let pbar = progressbar::new();
     pbar.tick();
