@@ -104,19 +104,19 @@ pub fn create_git(args: Args, name: &ProjectName) {
 }
 
 fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
-    println!(
-        "{} {} `{}`{}",
-        emoji::WRENCH,
-        style("Trying to create project called").bold(),
-        style(name.kebab_case()).bold().yellow(),
-        style("...").bold()
-    );
-
     let dir_name =
         if force { name.raw() } else { name.kebab_case() };
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
-        .join(dir_name);
+        .join(&dir_name);
+
+    println!(
+        "{} {} `{}`{}",
+        emoji::WRENCH,
+        style("Trying to create project called").bold(),
+        style(&dir_name).bold().yellow(),
+        style("...").bold()
+    );
 
     if project_dir.exists() {
         None
@@ -125,7 +125,6 @@ fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
     }
 }
 
-//TODO: better error handling for progress?
 fn progress(name: &ProjectName, dir: &PathBuf, force: bool) {
     let template =
         template::substitute(name, force).expect("Error: Can't substitute the given name.");
