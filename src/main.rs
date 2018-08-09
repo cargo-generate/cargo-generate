@@ -98,7 +98,8 @@ main!(|_cli: Cli| {
         style("...").bold()
     );
 
-    let dir_name = if force { name.raw() } else { name.kebab_case() };
+    let dir_name =
+        if force { name.raw() } else { name.kebab_case() };
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
         .join(dir_name);
