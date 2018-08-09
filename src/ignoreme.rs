@@ -2,10 +2,18 @@ use ignore::WalkBuilder;
 use remove_dir_all::*;
 use std::collections::HashSet;
 use std::ffi::OsStr;
-use std::path::PathBuf;
 use std::fs::remove_file;
+use std::path::PathBuf;
 
-pub fn get_ignored(location: &str) -> Option<Vec<PathBuf>> {
+//FIXME: function returns Result
+pub fn remove_uneeded_files(dir: &PathBuf) {
+    match get_ignored(dir) {
+        Some(items) => remove_dir_files(items),
+        None => println!("Nothing to remove!"),
+    }
+}
+
+fn get_ignored(location: &PathBuf) -> Option<Vec<PathBuf>> {
     let ignored = WalkBuilder::new(location)
         .standard_filters(false)
         .add_custom_ignore_filename(OsStr::new(".genignore"))
@@ -39,16 +47,27 @@ pub fn get_ignored(location: &str) -> Option<Vec<PathBuf>> {
     }
 }
 
-fn remove_ignored(ignore: Vec<PathBuf>) {
-    for item in ignore{
-        if item.is_dir(){
+//FIXME:
+fn sanititze(items: Vec<PathBuf>) -> Option<Vec<PathBuf>> {
+    unimplemented!()
+}
+
+//FIXME:
+fn remove_dir_files(ignore: Vec<PathBuf>) {
+    let sanitized_files = ignore; //sanititze(ignore);
+
+    for item in sanitized_files {
+        if item.is_dir() {
             remove_dir_all(&item).unwrap();
             println!("Removed: {:?}", &item)
-        }else if item.is_file() {
+        } else if item.is_file() {
             remove_file(&item).unwrap();
             println!("Removed: {:?}", &item)
-        }else {
-            println!("The given paths are neither files nor directories! {:?}", &item);
+        } else {
+            println!(
+                "The given paths are neither files nor directories! {:?}",
+                &item
+            );
         }
     }
 }
