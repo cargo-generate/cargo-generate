@@ -9,11 +9,13 @@ extern crate liquid;
 extern crate regex;
 extern crate remove_dir_all;
 extern crate walkdir;
+extern crate ignore;
 
 mod cargo;
 mod emoji;
 mod git;
 mod interactive;
+mod ignoreme;
 mod progressbar;
 mod projectname;
 mod template;
