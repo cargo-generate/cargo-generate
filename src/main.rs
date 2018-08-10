@@ -4,6 +4,7 @@ extern crate console;
 extern crate dialoguer;
 extern crate git2;
 extern crate heck;
+extern crate ignore;
 extern crate indicatif;
 extern crate liquid;
 extern crate regex;
@@ -13,6 +14,7 @@ extern crate walkdir;
 mod cargo;
 mod emoji;
 mod git;
+mod ignoreme;
 mod interactive;
 mod progressbar;
 mod projectname;
@@ -109,6 +111,9 @@ main!(|_cli: Cli| {
     template::walk_dir(&project_dir, template, pbar)?;
 
     git::init(&project_dir)?;
+
+    //remove uneeded here
+    ignoreme::remove_uneeded_files(&project_dir);
 
     let dir_string = &project_dir.to_str().unwrap_or("");
     println!(
