@@ -184,26 +184,23 @@ fn it_removes_unneeded_files() {
 name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
-"#,     ).file(
+"#,
+        )
+        .file(
             ".genignore",
             r#"deleteme.sh
 sampledir
 *.trash
-"#,     ).file(
-            "deleteme.sh",
-            r#"Nothing to see here"#
-        ).file(
-            "deleteme.trash",
-            r#"This is trash"#
-        ).file(
-            "notme.sh",
-            r#"I'm here!"#
+"#,
         )
+        .file("deleteme.sh", r#"Nothing to see here"#)
+        .file("deleteme.trash", r#"This is trash"#)
+        .file("notme.sh", r#"I'm here!"#)
         .init_git()
         .build();
 
     let dir = dir("main").build();
-    
+
     Command::main_binary()
         .unwrap()
         .arg("gen")
