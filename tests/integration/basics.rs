@@ -174,7 +174,6 @@ version = "0.1.0"
     );
 }
 
-//TODO: Finish this test
 #[test]
 fn it_removes_unneeded_files() {
     let template = dir("template")
@@ -188,8 +187,8 @@ version = "0.1.0"
         )
         .file(
             ".genignore",
-            r#"deleteme.sh
-sampledir
+            r#".genignore
+deleteme.sh
 *.trash
 "#,
         )
@@ -213,9 +212,11 @@ sampledir
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(dir.exists("foobar-project/notme.sh"));
-    assert!(!dir.exists("foobar-project/deleteme.sh"));
-    assert!(!dir.exists("foobar-project/deleteme.trash"));
+    assert_eq!(dir.exists("foobar-project/notme.sh"), true);
+    assert_eq!(dir.exists("foobar-project/.genignore"), false);
+    assert_eq!(dir.exists("foobar-project/deleteme.sh"), false);
+    assert_eq!(dir.exists("foobar-project/deleteme.trash"), false);
+
     assert!(
         dir.read("foobar-project/Cargo.toml")
             .contains("foobar-project")
