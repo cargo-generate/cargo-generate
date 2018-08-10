@@ -3,6 +3,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::str;
 
+#[derive(Debug)]
 pub struct Project {
     pub root: PathBuf,
 }
@@ -19,6 +20,10 @@ impl Project {
 
     pub fn path(&self) -> &Path {
         &self.root
+    }
+
+    pub fn exists(&self, path: &str) -> bool {
+        self.root.join(path).exists()
     }
 }
 

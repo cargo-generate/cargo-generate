@@ -173,3 +173,54 @@ version = "0.1.0"
             .contains("foobar_project")
     );
 }
+
+//TODO: Finish this test
+#[test]
+fn it_removes_unneeded_files() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,     ).file(
+            ".genignore",
+            r#"deleteme.sh
+sampledir
+*.trash
+"#,     ).file(
+            "deleteme.sh",
+            r#"Nothing to see here"#
+        ).file(
+            "deleteme.trash",
+            r#"This is trash"#
+        ).file(
+            "notme.sh",
+            r#"I'm here!"#
+        )
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+    
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.exists("foobar-project/notme.sh"));
+    assert!(!dir.exists("foobar-project/deleteme.sh"));
+    assert!(!dir.exists("foobar-project/deleteme.trash"));
+    assert!(
+        dir.read("foobar-project/Cargo.toml")
+            .contains("foobar-project")
+    );
+}

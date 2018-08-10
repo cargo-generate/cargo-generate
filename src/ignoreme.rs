@@ -14,9 +14,10 @@ pub fn remove_uneeded_files(dir: &PathBuf) {
 }
 
 fn get_ignored(location: &PathBuf) -> Option<Vec<PathBuf>> {
+    let ignore_file_name = ".genignore";
     let ignored = WalkBuilder::new(location)
         .standard_filters(false)
-        .add_custom_ignore_filename(OsStr::new(".genignore"))
+        .add_custom_ignore_filename(OsStr::new(ignore_file_name))
         .build()
         .into_iter()
         .map(|x| x.unwrap());
