@@ -1,3 +1,4 @@
+use console::style;
 use git2::{
     build::CheckoutBuilder, build::RepoBuilder, Repository as GitRepository, RepositoryInitOptions,
 };
@@ -7,10 +8,20 @@ use std::path::PathBuf;
 use Args;
 
 pub fn create(project_dir: &PathBuf, args: Args) -> Result<GitRepository> {
-    Ok(RepoBuilder::new()
+    let repo = RepoBuilder::new()
         .bare(false)
         .with_checkout(CheckoutBuilder::new())
-        .clone(&args.git, &project_dir)?)
+        .clone(&args.git, &project_dir);
+    match repo {
+        Ok(p) => Ok(p),
+        Err(e) => {
+            println!(
+                "{}",
+                style("Please check if the git repository exists, aborting.").bold(),
+            );
+            Err(e.into())
+        }
+    }
 }
 
 pub fn remove_history(project_dir: &PathBuf) -> Result<()> {
