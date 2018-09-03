@@ -78,14 +78,6 @@ main!(|_cli: Cli| {
     };
     let force = args.force;
 
-    println!(
-        "{} {} `{}`{}",
-        emoji::WRENCH,
-        style("Creating project called").bold(),
-        style(&name.kebab_case()).bold().yellow(),
-        style("...").bold()
-    );
-
     let dir_name =
         if force { name.raw() } else { name.kebab_case() };
     let project_dir = env::current_dir()
@@ -98,7 +90,16 @@ main!(|_cli: Cli| {
         project_dir.display()
     );
 
+    // create the local repository if fails abort
     git::create(&project_dir, args)?;
+    println!(
+        "{} {} `{}`{}",
+        emoji::WRENCH,
+        style("Creating project called").bold(),
+        style(&name.kebab_case()).bold().yellow(),
+        style("...").bold()
+    );
+
     git::remove_history(&project_dir)?;
 
     let template = template::substitute(&name, force)?;
