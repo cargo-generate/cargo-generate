@@ -1,10 +1,10 @@
+use console::style;
 use git2::{
     build::CheckoutBuilder, build::RepoBuilder, Repository as GitRepository, RepositoryInitOptions,
 };
 use quicli::prelude::*;
 use remove_dir_all::remove_dir_all;
 use std::path::PathBuf;
-use console::style;
 use Args;
 
 pub fn create(project_dir: &PathBuf, args: Args) -> Result<GitRepository> {
