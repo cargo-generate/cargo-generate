@@ -59,6 +59,9 @@ pub enum Cli {
 pub struct Args {
     #[structopt(long = "git")]
     git: String,
+    // Branch to use when installing from git
+    #[structopt(long = "branch")]
+    branch: Option<String>,
     #[structopt(long = "name", short = "n")]
     name: Option<String>,
     /// Enforce to create a new project without case conversion of project name
