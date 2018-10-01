@@ -170,6 +170,50 @@ version = "0.1.0"
 }
 
 #[test]
+fn it_removes_unneeded_files() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .file(
+            ".genignore",
+            r#".genignore
+deleteme.sh
+*.trash
+"#,
+        )
+        .file("deleteme.sh", r#"Nothing to see here"#)
+        .file("deleteme.trash", r#"This is trash"#)
+        .file("notme.sh", r#"I'm here!"#)
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert_eq!(dir.exists("foobar-project/notme.sh"), true);
+    assert_eq!(dir.exists("foobar-project/.genignore"), false);
+    assert_eq!(dir.exists("foobar-project/deleteme.sh"), false);
+    assert_eq!(dir.exists("foobar-project/deleteme.trash"), false);
+}
+
+#[test]
 fn it_allows_a_git_branch_to_be_specified() {
     // Build and commit on mater
     let template = dir("template")
