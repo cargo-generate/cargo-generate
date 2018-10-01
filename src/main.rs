@@ -78,6 +78,18 @@ main!(|_cli: Cli| {
     };
     let force = args.force;
 
+    if !name.is_crate_name() {
+        println!(
+            "{} {} `{}` {} `{}`{}",
+            emoji::WARN,
+            style("Renaming project called").bold(),
+            style(&name.user_input).bold().yellow(),
+            style("to").bold(),
+            style(&name.kebab_case()).bold().green(),
+            style("...").bold()
+        );
+    }
+
     println!(
         "{} {} `{}`{}",
         emoji::WRENCH,

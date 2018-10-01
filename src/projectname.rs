@@ -3,7 +3,7 @@ use heck::{KebabCase, SnakeCase};
 /// Stores user inputted name and provides convenience methods
 /// for handling casing.
 pub struct ProjectName {
-    user_input: String,
+    pub user_input: String,
 }
 
 impl ProjectName {
@@ -23,5 +23,9 @@ impl ProjectName {
 
     pub fn snake_case(&self) -> String {
         self.user_input.to_snake_case()
+    }
+
+    pub fn is_crate_name(&self) -> bool {
+        self.user_input == self.kebab_case()
     }
 }
