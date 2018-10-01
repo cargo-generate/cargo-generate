@@ -7,10 +7,14 @@ use std::path::PathBuf;
 use Args;
 
 pub fn create(project_dir: &PathBuf, args: Args) -> Result<GitRepository> {
-    Ok(RepoBuilder::new()
-        .bare(false)
-        .with_checkout(CheckoutBuilder::new())
-        .clone(&args.git, &project_dir)?)
+    let mut rb = RepoBuilder::new();
+    rb.bare(false).with_checkout(CheckoutBuilder::new());
+
+    if let Some(ref branch) = args.branch {
+        rb.branch(branch);
+    }
+
+    Ok(rb.clone(&args.git, &project_dir)?)
 }
 
 pub fn remove_history(project_dir: &PathBuf) -> Result<()> {

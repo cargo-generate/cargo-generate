@@ -15,6 +15,7 @@ pub struct ProjectBuilder {
     files: Vec<(String, String)>,
     root: PathBuf,
     git: bool,
+    branch: Option<String>,
 }
 
 pub fn dir(name: &str) -> ProjectBuilder {
@@ -22,6 +23,7 @@ pub fn dir(name: &str) -> ProjectBuilder {
         files: Vec::new(),
         root: root(name),
         git: false,
+        branch: None,
     }
 }
 
@@ -45,6 +47,11 @@ impl ProjectBuilder {
 
     pub fn init_git(mut self) -> ProjectBuilder {
         self.git = true;
+        self
+    }
+
+    pub fn branch(mut self, branch: &str) -> ProjectBuilder {
+        self.branch = Some(branch.to_owned());
         self
     }
 
@@ -77,6 +84,38 @@ impl ProjectBuilder {
                 .assert()
                 .success();
 
+            if let Some(ref branch) = self.branch {
+                // Create dummy content in master to aid testing
+
+                fs::File::create(self.root.join("dummy.txt"))
+                    .expect("Failed to create dummy")
+                    .write_all(b"master dummy")
+                    .expect("Couldn't write out dummy text");
+
+                Command::new("git")
+                    .arg("add")
+                    .arg("dummy.txt")
+                    .current_dir(&self.root)
+                    .assert()
+                    .success();
+
+                Command::new("git")
+                    .arg("commit")
+                    .arg("--message")
+                    .arg("initial master commit")
+                    .current_dir(&self.root)
+                    .assert()
+                    .success();
+
+                Command::new("git")
+                    .arg("checkout")
+                    .arg("-b")
+                    .arg(branch)
+                    .current_dir(&self.root)
+                    .assert()
+                    .success();
+            }
+
             Command::new("git")
                 .arg("add")
                 .arg("--all")
@@ -91,6 +130,15 @@ impl ProjectBuilder {
                 .current_dir(&self.root)
                 .assert()
                 .success();
+
+            if self.branch.is_some() {
+                Command::new("git")
+                    .arg("checkout")
+                    .arg("master")
+                    .current_dir(&self.root)
+                    .assert()
+                    .success();
+            }
         }
 
         Project { root: self.root }

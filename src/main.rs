@@ -59,6 +59,9 @@ pub enum Cli {
 pub struct Args {
     #[structopt(long = "git")]
     git: String,
+    // Branch to use when installing from git
+    #[structopt(long = "branch")]
+    branch: Option<String>,
     #[structopt(long = "name", short = "n")]
     name: Option<String>,
     /// Enforce to create a new project without case conversion of project name
@@ -98,8 +101,7 @@ main!(|_cli: Cli| {
         style("...").bold()
     );
 
-    let dir_name =
-        if force { name.raw() } else { name.kebab_case() };
+    let dir_name = if force { name.raw() } else { name.kebab_case() };
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
         .join(dir_name);
