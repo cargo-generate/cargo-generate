@@ -53,6 +53,9 @@ supported placeholders are:
 - `{{project-name}}`: this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
 - `{{crate_name}}`: the snake_case_version of `project-name`
 
+You can also add a `.genignore` file to your template. The files listed in the `.genignore` file
+will be removed from the local machine when `cargo-generate` is run on the end user's machine.
+
 Here's a list of [currently available templates](TEMPLATES.md).
 If you have a great template that you'd like to feature here, please [file an issue or a PR]!
 
