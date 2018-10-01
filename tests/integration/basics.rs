@@ -4,6 +4,7 @@ use helpers::project_builder::dir;
 
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
+use std::fs;
 use std::process::Command;
 
 #[test]
@@ -209,6 +210,50 @@ deleteme.sh
     assert_eq!(dir.exists("foobar-project/.genignore"), false);
     assert_eq!(dir.exists("foobar-project/deleteme.sh"), false);
     assert_eq!(dir.exists("foobar-project/deleteme.trash"), false);
+}
+
+#[test]
+fn it_does_not_remove_files_from_outside_project_dir() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        ).file(
+            ".genignore",
+            r#".genignore
+../dangerous.todelete.cargogeneratetests
+"#,
+        ).init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    fs::write("../dangerous.todelete.cargogeneratetests", "YOU BETTER NOT")
+        .expect("Could not write '../dangerous.todelete.cargogeneratetests'.");
+
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(
+        fs::metadata("../dangerous.todelete.cargogeneratetests")
+            .expect("should exist")
+            .is_file()
+    );
+    fs::remove_file("../dangerous.todelete.cargogeneratetests")
+        .expect("failed to clean up test file");
 }
 
 #[test]
