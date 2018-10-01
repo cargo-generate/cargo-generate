@@ -48,16 +48,8 @@ fn get_ignored(location: &PathBuf) -> Option<Vec<PathBuf>> {
     }
 }
 
-//TODO: DO we acutally need sanitizing the pathbuffer ?
-//Probably not in this case
-fn sanititze(items: Vec<PathBuf>) -> Option<Vec<PathBuf>> {
-    Some(items)
-}
-
-fn remove_dir_files(ignore: Vec<PathBuf>) {
-    let sanitized_files = sanititze(ignore).expect("Invalid Files ABORT REMOVING");
-
-    for item in sanitized_files {
+fn remove_dir_files(files: Vec<PathBuf>) {
+    for item in files {
         if item.is_dir() {
             remove_dir_all(&item).unwrap();
             println!("Removed: {:?}", &item)
