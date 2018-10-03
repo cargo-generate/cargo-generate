@@ -114,7 +114,8 @@ main!(|_cli: Cli| {
         project_dir.display()
     );
 
-    git::create(&project_dir, args)?;
+    git::create(&project_dir, args)
+        .and_then(|ref git_repository| git::load_submodules(git_repository))?;
     git::remove_history(&project_dir)?;
 
     let template = template::substitute(&name, force)?;
