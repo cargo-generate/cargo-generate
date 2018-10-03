@@ -232,8 +232,15 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    fs::write("../dangerous.todelete.cargogeneratetests", "YOU BETTER NOT")
-        .expect("Could not write '../dangerous.todelete.cargogeneratetests'.");
+    let dangerous_file = template
+        .path()
+        .join("..")
+        .join("dangerous.todelete.cargogeneratetests");
+
+    fs::write(&dangerous_file, "YOU BETTER NOT").expect(&format!(
+        "Could not write {}",
+        dangerous_file.to_str().expect("Could not read path.")
+    ));
 
     Command::main_binary()
         .unwrap()
@@ -248,12 +255,54 @@ version = "0.1.0"
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     assert!(
-        fs::metadata("../dangerous.todelete.cargogeneratetests")
+        fs::metadata(&dangerous_file)
             .expect("should exist")
             .is_file()
     );
-    fs::remove_file("../dangerous.todelete.cargogeneratetests")
-        .expect("failed to clean up test file");
+    fs::remove_file(&dangerous_file).expect("failed to clean up test file");
+}
+
+#[test]
+fn errant_ignore_entry_doesnt_affect_template_files() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        ).file(
+            ".genignore",
+            r#".genignore
+../dangerous.todelete.cargogeneratetests
+"#,
+        ).file("./dangerous.todelete.cargogeneratetests", "IM FINE OK")
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(
+        fs::metadata(
+            template
+                .path()
+                .join("dangerous.todelete.cargogeneratetests")
+        ).expect("should exist")
+        .is_file()
+    );
 }
 
 #[test]
