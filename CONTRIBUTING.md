@@ -15,13 +15,25 @@ faster was can reproduce your issue, the faster we can fix it for you!
 
 ## Testing your code
 
-After writing your patch, or finishing an awesome feature, make sure that your
-code does not collides with the existing code in executing the unit tests.
+### Unit tests
 
-To execute the unit tests, please to run `cargo test` at the
-project root.
+After writing your patch, or finishing an awesome feature, make sure that your
+code does not collides with the existing code, in executing the unit tests.
+
+To execute the unit tests, we will use the `test` feature included in `cargo`:
+
+```sh
+cargo test
+```
+
+`cargo test` will execute the unit tests included in the `tests` directory.
+If all the lights are green, you can then validate the manual tests.
+
+### Manual tests
 
 For complex issues, and solutions, we did not created unit tests yet.
+Otherwise, we have manual tests in order to check if everything is ok.
+
 For example, to test if your code does not collides with the solution of the
 [issue #83], you have to run those tests locally:
 
