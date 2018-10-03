@@ -1,5 +1,6 @@
 use git2::{
-    build::CheckoutBuilder, build::RepoBuilder, Repository as GitRepository, RepositoryInitOptions, SubmoduleUpdateOptions
+    build::CheckoutBuilder, build::RepoBuilder, Repository as GitRepository, RepositoryInitOptions,
+    SubmoduleUpdateOptions,
 };
 use quicli::prelude::*;
 use remove_dir_all::remove_dir_all;
@@ -20,17 +21,19 @@ pub fn create(project_dir: &PathBuf, args: Args) -> Result<GitRepository> {
 pub fn load_submodules(git_repository: &GitRepository) -> Result<()> {
     let submodules = git_repository.submodules()?;
     if submodules.len() == 0 {
-        return Ok(())
+        return Ok(());
     }
 
     // Init submodule options
     let mut submodule_opts = SubmoduleUpdateOptions::new();
-    submodule_opts.allow_fetch(true).checkout(CheckoutBuilder::new());
+    submodule_opts
+        .allow_fetch(true)
+        .checkout(CheckoutBuilder::new());
 
     // Init and load each submodule
     for mut submodule in submodules {
         submodule.update(true, Some(&mut submodule_opts))?;
-    };
+    }
 
     Ok(())
 }
