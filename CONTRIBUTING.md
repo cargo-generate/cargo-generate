@@ -13,6 +13,43 @@ the version of cargo you are using (`cargo --version`), the version of Rust
 you are using (`rustc --version`) and your operating system and version. The
 faster was can reproduce your issue, the faster we can fix it for you!
 
+## Testing your code
+
+After writing your patch, or finishing an awesome feature, make sure that your
+code does not collides with the existing code in executing the unit tests.
+
+To execute the unit tests, please to run `cargo test` at the
+project root.
+
+For complex issues, and solutions, we did not created unit tests yet.
+For example, to test if your code does not collides with the solution of the
+[issue #83], you have to run those tests locally:
+
+**1. Clone an existing template, without any git submodule, locally**
+
+You can take one at the [Templates page].
+For example:
+
+```sh
+cargo generate --git https://github.com/rustwasm/wasm-pack-template
+```
+
+Once you tested the project has been correctly cloned and setted, please to
+do the same with a template that contains git submodules.
+
+**2. Clone an existing template, with at least one git submodule, locally**
+
+For example:
+
+```sh
+cargo generate --git https://github.com/k0pernicus/cargo-template-test-submodule
+```
+
+Please check that the project has been correctly cloned and setted, and check
+if the repository contains initialized submodules.
+
+**Your ideas/contributions are welcome to create automated tests for this** :)
+
 ## Submitting a PR
 
 If you are considering filing a pull request, make sure that there's an issue
@@ -66,3 +103,5 @@ read it. If you have any questions or concerns, feel free to reach out to
 Ashley Williams, ashley666ashley@gmail.com.
 
 [Code of Conduct]: CODE_OF_CONDUCT.md
+[issue #83]: https://github.com/ashleygwilliams/cargo-generate/issues/83
+[Templates page]: TEMPLATES.md
