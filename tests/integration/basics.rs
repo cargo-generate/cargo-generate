@@ -232,8 +232,15 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    fs::write("../dangerous.todelete.cargogeneratetests", "YOU BETTER NOT")
-        .expect("Could not write '../dangerous.todelete.cargogeneratetests'.");
+    let dangerous_file = template
+        .path()
+        .join("..")
+        .join("dangerous.todelete.cargogeneratetests");
+
+    fs::write(&dangerous_file, "YOU BETTER NOT").expect(&format!(
+        "Could not write {}",
+        dangerous_file.to_str().expect("Could not read path.")
+    ));
 
     Command::main_binary()
         .unwrap()
@@ -248,12 +255,11 @@ version = "0.1.0"
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     assert!(
-        fs::metadata("../dangerous.todelete.cargogeneratetests")
+        fs::metadata(&dangerous_file)
             .expect("should exist")
             .is_file()
     );
-    fs::remove_file("../dangerous.todelete.cargogeneratetests")
-        .expect("failed to clean up test file");
+    fs::remove_file(&dangerous_file).expect("failed to clean up test file");
 }
 
 #[test]
