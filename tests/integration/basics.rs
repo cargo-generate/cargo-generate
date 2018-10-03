@@ -263,6 +263,49 @@ version = "0.1.0"
 }
 
 #[test]
+fn errant_ignore_entry_doesnt_affect_template_files() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        ).file(
+            ".genignore",
+            r#".genignore
+../dangerous.todelete.cargogeneratetests
+"#,
+        ).file("./dangerous.todelete.cargogeneratetests", "IM FINE OK")
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(
+        fs::metadata(
+            template
+                .path()
+                .join("dangerous.todelete.cargogeneratetests")
+        ).expect("should exist")
+        .is_file()
+    );
+}
+
+#[test]
 fn it_allows_a_git_branch_to_be_specified() {
     // Build and commit on mater
     let template = dir("template")
