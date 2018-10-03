@@ -1,5 +1,126 @@
 # Changelog
 
+## 💫 0.2.0
+
+  - ### ✨ Features
+
+    - **Support templates that use git submodules - [k0pernicus], [issue/83] [pull/104]**
+
+      We now support templates that use git submodules! Yay!
+
+      [k0pernicus]: https://github.com/k0pernicus
+      [issue/83]: https://github.com/ashleygwilliams/cargo-generate/issues/83
+      [pull/104]: https://github.com/ashleygwilliams/cargo-generate/pull/104
+
+    - **Binary Releases for Linux, MacOS, and Windows - [ashleygwilliams], [issue/99] [pull/111] [pull/112]**
+
+      Motivated by a desire to more easily distributed the project - we now build binaries
+      for our releases. No more waiting for compilation! You can just download and go!
+
+      [issue/99]: https://github.com/ashleygwilliams/cargo-generate/issues/99
+      [pull/111]: https://github.com/ashleygwilliams/cargo-generate/pull/111
+      [pull/112]: https://github.com/ashleygwilliams/cargo-generate/pull/112
+
+    - **Allow Liquid Templating `date` filter - [ashleygwilliams], [issue/70] [pull/106]**
+
+      By request, we've turned on the `date` filter for our templates. Now you can add
+      nicely formatted dates to your projects! For more information, check out the
+      [Liquid `date` filter documentation].
+
+      [Liquid `date` filter documentation]: https://shopify.github.io/liquid/filters/date/
+      [issue/70]: https://github.com/ashleygwilliams/cargo-generate/issues/70
+      [pull/106]: https://github.com/ashleygwilliams/cargo-generate/pull/106
+
+    - **Add `.genignore`, ability to ignore files - [DD5HT], [issue/82] [pull/96]**
+
+      You can now add a `.genignore` file to your template. This file will specify the files
+      to be "cleaned up" or "removed" from the template once it has been cloned to the user's
+      local machine.
+
+      [issue/82]: https://github.com/ashleygwilliams/cargo-generate/issues/82
+      [pull/96]: https://github.com/ashleygwilliams/cargo-generate/pull/96
+
+    - **Add `--branch` for specifying a branch - [posborne], [issue/71] [pull/94]**
+
+      We originally had no way to specify a git template on a per branch basis, opting to
+      only support the primary branch. Now you can specify a branch:
+
+      ```
+      cargo generate --git <gitURL> --branch <branchname>
+      ```
+
+      [posborne]: https://github.com/posborne
+      [issue/71]: https://github.com/ashleygwilliams/cargo-generate/issues/71
+      [pull/94]: https://github.com/ashleygwilliams/cargo-generate/pull/94
+
+    - **Warn user if we change project name casing - [k0pernicus], [issue/65] [pull/84]**
+
+      `cargo-generate` will automagically "fix" the casing of your project name to
+      match Cargo standards. If we end up changing the name you provide- we'll warn
+      to let you know!
+
+      [k0pernicus]: https://github.com/k0pernicus
+      [issue/65]: https://github.com/ashleygwilliams/cargo-generate/issues/65
+      [pull/84]: https://github.com/ashleygwilliams/cargo-generate/pull/84
+
+    - **Add `--force` flag to skip casing check on project name - [toVersus], [issue/66] [pull/69]**
+
+      `cargo-generate` will automagically "fix" the casing of your project name to 
+      match Cargo standards. If you'd like to skip that, you can add `--force`.
+
+      [toVersus]: https://github.com/toVersus
+      [issue/66]: https://github.com/ashleygwilliams/cargo-generate/issues/66
+      [pull/69]: https://github.com/ashleygwilliams/cargo-generate/pull/69
+
+    - **Add short flag `-n` for `--name` - [DD5HT], [issue/73] [pull/77]**
+
+      [issue/73]: https://github.com/ashleygwilliams/cargo-generate/issues/73
+      [pull/77]: https://github.com/ashleygwilliams/cargo-generate/pull/77
+
+    - **List of available templates - [ashleygwilliams], [issue/74] [issue/50] [pull/75]**
+
+      We are now keeping a running list of templates that are available to use with
+      `cargo-generate`. Please add more!
+
+      [issue/74]: https://github.com/ashleygwilliams/cargo-generate/issues/74
+      [issue/50]: https://github.com/ashleygwilliams/cargo-generate/issues/50
+      [pull/75]: https://github.com/ashleygwilliams/cargo-generate/pull/75
+
+    - **Add short command `cargo gen` - [DD5HT], [issue/53] [pull/72]**
+
+      You can now use `cargo gen` as a short command for `cargo generate`.
+
+      [DD5HT]: https://github.com/DD5HT
+      [issue/53]: https://github.com/ashleygwilliams/cargo-generate/issues/53
+      [pull/72]: https://github.com/ashleygwilliams/cargo-generate/pull/72
+
+  - ### 🛠️ Maintenance
+
+    - **Fixed some clippy warnings - [4tm4j33tk4ur], [pull/109]**
+
+      [4tm4j33tk4ur]: https://github.com/4tm4j33tk4ur
+      [pull/109]: https://github.com/ashleygwilliams/cargo-generate/pull/109
+
+    - **Test safety of `.genignore` - [ashleygwilliams], [issue/97] [pull/98]**
+
+      [issue/97]: https://github.com/ashleygwilliams/cargo-generate/issues/97
+      [pull/98]: https://github.com/ashleygwilliams/cargo-generate/pull/98
+
+    - **`cargo update` and update `cargo fmt` call - [ashleygwilliams], [issue/86] [pull/88]**
+
+      [issue/86]: https://github.com/ashleygwilliams/cargo-generate/issues/86
+      [pull/88]: https://github.com/ashleygwilliams/cargo-generate/pull/88
+
+    - **Test project name casing - [ashleygwilliams], [issue/63] [pull/64]**
+
+      [issue/63]: https://github.com/ashleygwilliams/cargo-generate/issues/63
+      [pull/64]: https://github.com/ashleygwilliams/cargo-generate/pull/64
+
+    - **Move from `ident_case` to `heck` - [csmoe], [issue/57] [pull/62]**
+
+      [issue/57]: https://github.com/ashleygwilliams/cargo-generate/issues/57
+      [pull/62]: https://github.com/ashleygwilliams/cargo-generate/pull/62
+
 ## 💥 0.1.1
 
   - ### 🤕 Fixes
