@@ -52,6 +52,9 @@ supported placeholders are:
 - `{{authors}}`: this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.
 - `{{project-name}}`: this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
 - `{{crate_name}}`: the snake_case_version of `project-name`
+- dates: the liquid date filter is enabled for this project. This means you can write something like `{{ "now" | date: "%Y-%m-%d %H:%M" }}`. For more information, check out the [Liquid Documentation on `date`].
+
+[Liquid Documentation on `date`]: https://shopify.github.io/liquid/filters/date/
 
 You can also add a `.genignore` file to your template. The files listed in the `.genignore` file
 will be removed from the local machine when `cargo-generate` is run on the end user's machine.
