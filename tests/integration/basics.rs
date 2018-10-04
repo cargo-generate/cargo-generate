@@ -47,7 +47,7 @@ fn it_substitutes_date() {
             "Cargo.toml",
             r#"[package]
 name = "{{project-name}}"
-description = "A wonderful project Copyright {{ "now" | date: "%Y" }}"
+description = "A wonderful project Copyright {{ "2018-10-04 18:18:45 +0200" | date: "%Y" }}"
 version = "0.1.0"
 "#,
         ).init_git()
