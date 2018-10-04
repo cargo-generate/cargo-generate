@@ -10,7 +10,11 @@ use std::path::PathBuf;
 use walkdir::WalkDir;
 
 fn engine() -> liquid::Parser {
-    liquid::ParserBuilder::new().build()
+    liquid::ParserBuilder::new()
+        .filter(
+            "date",
+            liquid::filters::date as liquid::interpreter::FnFilterValue,
+        ).build()
 }
 
 pub fn substitute(name: &ProjectName, force: bool) -> Result<liquid::Object> {
