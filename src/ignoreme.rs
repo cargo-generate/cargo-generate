@@ -9,10 +9,9 @@ use std::path::PathBuf;
 /// `.genignore` file
 /// It handles all errors internally
 pub fn remove_uneeded_files(dir: &PathBuf) {
-    match get_ignored(dir) {
-        Some(items) => remove_dir_files(items),
-        None => (),
-    };
+    if let Some(items) = get_ignored(dir) {
+        remove_dir_files(items);
+    }
 }
 
 fn get_ignored(location: &PathBuf) -> Option<Vec<PathBuf>> {
@@ -20,13 +19,9 @@ fn get_ignored(location: &PathBuf) -> Option<Vec<PathBuf>> {
     let ignored = WalkBuilder::new(location)
         .standard_filters(false)
         .add_custom_ignore_filename(OsStr::new(ignore_file_name))
-        .build()
-        .into_iter();
+        .build();
 
-    let all = WalkBuilder::new(location)
-        .standard_filters(false)
-        .build()
-        .into_iter();
+    let all = WalkBuilder::new(location).standard_filters(false).build();
 
     let mut all_set = HashSet::new();
     let mut ign_set = HashSet::new();
