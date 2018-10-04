@@ -204,7 +204,7 @@ version = "0.1.0"
 }
 
 #[test]
-fn it_removes_unneeded_files() {
+fn it_removes_files_listed_in_genignore() {
     let template = dir("template")
         .file(
             "Cargo.toml",
@@ -215,8 +215,7 @@ version = "0.1.0"
 "#,
         ).file(
             ".genignore",
-            r#".genignore
-deleteme.sh
+            r#"deleteme.sh
 *.trash
 "#,
         ).file("deleteme.sh", r#"Nothing to see here"#)
@@ -240,9 +239,39 @@ deleteme.sh
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     assert_eq!(dir.exists("foobar-project/notme.sh"), true);
-    assert_eq!(dir.exists("foobar-project/.genignore"), false);
     assert_eq!(dir.exists("foobar-project/deleteme.sh"), false);
     assert_eq!(dir.exists("foobar-project/deleteme.trash"), false);
+}
+
+#[test]
+fn it_always_removes_genignore_file() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        ).file(".genignore", r#"farts"#)
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert_eq!(dir.exists("foobar-project/.genignore"), false);
 }
 
 #[test]
@@ -257,8 +286,7 @@ version = "0.1.0"
 "#,
         ).file(
             ".genignore",
-            r#".genignore
-../dangerous.todelete.cargogeneratetests
+            r#"../dangerous.todelete.cargogeneratetests
 "#,
         ).init_git()
         .build();
@@ -307,8 +335,7 @@ version = "0.1.0"
 "#,
         ).file(
             ".genignore",
-            r#".genignore
-../dangerous.todelete.cargogeneratetests
+            r#"../dangerous.todelete.cargogeneratetests
 "#,
         ).file("./dangerous.todelete.cargogeneratetests", "IM FINE OK")
         .init_git()

@@ -58,6 +58,7 @@ supported placeholders are:
 
 You can also add a `.genignore` file to your template. The files listed in the `.genignore` file
 will be removed from the local machine when `cargo-generate` is run on the end user's machine.
+The `.genignore` file is always ignored, so there is no need to list it in the `.genignore` file.
 
 Here's a list of [currently available templates](TEMPLATES.md).
 If you have a great template that you'd like to feature here, please [file an issue or a PR]!
