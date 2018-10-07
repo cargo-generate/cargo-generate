@@ -1,108 +1,60 @@
 extern crate predicates;
 
+use helpers::commands::*;
 use helpers::project_builder::dir;
+use helpers::project_templates::*;
 
-use assert_cmd::prelude::*;
-use predicates::prelude::*;
 use std::fs;
-use std::process::Command;
+
+const DEFAULT_PROJECT_NAME: &str = "foobar-project";
 
 #[test]
 fn it_substitutes_projectname_in_cargo_toml() {
-    let template = dir("template")
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        ).init_git()
+    let template = default_cargo_template()
+        .init_git()
         .build();
+    let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+    generate_project(&dir, cur_project_name, template);
 
     assert!(
-        dir.read("foobar-project/Cargo.toml")
-            .contains("foobar-project")
+        dir.read(&format!("{}/Cargo.toml", cur_project_name))
+            .contains(cur_project_name)
     );
 }
 
 #[test]
 fn it_substitutes_date() {
-    let template = dir("template")
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project Copyright {{ "2018-10-04 18:18:45 +0200" | date: "%Y" }}"
-version = "0.1.0"
-"#,
-        ).init_git()
+    let template = cargo_template_with_copyright()
+        .init_git()
         .build();
-
+    let cur_project_name: &str = DEFAULT_PROJECT_NAME;
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+    generate_project(&dir, cur_project_name, template);
 
     assert!(
-        dir.read("foobar-project/Cargo.toml")
+        dir.read(&format!("{}/Cargo.toml", cur_project_name))
             .contains("Copyright 2018")
     );
 }
 
 #[test]
 fn it_kebabcases_projectname_when_passed_to_flag() {
-    let template = dir("template")
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        ).init_git()
+    let template = default_cargo_template()
+        .init_git()
         .build();
+    let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar_project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+    generate_project(&dir, cur_project_name, template);
 
     assert!(
-        dir.read("foobar-project/Cargo.toml")
-            .contains("foobar-project")
+        dir.read(&format!("{}/Cargo.toml", cur_project_name))
+            .contains(cur_project_name)
     );
 }
 
@@ -116,104 +68,57 @@ extern crate {{crate_name}};
 "#,
         ).init_git()
         .build();
+    let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+    generate_project(&dir, cur_project_name, template);
 
-    let file = dir.read("foobar-project/main.rs");
-    assert!(file.contains("foobar_project"));
-    assert!(!file.contains("foobar-project"));
+    let new_project_name: &str = "foobar_project";
+
+    let file = dir.read(&format!("{}/main.rs", cur_project_name));
+    assert!(file.contains(new_project_name));
+    assert!(!file.contains(cur_project_name));
 }
 
 #[test]
 fn short_commands_work() {
-    let template = dir("template")
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        ).init_git()
+    let template = default_cargo_template()
+        .init_git()
         .build();
+    let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+    generate_project(&dir, cur_project_name, template);
 
     assert!(
-        dir.read("foobar-project/Cargo.toml")
-            .contains("foobar-project")
+        dir.read(&format!("{}/Cargo.toml", cur_project_name))
+            .contains(cur_project_name)
     );
 }
 
 #[test]
 fn it_allows_user_defined_projectname_when_passing_force_flag() {
-    let template = dir("template")
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        ).init_git()
+    let template = default_cargo_template()
+        .init_git()
         .build();
+    let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar_project")
-        .arg("--force")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+    force_generate_project(&dir, cur_project_name, template);
 
     assert!(
-        dir.read("foobar_project/Cargo.toml")
-            .contains("foobar_project")
+        dir.read(&format!("{}/Cargo.toml", cur_project_name))
+            .contains(cur_project_name)
     );
 }
 
 #[test]
 fn it_removes_unneeded_files() {
-    let template = dir("template")
+    let template = default_cargo_template()
         .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        ).file(
             ".genignore",
             r#".genignore
 deleteme.sh
@@ -224,50 +129,39 @@ deleteme.sh
         .file("notme.sh", r#"I'm here!"#)
         .init_git()
         .build();
+    let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+    generate_project(&dir, cur_project_name, template);
 
-    assert_eq!(dir.exists("foobar-project/notme.sh"), true);
-    assert_eq!(dir.exists("foobar-project/.genignore"), false);
-    assert_eq!(dir.exists("foobar-project/deleteme.sh"), false);
-    assert_eq!(dir.exists("foobar-project/deleteme.trash"), false);
+    let notme_file = &format!("{}/notme.sh", cur_project_name);
+    let genignore_file = &format!("{}/.genignore", cur_project_name);
+    let deleteme_file = &format!("{}/deleteme.sh", cur_project_name);
+    let deleteme_trash_file = &format!("{}/deleteme.trash", cur_project_name);
+
+    assert_eq!(dir.exists(notme_file), true);
+    assert_eq!(dir.exists(genignore_file), false);
+    assert_eq!(dir.exists(deleteme_file), false);
+    assert_eq!(dir.exists(deleteme_trash_file), false);
 }
 
 #[test]
 fn it_does_not_remove_files_from_outside_project_dir() {
-    let template = dir("template")
+    let template = default_cargo_template()
         .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        ).file(
             ".genignore",
             r#".genignore
 ../dangerous.todelete.cargogeneratetests
 "#,
         ).init_git()
         .build();
+    let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
 
     let dangerous_file = template
-        .path()
-        .join("..")
+        .parent()
         .join("dangerous.todelete.cargogeneratetests");
 
     fs::write(&dangerous_file, "YOU BETTER NOT").expect(&format!(
@@ -275,17 +169,7 @@ version = "0.1.0"
         dangerous_file.to_str().expect("Could not read path.")
     ));
 
-    Command::main_binary()
-        .unwrap()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+    generate_project(&dir, cur_project_name, template.clone());
 
     assert!(
         fs::metadata(&dangerous_file)
@@ -297,15 +181,8 @@ version = "0.1.0"
 
 #[test]
 fn errant_ignore_entry_doesnt_affect_template_files() {
-    let template = dir("template")
+    let template = default_cargo_template()
         .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        ).file(
             ".genignore",
             r#".genignore
 ../dangerous.todelete.cargogeneratetests
@@ -313,25 +190,18 @@ version = "0.1.0"
         ).file("./dangerous.todelete.cargogeneratetests", "IM FINE OK")
         .init_git()
         .build();
+    let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+    generate_project(&dir, cur_project_name, template.clone());
+
+    println!("{:?}", template.clone().path().join("dangerous.todelete.cargogeneratetests"));
 
     assert!(
         fs::metadata(
             template
-                .path()
+                .parent()
                 .join("dangerous.todelete.cargogeneratetests")
         ).expect("should exist")
         .is_file()
@@ -341,36 +211,18 @@ version = "0.1.0"
 #[test]
 fn it_allows_a_git_branch_to_be_specified() {
     // Build and commit on mater
-    let template = dir("template")
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        ).init_git()
+    let template = default_cargo_template()
+        .init_git()
         .branch("baz")
         .build();
+    let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
-        .arg("generate")
-        .arg("--branch")
-        .arg("baz")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+    generate_project_with_branch(&dir, cur_project_name, template, "baz");
 
     assert!(
-        dir.read("foobar-project/Cargo.toml")
-            .contains("foobar-project")
+        dir.read(&format!("{}/Cargo.toml", cur_project_name))
+            .contains(cur_project_name)
     );
 }
