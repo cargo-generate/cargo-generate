@@ -9,7 +9,7 @@ use std::process::Command;
 pub fn generate_project(
     dir: &Project,
     project_name: &str,
-    template: Project,
+    template: &Project,
 ) {
     Command::main_binary()
         .unwrap()
@@ -27,7 +27,7 @@ pub fn generate_project(
 pub fn force_generate_project(
     dir: &Project,
     project_name: &str,
-    template: Project,
+    template: &Project,
 ) {
     Command::main_binary()
         .unwrap()
@@ -46,7 +46,7 @@ pub fn force_generate_project(
 pub fn generate_project_with_branch(
     dir: &Project,
     project_name: &str,
-    template: Project,
+    template: &Project,
     branch: &str
 ) {
     Command::main_binary()
