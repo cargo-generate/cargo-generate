@@ -3,7 +3,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::str;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Project {
     pub root: PathBuf,
 }
