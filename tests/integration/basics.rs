@@ -194,14 +194,12 @@ fn errant_ignore_entry_doesnt_affect_template_files() {
 
     let dir = dir("main").build();
 
-    generate_project(&dir, cur_project_name, template.clone());
-
-    println!("{:?}", template.clone().path().join("dangerous.todelete.cargogeneratetests"));
+    generate_project(&dir, cur_project_name, &template);
 
     assert!(
         fs::metadata(
             template
-                .parent()
+                .path()
                 .join("dangerous.todelete.cargogeneratetests")
         ).expect("should exist")
         .is_file()
