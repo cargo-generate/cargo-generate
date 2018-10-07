@@ -22,6 +22,10 @@ impl Project {
         &self.root
     }
 
+    pub fn parent(&self) -> &Path {
+        &self.root.parent().unwrap()
+    }
+
     pub fn exists(&self, path: &str) -> bool {
         self.root.join(path).exists()
     }
