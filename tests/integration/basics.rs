@@ -17,7 +17,7 @@ fn it_substitutes_projectname_in_cargo_toml() {
 
     let dir = dir("main").build();
 
-    generate_project(&dir, cur_project_name, template);
+    generate_project(&dir, cur_project_name, &template);
 
     assert!(
         dir.read(&format!("{}/Cargo.toml", cur_project_name))
@@ -33,7 +33,7 @@ fn it_substitutes_date() {
     let cur_project_name: &str = DEFAULT_PROJECT_NAME;
     let dir = dir("main").build();
 
-    generate_project(&dir, cur_project_name, template);
+    generate_project(&dir, cur_project_name, &template);
 
     assert!(
         dir.read(&format!("{}/Cargo.toml", cur_project_name))
@@ -50,7 +50,7 @@ fn it_kebabcases_projectname_when_passed_to_flag() {
 
     let dir = dir("main").build();
 
-    generate_project(&dir, cur_project_name, template);
+    generate_project(&dir, cur_project_name, &template);
 
     assert!(
         dir.read(&format!("{}/Cargo.toml", cur_project_name))
@@ -72,7 +72,7 @@ extern crate {{crate_name}};
 
     let dir = dir("main").build();
 
-    generate_project(&dir, cur_project_name, template);
+    generate_project(&dir, cur_project_name, &template);
 
     let new_project_name: &str = "foobar_project";
 
@@ -90,7 +90,7 @@ fn short_commands_work() {
 
     let dir = dir("main").build();
 
-    generate_project(&dir, cur_project_name, template);
+    generate_project(&dir, cur_project_name, &template);
 
     assert!(
         dir.read(&format!("{}/Cargo.toml", cur_project_name))
@@ -107,7 +107,7 @@ fn it_allows_user_defined_projectname_when_passing_force_flag() {
 
     let dir = dir("main").build();
 
-    force_generate_project(&dir, cur_project_name, template);
+    force_generate_project(&dir, cur_project_name, &template);
 
     assert!(
         dir.read(&format!("{}/Cargo.toml", cur_project_name))
@@ -133,7 +133,7 @@ deleteme.sh
 
     let dir = dir("main").build();
 
-    generate_project(&dir, cur_project_name, template);
+    generate_project(&dir, cur_project_name, &template);
 
     let notme_file = &format!("{}/notme.sh", cur_project_name);
     let genignore_file = &format!("{}/.genignore", cur_project_name);
@@ -169,7 +169,7 @@ fn it_does_not_remove_files_from_outside_project_dir() {
         dangerous_file.to_str().expect("Could not read path.")
     ));
 
-    generate_project(&dir, cur_project_name, template.clone());
+    generate_project(&dir, cur_project_name, &template);
 
     assert!(
         fs::metadata(&dangerous_file)
@@ -219,7 +219,7 @@ fn it_allows_a_git_branch_to_be_specified() {
 
     let dir = dir("main").build();
 
-    generate_project_with_branch(&dir, cur_project_name, template, "baz");
+    generate_project_with_branch(&dir, cur_project_name, &template, "baz");
 
     assert!(
         dir.read(&format!("{}/Cargo.toml", cur_project_name))
