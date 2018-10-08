@@ -20,7 +20,7 @@ pub fn create(project_dir: &PathBuf, args: Args) -> Result<GitRepository> {
 
 pub fn load_submodules(git_repository: &GitRepository) -> Result<()> {
     let submodules = git_repository.submodules()?;
-    if submodules.len() == 0 {
+    if submodules.is_empty() {
         return Ok(());
     }
 
