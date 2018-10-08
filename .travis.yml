@@ -1,6 +1,22 @@
 language: rust
 sudo: false
 
+DEPLOY_TO_GITHUB: &DEPLOY_TO_GITHUB
+  before_deploy:
+    - name="cargo-generate-$TRAVIS_TAG-$TARGET"
+    - mkdir $name
+    - cp target/$TARGET/release/cargo-generate $name/
+    - cp README.md LICENSE-MIT LICENSE-APACHE $name/
+    - tar czvf $name.tar.gz $name
+  deploy:
+    provider: releases
+    api_key: $GH_TOKEN
+    file: cargo-generate-$TRAVIS_TAG-$TARGET.tar.gz
+    skip_cleanup: true
+    on:
+      branch: master
+      tags: true
+
 matrix:
   include:
 
@@ -11,3 +27,25 @@ matrix:
     - rustup component add rustfmt-preview
     - cargo fmt --all -- --check
     env: RUST_BACKTRACE=1
+
+  # dist linux binary
+  - env: JOB=dist-linux TARGET=x86_64-unknown-linux-musl
+    rust: stable
+    before_script: rustup target add $TARGET
+    script: cargo build --release --target $TARGET --locked --features vendored-openssl
+    addons:
+      apt:
+        packages:
+          - musl-tools
+    <<: *DEPLOY_TO_GITHUB
+
+  # dist OSX binary
+  - env: JOB=dist-osx MACOSX_DEPLOYMENT_TARGET=10.7 TARGET=x86_64-apple-darwin
+    os: osx
+    rust: stable
+    script: cargo build --release --target $TARGET --locked
+    <<: *DEPLOY_TO_GITHUB
+
+notifications:
+  email:
+    on_success: never

@@ -23,8 +23,12 @@ liquid = "0.15.0"
 walkdir = "2.1.4"
 remove_dir_all = "0.5.1"
 ignore = "0.4.3"
+openssl = { version = '0.10.11', optional = true }
 
 [dev-dependencies]
 predicates = "0.5.0"
 assert_cmd = "0.4"
 tempfile = "3.0.2"
+
+[features]
+vendored-openssl = ['openssl/vendored']
