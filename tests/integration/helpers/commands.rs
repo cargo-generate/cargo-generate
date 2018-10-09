@@ -15,8 +15,11 @@ pub struct CargoGenerateCommandBuilder<'a> {
 }
 
 impl<'a> CargoGenerateCommandBuilder<'a> {
-
-    pub fn new(dir: &'a Project, project_name: &'a str, git_path: &'a Project) -> CargoGenerateCommandBuilder<'a> {
+    pub fn new(
+        dir: &'a Project,
+        project_name: &'a str,
+        git_path: &'a Project,
+    ) -> CargoGenerateCommandBuilder<'a> {
         CargoGenerateCommandBuilder {
             branch: None,
             dir: dir,
@@ -41,22 +44,18 @@ impl<'a> CargoGenerateCommandBuilder<'a> {
         cmd.arg("generate");
         // It the use specified a branch?
         if let Some(ref branch) = self.branch {
-            cmd.arg("--branch")
-               .arg(branch);
+            cmd.arg("--branch").arg(branch);
         }
-        cmd.arg("--git")
-           .arg(self.git_path.path());
-        cmd.arg("--name")
-           .arg(self.project_name);
+        cmd.arg("--git").arg(self.git_path.path());
+        cmd.arg("--name").arg(self.project_name);
         if self.force {
             cmd.arg("--force");
         }
         cmd.current_dir(self.dir.path())
-           .assert()
-           .success()
-           .stdout(predicates::str::contains("Done!").from_utf8());
+            .assert()
+            .success()
+            .stdout(predicates::str::contains("Done!").from_utf8());
     }
-
 }
 
 pub fn generate_project(dir: &Project, project_name: &str, template: &Project) {
