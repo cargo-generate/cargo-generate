@@ -10,9 +10,7 @@ const DEFAULT_PROJECT_NAME: &str = "foobar-project";
 
 #[test]
 fn it_substitutes_projectname_in_cargo_toml() {
-    let template = default_cargo_template()
-        .init_git()
-        .build();
+    let template = default_cargo_template().init_git().build();
     let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
@@ -27,9 +25,7 @@ fn it_substitutes_projectname_in_cargo_toml() {
 
 #[test]
 fn it_substitutes_date() {
-    let template = cargo_template_with_copyright()
-        .init_git()
-        .build();
+    let template = cargo_template_with_copyright().init_git().build();
     let cur_project_name: &str = DEFAULT_PROJECT_NAME;
     let dir = dir("main").build();
 
@@ -43,9 +39,7 @@ fn it_substitutes_date() {
 
 #[test]
 fn it_kebabcases_projectname_when_passed_to_flag() {
-    let template = default_cargo_template()
-        .init_git()
-        .build();
+    let template = default_cargo_template().init_git().build();
     let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
@@ -83,9 +77,7 @@ extern crate {{crate_name}};
 
 #[test]
 fn short_commands_work() {
-    let template = default_cargo_template()
-        .init_git()
-        .build();
+    let template = default_cargo_template().init_git().build();
     let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
@@ -100,9 +92,7 @@ fn short_commands_work() {
 
 #[test]
 fn it_allows_user_defined_projectname_when_passing_force_flag() {
-    let template = default_cargo_template()
-        .init_git()
-        .build();
+    let template = default_cargo_template().init_git().build();
     let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();
@@ -209,10 +199,7 @@ fn errant_ignore_entry_doesnt_affect_template_files() {
 #[test]
 fn it_allows_a_git_branch_to_be_specified() {
     // Build and commit on mater
-    let template = default_cargo_template()
-        .init_git()
-        .branch("baz")
-        .build();
+    let template = default_cargo_template().init_git().branch("baz").build();
     let cur_project_name: &str = DEFAULT_PROJECT_NAME;
 
     let dir = dir("main").build();

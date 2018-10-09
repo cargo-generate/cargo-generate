@@ -6,11 +6,7 @@ use assert_cmd::prelude::*;
 use predicates::prelude::*;
 use std::process::Command;
 
-pub fn generate_project(
-    dir: &Project,
-    project_name: &str,
-    template: &Project,
-) {
+pub fn generate_project(dir: &Project, project_name: &str, template: &Project) {
     Command::main_binary()
         .unwrap()
         .arg("generate")
@@ -24,11 +20,7 @@ pub fn generate_project(
         .stdout(predicates::str::contains("Done!").from_utf8());
 }
 
-pub fn force_generate_project(
-    dir: &Project,
-    project_name: &str,
-    template: &Project,
-) {
+pub fn force_generate_project(dir: &Project, project_name: &str, template: &Project) {
     Command::main_binary()
         .unwrap()
         .arg("generate")
@@ -47,7 +39,7 @@ pub fn generate_project_with_branch(
     dir: &Project,
     project_name: &str,
     template: &Project,
-    branch: &str
+    branch: &str,
 ) {
     Command::main_binary()
         .unwrap()
