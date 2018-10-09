@@ -106,12 +106,11 @@ fn it_allows_user_defined_projectname_when_passing_force_flag() {
 }
 
 #[test]
-fn it_removes_unneeded_files() {
+fn it_removes_files_listed_in_genignore() {
     let template = default_cargo_template()
         .file(
             ".genignore",
-            r#".genignore
-deleteme.sh
+            r#"deleteme.sh
 *.trash
 "#,
         ).file("deleteme.sh", r#"Nothing to see here"#)
@@ -126,14 +125,29 @@ deleteme.sh
     generate_project(&dir, cur_project_name, &template);
 
     let notme_file = &format!("{}/notme.sh", cur_project_name);
-    let genignore_file = &format!("{}/.genignore", cur_project_name);
     let deleteme_file = &format!("{}/deleteme.sh", cur_project_name);
     let deleteme_trash_file = &format!("{}/deleteme.trash", cur_project_name);
 
     assert_eq!(dir.exists(notme_file), true);
-    assert_eq!(dir.exists(genignore_file), false);
     assert_eq!(dir.exists(deleteme_file), false);
     assert_eq!(dir.exists(deleteme_trash_file), false);
+}
+
+#[test]
+fn it_always_removes_genignore_file() {
+    let template = default_cargo_template()
+        .file(".genignore", r#"farts"#)
+        .init_git()
+        .build();
+    let cur_project_name: &str = DEFAULT_PROJECT_NAME;
+
+    let dir = dir("main").build();
+
+    generate_project(&dir, cur_project_name, &template);
+
+    let genignore_file = &format!("{}/.genignore", cur_project_name);
+
+    assert_eq!(dir.exists(genignore_file), false);
 }
 
 #[test]
@@ -141,8 +155,7 @@ fn it_does_not_remove_files_from_outside_project_dir() {
     let template = default_cargo_template()
         .file(
             ".genignore",
-            r#".genignore
-../dangerous.todelete.cargogeneratetests
+            r#"../dangerous.todelete.cargogeneratetests
 "#,
         ).init_git()
         .build();
@@ -174,8 +187,7 @@ fn errant_ignore_entry_doesnt_affect_template_files() {
     let template = default_cargo_template()
         .file(
             ".genignore",
-            r#".genignore
-../dangerous.todelete.cargogeneratetests
+            r#"../dangerous.todelete.cargogeneratetests
 "#,
         ).file("./dangerous.todelete.cargogeneratetests", "IM FINE OK")
         .init_git()

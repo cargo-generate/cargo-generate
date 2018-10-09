@@ -3,34 +3,28 @@ use remove_dir_all::*;
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::fs::remove_file;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 ///takes the directory path and removes the files/directories specified in the
 /// `.genignore` file
 /// It handles all errors internally
 pub fn remove_uneeded_files(dir: &PathBuf) {
-    match get_ignored(dir) {
-        Some(items) => remove_dir_files(items),
-        None => (),
-    };
+    let items = get_ignored(dir);
+    remove_dir_files(items);
 }
 
-fn get_ignored(location: &PathBuf) -> Option<Vec<PathBuf>> {
+fn get_ignored(location: &PathBuf) -> Vec<PathBuf> {
     let ignore_file_name = ".genignore";
     let ignored = WalkBuilder::new(location)
         .standard_filters(false)
         .add_custom_ignore_filename(OsStr::new(ignore_file_name))
-        .build()
-        .into_iter();
+        .build();
 
-    let all = WalkBuilder::new(location)
-        .standard_filters(false)
-        .build()
-        .into_iter();
+    let all = WalkBuilder::new(location).standard_filters(false).build();
 
     let mut all_set = HashSet::new();
     let mut ign_set = HashSet::new();
-    let mut output = vec![];
+    let mut output = vec![Path::new(location).join(ignore_file_name)];
 
     for x in all {
         all_set.insert(x.expect("Found invalid path: Aborting").path().to_owned());
@@ -41,11 +35,7 @@ fn get_ignored(location: &PathBuf) -> Option<Vec<PathBuf>> {
     for x in all_set.difference(&ign_set) {
         output.push(x.to_owned());
     }
-    if output.is_empty() {
-        None
-    } else {
-        Some(output)
-    }
+    output
 }
 
 fn remove_dir_files(files: Vec<PathBuf>) {
