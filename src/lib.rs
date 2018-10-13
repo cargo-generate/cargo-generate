@@ -112,8 +112,8 @@ pub fn generate(_cli: Cli) {
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
         .join(dir_name);
-    
-    FIXME:
+
+    //FIXME:
     /** 
     ensure!(
         !project_dir.exists(),
