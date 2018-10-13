@@ -28,6 +28,7 @@ use git::GitConfig;
 use projectname::ProjectName;
 use quicli::prelude::*;
 use std::env;
+use std::path::PathBuf;
 
 /// Generate a new Cargo project from a given template
 ///
@@ -144,4 +145,20 @@ pub fn generate(_cli: Cli) {
         style("New project created").bold(),
         style(dir_string).underlined()
     );
+}
+
+fn create_git(args: Args, name: &ProjectName) {
+    unimplemented!()
+}
+
+fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
+    unimplemented!()
+}
+
+fn progress(name: &ProjectName, dir: &PathBuf, force: bool) {
+    unimplemented!()
+}
+
+fn gen_success(dir: &PathBuf) {
+    unimplemented!()
 }
