@@ -86,20 +86,40 @@ pub fn generate(_cli: Cli) {
         Some(ref n) => ProjectName::new(n),
         None => ProjectName::new(&interactive::name().unwrap()),
     };
-    let force = args.force;
-    let config = GitConfig::new(args.git, args.branch)?;
+    
+    rename_warning(&name);
+    create_git(args, &name);
+}
 
-    if !name.is_crate_name() {
+fn create_git(args: Args, name: &ProjectName) {
+    let force = args.force;
+    let config = GitConfig::new(args.git, args.branch).unwrap();
+    if let Some(dir) = &create_project_dir(&name, force) {
+        match git::create(dir, config){
+            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force)),
+            Err(e) => println!(
+                "{} {} {}",
+                emoji::ERROR,
+                style("Git Error:").bold().red(),
+                style(e).bold().red(),
+            ),
+        };
+    } else {
         println!(
-            "{} {} `{}` {} `{}`{}",
-            emoji::WARN,
-            style("Renaming project called").bold(),
-            style(&name.user_input).bold().yellow(),
-            style("to").bold(),
-            style(&name.kebab_case()).bold().green(),
-            style("...").bold()
+            "{} {}",
+            emoji::ERROR,
+            style("Target directory already exists, aborting!")
+                .bold()
+                .red(),
         );
     }
+}
+
+fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
+    let dir_name = if force { name.raw() } else { name.kebab_case() };
+    let project_dir = env::current_dir()
+        .unwrap_or_else(|_e| ".".into())
+        .join(&dir_name);
 
     println!(
         "{} {} `{}`{}",
@@ -109,53 +129,27 @@ pub fn generate(_cli: Cli) {
         style("...").bold()
     );
 
-    let dir_name = if force { name.raw() } else { name.kebab_case() };
-    let project_dir = env::current_dir()
-        .unwrap_or_else(|_e| ".".into())
-        .join(dir_name);
+    if project_dir.exists() {
+        None
+    } else {
+        Some(project_dir)
+    }
+}
 
-    //FIXME:
-    /** 
-    ensure!(
-        !project_dir.exists(),
-        "Target directory `{}` already exists, aborting.",
-        project_dir.display()
-    ); */
-
-    git::create(&project_dir, config).unwrap();
-
-    let template = template::substitute(&name, force).unwrap();
+fn progress(name: &ProjectName, dir: &PathBuf, force: bool) {
+    let template =
+        template::substitute(name, force).expect("Error: Can't substitute the given name.");
 
     let pbar = progressbar::new();
     pbar.tick();
 
-    template::walk_dir(&project_dir, template, pbar).unwrap();
+    template::walk_dir(dir, template, pbar).expect("Error: Can't walk the directory");
 
-    git::remove_history(&project_dir).unwrap();
-    git::init(&project_dir).unwrap();
+    git::init(dir).expect("Error: Can't init git repo");
 
-    //remove uneeded here
-    ignoreme::remove_uneeded_files(&project_dir);
+    ignoreme::remove_uneeded_files(dir);
 
-    let dir_string = &project_dir.to_str().unwrap_or("");
-    println!(
-        "{} {} {} {}",
-        emoji::SPARKLE,
-        style("Done!").bold().green(),
-        style("New project created").bold(),
-        style(dir_string).underlined()
-    );
-}
-
-fn create_git(args: Args, name: &ProjectName) {
-    unimplemented!()
-}
-
-fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
-    unimplemented!()
-}
-fn progress(name: &ProjectName, dir: &PathBuf, force: bool) {
-    unimplemented!()
+    gen_success(dir);
 }
 
 fn gen_success(dir: &PathBuf) {
@@ -167,4 +161,18 @@ fn gen_success(dir: &PathBuf) {
         style("New project created").bold(),
         style(dir_string).underlined()
     );
+}
+
+fn rename_warning(name: &ProjectName) {
+    if !name.is_crate_name() {
+        println!(
+            "{} {} `{}` {} `{}`{}",
+            emoji::WARN,
+            style("Renaming project called").bold(),
+            style(&name.user_input).bold().yellow(),
+            style("to").bold(),
+            style(&name.kebab_case()).bold().green(),
+            style("...").bold()
+        );
+    }
 }
