@@ -89,7 +89,9 @@ pub fn generate(_cli: Cli) {
 fn create_git(args: Args, name: &ProjectName) {
     let force = args.force;
     if let Some(dir) = &create_project_dir(&name, force) {
-        match git::create(dir, args).and_then(|ref git_repository| git::load_submodules(git_repository)) {
+        match git::create(dir, args)
+            .and_then(|ref git_repository| git::load_submodules(git_repository))
+        {
             Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force)),
             Err(e) => println!(
                 "{} {} {}",
