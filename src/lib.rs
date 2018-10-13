@@ -154,7 +154,7 @@ fn progress(name: &ProjectName, dir: &PathBuf, force: bool) {
     unimplemented!()
 }
 
-fn gen_success(dir: &PathBuf){
+fn gen_success(dir: &PathBuf) {
     let dir_string = dir.to_str().unwrap_or("");
     println!(
         "{} {} {} {}",
