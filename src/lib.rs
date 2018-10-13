@@ -150,11 +150,17 @@ fn create_git(args: Args, name: &ProjectName) {
 fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
     unimplemented!()
 }
-
 fn progress(name: &ProjectName, dir: &PathBuf, force: bool) {
     unimplemented!()
 }
 
-fn gen_success(dir: &PathBuf) {
-    unimplemented!()
+fn gen_success(dir: &PathBuf){
+    let dir_string = dir.to_str().unwrap_or("");
+    println!(
+        "{} {} {} {}",
+        emoji::SPARKLE,
+        style("Done!").bold().green(),
+        style("New project created").bold(),
+        style(dir_string).underlined()
+    );
 }
