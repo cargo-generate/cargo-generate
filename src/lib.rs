@@ -71,7 +71,7 @@ pub struct Args {
     force: bool,
 }
 
-main!(|_cli: Cli| {
+pub fn generate(_cli: Cli) {
     let args: Args = match Cli::from_args() {
         Cli::Generate(args) => args,
         Cli::Gen(args) => args,
@@ -79,7 +79,7 @@ main!(|_cli: Cli| {
 
     let name = match &args.name {
         Some(ref n) => ProjectName::new(n),
-        None => ProjectName::new(&interactive::name()?),
+        None => ProjectName::new(&interactive::name().unwrap()),
     };
     let force = args.force;
 
@@ -107,25 +107,27 @@ main!(|_cli: Cli| {
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
         .join(dir_name);
-
+    
+    FIXME:
+    /** 
     ensure!(
         !project_dir.exists(),
         "Target directory `{}` already exists, aborting.",
         project_dir.display()
-    );
+    ); */
 
     git::create(&project_dir, args)
-        .and_then(|ref git_repository| git::load_submodules(git_repository))?;
-    git::remove_history(&project_dir)?;
+        .and_then(|ref git_repository| git::load_submodules(git_repository)).unwrap();
+    git::remove_history(&project_dir).unwrap();
 
-    let template = template::substitute(&name, force)?;
+    let template = template::substitute(&name, force).unwrap();
 
     let pbar = progressbar::new();
     pbar.tick();
 
-    template::walk_dir(&project_dir, template, pbar)?;
+    template::walk_dir(&project_dir, template, pbar).unwrap();
 
-    git::init(&project_dir)?;
+    git::init(&project_dir).unwrap();
 
     //remove uneeded here
     ignoreme::remove_uneeded_files(&project_dir);
@@ -138,4 +140,4 @@ main!(|_cli: Cli| {
         style("New project created").bold(),
         style(dir_string).underlined()
     );
-});
+}
