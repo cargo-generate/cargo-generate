@@ -107,17 +107,17 @@ pub fn generate(_cli: Cli) {
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
         .join(dir_name);
-    
-    FIXME:
+
+    //FIXME:
     /** 
     ensure!(
         !project_dir.exists(),
         "Target directory `{}` already exists, aborting.",
         project_dir.display()
     ); */
-
     git::create(&project_dir, args)
-        .and_then(|ref git_repository| git::load_submodules(git_repository)).unwrap();
+        .and_then(|ref git_repository| git::load_submodules(git_repository))
+        .unwrap();
     git::remove_history(&project_dir).unwrap();
 
     let template = template::substitute(&name, force).unwrap();
