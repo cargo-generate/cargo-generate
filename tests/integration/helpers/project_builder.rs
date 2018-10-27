@@ -13,6 +13,7 @@ thread_local!(static IDX: usize = CNT.fetch_add(1, Ordering::SeqCst));
 
 pub struct ProjectBuilder {
     files: Vec<(String, String)>,
+    submodules: Vec<(String, String)>,
     root: PathBuf,
     git: bool,
     branch: Option<String>,
@@ -21,6 +22,7 @@ pub struct ProjectBuilder {
 pub fn dir(name: &str) -> ProjectBuilder {
     ProjectBuilder {
         files: Vec::new(),
+        submodules: Vec::new(),
         root: root(name),
         git: false,
         branch: None,
@@ -52,6 +54,11 @@ impl ProjectBuilder {
 
     pub fn branch(mut self, branch: &str) -> ProjectBuilder {
         self.branch = Some(branch.to_owned());
+        self
+    }
+
+    pub fn add_submodule<I: Into<String>>(mut self, destination: I, path: I) -> ProjectBuilder {
+        self.submodules.push((destination.into(), path.into()));
         self
     }
 
@@ -122,6 +129,17 @@ impl ProjectBuilder {
                 .current_dir(&self.root)
                 .assert()
                 .success();
+
+            self.submodules.iter().for_each(|(d, m)| {
+                Command::new("git")
+                    .arg("submodule")
+                    .arg("add")
+                    .arg(&m)
+                    .arg(&d)
+                    .current_dir(&self.root)
+                    .assert()
+                    .success();
+            });
 
             Command::new("git")
                 .arg("commit")

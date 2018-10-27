@@ -1,40 +1,46 @@
-use git2::{
-    build::CheckoutBuilder, build::RepoBuilder, Repository as GitRepository, RepositoryInitOptions,
-    SubmoduleUpdateOptions,
-};
+use git2::{Repository as GitRepository, RepositoryInitOptions};
 use quicli::prelude::*;
 use remove_dir_all::remove_dir_all;
 use std::path::PathBuf;
-use Args;
+use tempfile::Builder;
+use upstream::core::GitReference;
+use upstream::sources::git::GitRemote;
+use upstream::util::config::Config;
+use url::{ParseError, Url};
 
-pub fn create(project_dir: &PathBuf, args: Args) -> Result<GitRepository> {
-    let mut rb = RepoBuilder::new();
-    rb.bare(false).with_checkout(CheckoutBuilder::new());
-
-    if let Some(ref branch) = args.branch {
-        rb.branch(branch);
-    }
-
-    Ok(rb.clone(&args.git, &project_dir)?)
+pub struct GitConfig {
+    remote: Url,
+    branch: GitReference,
 }
 
-pub fn load_submodules(git_repository: &GitRepository) -> Result<()> {
-    let submodules = git_repository.submodules()?;
-    if submodules.is_empty() {
-        return Ok(());
+impl GitConfig {
+    pub fn new(git: String, branch: Option<String>) -> Result<Self> {
+        let remote = match Url::parse(&git) {
+            Ok(u) => u,
+            Err(ParseError::RelativeUrlWithoutBase) => {
+                let rel = "file://".to_string() + &git;
+                Url::parse(&rel)?
+            }
+            Err(_) => return Err(format_err!("Failed parsing git remote: {}", &git)),
+        };
+
+        Ok(GitConfig {
+            remote: remote,
+            branch: GitReference::Branch(branch.unwrap_or("master".to_string())),
+        })
     }
+}
 
-    // Init submodule options
-    let mut submodule_opts = SubmoduleUpdateOptions::new();
-    submodule_opts
-        .allow_fetch(true)
-        .checkout(CheckoutBuilder::new());
+pub fn create(project_dir: &PathBuf, args: GitConfig) -> Result<()> {
+    let temp = Builder::new()
+        .prefix(project_dir.to_str().unwrap_or("cargo-generate"))
+        .tempdir()?;
+    let config = Config::default()?;
+    let remote = GitRemote::new(&args.remote);
+    let (db, rev) = remote.checkout(&temp.path(), &args.branch, &config)?;
 
-    // Init and load each submodule
-    for mut submodule in submodules {
-        submodule.update(true, Some(&mut submodule_opts))?;
-    }
-
+    // This clones the remote and handles all the submodules
+    db.copy_to(rev, project_dir.as_path(), &config)?;
     Ok(())
 }
 
