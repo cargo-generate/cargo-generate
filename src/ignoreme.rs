@@ -9,8 +9,17 @@ use std::path::{Path, PathBuf};
 /// `.genignore` file
 /// It handles all errors internally
 pub fn remove_uneeded_files(dir: &PathBuf) {
-    let items = get_ignored(dir);
-    remove_dir_files(items);
+    if check_if_genignore_exists(dir) {
+        let items = get_ignored(dir);
+        remove_dir_files(items);
+    }
+}
+
+fn check_if_genignore_exists(location: &PathBuf) -> bool {
+    let mut ignore_path = PathBuf::new();
+    ignore_path.push(location);
+    ignore_path.push(".genignore");
+    ignore_path.exists()
 }
 
 fn get_ignored(location: &PathBuf) -> Vec<PathBuf> {
