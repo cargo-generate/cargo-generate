@@ -4,6 +4,7 @@
 - [wasm-pack]: Write a wasm Library in Rust, [ashleygwilliams]
 - [CLI]: Write a CLI (Command Line Interface) Application in Rust, [Rust-Clique]
 - [rocket-base]: Write a simple web application using Rocket, [k0pernicus]
+- [rust-samp-sdk]: Write samp plugins in Rust, [Sreyas-Sreelal]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -13,3 +14,5 @@
 [Rust-Clique]: https://github.com/rust-clique
 [rocket-base]: https://github.com/k0pernicus/cargo-template-rocket-base
 [k0pernicus]: https://github.com/k0pernicus
+[rust-samp-sdk]: https://github.com/k0pernicus/cargo-template-rocket-base
+[Sreyas-Sreelal]: https://github.com/k0pernicus
