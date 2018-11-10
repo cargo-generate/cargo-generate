@@ -14,5 +14,5 @@
 [Rust-Clique]: https://github.com/rust-clique
 [rocket-base]: https://github.com/k0pernicus/cargo-template-rocket-base
 [k0pernicus]: https://github.com/k0pernicus
-[rust-samp-sdk]: https://github.com/k0pernicus/cargo-template-rocket-base
-[Sreyas-Sreelal]: https://github.com/k0pernicus
+[rust-samp-sdk]: https://github.com/Sreyas-Sreelal/rs-plugin-boilerplate
+[Sreyas-Sreelal]: https://github.com/sreyas-sreelal
