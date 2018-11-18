@@ -5,6 +5,7 @@
 - [CLI]: Write a CLI (Command Line Interface) Application in Rust, [Rust-Clique]
 - [rocket-base]: Write a simple web application using Rocket, [k0pernicus]
 - [rust-samp-sdk]: Write samp plugins in Rust, [Sreyas-Sreelal]
+- [actix-tera]: Create a basic web application with Actix-web and Tera, [Otomato]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -16,3 +17,5 @@
 [k0pernicus]: https://github.com/k0pernicus
 [rust-samp-sdk]: https://github.com/Sreyas-Sreelal/rs-plugin-boilerplate
 [Sreyas-Sreelal]: https://github.com/sreyas-sreelal
+[actix-tera]: https://github.com/otomato-gh/cargo-template-actix-tera
+[Otomato]: https://github.com/otomato-gh
