@@ -22,7 +22,6 @@ cargo install cargo-generate
 `cargo-generate` has a few dependencies that need to be available before it can be installed and used.
 
 * `openssl`: See the [`openssl-sys` crate readme] on how to obtain the openssl library for your system.
-* [`git`]: It is used to download the templates.
 * `cmake`: Check if it is installed by typing `cmake --version` in a terminal or command line window. If it is not available, check your package
   manager or see the [cmake homepage].
 

@@ -1,5 +1,43 @@
 # Changelog
 
+## 🌠 0.2.1
+
+  - ### 🤕 Fixes
+
+    - **don't error on missing `.genignore` file - [DD5HT], [issue/116] [pull/120]**
+
+      With 0.2.0 we introduced the idea of a `.genignore` file, however, we didn't account
+      the situation where one would not be present. Thanks for filing [an issue][issue/116]
+      [Diggsey] and thanks for the quick fix [DD5HT]!
+
+      [issue/116]: https://github.com/ashleygwilliams/cargo-generate/issues/116
+      [pull/120]: https://github.com/ashleygwilliams/cargo-generate/pull/120
+      [Diggsey]: https://github.com/Diggsey
+
+    - **enable use on private repositories- [ChristopherMacGown], [pull/119]**
+
+      This PR leveraged `cargo` to enable the ability to pull authenticated repos. As this
+      project grows into something we'd like to integrate into `cargo`, this gives us
+      greater functionality and also moves us closer to `cargo`'s codebase. Yay!
+
+      [ChristopherMacGown]: https://github.com/ChristopherMacGown
+      [pull/119]: https://github.com/ashleygwilliams/cargo-generate/pull/119
+
+    - **exclude submodules git metadata - [ChristopherMacGown], [pull/119]**
+  
+      Two bugs, one PR! Adding a test found that git metadata wasn't being excluded from
+      submodules- now it is! Thanks so much!
+
+  - ### 👯 New Templates
+
+    - **`actix-tera` template - [antweiss], [pull/123]**
+    - **`samp rust sdk` template - [Sreyas-Sreelal], [pull/121]**
+
+    [antweiss]: https://github.com/antweiss
+    [pull/123]: https://github.com/ashleygwilliams/cargo-generate/pull/123
+    [Sreyas-Sreelal]: https://github.com/Sreyas-Sreelal
+    [pull/121]: https://github.com/ashleygwilliams/cargo-generate/pull/121
+
 ## 💫 0.2.0
 
   - ### ✨ Features
