@@ -7,7 +7,7 @@ use projectname::ProjectName;
 use quicli::prelude::*;
 use std::fs;
 use std::path::PathBuf;
-use walkdir::WalkDir;
+use walkdir::{DirEntry, WalkDir};
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::new()
@@ -37,10 +37,23 @@ pub fn substitute(name: &ProjectName, force: bool) -> Result<liquid::Object> {
 }
 
 pub fn walk_dir(project_dir: &PathBuf, template: liquid::Object, pbar: ProgressBar) -> Result<()> {
+    fn is_dir(entry: &DirEntry) -> bool {
+        entry.file_type().is_dir()
+    }
+
+    fn is_git_metadata(entry: &DirEntry) -> bool {
+        entry
+            .path()
+            .to_str()
+            .map(|s| s.contains(".git"))
+            .unwrap_or(false)
+    }
+
     let engine = engine();
+
     for entry in WalkDir::new(project_dir) {
         let entry = entry?;
-        if entry.metadata()?.is_dir() {
+        if is_dir(&entry) || is_git_metadata(&entry) {
             continue;
         }
 

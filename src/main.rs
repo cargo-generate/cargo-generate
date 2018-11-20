@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate quicli;
+extern crate cargo as upstream;
 extern crate console;
 extern crate dialoguer;
 extern crate git2;
@@ -9,6 +10,8 @@ extern crate indicatif;
 extern crate liquid;
 extern crate regex;
 extern crate remove_dir_all;
+extern crate tempfile;
+extern crate url;
 extern crate walkdir;
 
 mod cargo;
@@ -21,6 +24,7 @@ mod projectname;
 mod template;
 
 use console::style;
+use git::GitConfig;
 use projectname::ProjectName;
 use quicli::prelude::*;
 use std::env;
@@ -82,6 +86,7 @@ main!(|_cli: Cli| {
         None => ProjectName::new(&interactive::name()?),
     };
     let force = args.force;
+    let config = GitConfig::new(args.git, args.branch)?;
 
     if !name.is_crate_name() {
         println!(
@@ -114,9 +119,7 @@ main!(|_cli: Cli| {
         project_dir.display()
     );
 
-    git::create(&project_dir, args)
-        .and_then(|ref git_repository| git::load_submodules(git_repository))?;
-    git::remove_history(&project_dir)?;
+    git::create(&project_dir, config)?;
 
     let template = template::substitute(&name, force)?;
 
@@ -125,6 +128,7 @@ main!(|_cli: Cli| {
 
     template::walk_dir(&project_dir, template, pbar)?;
 
+    git::remove_history(&project_dir)?;
     git::init(&project_dir)?;
 
     //remove uneeded here
