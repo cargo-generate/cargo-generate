@@ -1,4 +1,3 @@
-#[macro_use]
 extern crate quicli;
 extern crate cargo as upstream;
 extern crate console;
