@@ -1,4 +1,3 @@
-extern crate quicli;
 extern crate cargo as upstream;
 extern crate console;
 extern crate dialoguer;
@@ -7,6 +6,7 @@ extern crate heck;
 extern crate ignore;
 extern crate indicatif;
 extern crate liquid;
+extern crate quicli;
 extern crate regex;
 extern crate remove_dir_all;
 extern crate tempfile;
@@ -85,7 +85,7 @@ pub fn generate(_cli: Cli) {
         Some(ref n) => ProjectName::new(n),
         None => ProjectName::new(&interactive::name().unwrap()),
     };
-    
+
     rename_warning(&name);
     create_git(args, &name);
 }
@@ -94,7 +94,7 @@ fn create_git(args: Args, name: &ProjectName) {
     let force = args.force;
     let config = GitConfig::new(args.git, args.branch).unwrap();
     if let Some(dir) = &create_project_dir(&name, force) {
-        match git::create(dir, config){
+        match git::create(dir, config) {
             Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force)),
             Err(e) => println!(
                 "{} {} {}",
