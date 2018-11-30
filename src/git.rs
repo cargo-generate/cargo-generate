@@ -1,13 +1,14 @@
 use git2::{Repository as GitRepository, RepositoryInitOptions};
 use quicli::prelude::*;
 use remove_dir_all::remove_dir_all;
+use std::path::Path;
 use std::path::PathBuf;
 use tempfile::Builder;
 use upstream::core::GitReference;
 use upstream::sources::git::GitRemote;
 use upstream::util::config::Config;
 use url::{ParseError, Url};
-
+use std::env::current_dir;
 pub struct GitConfig {
     remote: Url,
     branch: GitReference,
@@ -18,7 +19,15 @@ impl GitConfig {
         let remote = match Url::parse(&git) {
             Ok(u) => u,
             Err(ParseError::RelativeUrlWithoutBase) => {
-                let rel = "file://".to_string() + &git;
+                let pathy = Path::new(&git);
+                let mut lol = PathBuf::new();
+                if pathy.is_relative() {
+                    lol.push(current_dir().unwrap());
+                    lol.push(pathy);
+                } else {
+                    lol.push(&git)
+                }
+                let rel = "file://".to_string() + &lol.to_str().unwrap().to_string();
                 Url::parse(&rel)?
             }
             Err(_) => return Err(format_err!("Failed parsing git remote: {}", &git)),
