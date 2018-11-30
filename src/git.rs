@@ -19,15 +19,15 @@ impl GitConfig {
         let remote = match Url::parse(&git) {
             Ok(u) => u,
             Err(ParseError::RelativeUrlWithoutBase) => {
-                let pathy = Path::new(&git);
-                let mut lol = PathBuf::new();
-                if pathy.is_relative() {
-                    lol.push(current_dir().unwrap());
-                    lol.push(pathy);
+                let given_path = Path::new(&git);
+                let mut git_path = PathBuf::new();
+                if given_path.is_relative() {
+                    git_path.push(current_dir()?);
+                    git_path.push(given_path);
                 } else {
-                    lol.push(&git)
+                    git_path.push(&git)
                 }
-                let rel = "file://".to_string() + &lol.to_str().unwrap().to_string();
+                let rel = "file://".to_string() + &git_path.to_str().unwrap_or("").to_string();
                 Url::parse(&rel)?
             }
             Err(_) => return Err(format_err!("Failed parsing git remote: {}", &git)),

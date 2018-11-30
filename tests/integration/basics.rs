@@ -458,13 +458,19 @@ version = "0.1.0"
 "#,
         ).init_git()
         .build();
-
+    let relative_path = "../".to_string() + &template
+        .path()
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
     let dir = dir("main").build();
     Command::main_binary()
         .unwrap()
         .arg("generate")
         .arg("--git")
-        .arg("../test-1-template")
+        .arg(relative_path)
         .arg("--name")
         .arg("foobar-project")
         .current_dir(&dir.path())
