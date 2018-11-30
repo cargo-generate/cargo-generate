@@ -447,7 +447,6 @@ version = "0.1.0"
 
 #[test]
 fn it_allows_relative_paths() {
-    // Build and commit on master
     let template = dir("template")
         .file(
             "Cargo.toml",
@@ -458,6 +457,7 @@ version = "0.1.0"
 "#,
         ).init_git()
         .build();
+
     let relative_path = "../".to_string() + &template
         .path()
         .file_name()
@@ -465,6 +465,7 @@ version = "0.1.0"
         .to_str()
         .unwrap()
         .to_string();
+
     let dir = dir("main").build();
     Command::main_binary()
         .unwrap()
