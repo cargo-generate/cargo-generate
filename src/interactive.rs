@@ -11,7 +11,8 @@ pub fn name() -> Result<String, Error> {
             "{} {}",
             emoji::SHRUG,
             style("Project Name").bold()
-        )).interact()?;
+        ))
+        .interact()?;
         if valid_ident.is_match(&name) {
             break name;
         } else {

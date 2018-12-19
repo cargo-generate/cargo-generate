@@ -73,7 +73,8 @@ impl ProjectBuilder {
             fs::create_dir_all(
                 dst.parent()
                     .expect(&format!("couldn't find parent dir of {:?}", dst)),
-            ).expect(&format!("couldn't create {:?} directory", dst.parent()));
+            )
+            .expect(&format!("couldn't create {:?} directory", dst.parent()));
 
             fs::File::create(&dst)
                 .expect(&format!("couldn't create file {:?}", dst))
