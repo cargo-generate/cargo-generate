@@ -17,7 +17,8 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
     let dir = dir("main").build();
@@ -34,10 +35,9 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(
-        dir.read("foobar-project/Cargo.toml")
-            .contains("foobar-project")
-    );
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
 }
 
 #[test]
@@ -50,7 +50,8 @@ name = "{{project-name}}"
 description = "A wonderful project Copyright {{ "2018-10-04 18:18:45 +0200" | date: "%Y" }}"
 version = "0.1.0"
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
     let dir = dir("main").build();
@@ -67,10 +68,9 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(
-        dir.read("foobar-project/Cargo.toml")
-            .contains("Copyright 2018")
-    );
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("Copyright 2018"));
 }
 
 #[test]
@@ -83,7 +83,8 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
     let dir = dir("main").build();
@@ -100,10 +101,9 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(
-        dir.read("foobar-project/Cargo.toml")
-            .contains("foobar-project")
-    );
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
 }
 
 #[test]
@@ -114,7 +114,8 @@ fn it_substitutes_cratename_in_a_rust_file() {
             r#"
 extern crate {{crate_name}};          
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
     let dir = dir("main").build();
@@ -146,7 +147,8 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
     let dir = dir("main").build();
@@ -163,10 +165,9 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(
-        dir.read("foobar-project/Cargo.toml")
-            .contains("foobar-project")
-    );
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
 }
 
 #[test]
@@ -179,7 +180,8 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
     let dir = dir("main").build();
@@ -197,10 +199,9 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(
-        dir.read("foobar_project/Cargo.toml")
-            .contains("foobar_project")
-    );
+    assert!(dir
+        .read("foobar_project/Cargo.toml")
+        .contains("foobar_project"));
 }
 
 #[test]
@@ -213,12 +214,14 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).file(
+        )
+        .file(
             ".genignore",
             r#"deleteme.sh
 *.trash
 "#,
-        ).file("deleteme.sh", r#"Nothing to see here"#)
+        )
+        .file("deleteme.sh", r#"Nothing to see here"#)
         .file("deleteme.trash", r#"This is trash"#)
         .file("notme.sh", r#"I'm here!"#)
         .init_git()
@@ -253,7 +256,8 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).file(".genignore", r#"farts"#)
+        )
+        .file(".genignore", r#"farts"#)
         .init_git()
         .build();
 
@@ -284,11 +288,13 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).file(
+        )
+        .file(
             ".genignore",
             r#"../dangerous.todelete.cargogeneratetests
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
     let dir = dir("main").build();
@@ -315,11 +321,9 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(
-        fs::metadata(&dangerous_file)
-            .expect("should exist")
-            .is_file()
-    );
+    assert!(fs::metadata(&dangerous_file)
+        .expect("should exist")
+        .is_file());
     fs::remove_file(&dangerous_file).expect("failed to clean up test file");
 }
 
@@ -333,11 +337,13 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).file(
+        )
+        .file(
             ".genignore",
             r#"../dangerous.todelete.cargogeneratetests
 "#,
-        ).file("./dangerous.todelete.cargogeneratetests", "IM FINE OK")
+        )
+        .file("./dangerous.todelete.cargogeneratetests", "IM FINE OK")
         .init_git()
         .build();
 
@@ -355,14 +361,13 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(
-        fs::metadata(
-            template
-                .path()
-                .join("dangerous.todelete.cargogeneratetests")
-        ).expect("should exist")
-        .is_file()
-    );
+    assert!(fs::metadata(
+        template
+            .path()
+            .join("dangerous.todelete.cargogeneratetests")
+    )
+    .expect("should exist")
+    .is_file());
 }
 
 #[test]
@@ -376,7 +381,8 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).init_git()
+        )
+        .init_git()
         .branch("baz")
         .build();
 
@@ -396,10 +402,9 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(
-        dir.read("foobar-project/Cargo.toml")
-            .contains("foobar-project")
-    );
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
 }
 
 #[test]
@@ -418,7 +423,8 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).init_git()
+        )
+        .init_git()
         .add_submodule("./submodule/", &submodule_url)
         .build();
 
@@ -435,10 +441,9 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(
-        dir.read("foobar-project/Cargo.toml")
-            .contains("foobar-project")
-    );
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
     assert!(
         dir.read("foobar-project/submodule/README.md")
            .contains("*JUST A SUBMODULE*");
@@ -455,16 +460,18 @@ name = "{{project-name}}"
 description = "A wonderful project"
 version = "0.1.0"
 "#,
-        ).init_git()
+        )
+        .init_git()
         .build();
 
-    let relative_path = "../".to_string() + &template
-        .path()
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string();
+    let relative_path = "../".to_string()
+        + &template
+            .path()
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
 
     let dir = dir("main").build();
     Command::main_binary()
@@ -479,8 +486,7 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(
-        dir.read("foobar-project/Cargo.toml")
-            .contains("foobar-project")
-    );
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
 }

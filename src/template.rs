@@ -14,7 +14,8 @@ fn engine() -> liquid::Parser {
         .filter(
             "date",
             liquid::filters::date as liquid::interpreter::FnFilterValue,
-        ).build()
+        )
+        .build()
 }
 
 pub fn substitute(name: &ProjectName, force: bool) -> Result<liquid::Object> {
