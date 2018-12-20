@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::str;
 use std::sync::atomic::*;
 
-use helpers::project::Project;
+use crate::helpers::project::Project;
 use remove_dir_all::remove_dir_all;
 
 static CNT: AtomicUsize = ATOMIC_USIZE_INIT;

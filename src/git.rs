@@ -5,9 +5,9 @@ use std::env::current_dir;
 use std::path::Path;
 use std::path::PathBuf;
 use tempfile::Builder;
-use upstream::core::GitReference;
-use upstream::sources::git::GitRemote;
-use upstream::util::config::Config;
+use crate::upstream::core::GitReference;
+use crate::upstream::sources::git::GitRemote;
+use crate::upstream::util::config::Config;
 use url::{ParseError, Url};
 pub struct GitConfig {
     remote: Url,
