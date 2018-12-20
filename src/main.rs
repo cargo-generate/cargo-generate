@@ -54,7 +54,7 @@ use std::env;
 ///
 /// - `authors`: Author names, taken from usual environment variables (i.e.
 ///   those which are also used by Cargo and git)
-#[derive(structStructOpt)]
+#[derive(StructOpt)]
 #[structopt(bin_name = "cargo")]
 pub enum Cli {
     #[structopt(name = "generate")]
