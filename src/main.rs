@@ -27,6 +27,8 @@ use console::style;
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
 use quicli::prelude::*;
+use structopt::{structopt, StructOpt};
+
 use std::env;
 
 /// Generate a new Cargo project from a given template
@@ -52,7 +54,7 @@ use std::env;
 ///
 /// - `authors`: Author names, taken from usual environment variables (i.e.
 ///   those which are also used by Cargo and git)
-#[derive(StructOpt)]
+#[derive(structStructOpt)]
 #[structopt(bin_name = "cargo")]
 pub enum Cli {
     #[structopt(name = "generate")]
