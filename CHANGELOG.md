@@ -1,5 +1,29 @@
 # Changelog
 
+## 🌟 0.2.2
+
+  - ### 🤕 Fixes
+
+    - **fix relative paths to templates - [DD5HT], [issue/128] [pull/129]**
+
+      When we previously merged the PR in 0.2.0 that leveraged `cargo` to clone the templates,
+      enabling folks to work with private repositories- we introduced a `GitConfig::new` function
+      (replacing work done previously by `libgit2`). This function works great- but did not support
+      relative paths. We didn't catch this because we weren't testing the relative paths usecase!
+
+      With this PR, [DD5HT] has restored the relative path functionality- and added a test to prevent
+      further regressions of this function!
+
+      [issue/128]: https://github.com/ashleygwilliams/cargo-generate/issues/128
+      [pull/129]: https://github.com/ashleygwilliams/cargo-generate/pull/129
+
+  - ### 🛠️ Maintenance
+
+    - **cargo update/cargo fmt - [ashleygwilliams], [pull/134] [pull/133]**
+
+      [pull/133]: https://github.com/ashleygwilliams/cargo-generate/pull/133
+      [pull/134]: https://github.com/ashleygwilliams/cargo-generate/pull/134
+
 ## 🌠 0.2.1
 
   - ### 🤕 Fixes
