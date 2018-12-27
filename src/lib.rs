@@ -75,7 +75,7 @@ pub struct Args {
     force: bool,
 }
 
-pub fn generate(_cli: Cli) {
+pub fn generate(_cli: Cli) -> Result<()> {
     let args: Args = match Cli::from_args() {
         Cli::Generate(args) => args,
         Cli::Gen(args) => args,
@@ -83,19 +83,21 @@ pub fn generate(_cli: Cli) {
 
     let name = match &args.name {
         Some(ref n) => ProjectName::new(n),
-        None => ProjectName::new(&interactive::name().unwrap()),
+        None => ProjectName::new(&interactive::name()?),
     };
 
     rename_warning(&name);
-    create_git(args, &name);
+    create_git(args, &name)?;
+
+    Ok(())
 }
 
-fn create_git(args: Args, name: &ProjectName) {
+fn create_git(args: Args, name: &ProjectName) -> Result<()> {
     let force = args.force;
-    let config = GitConfig::new(args.git, args.branch).unwrap();
+    let config = GitConfig::new(args.git, args.branch)?;
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, config) {
-            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force)),
+            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force)?),
             Err(e) => println!(
                 "{} {} {}",
                 emoji::ERROR,
@@ -112,6 +114,7 @@ fn create_git(args: Args, name: &ProjectName) {
                 .red(),
         );
     }
+    Ok(())
 }
 
 fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
@@ -135,20 +138,21 @@ fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
     }
 }
 
-fn progress(name: &ProjectName, dir: &PathBuf, force: bool) {
-    let template =
-        template::substitute(name, force).expect("Error: Can't substitute the given name.");
+fn progress(name: &ProjectName, dir: &PathBuf, force: bool) -> Result<()> {
+    let template = template::substitute(name, force)?;
 
     let pbar = progressbar::new();
     pbar.tick();
 
-    template::walk_dir(dir, template, pbar).expect("Error: Can't walk the directory");
+    template::walk_dir(dir, template, pbar)?;
 
-    git::init(dir).expect("Error: Can't init git repo");
+    git::init(dir)?;
 
     ignoreme::remove_uneeded_files(dir);
 
     gen_success(dir);
+
+    Ok(())
 }
 
 fn gen_success(dir: &PathBuf) {

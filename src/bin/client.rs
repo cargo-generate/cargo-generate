@@ -29,5 +29,5 @@ use quicli::prelude::StructOpt;
 /// - `authors`: Author names, taken from usual environment variables (i.e.
 ///   those which are also used by Cargo and git)
 main!(|_cli: Cli| {
-    generate(_cli);
+    generate(_cli)?;
 });
