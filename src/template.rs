@@ -13,31 +13,36 @@ fn engine() -> liquid::Parser {
     liquid::ParserBuilder::new()
         .filter(
             "date",
-            liquid::filters::date as liquid::interpreter::FnFilterValue,
+            liquid::filters::date as liquid::compiler::FnFilterValue,
         )
         .build()
+        .expect("can't fail due to no partials support")
 }
 
-pub fn substitute(name: &ProjectName, force: bool) -> Result<liquid::Object> {
+pub fn substitute(name: &ProjectName, force: bool) -> Result<liquid::value::Object> {
     let project_name = if force { name.raw() } else { name.kebab_case() };
 
-    let mut template = liquid::Object::new();
+    let mut template = liquid::value::Object::new();
     template.insert(
-        String::from("project-name"),
-        liquid::Value::scalar(project_name),
+        "project-name".into(),
+        liquid::value::Value::scalar(project_name),
     );
     template.insert(
-        String::from("crate_name"),
-        liquid::Value::scalar(&name.snake_case()),
+        "crate_name".into(),
+        liquid::value::Value::scalar(name.snake_case()),
     );
     template.insert(
-        String::from("authors"),
-        liquid::Value::scalar(&cargo::get_authors()?),
+        "authors".into(),
+        liquid::value::Value::scalar(cargo::get_authors()?),
     );
     Ok(template)
 }
 
-pub fn walk_dir(project_dir: &PathBuf, template: liquid::Object, pbar: ProgressBar) -> Result<()> {
+pub fn walk_dir(
+    project_dir: &PathBuf,
+    template: liquid::value::Object,
+    pbar: ProgressBar,
+) -> Result<()> {
     fn is_dir(entry: &DirEntry) -> bool {
         entry.file_type().is_dir()
     }
