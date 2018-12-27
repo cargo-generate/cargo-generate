@@ -1,6 +1,7 @@
 use cargo;
 use console::style;
 use emoji;
+use heck::{CamelCase, KebabCase, SnakeCase};
 use indicatif::ProgressBar;
 use liquid;
 use projectname::ProjectName;
@@ -15,8 +16,45 @@ fn engine() -> liquid::Parser {
             "date",
             liquid::filters::date as liquid::compiler::FnFilterValue,
         )
+        .filter(
+            "capitalize",
+            liquid::filters::capitalize as liquid::compiler::FnFilterValue,
+        )
+        .filter("kebab_case", kebab_case as liquid::compiler::FnFilterValue)
+        .filter(
+            "pascal_case",
+            pascal_case as liquid::compiler::FnFilterValue,
+        )
+        .filter("snake_case", snake_case as liquid::compiler::FnFilterValue)
         .build()
         .expect("can't fail due to no partials support")
+}
+
+fn kebab_case(
+    input: &liquid::value::Value,
+    _args: &[liquid::value::Value],
+) -> ::std::result::Result<liquid::value::Value, liquid::Error> {
+    let input = input.to_str();
+    let input = input.as_ref().to_kebab_case();
+    Ok(liquid::value::Value::scalar(input))
+}
+
+fn pascal_case(
+    input: &liquid::value::Value,
+    _args: &[liquid::value::Value],
+) -> ::std::result::Result<liquid::value::Value, liquid::Error> {
+    let input = input.to_str();
+    let input = input.as_ref().to_camel_case();
+    Ok(liquid::value::Value::scalar(input))
+}
+
+fn snake_case(
+    input: &liquid::value::Value,
+    _args: &[liquid::value::Value],
+) -> ::std::result::Result<liquid::value::Value, liquid::Error> {
+    let input = input.to_str();
+    let input = input.as_ref().to_snake_case();
+    Ok(liquid::value::Value::scalar(input))
 }
 
 pub fn substitute(name: &ProjectName, force: bool) -> Result<liquid::value::Object> {
