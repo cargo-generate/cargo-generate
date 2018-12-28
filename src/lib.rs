@@ -1,5 +1,3 @@
-#[macro_use]
-extern crate quicli;
 extern crate cargo as upstream;
 extern crate console;
 extern crate dialoguer;
@@ -8,6 +6,7 @@ extern crate heck;
 extern crate ignore;
 extern crate indicatif;
 extern crate liquid;
+extern crate quicli;
 extern crate regex;
 extern crate remove_dir_all;
 extern crate tempfile;
@@ -28,6 +27,7 @@ use git::GitConfig;
 use projectname::ProjectName;
 use quicli::prelude::*;
 use std::env;
+use std::path::PathBuf;
 
 /// Generate a new Cargo project from a given template
 ///
@@ -75,7 +75,7 @@ pub struct Args {
     force: bool,
 }
 
-main!(|_cli: Cli| {
+pub fn generate(_cli: Cli) -> Result<()> {
     let args: Args = match Cli::from_args() {
         Cli::Generate(args) => args,
         Cli::Gen(args) => args,
@@ -85,9 +85,88 @@ main!(|_cli: Cli| {
         Some(ref n) => ProjectName::new(n),
         None => ProjectName::new(&interactive::name()?),
     };
+
+    rename_warning(&name);
+    create_git(args, &name)?;
+
+    Ok(())
+}
+
+fn create_git(args: Args, name: &ProjectName) -> Result<()> {
     let force = args.force;
     let config = GitConfig::new(args.git, args.branch)?;
+    if let Some(dir) = &create_project_dir(&name, force) {
+        match git::create(dir, config) {
+            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force)?),
+            Err(e) => println!(
+                "{} {} {}",
+                emoji::ERROR,
+                style("Git Error:").bold().red(),
+                style(e).bold().red(),
+            ),
+        };
+    } else {
+        println!(
+            "{} {}",
+            emoji::ERROR,
+            style("Target directory already exists, aborting!")
+                .bold()
+                .red(),
+        );
+    }
+    Ok(())
+}
 
+fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
+    let dir_name = if force { name.raw() } else { name.kebab_case() };
+    let project_dir = env::current_dir()
+        .unwrap_or_else(|_e| ".".into())
+        .join(&dir_name);
+
+    println!(
+        "{} {} `{}`{}",
+        emoji::WRENCH,
+        style("Creating project called").bold(),
+        style(&name.kebab_case()).bold().yellow(),
+        style("...").bold()
+    );
+
+    if project_dir.exists() {
+        None
+    } else {
+        Some(project_dir)
+    }
+}
+
+fn progress(name: &ProjectName, dir: &PathBuf, force: bool) -> Result<()> {
+    let template = template::substitute(name, force)?;
+
+    let pbar = progressbar::new();
+    pbar.tick();
+
+    template::walk_dir(dir, template, pbar)?;
+
+    git::init(dir)?;
+
+    ignoreme::remove_uneeded_files(dir);
+
+    gen_success(dir);
+
+    Ok(())
+}
+
+fn gen_success(dir: &PathBuf) {
+    let dir_string = dir.to_str().unwrap_or("");
+    println!(
+        "{} {} {} {}",
+        emoji::SPARKLE,
+        style("Done!").bold().green(),
+        style("New project created").bold(),
+        style(dir_string).underlined()
+    );
+}
+
+fn rename_warning(name: &ProjectName) {
     if !name.is_crate_name() {
         println!(
             "{} {} `{}` {} `{}`{}",
@@ -99,47 +178,4 @@ main!(|_cli: Cli| {
             style("...").bold()
         );
     }
-
-    println!(
-        "{} {} `{}`{}",
-        emoji::WRENCH,
-        style("Creating project called").bold(),
-        style(&name.kebab_case()).bold().yellow(),
-        style("...").bold()
-    );
-
-    let dir_name = if force { name.raw() } else { name.kebab_case() };
-    let project_dir = env::current_dir()
-        .unwrap_or_else(|_e| ".".into())
-        .join(dir_name);
-
-    ensure!(
-        !project_dir.exists(),
-        "Target directory `{}` already exists, aborting.",
-        project_dir.display()
-    );
-
-    git::create(&project_dir, config)?;
-
-    let template = template::substitute(&name, force)?;
-
-    let pbar = progressbar::new();
-    pbar.tick();
-
-    template::walk_dir(&project_dir, template, pbar)?;
-
-    git::remove_history(&project_dir)?;
-    git::init(&project_dir)?;
-
-    //remove uneeded here
-    ignoreme::remove_uneeded_files(&project_dir);
-
-    let dir_string = &project_dir.to_str().unwrap_or("");
-    println!(
-        "{} {} {} {}",
-        emoji::SPARKLE,
-        style("Done!").bold().green(),
-        style("New project created").bold(),
-        style(dir_string).underlined()
-    );
-});
+}
