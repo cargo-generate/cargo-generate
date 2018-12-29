@@ -6,7 +6,7 @@
 - [rocket-base]: Write a simple web application using Rocket, [k0pernicus]
 - [rust-samp-sdk]: Write samp plugins in Rust, [Sreyas-Sreelal]
 - [actix-tera]: Create a basic web application with Actix-web and Tera, [Otomato]
-- [procmacro-quickstart]: Write a procedural macros, [eupn]
+- [procmacro-quickstart]: Write procedural macros, [eupn]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
