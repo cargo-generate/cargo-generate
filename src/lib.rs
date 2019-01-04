@@ -9,10 +9,10 @@ extern crate liquid;
 extern crate quicli;
 extern crate regex;
 extern crate remove_dir_all;
+extern crate structopt;
 extern crate tempfile;
 extern crate url;
 extern crate walkdir;
-extern crate structopt;
 
 mod cargo;
 mod emoji;
@@ -23,13 +23,13 @@ mod progressbar;
 mod projectname;
 mod template;
 
-use console::style;
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
+use console::style;
 use quicli::prelude::*;
-use structopt::StructOpt;
 use std::env;
 use std::path::PathBuf;
+use structopt::StructOpt;
 
 /// Generate a new Cargo project from a given template
 ///

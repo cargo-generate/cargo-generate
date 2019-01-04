@@ -1,9 +1,9 @@
 use crate::cargo;
-use console::style;
 use crate::emoji;
+use crate::projectname::ProjectName;
+use console::style;
 use indicatif::ProgressBar;
 use liquid;
-use crate::projectname::ProjectName;
 use quicli::prelude::*;
 use std::fs;
 use std::path::PathBuf;

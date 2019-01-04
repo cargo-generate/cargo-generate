@@ -1,3 +1,6 @@
+use crate::upstream::core::GitReference;
+use crate::upstream::sources::git::GitRemote;
+use crate::upstream::util::config::Config;
 use git2::{Repository as GitRepository, RepositoryInitOptions};
 use quicli::prelude::*;
 use remove_dir_all::remove_dir_all;
@@ -5,9 +8,6 @@ use std::env::current_dir;
 use std::path::Path;
 use std::path::PathBuf;
 use tempfile::Builder;
-use crate::upstream::core::GitReference;
-use crate::upstream::sources::git::GitRemote;
-use crate::upstream::util::config::Config;
 use url::{ParseError, Url};
 pub struct GitConfig {
     remote: Url,
