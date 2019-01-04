@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate quicli;
-extern crate cargo_generate;
+
 
 use cargo_generate::{generate, Cli};
 use quicli::prelude::StructOpt;
