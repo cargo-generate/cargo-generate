@@ -23,8 +23,8 @@ mod projectname;
 mod template;
 
 use console::style;
-use git::GitConfig;
-use projectname::ProjectName;
+use crate::git::GitConfig;
+use crate::projectname::ProjectName;
 use quicli::prelude::*;
 use std::env;
 use std::path::PathBuf;
