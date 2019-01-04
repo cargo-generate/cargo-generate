@@ -25,6 +25,7 @@ remove_dir_all = "0.5.1"
 ignore = "0.4.3"
 openssl = { version = '0.10.11', optional = true }
 url = "1.7.1"
+structopt = "0.2.14"
 
 [dev-dependencies]
 predicates = "0.5.0"

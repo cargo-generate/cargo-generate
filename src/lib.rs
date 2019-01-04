@@ -12,6 +12,7 @@ extern crate remove_dir_all;
 extern crate tempfile;
 extern crate url;
 extern crate walkdir;
+extern crate structopt;
 
 mod cargo;
 mod emoji;
@@ -26,6 +27,7 @@ use console::style;
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
 use quicli::prelude::*;
+use structopt::StructOpt;
 use std::env;
 use std::path::PathBuf;
 
