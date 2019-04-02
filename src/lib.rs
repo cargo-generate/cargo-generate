@@ -7,14 +7,14 @@ mod progressbar;
 mod projectname;
 mod template;
 
-use console::style;
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
-use ::cargo as upstream;
-use structopt::StructOpt;
+use cargo as upstream;
+use console::style;
+use failure;
 use std::env;
 use std::path::PathBuf;
-use failure;
+use structopt::StructOpt;
 
 /// Generate a new Cargo project from a given template
 ///

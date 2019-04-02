@@ -1,14 +1,14 @@
 use crate::cargo;
-use console::style;
 use crate::emoji;
+use crate::projectname::ProjectName;
+use console::style;
+use failure;
 use indicatif::ProgressBar;
 use liquid;
-use crate::projectname::ProjectName;
 use quicli::prelude::*;
 use std::fs;
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
-use failure;
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::new()
@@ -20,7 +20,10 @@ fn engine() -> liquid::Parser {
         .expect("can't fail due to no partials support")
 }
 
-pub fn substitute(name: &ProjectName, force: bool) -> Result<liquid::value::Object, failure::Error> {
+pub fn substitute(
+    name: &ProjectName,
+    force: bool,
+) -> Result<liquid::value::Object, failure::Error> {
     let project_name = if force { name.raw() } else { name.kebab_case() };
 
     let mut template = liquid::value::Object::new();

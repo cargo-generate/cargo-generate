@@ -1,7 +1,7 @@
+use failure;
 use git2::{Config as GitConfig, Repository as GitRepository};
 use quicli::prelude::*;
 use std::env;
-use failure;
 
 /// Taken from cargo and thus (c) 2018 Cargo Developers
 ///

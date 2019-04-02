@@ -1,4 +1,4 @@
-use cargo_generate::{generate, Cli, Args};
+use cargo_generate::{generate, Args, Cli};
 use quicli::prelude::*;
 use structopt::StructOpt;
 
