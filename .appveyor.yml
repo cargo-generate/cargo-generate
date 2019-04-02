@@ -14,6 +14,7 @@ test_script:
 
 before_deploy:
   - ps: |
+        cargo build --release
         $NAME = "cargo-generate-${env:APPVEYOR_REPO_TAG_NAME}-x86_64-pc-windows-msvc"
         New-Item -Path $NAME -ItemType directory
         Copy-Item target/release/cargo-generate.exe "${NAME}/"
