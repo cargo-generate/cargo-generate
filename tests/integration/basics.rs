@@ -1,4 +1,4 @@
-extern crate predicates;
+use predicates;
 
 use crate::helpers::project_builder::dir;
 
