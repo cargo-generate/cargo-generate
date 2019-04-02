@@ -1,16 +1,17 @@
 use git2::{Config as GitConfig, Repository as GitRepository};
 use quicli::prelude::*;
 use std::env;
+use failure;
 
 /// Taken from cargo and thus (c) 2018 Cargo Developers
 ///
 /// cf. https://github.com/rust-lang/cargo/blob/d33c65cbd9d6f7ba1e18b2cdb85fea5a09973d3b/src/cargo/ops/cargo_new.rs#L595-L645
-pub fn get_authors() -> Result<String> {
+pub fn get_authors() -> Result<String, failure::Error> {
     fn get_environment_variable(variables: &[&str]) -> Option<String> {
         variables.iter().filter_map(|var| env::var(var).ok()).next()
     }
 
-    fn discover_author() -> Result<(String, Option<String>)> {
+    fn discover_author() -> Result<(String, Option<String>), failure::Error> {
         let cwd = env::current_dir()?;
         let git_config = if let Ok(repo) = GitRepository::discover(&cwd) {
             repo.config()

@@ -8,13 +8,14 @@ authors = [
 license = "MIT/Apache-2.0"
 repository = "https://github.com/ashleygwilliams/cargo-generate"
 readme = "README.md"
+edition = "2018"
 
 [dependencies]
 cargo = "0.30"
 console = "0.6.1"
 dialoguer = "0.1.0"
 indicatif = "0.9.0"
-quicli = "0.3.1"
+quicli = "0.4"
 git2 = "0.7.1"
 tempfile = "3.0.2"
 regex = "1.0.0"
@@ -26,6 +27,7 @@ ignore = "0.4.3"
 openssl = { version = '0.10.11', optional = true }
 url = "1.7.1"
 structopt = "0.2.15"
+failure = "0.1.5"
 
 [dev-dependencies]
 predicates = "0.5.0"

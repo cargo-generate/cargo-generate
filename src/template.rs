@@ -1,13 +1,14 @@
-use cargo;
+use crate::cargo;
 use console::style;
-use emoji;
+use crate::emoji;
 use indicatif::ProgressBar;
 use liquid;
-use projectname::ProjectName;
+use crate::projectname::ProjectName;
 use quicli::prelude::*;
 use std::fs;
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
+use failure;
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::new()
@@ -19,7 +20,7 @@ fn engine() -> liquid::Parser {
         .expect("can't fail due to no partials support")
 }
 
-pub fn substitute(name: &ProjectName, force: bool) -> Result<liquid::value::Object> {
+pub fn substitute(name: &ProjectName, force: bool) -> Result<liquid::value::Object, failure::Error> {
     let project_name = if force { name.raw() } else { name.kebab_case() };
 
     let mut template = liquid::value::Object::new();
@@ -42,7 +43,7 @@ pub fn walk_dir(
     project_dir: &PathBuf,
     template: liquid::value::Object,
     pbar: ProgressBar,
-) -> Result<()> {
+) -> Result<(), failure::Error> {
     fn is_dir(entry: &DirEntry) -> bool {
         entry.file_type().is_dir()
     }

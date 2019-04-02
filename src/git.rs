@@ -1,3 +1,4 @@
+use failure;
 use git2::{Repository as GitRepository, RepositoryInitOptions};
 use quicli::prelude::*;
 use remove_dir_all::remove_dir_all;
@@ -5,17 +6,18 @@ use std::env::current_dir;
 use std::path::Path;
 use std::path::PathBuf;
 use tempfile::Builder;
-use upstream::core::GitReference;
-use upstream::sources::git::GitRemote;
-use upstream::util::config::Config;
+use crate::upstream::core::GitReference;
+use crate::upstream::sources::git::GitRemote;
+use crate::upstream::util::config::Config;
 use url::{ParseError, Url};
+
 pub struct GitConfig {
     remote: Url,
     branch: GitReference,
 }
 
 impl GitConfig {
-    pub fn new(git: String, branch: Option<String>) -> Result<Self> {
+    pub fn new(git: String, branch: Option<String>) -> Result<Self, failure::Error> {
         let remote = match Url::parse(&git) {
             Ok(u) => u,
             Err(ParseError::RelativeUrlWithoutBase) => {
@@ -40,7 +42,7 @@ impl GitConfig {
     }
 }
 
-pub fn create(project_dir: &PathBuf, args: GitConfig) -> Result<()> {
+pub fn create(project_dir: &PathBuf, args: GitConfig) -> Result<(), failure::Error> {
     let temp = Builder::new()
         .prefix(project_dir.to_str().unwrap_or("cargo-generate"))
         .tempdir()?;
@@ -53,11 +55,11 @@ pub fn create(project_dir: &PathBuf, args: GitConfig) -> Result<()> {
     Ok(())
 }
 
-pub fn remove_history(project_dir: &PathBuf) -> Result<()> {
+pub fn remove_history(project_dir: &PathBuf) -> Result<(), failure::Error> {
     Ok(remove_dir_all(project_dir.join(".git")).context("Error cleaning up cloned template")?)
 }
 
-pub fn init(project_dir: &PathBuf) -> Result<GitRepository> {
+pub fn init(project_dir: &PathBuf) -> Result<GitRepository, failure::Error> {
     Ok(
         GitRepository::init_opts(project_dir, RepositoryInitOptions::new().bare(false))
             .context("Couldn't init new repository")?,
