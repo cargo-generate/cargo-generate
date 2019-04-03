@@ -1,19 +1,4 @@
-extern crate cargo as upstream;
-extern crate console;
-extern crate dialoguer;
-extern crate git2;
-extern crate heck;
-extern crate ignore;
-extern crate indicatif;
-extern crate liquid;
-extern crate quicli;
-extern crate regex;
-extern crate remove_dir_all;
-extern crate tempfile;
-extern crate url;
-extern crate walkdir;
-
-mod cargo;
+mod authors;
 mod emoji;
 mod git;
 mod ignoreme;
@@ -22,12 +7,14 @@ mod progressbar;
 mod projectname;
 mod template;
 
+use crate::git::GitConfig;
+use crate::projectname::ProjectName;
+use cargo;
 use console::style;
-use git::GitConfig;
-use projectname::ProjectName;
-use quicli::prelude::*;
+use failure;
 use std::env;
 use std::path::PathBuf;
+use structopt::StructOpt;
 
 /// Generate a new Cargo project from a given template
 ///
@@ -75,12 +62,7 @@ pub struct Args {
     force: bool,
 }
 
-pub fn generate(_cli: Cli) -> Result<()> {
-    let args: Args = match Cli::from_args() {
-        Cli::Generate(args) => args,
-        Cli::Gen(args) => args,
-    };
-
+pub fn generate(args: Args) -> Result<(), failure::Error> {
     let name = match &args.name {
         Some(ref n) => ProjectName::new(n),
         None => ProjectName::new(&interactive::name()?),
@@ -92,7 +74,7 @@ pub fn generate(_cli: Cli) -> Result<()> {
     Ok(())
 }
 
-fn create_git(args: Args, name: &ProjectName) -> Result<()> {
+fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
     let force = args.force;
     let config = GitConfig::new(args.git, args.branch)?;
     if let Some(dir) = &create_project_dir(&name, force) {
@@ -138,7 +120,7 @@ fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
     }
 }
 
-fn progress(name: &ProjectName, dir: &PathBuf, force: bool) -> Result<()> {
+fn progress(name: &ProjectName, dir: &PathBuf, force: bool) -> Result<(), failure::Error> {
     let template = template::substitute(name, force)?;
 
     let pbar = progressbar::new();

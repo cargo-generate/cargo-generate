@@ -1,7 +1,7 @@
 use console::Emoji;
 
-pub static ERROR: Emoji = Emoji("⛔  ", "");
-pub static SPARKLE: Emoji = Emoji("✨  ", "");
-pub static WARN: Emoji = Emoji("⚠️  ", "");
-pub static WRENCH: Emoji = Emoji("🔧  ", "");
-pub static SHRUG: Emoji = Emoji("🤷 ", "");
+pub static ERROR: Emoji<'_, '_> = Emoji("⛔  ", "");
+pub static SPARKLE: Emoji<'_, '_> = Emoji("✨  ", "");
+pub static WARN: Emoji<'_, '_> = Emoji("⚠️  ", "");
+pub static WRENCH: Emoji<'_, '_> = Emoji("🔧  ", "");
+pub static SHRUG: Emoji<'_, '_> = Emoji("🤷 ", "");
