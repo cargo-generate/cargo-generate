@@ -1,9 +1,6 @@
-#[macro_use]
-extern crate quicli;
-extern crate cargo_generate;
-
-use cargo_generate::{generate, Cli};
-use quicli::prelude::StructOpt;
+use cargo_generate::{generate, Args, Cli};
+use quicli::prelude::*;
+use structopt::StructOpt;
 
 /// Generate a new Cargo project from a given template
 ///
@@ -28,6 +25,12 @@ use quicli::prelude::StructOpt;
 ///
 /// - `authors`: Author names, taken from usual environment variables (i.e.
 ///   those which are also used by Cargo and git)
-main!(|_cli: Cli| {
-    generate(_cli)?;
-});
+fn main() -> CliResult {
+    let args: Args = match Cli::from_args() {
+        Cli::Generate(args) => args,
+        Cli::Gen(args) => args,
+    };
+
+    generate(args)?;
+    Ok(())
+}

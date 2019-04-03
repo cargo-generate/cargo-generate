@@ -1,6 +1,6 @@
+use crate::emoji;
 use console::style;
 use dialoguer::Input;
-use emoji;
 use quicli::prelude::Error;
 use regex;
 
