@@ -1,4 +1,4 @@
-use crate::cargo;
+use crate::authors;
 use crate::emoji;
 use crate::projectname::ProjectName;
 use console::style;
@@ -37,7 +37,7 @@ pub fn substitute(
     );
     template.insert(
         "authors".into(),
-        liquid::value::Value::scalar(cargo::get_authors()?),
+        liquid::value::Value::scalar(authors::get_authors()?),
     );
     Ok(template)
 }

@@ -1,6 +1,6 @@
-use crate::upstream::core::GitReference;
-use crate::upstream::sources::git::GitRemote;
-use crate::upstream::util::config::Config;
+use crate::cargo::core::GitReference;
+use crate::cargo::sources::git::GitRemote;
+use crate::cargo::util::config::Config;
 use failure;
 use git2::{Repository as GitRepository, RepositoryInitOptions};
 use quicli::prelude::*;

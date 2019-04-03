@@ -1,4 +1,4 @@
-mod cargo;
+mod authors;
 mod emoji;
 mod git;
 mod ignoreme;
@@ -9,7 +9,7 @@ mod template;
 
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
-use cargo as upstream;
+use cargo;
 use console::style;
 use failure;
 use std::env;
