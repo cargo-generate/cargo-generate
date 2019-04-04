@@ -1,5 +1,66 @@
 # Changelog
 
+## ⭐ 0.3.0
+
+  - ### ✨ Features
+
+    - **Support case filters in templates - [epage], [issue/117] [pull/140]**
+
+        Because we leverage `liquid` as a templating engine under the hood, we
+        can add some specific filters to our substitutions to add a little more
+        awesome. This feature adds 4 filters:
+
+        - `capitalize`
+        - `pascal_case`
+        - `kebab_case` 
+        - `snake_case`
+
+        Now we can tame any set of letters with any type of capitalization or
+        dash! Give them a try and let us know what other types of features you'd
+        like to see.
+
+        [issue/117]: https://github.com/ashleygwilliams/cargo-generate/issues/117
+        [pull/140]: https://github.com/ashleygwilliams/cargo-generate/pull/140
+
+  - ### 🤕 Fixes
+
+    - **Windows releases on Appveyor - [jaysonsantos], [issue/145] [pull/146]**
+
+        Thanks to a new tool, [`wrangler`], that uses `cargo-generate` as a
+        dependency, it was discovered that we were shipping broken Windows
+        binaries. We've fixed that now!
+
+        [`wrangler`]: https://github.com/cloudflare/wrangler
+        [jaysonsantos]: https://github.com/jaysonsantos
+        [issue/145]: https://github.com/ashleygwilliams/cargo-generate/issues/145
+        [pull/146]: https://github.com/ashleygwilliams/cargo-generate/pull/146
+
+  - ### 👯 New Templates
+
+    - **`procmacro-quickstart` template - [eupn], [pull/141]**
+
+        [eupn]: https://github.com/eupn
+        [pull/141]: https://github.com/ashleygwilliams/cargo-generate/pull/141
+
+  - ### 🛠️ Maintenance
+
+    - **Update to 2018 Edition - [ashleygwilliams], [issue/131] [pull/147]**
+
+        This was a fun one and additionally involved upgrading us to `quicli` 0.4!
+        Welcome to 2018, `cargo-generate`.
+
+        [issue/131]: https://github.com/ashleygwilliams/cargo-generate/issues/131
+        [pull/147]: https://github.com/ashleygwilliams/cargo-generate/pull/147
+
+    - **Shallow `main` refactor - [DD5HT], [pull/115]**
+
+        [pull/115]: https://github.com/ashleygwilliams/cargo-generate/pull/115
+
+    - **Update `liquid` - [epage], [pull/139]**
+
+        [epage]: https://github.com/epage
+        [pull/139]: https://github.com/ashleygwilliams/cargo-generate/pull/139
+
 ## 🌟 0.2.2
 
   - ### 🤕 Fixes
