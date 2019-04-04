@@ -36,8 +36,8 @@ impl GitConfig {
         };
 
         Ok(GitConfig {
-            remote: remote,
-            branch: GitReference::Branch(branch.unwrap_or("master".to_string())),
+            remote,
+            branch: GitReference::Branch(branch.unwrap_or_else(|| "master".to_string())),
         })
     }
 }
@@ -56,7 +56,8 @@ pub fn create(project_dir: &PathBuf, args: GitConfig) -> Result<(), failure::Err
 }
 
 pub fn remove_history(project_dir: &PathBuf) -> Result<(), failure::Error> {
-    Ok(remove_dir_all(project_dir.join(".git")).context("Error cleaning up cloned template")?)
+    remove_dir_all(project_dir.join(".git")).context("Error cleaning up cloned template")?;
+    Ok(())
 }
 
 pub fn init(project_dir: &PathBuf) -> Result<GitRepository, failure::Error> {
