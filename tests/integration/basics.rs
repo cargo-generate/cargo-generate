@@ -446,7 +446,7 @@ version = "0.1.0"
         .contains("foobar-project"));
     assert!(
         dir.read("foobar-project/submodule/README.md")
-           .contains("*JUST A SUBMODULE*");
+           .contains("*JUST A SUBMODULE*")
     );
 }
 
