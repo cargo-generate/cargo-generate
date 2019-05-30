@@ -133,18 +133,15 @@ pub fn walk_dir(
         // Check if the filename does not contains any
         // template
         let filename = filepath.to_str().unwrap();
-        let parsed_filename = engine
-            .clone()
-            .parse(filename)?
-            .render(&template)?;
-        let _ = fs::rename(&filepath, Path::new(&parsed_filename))
-            .with_context(|_e| {
-                format!(
-                    "{} {} '{}'",
-                    emoji::ERROR,
-                    style("Error renaming").bold().red(),
-                    style(parsed_filename).bold()
-                )})?;
+        let parsed_filename = engine.clone().parse(filename)?.render(&template)?;
+        let _ = fs::rename(&filepath, Path::new(&parsed_filename)).with_context(|_e| {
+            format!(
+                "{} {} '{}'",
+                emoji::ERROR,
+                style("Error renaming").bold().red(),
+                style(parsed_filename).bold()
+            )
+        })?;
     }
     pbar.finish_and_clear();
     Ok(())
