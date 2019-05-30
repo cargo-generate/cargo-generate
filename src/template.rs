@@ -8,7 +8,7 @@ use indicatif::ProgressBar;
 use liquid;
 use quicli::prelude::*;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
 fn engine() -> liquid::Parser {
@@ -105,29 +105,46 @@ pub fn walk_dir(
             continue;
         }
 
-        let filename = entry.path();
-        pbar.set_message(&filename.display().to_string());
+        let filepath = entry.path();
+        pbar.set_message(&filepath.display().to_string());
 
+        // Override the content
         let new_contents = engine
             .clone()
-            .parse_file(&filename)?
+            .parse_file(&filepath)?
             .render(&template)
             .with_context(|_e| {
                 format!(
                     "{} {} `{}`",
                     emoji::ERROR,
                     style("Error replacing placeholders").bold().red(),
-                    style(filename.display()).bold()
+                    style(filepath.display()).bold()
                 )
             })?;
-        fs::write(&filename, new_contents).with_context(|_e| {
+        fs::write(&filepath, new_contents).with_context(|_e| {
             format!(
                 "{} {} `{}`",
                 emoji::ERROR,
                 style("Error writing").bold().red(),
-                style(filename.display()).bold()
+                style(filepath.display()).bold()
             )
         })?;
+
+        // Check if the filename does not contains any
+        // template
+        let filename = filepath.to_str().unwrap();
+        let parsed_filename = engine
+            .clone()
+            .parse(filename)?
+            .render(&template)?;
+        let _ = fs::rename(&filepath, Path::new(&parsed_filename))
+            .with_context(|_e| {
+                format!(
+                    "{} {} '{}'",
+                    emoji::ERROR,
+                    style("Error renaming").bold().red(),
+                    style(parsed_filename).bold()
+                )})?;
     }
     pbar.finish_and_clear();
     Ok(())
