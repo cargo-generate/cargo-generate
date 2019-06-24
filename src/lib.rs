@@ -68,7 +68,6 @@ pub fn generate(args: Args) -> Result<(), failure::Error> {
         None => ProjectName::new(&interactive::name()?),
     };
 
-    rename_warning(&name);
     create_git(args, &name)?;
 
     Ok(())
@@ -100,7 +99,12 @@ fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
 }
 
 fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
-    let dir_name = if force { name.raw() } else { name.kebab_case() };
+    let dir_name = if force { 
+        name.raw()
+    } else {
+        rename_warning(&name);
+        name.kebab_case() 
+    };
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
         .join(&dir_name);
@@ -109,7 +113,7 @@ fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
         "{} {} `{}`{}",
         emoji::WRENCH,
         style("Creating project called").bold(),
-        style(&name.kebab_case()).bold().yellow(),
+        style(&dir_name).bold().yellow(),
         style("...").bold()
     );
 
