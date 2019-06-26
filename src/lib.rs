@@ -99,11 +99,11 @@ fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
 }
 
 fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
-    let dir_name = if force { 
+    let dir_name = if force {
         name.raw()
     } else {
         rename_warning(&name);
-        name.kebab_case() 
+        name.kebab_case()
     };
     let project_dir = env::current_dir()
         .unwrap_or_else(|_e| ".".into())
