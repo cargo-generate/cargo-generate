@@ -63,8 +63,9 @@ pub fn substitute(
     force: bool,
 ) -> Result<liquid::value::Object, failure::Error> {
     let project_name = if force { name.raw() } else { name.kebab_case() };
-
     let mut template = liquid::value::Object::new();
+    let (username, authors) = authors::get_authors()?;
+
     template.insert(
         "project-name".into(),
         liquid::value::Value::scalar(project_name),
@@ -73,10 +74,9 @@ pub fn substitute(
         "crate_name".into(),
         liquid::value::Value::scalar(name.snake_case()),
     );
-    template.insert(
-        "authors".into(),
-        liquid::value::Value::scalar(authors::get_authors()?),
-    );
+    template.insert("authors".into(), liquid::value::Value::scalar(authors));
+    template.insert("username".into(), liquid::value::Value::scalar(username));
+
     Ok(template)
 }
 

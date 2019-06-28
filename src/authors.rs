@@ -6,7 +6,7 @@ use std::env;
 /// Taken from cargo and thus (c) 2018 Cargo Developers
 ///
 /// cf. https://github.com/rust-lang/cargo/blob/d33c65cbd9d6f7ba1e18b2cdb85fea5a09973d3b/src/cargo/ops/cargo_new.rs#L595-L645
-pub fn get_authors() -> Result<String, failure::Error> {
+pub fn get_authors() -> Result<(String, String), failure::Error> {
     fn get_environment_variable(variables: &[&str]) -> Option<String> {
         variables.iter().filter_map(|var| env::var(var).ok()).next()
     }
@@ -59,10 +59,13 @@ pub fn get_authors() -> Result<String, failure::Error> {
         Ok((name, email))
     }
 
-    let author = match discover_author()? {
-        (name, Some(email)) => format!("{} <{}>", name, email),
-        (name, None) => name,
+    let author = discover_author()?;
+    let username = author.0.clone();
+
+    let authors_field = match author.1 {
+        Some(email) => format!("{} <{}>", author.0, email),
+        None => author.0,
     };
 
-    Ok(author)
+    Ok((username, authors_field))
 }
