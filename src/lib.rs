@@ -76,10 +76,11 @@ pub fn generate(args: Args) -> Result<(), failure::Error> {
 
 fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
     let force = args.force;
-    let config = GitConfig::new(args.git, args.branch)?;
+    let branch = args.branch.unwrap_or_else(|| "master".to_string());
+    let config = GitConfig::new(args.git, branch.clone())?;
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, config) {
-            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force)?),
+            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force, &branch)?),
             Err(e) => println!(
                 "{} {} {}",
                 emoji::ERROR,
@@ -120,7 +121,12 @@ fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
     }
 }
 
-fn progress(name: &ProjectName, dir: &PathBuf, force: bool) -> Result<(), failure::Error> {
+fn progress(
+    name: &ProjectName,
+    dir: &PathBuf,
+    force: bool,
+    branch: &str,
+) -> Result<(), failure::Error> {
     let template = template::substitute(name, force)?;
 
     let pbar = progressbar::new();
@@ -128,7 +134,7 @@ fn progress(name: &ProjectName, dir: &PathBuf, force: bool) -> Result<(), failur
 
     template::walk_dir(dir, template, pbar)?;
 
-    git::init(dir)?;
+    git::init(dir, branch)?;
 
     ignoreme::remove_uneeded_files(dir);
 
