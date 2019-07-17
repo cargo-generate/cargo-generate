@@ -490,3 +490,42 @@ version = "0.1.0"
         .read("foobar-project/Cargo.toml")
         .contains("foobar-project"));
 }
+
+#[test]
+fn it_respects_template_branch_name() {
+    let template = dir("template")
+        .file("index.html", "My Page")
+        .init_git()
+        .build();
+
+    Command::new("git")
+        .arg("branch")
+        .arg("-m")
+        .arg("master")
+        .arg("gh-pages")
+        .current_dir(template.path())
+        .assert()
+        .success();
+
+    let dir = dir("main").build();
+    Command::main_binary()
+        .unwrap()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--branch")
+        .arg("gh-pages")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    Command::new("git")
+        .arg("status")
+        .current_dir(&dir.path().join("foobar-project"))
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("On branch gh-pages").from_utf8());
+}
