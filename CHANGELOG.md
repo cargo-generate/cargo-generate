@@ -1,5 +1,51 @@
 # Changelog
 
+## 🛠 0.3.1
+
+  - ### 🤕 Fixes
+
+    - **Fix messages related to rename behavior - [xortive], [pull/162]**
+        
+        `--force` would stop `cargo-generate` renaming your project, but we would
+        still message that the rename was happening. Not anymore!
+
+        [xortive]: https://github.com/xortive
+        [pull/162]: https://github.com/ashleygwilliams/cargo-generate/pull/162
+
+    - **Use Vendored OpenSSL for macOS - [xortive], [pull/169]**
+      
+        Our prebuilt binaries for macOS were using dynamically linked OpenSSL, 
+        and our CI was dynamically linking to a version of OpenSSL not installed
+        by default on most macs. Now, the macOS release build of `cargo-generate`
+        will work out of the box utilizing staticly linked, vendored OpenSSL.
+
+        [xortive]: https://github.com/xortive
+        [pull/169]: https://github.com/ashleygwilliams/cargo-generate/pull/169
+
+  - ### 👯 New Templates
+
+    - **`bluepill` stm32 microcontroller board template - [mendelt], [pull/146]**
+
+        [mendelt]: https://github.com/mendelt
+        [pull/146]: https://github.com/ashleygwilliams/cargo-generate/pull/146
+
+    - **`cmdr` commandline appliction template - [mendelt], [pull/146]**
+
+        [mendelt]: https://github.com/mendelt
+        [pull/146]: https://github.com/ashleygwilliams/cargo-generate/pull/146
+
+    - **`ggez` rust gamedev template - [cyclowns], [pull/167]**
+    
+        [cyclowns]: https://github.com/cyclowns
+        [pull/167]: https://github.com/ashleygwilliams/cargo-generate/pull/167
+
+- ### 🛠️ Maintenace
+
+    - **Update to liquid 0.19 - [epage], [pull/165]**
+
+        [epage]: https://github.com/epage
+        [pull/165]: https://github.com/ashleygwilliams/cargo-generate/pull/165
+
 ## ⭐ 0.3.0
 
   - ### ✨ Features
