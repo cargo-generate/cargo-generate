@@ -24,15 +24,15 @@
 
   - ### 👯 New Templates
 
-    - **`bluepill` stm32 microcontroller board template - [mendelt], [pull/146]**
+    - **`bluepill` stm32 microcontroller board template - [mendelt], [pull/156]**
 
         [mendelt]: https://github.com/mendelt
-        [pull/146]: https://github.com/ashleygwilliams/cargo-generate/pull/146
+        [pull/156]: https://github.com/ashleygwilliams/cargo-generate/pull/156
 
-    - **`cmdr` commandline appliction template - [mendelt], [pull/146]**
+    - **`cmdr` commandline appliction template - [mendelt], [pull/156]**
 
         [mendelt]: https://github.com/mendelt
-        [pull/146]: https://github.com/ashleygwilliams/cargo-generate/pull/146
+        [pull/156]: https://github.com/ashleygwilliams/cargo-generate/pull/156
 
     - **`ggez` rust gamedev template - [cyclowns], [pull/167]**
     
