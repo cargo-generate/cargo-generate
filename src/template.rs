@@ -1,4 +1,5 @@
 use crate::authors;
+use crate::config;
 use crate::emoji;
 use crate::projectname::ProjectName;
 use console::style;
@@ -119,6 +120,7 @@ pub fn substitute(
 pub fn walk_dir(
     project_dir: &PathBuf,
     template: liquid::value::Object,
+    config: config::Template,
     pbar: ProgressBar,
 ) -> Result<(), failure::Error> {
     fn is_dir(entry: &DirEntry) -> bool {

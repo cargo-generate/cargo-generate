@@ -29,6 +29,9 @@ openssl = { version = '0.10.11', optional = true }
 url = "1.7.1"
 structopt = "0.2.15"
 failure = "0.1.5"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.5.1"
+globset = "0.4.4"
 
 [dev-dependencies]
 predicates = "0.5.0"

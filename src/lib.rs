@@ -1,4 +1,5 @@
 mod authors;
+mod config;
 mod emoji;
 mod git;
 mod ignoreme;
