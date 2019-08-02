@@ -1,43 +1,30 @@
-use failure::{bail, Fail};
+use failure::{bail, Fail, format_err};
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use globset::GlobSet;
+use std::convert::TryFrom;
+use globset::{GlobSet, GlobSetBuilder, Glob};
 use toml;
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug)]
 pub struct Config {
     pub template: Template,
 }
 
-struct Template {
+#[derive(Deserialize, Debug)]
+#[serde(try_from = "TemplateRaw")]
+pub struct Template {
     pub name: Option<String>,
     pub repository: Option<String>,
-    pub placeholders: Option<String>,
+    pub placeholders: Option<Vec<String>>,
     pub parse_matcher: Option<GlobSet>,
 }
 
-#[serde(try_from="TemplateRaw")]
 impl TryFrom<TemplateRaw> for Template {
-    fn from(raw_template_config: TemplateRaw) -> Result<Self, failure::Error> {
+    type Error = failure::Error;
+    fn try_from(raw_template_config: TemplateRaw) -> Result<Self, Self::Error> {
         match raw_template_config {
-            TemplateRaw {
-                include: Some(_),
-                exclude: None,
-                ..
-            } => {
-
-
-            },
-            TemplateRaw {
-                include: None,
-                exclude: Some(_),
-                ..
-            } => {
-
-
-            },
             TemplateRaw {
                 include: Some(_),
                 exclude: Some(_),
@@ -50,11 +37,69 @@ impl TryFrom<TemplateRaw> for Template {
 
                 Err(err.into())
             },
+            TemplateRaw {
+                include: Some(whitelist_globs),
+                exclude: None,
+                name, repository, placeholders,
+            } => {
+                let globs: Result<Vec<Glob>, globset::Error> = whitelist_globs.into_iter()
+                    .map(|globstr| Glob::new(&globstr))
+                    .collect();
+
+                globs.and_then(|globs| {
+                    let mut builder = GlobSetBuilder::new();
+
+                    for glob in globs {
+                        builder.add(glob);
+                    }
+
+                    Ok(builder.build())
+                }).and_then(|globset| {
+                    Ok(Template {
+                        name, repository, placeholders,
+                        parse_matcher: Some(globset?)
+                    })
+                }).map_err(|globsetErr| format_err!("globs borked"))
+            },
+            TemplateRaw {
+                include: None,
+                exclude: Some(blacklist_globs),
+                name, repository, placeholders,
+            } => {
+                let globs: Result<Vec<Glob>, globset::Error> = blacklist_globs.into_iter()
+                    .map(|globstr| Glob::new(&globstr))
+                    .collect();
+
+                globs.and_then(|globs| {
+                    let mut builder = GlobSetBuilder::new();
+
+                    for glob in globs {
+                        builder.add(glob);
+                    }
+
+                    Ok(builder.build())
+                }).and_then(|globset| {
+                    Ok(Template {
+                        name, repository, placeholders,
+                        parse_matcher: Some(globset?)
+                    })
+                }).map_err(|globsetErr| format_err!("globs borked"))
+            },
+            TemplateRaw {
+                include: None,
+                exclude: None,
+                name, repository, placeholders,
+            } => {
+                Ok(Template {
+                    name, repository, placeholders,
+                    parse_matcher: None
+                })
+            },
         }
     }
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug)]
 struct TemplateRaw {
     pub name: Option<String>,
     #[serde(rename = "repo")]
@@ -85,35 +130,6 @@ impl Config {
 
 
         Ok(config)
-    }
-}
-
-impl Template {
-    use globset::Glob;
-
-    pub fn should_parse(&self, path: Path) -> Result<bool, failure::Error> {
-        match self {
-            Template {
-                include: Some(includes),
-                exclude: None,
-                ..
-            } => check_against_whitelist(path, includes),
-            Template {
-                exclude: Some(excludes),
-                include: None,
-                ..
-            } => check_against_blacklist(path, excludes),
-            _ => unreachable!("Precondition violated: include and exclude are mutually exclusive")
-        }
-    }
-
-    fn check_against_whitelist(path: Path, includes: Vec<String>) -> Result<bool, failure::Error> {
-        let mut builder = GlobSetMatcher
-        includes.iter().map(Glob)
-    }
-
-    fn check_against_whitelist(path: Path, includes: Vec<String>) -> Result<bool, failure::Error> {
-
     }
 }
 
