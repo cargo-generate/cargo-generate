@@ -7,7 +7,9 @@ mod interactive;
 mod progressbar;
 mod projectname;
 mod template;
+mod include_exclude;
 
+use config::Config;
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
 use cargo;
@@ -137,7 +139,12 @@ fn progress(
     let pbar = progressbar::new();
     pbar.tick();
 
-    template::walk_dir(dir, template, pbar)?;
+    let mut config_path = dir.clone();
+    config_path.push("./gen.toml");
+
+    let template_config = Config::new(config_path)?.template;
+
+    template::walk_dir(dir, template, template_config, pbar)?;
 
     git::init(dir, branch)?;
 

@@ -1,6 +1,7 @@
 use crate::authors;
-use crate::config;
 use crate::emoji;
+use crate::include_exclude::create_matcher;
+use crate::config::TemplateConfig;
 use crate::projectname::ProjectName;
 use console::style;
 use failure;
@@ -10,7 +11,6 @@ use liquid;
 use quicli::prelude::*;
 use std::fs;
 use std::path::PathBuf;
-use walkdir::{DirEntry, WalkDir};
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::new()
@@ -120,28 +120,12 @@ pub fn substitute(
 pub fn walk_dir(
     project_dir: &PathBuf,
     template: liquid::value::Object,
+    template_config: TemplateConfig,
     pbar: ProgressBar,
 ) -> Result<(), failure::Error> {
-    fn is_dir(entry: &DirEntry) -> bool {
-        entry.file_type().is_dir()
-    }
-
-    fn is_git_metadata(entry: &DirEntry) -> bool {
-        entry
-            .path()
-            .to_str()
-            .map(|s| s.contains(".git"))
-            .unwrap_or(false)
-    }
-
     let engine = engine();
 
-    for entry in WalkDir::new(project_dir) {
-        let entry = entry?;
-        if is_dir(&entry) || is_git_metadata(&entry) {
-            continue;
-        }
-
+    for entry in create_matcher(&template_config, project_dir) {
         let filename = entry.path();
         pbar.set_message(&filename.display().to_string());
 
