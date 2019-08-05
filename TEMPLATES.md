@@ -9,6 +9,7 @@
 - [procmacro-quickstart]: Write procedural macros, [eupn]
 - [bluepill]: Create rust projects for the 'blue pill' stm32 microcontroller board [mendelt]
 - [cmdr]: Write interactive commandline applications [mendelt]
+- [ggez]: Write games in Rust using ggez, [cyclowns]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -27,4 +28,6 @@
 [bluepill]: https://github.com/mendelt/bluepill-template
 [cmdr]: https://github.com/mendelt/cmdr-template
 [mendelt]: https://github.com/mendelt
+[ggez]: https://github.com/cyclowns/cargo-generate-ggez
+[cyclowns]: https://github.com/cyclowns
 
