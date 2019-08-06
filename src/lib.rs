@@ -140,7 +140,7 @@ fn progress(
     pbar.tick();
 
     let mut config_path = dir.clone();
-    config_path.push("./gen.toml");
+    config_path.push(".gen.toml");
 
     let template_config = Config::new(config_path)?.map(|c| c.template);
 

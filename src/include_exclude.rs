@@ -6,17 +6,17 @@ use crate::config::TemplateConfig;
 use walkdir::{DirEntry, WalkDir, Result as WDResult};
 
 pub fn create_matcher<'a>(template_config: &'a TemplateConfig, project_dir: &'a Path) -> Result<impl Iterator<Item = WDResult<DirEntry>> + 'a, failure::Error> {
-    let mut exclude_builder = GitignoreBuilder::new(project_dir);
-    for rule in template_config.include.clone().unwrap_or_else(Vec::new) {
-        exclude_builder.add_line(None, &rule)?;
-    }
-    let exclude_matcher = exclude_builder.build()?;
-
     let mut include_builder = GitignoreBuilder::new(project_dir);
-    for rule in template_config.exclude.clone().unwrap_or_else(Vec::new) {
+    for rule in template_config.include.clone().unwrap_or_else(Vec::new) {
         include_builder.add_line(None, &rule)?;
     }
     let include_matcher = include_builder.build()?;
+
+    let mut exclude_builder = GitignoreBuilder::new(project_dir);
+    for rule in template_config.exclude.clone().unwrap_or_else(Vec::new) {
+        exclude_builder.add_line(None, &rule)?;
+    }
+    let exclude_matcher = exclude_builder.build()?;
 
     let should_include = move |relative_path: &Path| -> Result<bool, failure::Error> {
         // "Include" and "exclude" options are mutually exclusive.
@@ -55,10 +55,14 @@ pub fn create_matcher<'a>(template_config: &'a TemplateConfig, project_dir: &'a 
 
     Ok(WalkDir::new(project_dir)
         .into_iter()
-        .filter_entry(move |e| {
-            let relative_path = e.path().strip_prefix(project_dir).expect("strip project dir before matching");
-            !is_dir(e) && !is_git_metadata(e) && should_include(relative_path).unwrap()
-        }).into_iter())
+        .filter(move |e| {
+            if let Ok(e) = e {
+                let relative_path = e.path().strip_prefix(project_dir).expect("strip project dir before matching");
+                !is_dir(e) && !is_git_metadata(e) && should_include(relative_path).unwrap_or(false);
+            } else {
+                false
+            }
+        }))
 }
 
 pub fn create_default_matcher(project_dir: &Path) -> Result<impl Iterator<Item = WDResult<DirEntry>>, failure::Error> {
@@ -76,8 +80,12 @@ pub fn create_default_matcher(project_dir: &Path) -> Result<impl Iterator<Item =
 
     Ok(WalkDir::new(project_dir)
         .into_iter()
-        .filter_entry(move |e| {
-            !is_dir(e) && !is_git_metadata(e)
-        }).into_iter())
+        .filter(move |e| {
+            if let Ok(e) = e {
+                !is_dir(e) && !is_git_metadata(e)
+            } else {
+                false
+            }
+        }))
 }
 

@@ -125,6 +125,7 @@ pub fn walk_dir(
 ) -> Result<(), failure::Error> {
     let engine = engine();
 
+    //returning iterators is hard :/
     let matcher = match template_config {
         Some(template_config) => {
             for entry in create_matcher(&template_config, project_dir)? {
