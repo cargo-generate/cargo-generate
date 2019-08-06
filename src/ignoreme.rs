@@ -19,6 +19,7 @@ fn check_if_genignore_exists(location: &PathBuf) -> bool {
     let mut ignore_path = PathBuf::new();
     ignore_path.push(location);
     ignore_path.push(".genignore");
+    ignore_path.push(".gen.toml");
     ignore_path.exists()
 }
 
