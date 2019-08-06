@@ -142,7 +142,7 @@ fn progress(
     let mut config_path = dir.clone();
     config_path.push("./gen.toml");
 
-    let template_config = Config::new(config_path)?.template;
+    let template_config = Config::new(config_path)?.map(|c| c.template);
 
     template::walk_dir(dir, template, template_config, pbar)?;
 

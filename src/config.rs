@@ -16,14 +16,21 @@ pub struct TemplateConfig {
 }
 
 impl Config {
-    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, failure::Error> {
-        let mut file = File::open(path)?;
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)?;
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Option<Self>, failure::Error> {
+        match File::open(path) {
+            Ok(mut file) => {
+                let mut contents = String::new();
+                file.read_to_string(&mut contents)?;
 
-        let config: Config = toml::from_str(&contents)?;
+                let config: Config = toml::from_str(&contents)?;
 
-        Ok(config)
+                Ok(Some(config))
+            }
+
+            Err(e) => {
+                Ok(None)
+            }
+        }
     }
 }
 

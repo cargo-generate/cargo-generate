@@ -1,6 +1,6 @@
 use crate::authors;
 use crate::emoji;
-use crate::include_exclude::create_matcher;
+use crate::include_exclude::*;
 use crate::config::TemplateConfig;
 use crate::projectname::ProjectName;
 use console::style;
@@ -10,7 +10,7 @@ use indicatif::ProgressBar;
 use liquid;
 use quicli::prelude::*;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::new()
@@ -120,36 +120,51 @@ pub fn substitute(
 pub fn walk_dir(
     project_dir: &PathBuf,
     template: liquid::value::Object,
-    template_config: TemplateConfig,
+    template_config: Option<TemplateConfig>,
     pbar: ProgressBar,
 ) -> Result<(), failure::Error> {
     let engine = engine();
 
-    for entry in create_matcher(&template_config, project_dir) {
-        let filename = entry.path();
-        pbar.set_message(&filename.display().to_string());
+    let matcher = match template_config {
+        Some(template_config) => {
+            for entry in create_matcher(&template_config, project_dir)? {
+                process_entry(entry?.path(), &pbar, &engine, &template)?;
+            }
+        },
+        None => {
+            for entry in create_default_matcher(project_dir)? {
+                process_entry(entry?.path(), &pbar, &engine, &template)?;
+            }
+        },
+    };
 
-        let new_contents = engine
-            .clone()
-            .parse_file(&filename)?
-            .render(&template)
-            .with_context(|_e| {
-                format!(
-                    "{} {} `{}`",
-                    emoji::ERROR,
-                    style("Error replacing placeholders").bold().red(),
-                    style(filename.display()).bold()
-                )
-            })?;
-        fs::write(&filename, new_contents).with_context(|_e| {
+    pbar.finish_and_clear();
+    Ok(())
+}
+
+fn process_entry(filename: &Path, pbar: &ProgressBar, engine: &liquid::Parser, template: &liquid::value::Object) -> Result<(), failure::Error> {
+    pbar.set_message(&filename.display().to_string());
+
+    let new_contents = engine
+        .clone()
+        .parse_file(filename)?
+        .render(template)
+        .with_context(|_e| {
             format!(
                 "{} {} `{}`",
                 emoji::ERROR,
-                style("Error writing").bold().red(),
+                style("Error replacing placeholders").bold().red(),
                 style(filename.display()).bold()
             )
         })?;
-    }
-    pbar.finish_and_clear();
+    fs::write(filename, new_contents).with_context(|_e| {
+        format!(
+            "{} {} `{}`",
+            emoji::ERROR,
+            style("Error writing").bold().red(),
+            style(filename.display()).bold()
+        )
+    })?;
+
     Ok(())
 }
