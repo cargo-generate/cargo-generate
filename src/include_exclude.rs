@@ -21,7 +21,7 @@ pub fn create_matcher<'a>(
     }
     let exclude_matcher = exclude_builder.build()?;
 
-    let should_include = move |relative_path: &Path| -> Result<bool, failure::Error> {
+    let should_include = move |relative_path: &Path| -> bool {
         // "Include" and "exclude" options are mutually exclusive.
         // if no include is made, we will default to ignore_exclude
         // which if there is no options, matches everything
@@ -29,17 +29,17 @@ pub fn create_matcher<'a>(
             match exclude_matcher
                 .matched_path_or_any_parents(relative_path, /* is_dir */ false)
             {
-                Match::None => Ok(true),
-                Match::Ignore(_) => Ok(false),
-                Match::Whitelist(_) => Ok(true),
+                Match::None => true,
+                Match::Ignore(_) => false,
+                Match::Whitelist(_) => true,
             }
         } else {
             match include_matcher
                 .matched_path_or_any_parents(relative_path, /* is_dir */ false)
             {
-                Match::None => Ok(false),
-                Match::Ignore(_) => Ok(true),
-                Match::Whitelist(_) => Ok(false),
+                Match::None => false,
+                Match::Ignore(_) => true,
+                Match::Whitelist(_) => false,
             }
         }
     };
@@ -62,7 +62,7 @@ pub fn create_matcher<'a>(
                 .path()
                 .strip_prefix(project_dir)
                 .expect("strip project dir before matching");
-            !is_dir(e) && !is_git_metadata(e) && should_include(relative_path).unwrap_or(false)
+            !is_dir(e) && !is_git_metadata(e) && should_include(relative_path)
         } else {
             false
         }
