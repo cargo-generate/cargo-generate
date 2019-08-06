@@ -1,7 +1,7 @@
 use crate::authors;
+use crate::config::TemplateConfig;
 use crate::emoji;
 use crate::include_exclude::*;
-use crate::config::TemplateConfig;
 use crate::projectname::ProjectName;
 use console::style;
 use failure;
@@ -126,24 +126,29 @@ pub fn walk_dir(
     let engine = engine();
 
     //returning iterators is hard :/
-    let matcher = match template_config {
+    match template_config {
         Some(template_config) => {
             for entry in create_matcher(&template_config, project_dir)? {
                 process_entry(entry?.path(), &pbar, &engine, &template)?;
             }
-        },
+        }
         None => {
             for entry in create_default_matcher(project_dir)? {
                 process_entry(entry?.path(), &pbar, &engine, &template)?;
             }
-        },
+        }
     };
 
     pbar.finish_and_clear();
     Ok(())
 }
 
-fn process_entry(filename: &Path, pbar: &ProgressBar, engine: &liquid::Parser, template: &liquid::value::Object) -> Result<(), failure::Error> {
+fn process_entry(
+    filename: &Path,
+    pbar: &ProgressBar,
+    engine: &liquid::Parser,
+    template: &liquid::value::Object,
+) -> Result<(), failure::Error> {
     pbar.set_message(&filename.display().to_string());
 
     let new_contents = engine

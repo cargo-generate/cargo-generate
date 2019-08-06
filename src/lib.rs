@@ -3,16 +3,16 @@ mod config;
 mod emoji;
 mod git;
 mod ignoreme;
+mod include_exclude;
 mod interactive;
 mod progressbar;
 mod projectname;
 mod template;
-mod include_exclude;
 
-use config::Config;
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
 use cargo;
+use config::Config;
 use console::style;
 use failure;
 use std::env;

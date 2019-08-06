@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use std::fs::File;
+use std::io::{ErrorKind, Read};
 use std::path::Path;
-use std::io::Read;
 use toml;
 
 #[derive(Deserialize, Debug)]
@@ -26,10 +26,10 @@ impl Config {
 
                 Ok(Some(config))
             }
-
-            Err(e) => {
-                Ok(None)
-            }
+            Err(e) => match e.kind() {
+                ErrorKind::NotFound => Ok(None),
+                _ => failure::bail!(e),
+            },
         }
     }
 }
@@ -52,12 +52,16 @@ mod tests {
             include = ["Cargo.toml"]
         "#
             .as_bytes(),
-        ).unwrap();
+        )
+        .unwrap();
 
         let config = Config::new(&config_path).unwrap();
 
-        assert_eq!(config.template, TemplateConfig {
-            include: Some(vec!["Cargo.toml".into()]),
-        })
+        assert_eq!(
+            config.template,
+            TemplateConfig {
+                include: Some(vec!["Cargo.toml".into()]),
+            }
+        )
     }
 }
