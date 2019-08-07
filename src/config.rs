@@ -57,9 +57,6 @@ mod tests {
 
         let config = Config::new(&config_path).unwrap().unwrap();
 
-        assert_eq!(
-            config.template.include,
-            Some(vec!["Cargo.toml".into()])
-        )
+        assert_eq!(config.template.include, Some(vec!["Cargo.toml".into()]))
     }
 }

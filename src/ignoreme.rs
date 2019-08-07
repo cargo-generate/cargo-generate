@@ -34,7 +34,10 @@ fn get_ignored(location: &PathBuf) -> Vec<PathBuf> {
 
     let mut all_set = HashSet::new();
     let mut ign_set = HashSet::new();
-    let mut output = vec![Path::new(location).join(ignore_file_name), Path::new(location).join(config_file_name)];
+    let mut output = vec![
+        Path::new(location).join(ignore_file_name),
+        Path::new(location).join(config_file_name),
+    ];
 
     for x in all {
         all_set.insert(x.expect("Found invalid path: Aborting").path().to_owned());
