@@ -55,13 +55,11 @@ mod tests {
         )
         .unwrap();
 
-        let config = Config::new(&config_path).unwrap();
+        let config = Config::new(&config_path).unwrap().unwrap();
 
         assert_eq!(
-            config.template,
-            TemplateConfig {
-                include: Some(vec!["Cargo.toml".into()]),
-            }
+            config.template.include,
+            Some(vec!["Cargo.toml".into()])
         )
     }
 }
