@@ -444,10 +444,9 @@ version = "0.1.0"
     assert!(dir
         .read("foobar-project/Cargo.toml")
         .contains("foobar-project"));
-    assert!(
-        dir.read("foobar-project/submodule/README.md")
-           .contains("*JUST A SUBMODULE*")
-    );
+    assert!(dir
+        .read("foobar-project/submodule/README.md")
+        .contains("*JUST A SUBMODULE*"));
 }
 
 #[test]
