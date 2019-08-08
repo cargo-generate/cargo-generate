@@ -15,15 +15,21 @@ Here's an example of using `cargo-generate` with [this template]:
 
 ## Installation
 
+### Using `cargo` with system's OpenSSL
+
 ```
 cargo install cargo-generate
 ```
 
-`cargo-generate` has a few dependencies that need to be available before it can be installed using cargo.
-
-* `openssl`: See the [`openssl-sys` crate readme] on how to obtain the openssl library for your system. Alternatively, use the `--features vendored-openssl` flag: `cargo install cargo-generate --features vendored-openssl`
+See the [`openssl-sys` crate readme] on how to obtain the OpenSSL library for your system. Alternatively, use the `vendored-openssl` flag if you do not want to install OpenSSL.
 
 [`openssl-sys` crate readme]: https://crates.io/crates/openssl-sys
+
+### Using `cargo` with vendored OpenSSL
+
+```
+cargo install cargo-generate --features vendored-openssl
+```
 
 ### Manual Install:
 
