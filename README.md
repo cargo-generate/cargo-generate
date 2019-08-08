@@ -19,15 +19,17 @@ Here's an example of using `cargo-generate` with [this template]:
 cargo install cargo-generate
 ```
 
-`cargo-generate` has a few dependencies that need to be available before it can be installed and used.
+`cargo-generate` has a few dependencies that need to be available before it can be installed using cargo.
 
-* `openssl`: See the [`openssl-sys` crate readme] on how to obtain the openssl library for your system.
-* `cmake`: Check if it is installed by typing `cmake --version` in a terminal or command line window. If it is not available, check your package
-  manager or see the [cmake homepage].
+* `openssl`: See the [`openssl-sys` crate readme] on how to obtain the openssl library for your system. Alternatively, use the `--features vendored-openssl` flag.
 
 [`openssl-sys` crate readme]: https://crates.io/crates/openssl-sys
-[`git`]: https://git-scm.com/downloads
-[cmake homepage]: https://cmake.org/download/
+
+### Manual Install:
+
+1. Download the binary tarball for your platform from our [releases page](https://github.com/ashleygwilliams/cargo-generate/releases).
+
+2. Unpack the tarball and place the binary `cargo-generate` in `~/.cargo/bin/`
 
 ## Usage
 
