@@ -1,6 +1,6 @@
 use serde::Deserialize;
-use std::fs::File;
-use std::io::{ErrorKind, Read};
+use std::fs;
+use std::io::ErrorKind;
 use std::path::Path;
 use toml;
 
@@ -17,11 +17,8 @@ pub struct TemplateConfig {
 
 impl Config {
     pub fn new<P: AsRef<Path>>(path: P) -> Result<Option<Self>, failure::Error> {
-        match File::open(path) {
-            Ok(mut file) => {
-                let mut contents = String::new();
-                file.read_to_string(&mut contents)?;
-
+        match fs::read_to_string(path) {
+            Ok(contents) => {
                 let config: Config = toml::from_str(&contents)?;
 
                 Ok(Some(config))
@@ -37,6 +34,7 @@ impl Config {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::File;
     use std::io::Write;
     use tempfile::tempdir;
 
