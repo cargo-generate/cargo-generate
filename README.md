@@ -64,7 +64,7 @@ supported placeholders are:
 [Liquid Documentation on `date`]: https://shopify.github.io/liquid/filters/date/
 
 You can use those placeholders in the file names of the generated project.  
-For example, for a project named `awesome`, the filename `{{project_name}}.rs` will be transformed to `awesome.rs` during generation.
+For example, for a project named `awesome`, the filename `{{project_name}}.rs` will be transformed to `awesome.rs` during generation. All filenames will be processed for template tags regardless of include / exclude settings.
 
 You can also add a `.genignore` file to your template. The files listed in the `.genignore` file
 will be removed from the local machine when `cargo-generate` is run on the end user's machine.
@@ -74,6 +74,18 @@ Here's a list of [currently available templates](TEMPLATES.md).
 If you have a great template that you'd like to feature here, please [file an issue or a PR]!
 
 [file an issue or a PR]: https://github.com/ashleygwilliams/cargo-generate/issues
+
+## Include / Exclude
+
+Templates support a `cargo-generate.toml`, with a "template" section that allows you to configure the files that will be processed by `cargo-generate`.
+The behavior mirrors Cargo's Include / Exclude functionality, which is [documented here](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional). If you are using placeholders in a file name, and also wish to use placeholders in the contents of that file, you should setup your globs to match on the pre-rename filename.
+
+```toml
+[template]
+include = ["Cargo.toml"]
+# include and exclude are exclusive, if both appear we will use include
+exclude = ["*.c"]
+```
 
 ## License
 
