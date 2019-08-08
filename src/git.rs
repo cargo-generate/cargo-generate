@@ -17,7 +17,7 @@ pub struct GitConfig {
 }
 
 impl GitConfig {
-    pub fn new(git: String, branch: Option<String>) -> Result<Self, failure::Error> {
+    pub fn new(git: String, branch: String) -> Result<Self, failure::Error> {
         let remote = match Url::parse(&git) {
             Ok(u) => u,
             Err(ParseError::RelativeUrlWithoutBase) => {
@@ -37,7 +37,7 @@ impl GitConfig {
 
         Ok(GitConfig {
             remote,
-            branch: GitReference::Branch(branch.unwrap_or_else(|| "master".to_string())),
+            branch: GitReference::Branch(branch),
         })
     }
 }
@@ -60,9 +60,12 @@ pub fn remove_history(project_dir: &PathBuf) -> Result<(), failure::Error> {
     Ok(())
 }
 
-pub fn init(project_dir: &PathBuf) -> Result<GitRepository, failure::Error> {
-    Ok(
-        GitRepository::init_opts(project_dir, RepositoryInitOptions::new().bare(false))
-            .context("Couldn't init new repository")?,
+pub fn init(project_dir: &PathBuf, branch: &str) -> Result<GitRepository, failure::Error> {
+    Ok(GitRepository::init_opts(
+        project_dir,
+        RepositoryInitOptions::new()
+            .bare(false)
+            .initial_head(branch),
     )
+    .context("Couldn't init new repository")?)
 }

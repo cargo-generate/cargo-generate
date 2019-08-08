@@ -13,49 +13,85 @@ use walkdir::{DirEntry, WalkDir};
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::new()
-        .filter(
-            "date",
-            liquid::filters::date as liquid::compiler::FnFilterValue,
-        )
-        .filter(
-            "capitalize",
-            liquid::filters::capitalize as liquid::compiler::FnFilterValue,
-        )
-        .filter("kebab_case", kebab_case as liquid::compiler::FnFilterValue)
-        .filter(
-            "pascal_case",
-            pascal_case as liquid::compiler::FnFilterValue,
-        )
-        .filter("snake_case", snake_case as liquid::compiler::FnFilterValue)
+        .filter(liquid::filters::std::Date)
+        .filter(liquid::filters::std::Capitalize)
+        .filter(KebabCaseFilterParser)
+        .filter(PascalCaseFilterParser)
+        .filter(SnakeCaseFilterParser)
         .build()
         .expect("can't fail due to no partials support")
 }
 
-fn kebab_case(
-    input: &liquid::value::Value,
-    _args: &[liquid::value::Value],
-) -> ::std::result::Result<liquid::value::Value, liquid::Error> {
-    let input = input.to_str();
-    let input = input.as_ref().to_kebab_case();
-    Ok(liquid::value::Value::scalar(input))
+#[derive(Clone, liquid_derive::ParseFilter, liquid_derive::FilterReflection)]
+#[filter(
+    name = "kebab_case",
+    description = "Change text to kebab-case.",
+    parsed(KebabCaseFilter)
+)]
+pub struct KebabCaseFilterParser;
+
+#[derive(Debug, Default, liquid_derive::Display_filter)]
+#[name = "kebab_case"]
+struct KebabCaseFilter;
+
+impl liquid::compiler::Filter for KebabCaseFilter {
+    fn evaluate(
+        &self,
+        input: &liquid::value::Value,
+        _context: &liquid::interpreter::Context,
+    ) -> Result<liquid::value::Value, liquid::error::Error> {
+        let input = input.to_str();
+        let input = input.as_ref().to_kebab_case();
+        Ok(liquid::value::Value::scalar(input))
+    }
 }
 
-fn pascal_case(
-    input: &liquid::value::Value,
-    _args: &[liquid::value::Value],
-) -> ::std::result::Result<liquid::value::Value, liquid::Error> {
-    let input = input.to_str();
-    let input = input.as_ref().to_camel_case();
-    Ok(liquid::value::Value::scalar(input))
+#[derive(Clone, liquid_derive::ParseFilter, liquid_derive::FilterReflection)]
+#[filter(
+    name = "kebab_case",
+    description = "Change text to PascalCase.",
+    parsed(PascalCaseFilter)
+)]
+pub struct PascalCaseFilterParser;
+
+#[derive(Debug, Default, liquid_derive::Display_filter)]
+#[name = "pascal_case"]
+struct PascalCaseFilter;
+
+impl liquid::compiler::Filter for PascalCaseFilter {
+    fn evaluate(
+        &self,
+        input: &liquid::value::Value,
+        _context: &liquid::interpreter::Context,
+    ) -> Result<liquid::value::Value, liquid::error::Error> {
+        let input = input.to_str();
+        let input = input.as_ref().to_camel_case();
+        Ok(liquid::value::Value::scalar(input))
+    }
 }
 
-fn snake_case(
-    input: &liquid::value::Value,
-    _args: &[liquid::value::Value],
-) -> ::std::result::Result<liquid::value::Value, liquid::Error> {
-    let input = input.to_str();
-    let input = input.as_ref().to_snake_case();
-    Ok(liquid::value::Value::scalar(input))
+#[derive(Clone, liquid_derive::ParseFilter, liquid_derive::FilterReflection)]
+#[filter(
+    name = "kebab_case",
+    description = "Change text to snake_case.",
+    parsed(SnakeCaseFilter)
+)]
+pub struct SnakeCaseFilterParser;
+
+#[derive(Debug, Default, liquid_derive::Display_filter)]
+#[name = "pascal_case"]
+struct SnakeCaseFilter;
+
+impl liquid::compiler::Filter for SnakeCaseFilter {
+    fn evaluate(
+        &self,
+        input: &liquid::value::Value,
+        _context: &liquid::interpreter::Context,
+    ) -> Result<liquid::value::Value, liquid::error::Error> {
+        let input = input.to_str();
+        let input = input.as_ref().to_snake_case();
+        Ok(liquid::value::Value::scalar(input))
+    }
 }
 
 pub fn substitute(

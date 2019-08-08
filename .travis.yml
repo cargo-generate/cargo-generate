@@ -43,7 +43,7 @@ matrix:
   - env: JOB=dist-osx MACOSX_DEPLOYMENT_TARGET=10.7 TARGET=x86_64-apple-darwin
     os: osx
     rust: stable
-    script: cargo build --release --target $TARGET --locked
+    script: cargo build --release --target $TARGET --locked --features vendored-openssl
     <<: *DEPLOY_TO_GITHUB
 
 notifications:
