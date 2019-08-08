@@ -4,6 +4,8 @@ use std::io::ErrorKind;
 use std::path::Path;
 use toml;
 
+pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
+
 #[derive(Deserialize, Debug)]
 pub struct Config {
     pub template: TemplateConfig,
@@ -41,7 +43,7 @@ mod tests {
     #[test]
     fn test_deserializes_config() {
         let test_dir = tempdir().unwrap();
-        let config_path = test_dir.path().join(".gen.toml");
+        let config_path = test_dir.path().join(CONFIG_FILE_NAME);
         let mut file = File::create(&config_path).unwrap();
 
         file.write_all(

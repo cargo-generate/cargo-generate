@@ -5,6 +5,9 @@ use std::ffi::OsStr;
 use std::fs::remove_file;
 use std::path::{Path, PathBuf};
 
+use crate::config::CONFIG_FILE_NAME;
+pub const IGNORE_FILE_NAME: &str = ".genignore";
+
 ///takes the directory path and removes the files/directories specified in the
 /// `.genignore` file
 /// It handles all errors internally
@@ -18,16 +21,14 @@ pub fn remove_uneeded_files(dir: &PathBuf) {
 fn check_if_genignore_exists(location: &PathBuf) -> bool {
     let mut ignore_path = PathBuf::new();
     ignore_path.push(location);
-    ignore_path.push(".genignore");
+    ignore_path.push(IGNORE_FILE_NAME);
     ignore_path.exists()
 }
 
 fn get_ignored(location: &PathBuf) -> Vec<PathBuf> {
-    let ignore_file_name = ".genignore";
-    let config_file_name = ".gen.toml";
     let ignored = WalkBuilder::new(location)
         .standard_filters(false)
-        .add_custom_ignore_filename(OsStr::new(ignore_file_name))
+        .add_custom_ignore_filename(OsStr::new(IGNORE_FILE_NAME))
         .build();
 
     let all = WalkBuilder::new(location).standard_filters(false).build();
@@ -35,8 +36,8 @@ fn get_ignored(location: &PathBuf) -> Vec<PathBuf> {
     let mut all_set = HashSet::new();
     let mut ign_set = HashSet::new();
     let mut output = vec![
-        Path::new(location).join(ignore_file_name),
-        Path::new(location).join(config_file_name),
+        Path::new(location).join(IGNORE_FILE_NAME),
+        Path::new(location).join(CONFIG_FILE_NAME),
     ];
 
     for x in all {

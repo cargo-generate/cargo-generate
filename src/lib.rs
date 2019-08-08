@@ -12,7 +12,7 @@ mod template;
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
 use cargo;
-use config::Config;
+use config::{Config, CONFIG_FILE_NAME};
 use console::style;
 use failure;
 use std::env;
@@ -140,7 +140,7 @@ fn progress(
     pbar.tick();
 
     let mut config_path = dir.clone();
-    config_path.push(".gen.toml");
+    config_path.push(CONFIG_FILE_NAME);
 
     let template_config = Config::new(config_path)?.map(|c| c.template);
 

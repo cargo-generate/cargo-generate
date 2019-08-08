@@ -74,7 +74,7 @@ If you have a great template that you'd like to feature here, please [file an is
 
 ## Include / Exclude
 
-Templates support a `.gen.toml`, with a "template" section that allows you to configure the files that will be processed by `cargo-generate`.
+Templates support a `cargo-generate.toml`, with a "template" section that allows you to configure the files that will be processed by `cargo-generate`.
 The behavior mirrors Cargo's Include / Exclude functionality, which is [documented here](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional)
 
 ```toml
