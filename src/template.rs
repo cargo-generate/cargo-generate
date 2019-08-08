@@ -10,7 +10,8 @@ use indicatif::ProgressBar;
 use liquid;
 use quicli::prelude::*;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+use walkdir::{DirEntry, WalkDir};
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::new()
@@ -123,54 +124,59 @@ pub fn walk_dir(
     template_config: Option<TemplateConfig>,
     pbar: ProgressBar,
 ) -> Result<(), failure::Error> {
+    fn is_dir(entry: &DirEntry) -> bool {
+        entry.file_type().is_dir()
+    }
+
+    fn is_git_metadata(entry: &DirEntry) -> bool {
+        entry
+            .path()
+            .to_str()
+            .map(|s| s.contains(".git"))
+            .unwrap_or(false)
+    }
+
     let engine = engine();
 
-    //returning iterators is hard :/
-    match template_config {
-        Some(template_config) => {
-            for entry in create_matcher(&template_config, project_dir)? {
-                process_entry(entry?.path(), &pbar, &engine, &template)?;
-            }
+    let matcher = template_config.map_or_else(
+        || Ok(Matcher::default()),
+        |config| Matcher::new(config, project_dir),
+    )?;
+
+    for entry in WalkDir::new(project_dir) {
+        let entry = entry?;
+        if is_dir(&entry) || is_git_metadata(&entry) {
+            continue;
         }
-        None => {
-            for entry in create_default_matcher(project_dir)? {
-                process_entry(entry?.path(), &pbar, &engine, &template)?;
-            }
+
+        let filename = entry.path();
+        let relative_path = filename.strip_prefix(project_dir)?;
+        pbar.set_message(&filename.display().to_string());
+
+        if matcher.should_include(relative_path) {
+            let new_contents = engine
+                .clone()
+                .parse_file(filename)?
+                .render(&template)
+                .with_context(|_e| {
+                    format!(
+                        "{} {} `{}`",
+                        emoji::ERROR,
+                        style("Error replacing placeholders").bold().red(),
+                        style(filename.display()).bold()
+                    )
+                })?;
+            fs::write(filename, new_contents).with_context(|_e| {
+                format!(
+                    "{} {} `{}`",
+                    emoji::ERROR,
+                    style("Error writing").bold().red(),
+                    style(filename.display()).bold()
+                )
+            })?;
         }
-    };
+    }
 
     pbar.finish_and_clear();
-    Ok(())
-}
-
-fn process_entry(
-    filename: &Path,
-    pbar: &ProgressBar,
-    engine: &liquid::Parser,
-    template: &liquid::value::Object,
-) -> Result<(), failure::Error> {
-    pbar.set_message(&filename.display().to_string());
-
-    let new_contents = engine
-        .clone()
-        .parse_file(filename)?
-        .render(template)
-        .with_context(|_e| {
-            format!(
-                "{} {} `{}`",
-                emoji::ERROR,
-                style("Error replacing placeholders").bold().red(),
-                style(filename.display()).bold()
-            )
-        })?;
-    fs::write(filename, new_contents).with_context(|_e| {
-        format!(
-            "{} {} `{}`",
-            emoji::ERROR,
-            style("Error writing").bold().red(),
-            style(filename.display()).bold()
-        )
-    })?;
-
     Ok(())
 }
