@@ -21,7 +21,7 @@ cargo install cargo-generate
 
 `cargo-generate` has a few dependencies that need to be available before it can be installed using cargo.
 
-* `openssl`: See the [`openssl-sys` crate readme] on how to obtain the openssl library for your system. Alternatively, use the `--features vendored-openssl` flag.
+* `openssl`: See the [`openssl-sys` crate readme] on how to obtain the openssl library for your system. Alternatively, use the `--features vendored-openssl` flag: `cargo install cargo-generate --features vendored-openssl`
 
 [`openssl-sys` crate readme]: https://crates.io/crates/openssl-sys
 
