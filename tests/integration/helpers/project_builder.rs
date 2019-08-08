@@ -8,7 +8,7 @@ use std::sync::atomic::*;
 use crate::helpers::project::Project;
 use remove_dir_all::remove_dir_all;
 
-static CNT: AtomicUsize = ATOMIC_USIZE_INIT;
+static CNT: AtomicUsize = AtomicUsize::new(0);
 thread_local!(static IDX: usize = CNT.fetch_add(1, Ordering::SeqCst));
 
 pub struct ProjectBuilder {
