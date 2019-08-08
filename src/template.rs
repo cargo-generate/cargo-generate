@@ -38,7 +38,7 @@ impl liquid::compiler::Filter for KebabCaseFilter {
     fn evaluate(
         &self,
         input: &liquid::value::Value,
-        context: &liquid::interpreter::Context,
+        _context: &liquid::interpreter::Context,
     ) -> Result<liquid::value::Value, liquid::error::Error> {
         let input = input.to_str();
         let input = input.as_ref().to_kebab_case();
@@ -62,7 +62,7 @@ impl liquid::compiler::Filter for PascalCaseFilter {
     fn evaluate(
         &self,
         input: &liquid::value::Value,
-        context: &liquid::interpreter::Context,
+        _context: &liquid::interpreter::Context,
     ) -> Result<liquid::value::Value, liquid::error::Error> {
         let input = input.to_str();
         let input = input.as_ref().to_camel_case();
@@ -86,7 +86,7 @@ impl liquid::compiler::Filter for SnakeCaseFilter {
     fn evaluate(
         &self,
         input: &liquid::value::Value,
-        context: &liquid::interpreter::Context,
+        _context: &liquid::interpreter::Context,
     ) -> Result<liquid::value::Value, liquid::error::Error> {
         let input = input.to_str();
         let input = input.as_ref().to_snake_case();
