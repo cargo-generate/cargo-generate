@@ -12,10 +12,8 @@ pub const IGNORE_FILE_NAME: &str = ".genignore";
 /// `.genignore` file
 /// It handles all errors internally
 pub fn remove_uneeded_files(dir: &PathBuf) {
-    if check_if_genignore_exists(dir) {
-        let items = get_ignored(dir);
-        remove_dir_files(items);
-    }
+    let items = get_ignored(dir);
+    remove_dir_files(items);
 }
 
 fn check_if_genignore_exists(location: &PathBuf) -> bool {
@@ -26,12 +24,16 @@ fn check_if_genignore_exists(location: &PathBuf) -> bool {
 }
 
 fn get_ignored(location: &PathBuf) -> Vec<PathBuf> {
-    let ignored = WalkBuilder::new(location)
-        .standard_filters(false)
-        .add_custom_ignore_filename(OsStr::new(IGNORE_FILE_NAME))
-        .build();
-
     let all = WalkBuilder::new(location).standard_filters(false).build();
+    let ignored = if check_if_genignore_exists(location) {
+        WalkBuilder::new(location)
+            .standard_filters(false)
+            .add_custom_ignore_filename(OsStr::new(IGNORE_FILE_NAME))
+            .build()
+    } else {
+        //build another all walker if there is nothing to ignore
+        WalkBuilder::new(location).standard_filters(false).build()
+    };
 
     let mut all_set = HashSet::new();
     let mut ign_set = HashSet::new();
