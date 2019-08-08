@@ -112,7 +112,7 @@ fn it_substitutes_cratename_in_a_rust_file() {
         .file(
             "main.rs",
             r#"
-extern crate {{crate_name}};          
+extern crate {{crate_name}};
 "#,
         )
         .init_git()
@@ -135,6 +135,42 @@ extern crate {{crate_name}};
     let file = dir.read("foobar-project/main.rs");
     assert!(file.contains("foobar_project"));
     assert!(!file.contains("foobar-project"));
+}
+
+#[test]
+fn it_substitutes_filename() {
+    let template = dir("template")
+        .file(
+            "main.rs",
+            r#"
+extern crate {{crate_name}};
+"#,
+        )
+        .file(
+            "{{project-name}}.rs",
+            r#"
+println!("Welcome in {{project-name}}");
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert_eq!(dir.exists("foobar-project/main.rs"), true);
+    assert_eq!(dir.exists("foobar-project/foobar-project.rs"), true);
 }
 
 #[test]

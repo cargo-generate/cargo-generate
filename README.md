@@ -63,6 +63,9 @@ supported placeholders are:
 
 [Liquid Documentation on `date`]: https://shopify.github.io/liquid/filters/date/
 
+You can use those placeholders in the file names of the generated project.  
+For example, for a project named `awesome`, the filename `{{project_name}}.rs` will be transformed to `awesome.rs` during generation.
+
 You can also add a `.genignore` file to your template. The files listed in the `.genignore` file
 will be removed from the local machine when `cargo-generate` is run on the end user's machine.
 The `.genignore` file is always ignored, so there is no need to list it in the `.genignore` file.

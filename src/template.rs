@@ -10,7 +10,7 @@ use indicatif::ProgressBar;
 use liquid;
 use quicli::prelude::*;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
 fn engine() -> liquid::Parser {
@@ -175,6 +175,19 @@ pub fn walk_dir(
                 )
             })?;
         }
+
+        // Check if the filename does not contains any
+        // template
+        let filename_str = filename.to_str().expect("filename as string");
+        let parsed_filename = engine.clone().parse(filename_str)?.render(&template)?;
+        fs::rename(&filename, Path::new(&parsed_filename)).with_context(|_e| {
+            format!(
+                "{} {} '{}'",
+                emoji::ERROR,
+                style("Error renaming").bold().red(),
+                style(parsed_filename).bold()
+            )
+        })?;
     }
 
     pbar.finish_and_clear();
