@@ -55,7 +55,7 @@ fn get_ignored(location: &PathBuf) -> Vec<PathBuf> {
 }
 
 fn remove_dir_files(files: Vec<PathBuf>) {
-    for item in files {
+    for item in files.iter().filter(|file| file.exists()) {
         if item.is_dir() {
             remove_dir_all(&item).unwrap();
             println!("Removed: {:?}", &item)

@@ -681,3 +681,70 @@ version = "0.1.0"
 
     assert_eq!(dir.exists("foobar-project/cargo-generate.toml"), false);
 }
+
+//https://github.com/ashleygwilliams/cargo-generate/issues/181
+#[test]
+fn it_doesnt_warn_on_config_with_no_ignore() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .file(
+            "cargo-generate.toml",
+            r#"[template]
+"#,
+        )
+        .init_git()
+        .build();
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("neither").count(0).from_utf8())
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert_eq!(dir.exists("foobar-project/cargo-generate.toml"), false);
+}
+
+#[test]
+fn it_doesnt_warn_with_neither_config_nor_ignore() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+    name = "{{project-name}}"
+    description = "A wonderful project"
+    version = "0.1.0"
+    "#,
+        )
+        .init_git()
+        .build();
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Removed:").count(0).from_utf8())
+        .stdout(predicates::str::contains("neither").count(0).from_utf8())
+        .stdout(predicates::str::contains("Done!").from_utf8());
+}
