@@ -1,5 +1,61 @@
 # Changelog
 
+## 🍕 0.4.0
+
+  - ### ✨ Features
+
+    - **Add config file for configuring include / exclude of files to template - [xortive], [pull/174]**
+        
+        Adds support for the [cargo-generate.toml](https://github.com/ashleygwilliams/cargo-generate/blob/master/README.md#include--exclude) file, which allows templates to configure which files should be processed, either using a whitelist method (`include`), or a blacklist method (`exclude`). When both `include` and `exclude` are present, `include` will be preferred. This mirrors [similar `include`/`exclude` behavior in `cargo`](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional), and uses some of the same code.
+
+        #### Include List
+
+        ```toml
+        [template]
+        include = ["Cargo.toml", "src/lib.rs"] # Only search for and replace template tags in Cargo.toml and src/lib.rs
+        ```
+
+        #### Exclude List
+
+        ```toml
+        [template]
+        exclude = ["public/image.js"] # Don't look for template tags in public/image.js
+        ```
+
+        #### Invalid Configuration
+
+        ```toml
+        [template]
+        # This is an "invalid" configuration, so cargo-generate takes the "more specific" include option
+        # and will only search for and replace template tags in Cargo.toml.
+        include = ["Cargo.toml"]
+        exclude = ["public/image.js"]
+        ```
+       
+        [xortive]: https://github.com/xortive
+        [pull/174]: https://github.com/ashleygwilliams/cargo-generate/pull/174
+
+  - ### 🤕 Fixes
+
+    - **Respect default branch name of template - [RotationMatrix], [pull/166]**
+    
+        The `--branch` flag will now work as intended and set the initial HEAD to the specified branch name. For example, running `cargo generate --git <gh pages template> --branch gh-pages` will set your generated project's default branch to `gh-pages`.
+        
+        [RotationMatrix]: https://github.com/RotationMatrix
+        [pull/166]: https://github.com/ashleygwilliams/cargo-generate/pull/166
+
+  - ### 🛠️ Maintenance
+
+    - **Cleanup of lingering clippy / rustfmt warnings - [ashleygwilliams], [pull/175]**
+    
+        [ashleygwilliams]: https://github.com/ashleygwilliams
+        [pull/175]: https://github.com/ashleygwilliams/cargo-generate/pull/175
+
+    - **Fix assert! macro usage - [rasendubi], [pull/157]**
+
+        [rasendubi]: https://github.com/rasendubi
+        [pull/157]: https://github.com/ashleygwilliams/cargo-generate/pull/157
+
 ## 🛠 0.3.1
 
   - ### 🤕 Fixes
@@ -39,7 +95,7 @@
         [cyclowns]: https://github.com/cyclowns
         [pull/167]: https://github.com/ashleygwilliams/cargo-generate/pull/167
 
-- ### 🛠️ Maintenace
+- ### 🛠️ Maintenance
 
     - **Update to liquid 0.19 - [epage], [pull/165]**
 
