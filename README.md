@@ -15,19 +15,27 @@ Here's an example of using `cargo-generate` with [this template]:
 
 ## Installation
 
+### Using `cargo` with system's OpenSSL
+
 ```
 cargo install cargo-generate
 ```
 
-`cargo-generate` has a few dependencies that need to be available before it can be installed and used.
-
-* `openssl`: See the [`openssl-sys` crate readme] on how to obtain the openssl library for your system.
-* `cmake`: Check if it is installed by typing `cmake --version` in a terminal or command line window. If it is not available, check your package
-  manager or see the [cmake homepage].
+See the [`openssl-sys` crate readme] on how to obtain the OpenSSL library for your system. Alternatively, use the `vendored-openssl` flag if you do not want to install OpenSSL.
 
 [`openssl-sys` crate readme]: https://crates.io/crates/openssl-sys
-[`git`]: https://git-scm.com/downloads
-[cmake homepage]: https://cmake.org/download/
+
+### Using `cargo` with vendored OpenSSL
+
+```
+cargo install cargo-generate --features vendored-openssl
+```
+
+### Manual Install:
+
+1. Download the binary tarball for your platform from our [releases page](https://github.com/ashleygwilliams/cargo-generate/releases).
+
+2. Unpack the tarball and place the binary `cargo-generate` in `~/.cargo/bin/`
 
 ## Usage
 
@@ -55,6 +63,9 @@ supported placeholders are:
 
 [Liquid Documentation on `date`]: https://shopify.github.io/liquid/filters/date/
 
+You can use those placeholders in the file names of the generated project.  
+For example, for a project named `awesome`, the filename `{{project_name}}.rs` will be transformed to `awesome.rs` during generation. All filenames will be processed for template tags regardless of include / exclude settings.
+
 You can also add a `.genignore` file to your template. The files listed in the `.genignore` file
 will be removed from the local machine when `cargo-generate` is run on the end user's machine.
 The `.genignore` file is always ignored, so there is no need to list it in the `.genignore` file.
@@ -63,6 +74,18 @@ Here's a list of [currently available templates](TEMPLATES.md).
 If you have a great template that you'd like to feature here, please [file an issue or a PR]!
 
 [file an issue or a PR]: https://github.com/ashleygwilliams/cargo-generate/issues
+
+## Include / Exclude
+
+Templates support a `cargo-generate.toml`, with a "template" section that allows you to configure the files that will be processed by `cargo-generate`.
+The behavior mirrors Cargo's Include / Exclude functionality, which is [documented here](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional). If you are using placeholders in a file name, and also wish to use placeholders in the contents of that file, you should setup your globs to match on the pre-rename filename.
+
+```toml
+[template]
+include = ["Cargo.toml"]
+# include and exclude are exclusive, if both appear we will use include
+exclude = ["*.c"]
+```
 
 ## License
 

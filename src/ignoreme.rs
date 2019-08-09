@@ -5,35 +5,42 @@ use std::ffi::OsStr;
 use std::fs::remove_file;
 use std::path::{Path, PathBuf};
 
+use crate::config::CONFIG_FILE_NAME;
+pub const IGNORE_FILE_NAME: &str = ".genignore";
+
 ///takes the directory path and removes the files/directories specified in the
 /// `.genignore` file
 /// It handles all errors internally
 pub fn remove_uneeded_files(dir: &PathBuf) {
-    if check_if_genignore_exists(dir) {
-        let items = get_ignored(dir);
-        remove_dir_files(items);
-    }
+    let items = get_ignored(dir);
+    remove_dir_files(items);
 }
 
 fn check_if_genignore_exists(location: &PathBuf) -> bool {
     let mut ignore_path = PathBuf::new();
     ignore_path.push(location);
-    ignore_path.push(".genignore");
+    ignore_path.push(IGNORE_FILE_NAME);
     ignore_path.exists()
 }
 
 fn get_ignored(location: &PathBuf) -> Vec<PathBuf> {
-    let ignore_file_name = ".genignore";
-    let ignored = WalkBuilder::new(location)
-        .standard_filters(false)
-        .add_custom_ignore_filename(OsStr::new(ignore_file_name))
-        .build();
-
     let all = WalkBuilder::new(location).standard_filters(false).build();
+    let ignored = if check_if_genignore_exists(location) {
+        WalkBuilder::new(location)
+            .standard_filters(false)
+            .add_custom_ignore_filename(OsStr::new(IGNORE_FILE_NAME))
+            .build()
+    } else {
+        //build another all walker if there is nothing to ignore
+        WalkBuilder::new(location).standard_filters(false).build()
+    };
 
     let mut all_set = HashSet::new();
     let mut ign_set = HashSet::new();
-    let mut output = vec![Path::new(location).join(ignore_file_name)];
+    let mut output = vec![
+        Path::new(location).join(IGNORE_FILE_NAME),
+        Path::new(location).join(CONFIG_FILE_NAME),
+    ];
 
     for x in all {
         all_set.insert(x.expect("Found invalid path: Aborting").path().to_owned());

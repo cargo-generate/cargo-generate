@@ -1,7 +1,9 @@
 mod authors;
+mod config;
 mod emoji;
 mod git;
 mod ignoreme;
+mod include_exclude;
 mod interactive;
 mod progressbar;
 mod projectname;
@@ -10,6 +12,7 @@ mod template;
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
 use cargo;
+use config::{Config, CONFIG_FILE_NAME};
 use console::style;
 use failure;
 use std::env;
@@ -136,7 +139,12 @@ fn progress(
     let pbar = progressbar::new();
     pbar.tick();
 
-    template::walk_dir(dir, template, pbar)?;
+    let mut config_path = dir.clone();
+    config_path.push(CONFIG_FILE_NAME);
+
+    let template_config = Config::new(config_path)?.map(|c| c.template);
+
+    template::walk_dir(dir, template, template_config, pbar)?;
 
     git::init(dir, branch)?;
 
