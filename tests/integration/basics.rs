@@ -632,7 +632,6 @@ exclude = ["not-actually-excluded"]
         .init_git()
         .build();
 
-
     let dir = dir("main").build();
 
     Command::main_binary()
@@ -649,11 +648,11 @@ exclude = ["not-actually-excluded"]
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
-            .read("foobar-project/Cargo.toml")
-            .contains("foobar-project"));
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
     assert!(dir
-            .read("foobar-project/not-actually-excluded")
-            .contains("foobar-project"));
+        .read("foobar-project/not-actually-excluded")
+        .contains("foobar-project"));
 }
 
 #[test]

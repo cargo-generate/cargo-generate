@@ -1,8 +1,8 @@
+use crate::emoji;
 use serde::Deserialize;
 use std::fs;
 use std::io::ErrorKind;
 use std::path::Path;
-use crate::emoji;
 use toml;
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
@@ -24,12 +24,8 @@ impl Config {
             Ok(contents) => {
                 let config: Config = toml::from_str(&contents)?;
 
-                match config.template {
-                    TemplateConfig {
-                        include: Some(_),
-                        exclude: Some(_),
-                    } => println!("{0} Your {1} contains both an include and exclude list. Only the include list will be considered. You should remove the exclude list for clarity. {0}", emoji::WARN, CONFIG_FILE_NAME),
-                    _ => ()
+                if config.template.include.is_some() && config.template.exclude.is_some() {
+                    println!("{0} Your {1} contains both an include and exclude list. Only the include list will be considered. You should remove the exclude list for clarity. {0}", emoji::WARN, CONFIG_FILE_NAME)
                 }
 
                 Ok(Some(config))
