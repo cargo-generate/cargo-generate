@@ -611,6 +611,52 @@ exclude = ["excluded"]
 }
 
 #[test]
+fn it_warns_on_include_and_exclude_in_config() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .file("not-actually-excluded", "{{project-name}}")
+        .file(
+            "cargo-generate.toml",
+            r#"[template]
+include = ["Cargo.toml", "not-actually-excluded"]
+exclude = ["not-actually-excluded"]
+"#,
+        )
+        .init_git()
+        .build();
+
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("both").from_utf8())
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+            .read("foobar-project/Cargo.toml")
+            .contains("foobar-project"));
+    assert!(dir
+            .read("foobar-project/not-actually-excluded")
+            .contains("foobar-project"));
+}
+
+#[test]
 fn it_always_removes_config_file() {
     let template = dir("template")
         .file(
