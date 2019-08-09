@@ -99,10 +99,10 @@ impl liquid::compiler::Filter for SnakeCaseFilter {
 pub fn substitute(
     name: &ProjectName,
     force: bool,
+    username: &str,
 ) -> Result<liquid::value::Object, failure::Error> {
     let project_name = if force { name.raw() } else { name.kebab_case() };
     let mut template = liquid::value::Object::new();
-    let (username, authors) = authors::get_authors()?;
 
     template.insert(
         "project-name".into(),
@@ -112,9 +112,14 @@ pub fn substitute(
         "crate_name".into(),
         liquid::value::Value::scalar(name.snake_case()),
     );
-    template.insert("authors".into(), liquid::value::Value::scalar(authors));
-    template.insert("username".into(), liquid::value::Value::scalar(username));
-
+    template.insert(
+        "authors".into(),
+        liquid::value::Value::scalar(authors::get_authors()?),
+    );
+    template.insert(
+        "username".into(),
+        liquid::value::Value::scalar(username.to_string()),
+    );
     Ok(template)
 }
 

@@ -1,4 +1,5 @@
 use crate::emoji;
+use crate::username::get_username;
 use console::style;
 use dialoguer::Input;
 use quicli::prelude::Error;
@@ -25,5 +26,22 @@ pub fn name() -> Result<String, Error> {
             );
         }
     };
+    Ok(name)
+}
+
+pub fn user_name() -> Result<String, Error> {
+    let name = Input::new(&format!("{} {}", emoji::SHRUG, style("User Name").bold())).interact()?;
+
+    if name.trim().is_empty() {
+        eprintln!(
+            "{} {}",
+            emoji::WARN,
+            style("No username provided fetching from system configurations")
+                .bold()
+                .red()
+        );
+        return get_username();
+    }
+
     Ok(name)
 }

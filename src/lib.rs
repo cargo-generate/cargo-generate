@@ -8,6 +8,7 @@ mod interactive;
 mod progressbar;
 mod projectname;
 mod template;
+mod username;
 
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
@@ -63,26 +64,35 @@ pub struct Args {
     /// Enforce to create a new project without case conversion of project name
     #[structopt(long = "force", short = "f")]
     force: bool,
+    #[structopt(long = "username", short = "u")]
+    username: Option<String>,
 }
 
 pub fn generate(args: Args) -> Result<(), failure::Error> {
-    let name = match &args.name {
+    let project_name = match &args.name {
         Some(ref n) => ProjectName::new(n),
         None => ProjectName::new(&interactive::name()?),
     };
 
-    create_git(args, &name)?;
+    let username = match &args.username {
+        Some(u) => u.to_string(),
+        None => interactive::user_name()?,
+    };
+
+    create_git(args, &project_name, &username)?;
 
     Ok(())
 }
 
-fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
+fn create_git(args: Args, name: &ProjectName, username: &str) -> Result<(), failure::Error> {
     let force = args.force;
     let branch = args.branch.unwrap_or_else(|| "master".to_string());
     let config = GitConfig::new(args.git, branch.clone())?;
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, config) {
-            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force, &branch)?),
+            Ok(_) => {
+                git::remove_history(dir).unwrap_or(progress(name, dir, force, &branch, username)?)
+            }
             Err(e) => println!(
                 "{} {} {}",
                 emoji::ERROR,
@@ -133,8 +143,9 @@ fn progress(
     dir: &PathBuf,
     force: bool,
     branch: &str,
+    username: &str,
 ) -> Result<(), failure::Error> {
-    let template = template::substitute(name, force)?;
+    let template = template::substitute(name, force, username)?;
 
     let pbar = progressbar::new();
     pbar.tick();
