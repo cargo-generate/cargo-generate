@@ -2,7 +2,7 @@
 
 - [PyO3]: Write a Python Library in Rust, [DD5HT]
 - [wasm-pack]: Write a wasm Library in Rust, [ashleygwilliams]
-- [CLI]: Write a CLI (Command Line Interface) Application in Rust, [Rust-Clique]
+- [CLI]: Write a CLI (Command Line Interface) Application in Rust, [rust-cli]
 - [rocket-base]: Write a simple web application using Rocket, [k0pernicus]
 - [rust-samp-sdk]: Write samp plugins in Rust, [Sreyas-Sreelal]
 - [actix-tera]: Create a basic web application with Actix-web and Tera, [Otomato]
@@ -15,8 +15,8 @@
 [DD5HT]: https://github.com/DD5HT
 [wasm-pack]: https://github.com/rustwasm/wasm-pack-template
 [ashleygwilliams]: https://github.com/ashleygwilliams
-[CLI]: https://github.com/rust-clique/cli-template
-[Rust-Clique]: https://github.com/rust-clique
+[CLI]: https://github.com/rust-cli/cli-template
+[rust-cli]: https://github.com/rust-cli
 [rocket-base]: https://github.com/k0pernicus/cargo-template-rocket-base
 [k0pernicus]: https://github.com/k0pernicus
 [rust-samp-sdk]: https://github.com/Sreyas-Sreelal/rs-plugin-boilerplate
