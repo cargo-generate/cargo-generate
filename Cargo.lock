@@ -169,7 +169,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-generate"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "assert_cmd 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "cargo 0.30.0 (registry+https://github.com/rust-lang/crates.io-index)",

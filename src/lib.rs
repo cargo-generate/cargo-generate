@@ -147,13 +147,13 @@ fn progress(
 ) -> Result<(), failure::Error> {
     let template = template::substitute(name, force, username)?;
 
-    let pbar = progressbar::new();
-    pbar.tick();
-
     let mut config_path = dir.clone();
     config_path.push(CONFIG_FILE_NAME);
 
     let template_config = Config::new(config_path)?.map(|c| c.template);
+
+    let pbar = progressbar::new();
+    pbar.tick();
 
     template::walk_dir(dir, template, template_config, pbar)?;
 

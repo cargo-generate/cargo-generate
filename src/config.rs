@@ -1,3 +1,4 @@
+use crate::emoji;
 use serde::Deserialize;
 use std::fs;
 use std::io::ErrorKind;
@@ -22,6 +23,10 @@ impl Config {
         match fs::read_to_string(path) {
             Ok(contents) => {
                 let config: Config = toml::from_str(&contents)?;
+
+                if config.template.include.is_some() && config.template.exclude.is_some() {
+                    println!("{0} Your {1} contains both an include and exclude list. Only the include list will be considered. You should remove the exclude list for clarity. {0}", emoji::WARN, CONFIG_FILE_NAME)
+                }
 
                 Ok(Some(config))
             }
