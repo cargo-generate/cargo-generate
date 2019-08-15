@@ -39,3 +39,7 @@ tempfile = "3.0.2"
 
 [features]
 vendored-openssl = ['openssl/vendored']
+
+[[bin]]
+path = "src/main.rs"
+name = "cargo-generate"
