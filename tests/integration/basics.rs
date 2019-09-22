@@ -778,7 +778,5 @@ fn it_processes_dot_github_directory_files() {
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(dir
-        .read("foobar-project/.github/foo.txt")
-        .contains("foobar-project"));
+    assert_eq!(dir.read("foobar-project/.github/foo.txt"), "foobar-project");
 }
