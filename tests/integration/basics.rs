@@ -757,3 +757,28 @@ fn it_doesnt_warn_with_neither_config_nor_ignore() {
         .stdout(predicates::str::contains("neither").count(0).from_utf8())
         .stdout(predicates::str::contains("Done!").from_utf8());
 }
+
+#[test]
+fn it_processes_dot_github_directory_files() {
+    let template = dir("template")
+        .file(".github/foo.txt", "{{project-name}}")
+        .init_git()
+        .build();
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/.github/foo.txt")
+        .contains("foobar-project"));
+}
