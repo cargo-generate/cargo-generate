@@ -106,8 +106,11 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
         _ => unreachable!(),
     };
 
+    let cwd = std::env::current_dir()?;
     // This clones the remote and handles all the submodules
     db.copy_to(rev, project_dir, &config)?;
+    std::env::set_current_dir(cwd)?;
+
     Ok(branch_name)
 }
 

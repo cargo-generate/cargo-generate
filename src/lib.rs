@@ -161,6 +161,8 @@ pub struct Args {
     /// Specify the VCS used to initialize the generated template.
     #[structopt(long, default_value = "git")]
     pub vcs: Vcs,
+    #[structopt(long = "bare")]
+    pub bare: bool,
 }
 
 //
@@ -207,6 +209,7 @@ pub fn generate(mut args: Args) -> Result<()> {
 
 fn create_git(args: Args, name: &ProjectName) -> Result<()> {
     let force = args.force;
+    let bare = args.bare;
     let template_values = args
         .template_values_file
         .as_ref()
@@ -220,10 +223,12 @@ fn create_git(args: Args, name: &ProjectName) -> Result<()> {
         args.branch.to_owned(),
     )?;
 
-    if let Some(dir) = &create_project_dir(&name, force) {
+    if let Some(dir) = &create_project_dir(&name, force, bare) {
         match git::create(dir, git_config) {
             Ok(branch) => {
-                git::remove_history(dir)?;
+                if !bare {
+                    git::remove_history(dir)?;
+                }
                 progress(name, &template_values, dir, &branch, &args)?;
             }
             Err(e) => anyhow::bail!(
@@ -259,29 +264,33 @@ fn get_config_file_values(path: &Path) -> Result<HashMap<String, toml::Value>> {
     }
 }
 
-fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
-    let dir_name = if force {
-        name.raw()
+fn create_project_dir(name: &ProjectName, force: bool, bare: bool) -> Option<PathBuf> {
+    if bare {
+        env::current_dir().ok()
     } else {
-        rename_warning(&name);
-        name.kebab_case()
-    };
-    let project_dir = env::current_dir()
-        .unwrap_or_else(|_e| ".".into())
-        .join(&dir_name);
+        let dir_name = if force {
+            name.raw()
+        } else {
+            rename_warning(&name);
+            name.kebab_case()
+        };
+        let project_dir = env::current_dir()
+            .unwrap_or_else(|_e| ".".into())
+            .join(&dir_name);
 
-    println!(
-        "{} {} `{}`{}",
-        emoji::WRENCH,
-        style("Creating project called").bold(),
-        style(&dir_name).bold().yellow(),
-        style("...").bold()
-    );
+        println!(
+            "{} {} `{}`{}",
+            emoji::WRENCH,
+            style("Creating project called").bold(),
+            style(&dir_name).bold().yellow(),
+            style("...").bold()
+        );
 
-    if project_dir.exists() {
-        None
-    } else {
-        Some(project_dir)
+        if project_dir.exists() {
+            None
+        } else {
+            Some(project_dir)
+        }
     }
 }
 
