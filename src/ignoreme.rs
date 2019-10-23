@@ -11,9 +11,9 @@ pub const IGNORE_FILE_NAME: &str = ".genignore";
 ///takes the directory path and removes the files/directories specified in the
 /// `.genignore` file
 /// It handles all errors internally
-pub fn remove_uneeded_files(dir: &PathBuf) {
+pub fn remove_unneeded_files(dir: &PathBuf, verbose: bool) {
     let items = get_ignored(dir);
-    remove_dir_files(items);
+    remove_dir_files(items, verbose);
 }
 
 fn check_if_genignore_exists(location: &PathBuf) -> bool {
@@ -54,14 +54,19 @@ fn get_ignored(location: &PathBuf) -> Vec<PathBuf> {
     output
 }
 
-fn remove_dir_files(files: Vec<PathBuf>) {
+fn remove_dir_files(files: Vec<PathBuf>, verbose: bool) {
     for item in files.iter().filter(|file| file.exists()) {
+        let removed_message = format!("Removed: {}", &item.display());
         if item.is_dir() {
             remove_dir_all(&item).unwrap();
-            println!("Removed: {}", &item.display())
+            if verbose {
+                println!("{}", removed_message);
+            }
         } else if item.is_file() {
             remove_file(&item).unwrap();
-            println!("Removed: {}", &item.display())
+            if verbose {
+                println!("{}", removed_message);
+            }
         } else {
             println!(
                 "The given paths are neither files nor directories! {}",
