@@ -56,16 +56,16 @@ fn get_ignored(location: &PathBuf) -> Vec<PathBuf> {
 
 fn remove_dir_files(files: Vec<PathBuf>, verbose: bool) {
     for item in files.iter().filter(|file| file.exists()) {
-        let removed_message = format!("Removed: {}", &item.display());
+        let ignore_message = format!("Ignoring: {}", &item.display());
         if item.is_dir() {
             remove_dir_all(&item).unwrap();
             if verbose {
-                println!("{}", removed_message);
+                println!("{}", ignore_message);
             }
         } else if item.is_file() {
             remove_file(&item).unwrap();
             if verbose {
-                println!("{}", removed_message);
+                println!("{}", ignore_message);
             }
         } else {
             println!(
