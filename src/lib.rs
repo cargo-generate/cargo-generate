@@ -83,7 +83,7 @@ fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, config) {
             Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force, &branch)?),
-            Err(e) => println!(
+            Err(e) => failure::bail!(
                 "{} {} {}",
                 emoji::ERROR,
                 style("Git Error:").bold().red(),
@@ -91,7 +91,7 @@ fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
             ),
         };
     } else {
-        println!(
+        failure::bail!(
             "{} {}",
             emoji::ERROR,
             style("Target directory already exists, aborting!")
