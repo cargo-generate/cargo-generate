@@ -58,14 +58,14 @@ fn remove_dir_files(files: Vec<PathBuf>) {
     for item in files.iter().filter(|file| file.exists()) {
         if item.is_dir() {
             remove_dir_all(&item).unwrap();
-            println!("Removed: {:?}", &item)
+            println!("Removed: {}", &item.display())
         } else if item.is_file() {
             remove_file(&item).unwrap();
-            println!("Removed: {:?}", &item)
+            println!("Removed: {}", &item.display())
         } else {
             println!(
-                "The given paths are neither files nor directories! {:?}",
-                &item
+                "The given paths are neither files nor directories! {}",
+                &item.display()
             );
         }
     }
