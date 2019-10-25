@@ -131,9 +131,8 @@ pub fn walk_dir(
     fn is_git_metadata(entry: &DirEntry) -> bool {
         entry
             .path()
-            .to_str()
-            .map(|s| s.contains(".git"))
-            .unwrap_or(false)
+            .components()
+            .any(|c| c == std::path::Component::Normal(".git".as_ref()))
     }
 
     let engine = engine();
