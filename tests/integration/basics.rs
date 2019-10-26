@@ -759,6 +759,43 @@ fn it_doesnt_warn_with_neither_config_nor_ignore() {
 }
 
 #[test]
+fn it_applies_filters() {
+    let template = dir("template")
+        .file(
+            "filters.txt",
+            r#"kebab-case = {{crate_name | kebab_case}}
+    PascalCase = {{crate_name | pascal_case}}
+    snake_case = {{crate_name | snake_case}}
+    "#,
+        )
+        .init_git()
+        .build();
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/filters.txt")
+        .contains("kebab-case = foobar-project"));
+    assert!(dir
+        .read("foobar-project/filters.txt")
+        .contains("PascalCase = FoobarProject"));
+    assert!(dir
+        .read("foobar-project/filters.txt")
+        .contains("snake_case = foobar_project"));
+}
+
+#[test]
 fn it_processes_dot_github_directory_files() {
     let template = dir("template")
         .file(".github/foo.txt", "{{project-name}}")
