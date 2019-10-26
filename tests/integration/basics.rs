@@ -247,6 +247,43 @@ version = "0.1.0"
 }
 
 #[test]
+fn it_prints_ignored_files_with_verbose() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .file(
+            ".genignore",
+            r#"deleteme.sh
+*.trash
+"#,
+        )
+        .file("deleteme.trash", r#"This is trash"#)
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .arg("--verbose")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("deleteme.trash").from_utf8());
+}
+
+#[test]
 fn it_always_removes_genignore_file() {
     let template = dir("template")
         .file(
