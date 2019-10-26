@@ -247,6 +247,43 @@ version = "0.1.0"
 }
 
 #[test]
+fn it_prints_ignored_files_with_verbose() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .file(
+            ".genignore",
+            r#"deleteme.sh
+*.trash
+"#,
+        )
+        .file("deleteme.trash", r#"This is trash"#)
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .arg("--verbose")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("deleteme.trash").from_utf8());
+}
+
+#[test]
 fn it_always_removes_genignore_file() {
     let template = dir("template")
         .file(
@@ -756,6 +793,43 @@ fn it_doesnt_warn_with_neither_config_nor_ignore() {
         .stdout(predicates::str::contains("Removed:").count(0).from_utf8())
         .stdout(predicates::str::contains("neither").count(0).from_utf8())
         .stdout(predicates::str::contains("Done!").from_utf8());
+}
+
+#[test]
+fn it_applies_filters() {
+    let template = dir("template")
+        .file(
+            "filters.txt",
+            r#"kebab-case = {{crate_name | kebab_case}}
+    PascalCase = {{crate_name | pascal_case}}
+    snake_case = {{crate_name | snake_case}}
+    "#,
+        )
+        .init_git()
+        .build();
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/filters.txt")
+        .contains("kebab-case = foobar-project"));
+    assert!(dir
+        .read("foobar-project/filters.txt")
+        .contains("PascalCase = FoobarProject"));
+    assert!(dir
+        .read("foobar-project/filters.txt")
+        .contains("snake_case = foobar_project"));
 }
 
 #[test]

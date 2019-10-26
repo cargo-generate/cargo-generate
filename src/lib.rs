@@ -63,6 +63,8 @@ pub struct Args {
     /// Enforce to create a new project without case conversion of project name
     #[structopt(long = "force", short = "f")]
     force: bool,
+    #[structopt(long = "verbose", short = "v")]
+    verbose: bool,
 }
 
 pub fn generate(args: Args) -> Result<(), failure::Error> {
@@ -80,9 +82,12 @@ fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
     let force = args.force;
     let branch = args.branch.unwrap_or_else(|| "master".to_string());
     let config = GitConfig::new(args.git, branch.clone())?;
+    let verbose = args.verbose;
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, config) {
-            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force, &branch)?),
+            Ok(_) => {
+                git::remove_history(dir).unwrap_or(progress(name, dir, force, &branch, verbose)?)
+            }
             Err(e) => failure::bail!(
                 "{} {} {}",
                 emoji::ERROR,
@@ -133,6 +138,7 @@ fn progress(
     dir: &PathBuf,
     force: bool,
     branch: &str,
+    verbose: bool,
 ) -> Result<(), failure::Error> {
     let template = template::substitute(name, force)?;
 
@@ -148,7 +154,7 @@ fn progress(
 
     git::init(dir, branch)?;
 
-    ignoreme::remove_uneeded_files(dir);
+    ignoreme::remove_unneeded_files(dir, verbose);
 
     gen_success(dir);
 

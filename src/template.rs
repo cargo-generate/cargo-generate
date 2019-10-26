@@ -50,7 +50,7 @@ impl liquid::compiler::Filter for KebabCaseFilter {
 
 #[derive(Clone, liquid_derive::ParseFilter, liquid_derive::FilterReflection)]
 #[filter(
-    name = "kebab_case",
+    name = "pascal_case",
     description = "Change text to PascalCase.",
     parsed(PascalCaseFilter)
 )]
@@ -74,14 +74,14 @@ impl liquid::compiler::Filter for PascalCaseFilter {
 
 #[derive(Clone, liquid_derive::ParseFilter, liquid_derive::FilterReflection)]
 #[filter(
-    name = "kebab_case",
+    name = "snake_case",
     description = "Change text to snake_case.",
     parsed(SnakeCaseFilter)
 )]
 pub struct SnakeCaseFilterParser;
 
 #[derive(Debug, Default, liquid_derive::Display_filter)]
-#[name = "pascal_case"]
+#[name = "snake_case"]
 struct SnakeCaseFilter;
 
 impl liquid::compiler::Filter for SnakeCaseFilter {
