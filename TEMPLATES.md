@@ -10,6 +10,7 @@
 - [bluepill]: Create rust projects for the 'blue pill' stm32 microcontroller board [mendelt]
 - [cmdr]: Write interactive commandline applications [mendelt]
 - [ggez]: Write games in Rust using ggez, [cyclowns]
+- [generust]: Actix-web server, WASM client, lots of supporting code [kyleu]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -30,4 +31,5 @@
 [mendelt]: https://github.com/mendelt
 [ggez]: https://github.com/cyclowns/cargo-generate-ggez
 [cyclowns]: https://github.com/cyclowns
-
+[generust]: https://github.com/kyleu/generust
+[kyleu]: https://github.com/kyleu
