@@ -153,11 +153,9 @@ pub fn walk_dir(
         pbar.set_message(&filename.display().to_string());
 
         if matcher.should_include(relative_path) {
-            let new_contents = engine
-                .clone()
-                .parse_file(filename)?
-                .render(&template)
-                .with_context(|_e| {
+            let parsed_file = engine.clone().parse_file(filename);
+            if let Ok(parsed_file) = parsed_file {
+                let new_contents = parsed_file.render(&template).with_context(|_e| {
                     format!(
                         "{} {} `{}`",
                         emoji::ERROR,
@@ -165,14 +163,15 @@ pub fn walk_dir(
                         style(filename.display()).bold()
                     )
                 })?;
-            fs::write(filename, new_contents).with_context(|_e| {
-                format!(
-                    "{} {} `{}`",
-                    emoji::ERROR,
-                    style("Error writing").bold().red(),
-                    style(filename.display()).bold()
-                )
-            })?;
+                fs::write(filename, new_contents).with_context(|_e| {
+                    format!(
+                        "{} {} `{}`",
+                        emoji::ERROR,
+                        style("Error writing").bold().red(),
+                        style(filename.display()).bold()
+                    )
+                })?;
+            }
         }
     }
 
