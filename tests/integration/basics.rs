@@ -68,9 +68,7 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(dir
-        .read("foobar-project/Cargo.toml")
-        .contains("fart"));
+    assert!(dir.read("foobar-project/Cargo.toml").contains("fart"));
 }
 #[test]
 fn it_substitutes_date() {
