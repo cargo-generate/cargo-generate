@@ -123,6 +123,7 @@ pub fn walk_dir(
     template: liquid::value::Object,
     template_config: Option<TemplateConfig>,
     pbar: ProgressBar,
+    verbose: bool,
 ) -> Result<(), failure::Error> {
     fn is_dir(entry: &DirEntry) -> bool {
         entry.file_type().is_dir()
@@ -175,7 +176,9 @@ pub fn walk_dir(
                     })?;
                 },
                 Err(e) => {
-                    files_with_errors.push((filename.display().to_string(), e));
+                    if verbose {
+                        files_with_errors.push((filename.display().to_string(), e));
+                    }
                 },
             }
         }

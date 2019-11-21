@@ -150,7 +150,7 @@ fn progress(
     let pbar = progressbar::new();
     pbar.tick();
 
-    template::walk_dir(dir, template, template_config, pbar)?;
+    template::walk_dir(dir, template, template_config, pbar, verbose)?;
 
     git::init(dir, branch)?;
 
