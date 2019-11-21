@@ -121,6 +121,7 @@ pub(crate) fn walk_dir(
     template: Object,
     template_config: Option<TemplateConfig>,
     pbar: ProgressBar,
+    verbose: bool,
 ) -> Result<()> {
     fn is_dir(entry: &DirEntry) -> bool {
         entry.file_type().is_dir()
@@ -173,7 +174,9 @@ pub(crate) fn walk_dir(
                     })?;
                 },
                 Err(e) => {
-                    files_with_errors.push((filename.display().to_string(), e));
+                    if verbose {
+                        files_with_errors.push((filename.display().to_string(), e));
+                    }
                 },
             }
         }

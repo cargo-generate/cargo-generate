@@ -157,7 +157,7 @@ fn progress(
 
     ignoreme::remove_unneeded_files(dir, verbose);
 
-    template::walk_dir(dir, template, template_config, pbar)?;
+    template::walk_dir(dir, template, template_config, pbar, verbose)?;
 
     git::init(dir, branch)?;
 
