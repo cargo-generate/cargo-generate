@@ -1,5 +1,23 @@
 # Changelog
 
+## 🐛 0.5.1
+
+  - ### 🤕 Fixes
+
+    - **Do not attempt template substitution on files that cannot be parsed - [EverlastingBugstopper], [pull/205]**
+
+      When cargo-generate fails to parse a file to perform template substitution, it now leaves the file untouched rather than failing.
+
+      [EverlastingBugstopper]: https://github.com/EverlastingBugstopper
+      [pull/205]: https://github.com/ashleygwilliams/cargo-generate/pull/205
+
+  - ### 👯 New Templates
+
+    - **`generust` a template that provides a Rust web server and WASM client with some [interesting features](https://github.com/KyleU/generust/blob/master/doc/features.md) - [KyleU], [pull/203]**
+
+      [KyleU]: https://github.com/KyleU
+      [pull/203]: https://github.com/ashleygwilliams/cargo-generate/pull/203
+
 ## 🧟‍♀️ 0.5.0
 
   - ### ✨ Features
