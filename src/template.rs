@@ -172,12 +172,12 @@ pub(crate) fn walk_dir(
                             style(filename.display()).bold()
                         )
                     })?;
-                },
+                }
                 Err(e) => {
                     if verbose {
                         files_with_errors.push((filename.display().to_string(), e));
                     }
-                },
+                }
             }
         }
     }
@@ -185,26 +185,29 @@ pub(crate) fn walk_dir(
         let warn = construct_substition_warning(files_with_errors);
         println!("{}", warn);
     }
-        
+
     pbar.finish_and_clear();
     Ok(())
 }
 
 fn construct_substition_warning(files_with_errors: Vec<(String, liquid::error::Error)>) -> String {
-        let mut msg = 
-            format!(
-                "\n{} {}",
-                emoji::WARN,
-                style("Substitution skipped, found invalid syntax in\n").bold().red(),
-            );
-        for file_error in files_with_errors {
-            msg.push_str("\t");
-            msg.push_str(&file_error.0);
-            msg.push_str("\n");
-        }
+    let mut msg = format!(
+        "\n{} {}",
+        emoji::WARN,
+        style("Substitution skipped, found invalid syntax in\n")
+            .bold()
+            .red(),
+    );
+    for file_error in files_with_errors {
+        msg.push_str("\t");
+        msg.push_str(&file_error.0);
         msg.push_str("\n");
-        let info = format!("{}", style("Consider adding these files to a `cargo-generate.toml` to skip substition on these files.\n").bold());
-        msg.push_str(&info);
-        msg.push_str("Learn more: https://github.com/ashleygwilliams/cargo-generate#include--exclude.\n\n");
-        msg
+    }
+    msg.push_str("\n");
+    let info = format!("{}", style("Consider adding these files to a `cargo-generate.toml` in the template repo to skip substition on these files.\n").bold());
+    msg.push_str(&info);
+    msg.push_str(
+        "Learn more: https://github.com/ashleygwilliams/cargo-generate#include--exclude.\n\n",
+    );
+    msg
 }
