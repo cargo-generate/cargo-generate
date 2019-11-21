@@ -1,5 +1,32 @@
 # Changelog
 
+## 🕴️ 0.6.0
+
+  - ### 👯 New Templates
+
+    - **`generust`: a template that provides a Rust web server and WASM client with some [interesting features](https://github.com/KyleU/generust/blob/master/doc/features.md) - [KyleU], [pull/203]**
+
+      [KyleU]: https://github.com/KyleU
+      [pull/203]: https://github.com/ashleygwilliams/cargo-generate/pull/203
+
+  - ### 🛠️ Maintenance
+
+    - **Updated `cargo-generate` to the latest and greatest in the Rust ecosystem - [Veetaha], [pull/237]**
+
+      - Update all dependencies versions to latest ones
+      - Replace `rustfmt-preview` with `rustfmt`
+      - Replace `failure` with `anyhow`
+      - Remove `quicli` completely
+      - Update cargo authors copied code to latest cargo master
+      - Fix clippy lints:
+        - Replace &PathBuf to &Path in code
+        - Remove bare `use crate_name` entires
+        - Replace unexported `pub` with `pub(crate)`
+      - Apply some cosmetic impl refactorings
+
+      [Veetaha]: https://github.com/Veetaha
+      [pull/237]: https://github.com/ashleygwilliams/cargo-generate/pull/237
+
 ## 🧟‍♀️ 0.5.0
 
   - ### ✨ Features
