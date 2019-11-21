@@ -203,7 +203,8 @@ fn construct_substition_warning(files_with_errors: Vec<(String, liquid::error::E
             msg.push_str("\n");
         }
         msg.push_str("\n");
-        msg.push_str("Consider adding these files to a `cargo-generate.toml` to skip substition on these files.\n");
+        let info = format!("{}", style("Consider adding these files to a `cargo-generate.toml` to skip substition on these files.\n").bold());
+        msg.push_str(&info);
         msg.push_str("Learn more: https://github.com/ashleygwilliams/cargo-generate#include--exclude.\n\n");
         msg
 }
