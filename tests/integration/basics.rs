@@ -41,6 +41,38 @@ version = "0.1.0"
 }
 
 #[test]
+fn it_skips_substitution_for_random_garbage_in_cargo_toml() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{function fart() { return "pfffttt"; } fart();}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("fart"));
+}
+#[test]
 fn it_substitutes_date() {
     let template = dir("template")
         .file(
