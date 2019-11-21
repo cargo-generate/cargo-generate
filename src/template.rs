@@ -142,6 +142,7 @@ pub fn walk_dir(
         |config| Matcher::new(config, project_dir),
     )?;
 
+    let mut files_with_errors = Vec::new();
     for entry in WalkDir::new(project_dir) {
         let entry = entry?;
         if is_dir(&entry) || is_git_metadata(&entry) {
@@ -154,27 +155,54 @@ pub fn walk_dir(
 
         if matcher.should_include(relative_path) {
             let parsed_file = engine.clone().parse_file(filename);
-            if let Ok(parsed_file) = parsed_file {
-                let new_contents = parsed_file.render(&template).with_context(|_e| {
-                    format!(
-                        "{} {} `{}`",
-                        emoji::ERROR,
-                        style("Error replacing placeholders").bold().red(),
-                        style(filename.display()).bold()
-                    )
-                })?;
-                fs::write(filename, new_contents).with_context(|_e| {
-                    format!(
-                        "{} {} `{}`",
-                        emoji::ERROR,
-                        style("Error writing").bold().red(),
-                        style(filename.display()).bold()
-                    )
-                })?;
+            match parsed_file {
+                Ok(parsed_file) => {
+                    let new_contents = parsed_file.render(&template).with_context(|_e| {
+                        format!(
+                            "{} {} `{}`",
+                            emoji::ERROR,
+                            style("Error replacing placeholders").bold().red(),
+                            style(filename.display()).bold()
+                        )
+                    })?;
+                    fs::write(filename, new_contents).with_context(|_e| {
+                        format!(
+                            "{} {} `{}`",
+                            emoji::ERROR,
+                            style("Error writing").bold().red(),
+                            style(filename.display()).bold()
+                        )
+                    })?;
+                },
+                Err(e) => {
+                    files_with_errors.push((filename.display().to_string(), e));
+                },
             }
         }
     }
-
+    if files_with_errors.len() > 0 {
+        let warn = construct_substition_warning(files_with_errors);
+        println!("{}", warn);
+    }
+        
     pbar.finish_and_clear();
     Ok(())
+}
+
+fn construct_substition_warning(files_with_errors: Vec<(String, liquid::error::Error)>) -> String {
+        let mut msg = 
+            format!(
+                "\n{} {}",
+                emoji::WARN,
+                style("Substitution skipped, found invalid syntax in\n").bold().red(),
+            );
+        for file_error in files_with_errors {
+            msg.push_str("\t");
+            msg.push_str(&file_error.0);
+            msg.push_str("\n");
+        }
+        msg.push_str("\n");
+        msg.push_str("Consider adding these files to a `cargo-generate.toml` to skip substition on these files.\n");
+        msg.push_str("Learn more: https://github.com/ashleygwilliams/cargo-generate#include--exclude.\n\n");
+        msg
 }
