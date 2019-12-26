@@ -15,6 +15,7 @@ use cargo;
 use config::{Config, CONFIG_FILE_NAME};
 use console::style;
 use failure;
+use std::collections::HashMap;
 use std::env;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -67,6 +68,30 @@ pub struct Args {
     verbose: bool,
 }
 
+macro_rules! hashmap {
+    ($($a:expr => $b:expr,)*) => {
+        vec!($( ($a.into(), $b.into()) ),*).into_iter().collect()
+    };
+}
+
+thread_local! {
+    static GIT_MAP: HashMap<String, String> = {
+        hashmap!(
+            "py03" => "https://github.com/DD5HT/pyo3-template",
+            "wasm-pack" => "https://github.com/rustwasm/wasm-pack-template",
+            "cli" => "https://github.com/rust-cli/cli-template",
+            "rocket-base" => "https://github.com/k0pernicus/cargo-template-rocket-base",
+            "rust-samp-sdk" => "https://github.com/Sreyas-Sreelal/rs-plugin-boilerplate",
+            "actix-tera" => "https://github.com/otomato-gh/cargo-template-actix-tera",
+            "procmacro-quickstart" => "https://github.com/eupn/rust-procmacro-quickstart-template",
+            "bluepill" => "https://github.com/mendelt/bluepill-template",
+            "cmdr" => "https://github.com/mendelt/cmdr-template",
+            "ggez" => "https://github.com/cyclowns/cargo-generate-ggez",
+            "generust" => "https://github.com/kyleu/generust",
+        )
+    }
+}
+
 pub fn generate(args: Args) -> Result<(), failure::Error> {
     let name = match &args.name {
         Some(ref n) => ProjectName::new(n),
@@ -78,7 +103,9 @@ pub fn generate(args: Args) -> Result<(), failure::Error> {
     Ok(())
 }
 
-fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
+fn create_git(mut args: Args, name: &ProjectName) -> Result<(), failure::Error> {
+    match_git_map(&mut args);
+
     let force = args.force;
     let branch = args.branch.unwrap_or_else(|| "master".to_string());
     let config = GitConfig::new(args.git, branch.clone())?;
@@ -105,6 +132,15 @@ fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
         );
     }
     Ok(())
+}
+
+/// Maps a short name to the git url, includes all templates listed in TEMPLATES.md.
+fn match_git_map(args: &mut Args) {
+    GIT_MAP.with(|map| {
+        if let Some(url) = map.get(&args.git) {
+            args.git = url.clone();
+        }
+    })
 }
 
 fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {

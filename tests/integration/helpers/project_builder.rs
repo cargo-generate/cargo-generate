@@ -38,7 +38,7 @@ fn root(name: &str) -> PathBuf {
     me.pop(); // chop off `debug` / `release`
     me.push("generated-tests");
     me.push(&format!("test-{}-{}", idx, name));
-    return me;
+    me
 }
 
 impl ProjectBuilder {
