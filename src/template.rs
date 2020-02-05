@@ -17,6 +17,7 @@ fn engine() -> liquid::Parser {
     liquid::ParserBuilder::new()
         .filter(liquid::filters::std::Date)
         .filter(liquid::filters::std::Capitalize)
+        .block(liquid::tags::RawBlock)
         .filter(KebabCaseFilterParser)
         .filter(PascalCaseFilterParser)
         .filter(SnakeCaseFilterParser)
