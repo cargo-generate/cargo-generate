@@ -11,6 +11,7 @@
 - [cmdr]: Write interactive commandline applications [mendelt]
 - [ggez]: Write games in Rust using ggez, [cyclowns]
 - [generust]: Actix-web server, WASM client, lots of supporting code [kyleu]
+- [OrbTk]: Write user interfaces with OrbTk [FloVanGH]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -33,3 +34,5 @@
 [cyclowns]: https://github.com/cyclowns
 [generust]: https://github.com/kyleu/generust
 [kyleu]: https://github.com/kyleu
+[OrbTk]: https://github.com/redox-os/orbtk-template
+[FloVanGH]: https://github.com/FloVanGH
