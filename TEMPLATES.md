@@ -12,6 +12,7 @@
 - [ggez]: Write games in Rust using ggez, [cyclowns]
 - [generust]: Actix-web server, WASM client, lots of supporting code [kyleu]
 - [template-rust-backend-with-electron-frontend]: Write a Rust native cdylib backend with Electron frontend, [usagi]
+- [swift-rust-xcode-template]: Write an iOS app with Swift and Rust, [simlay]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -34,5 +35,7 @@
 [cyclowns]: https://github.com/cyclowns
 [generust]: https://github.com/kyleu/generust
 [kyleu]: https://github.com/kyleu
-[template-rust-backend-with-electron-frontend]:https://github.com/usagi/template-rust-backend-with-electron-frontend
+[template-rust-backend-with-electron-frontend]: https://github.com/usagi/template-rust-backend-with-electron-frontend
 [usagi]: https://github.com/usagi
+[simlay]: https://github.com/simlay
+[swift-rust-xcode-template]: https://github.com/simlay/swift-rust-xcode-template
