@@ -60,7 +60,7 @@ supported placeholders are:
 - `{{project-name}}`: this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
 - `{{crate_name}}`: the snake_case_version of `project-name`
 - dates: the liquid date filter is enabled for this project. This means you can write something like `{{ "now" | date: "%Y-%m-%d %H:%M" }}`. For more information, check out the [Liquid Documentation on `date`].
-- `{% raw %} ... {% endraw %}`: This block allow you to ignore some part of file. Check out the [Liquid Documentation on `raw`] for details. [This issue](https://github.com/ashleygwilliams/cargo-generate/issues/212) for example use case. And if you want ignore files see [Ignore / Exclude](#include--exclude).
+- `{% raw %} ... {% endraw %}`: This block allows you to ignore parts of a file, `cargo-generate` will not attempt any template substitution inside this block. Check out the [Liquid Documentation on `raw`] for details. If you want `cargo-generate` to ignore an entire file, you should use [Include / Exclude](#include--exclude) instead of `raw` blocks.
 
 [Liquid Documentation on `date`]: https://shopify.github.io/liquid/filters/date/
 [Liquid Documentation on `raw`]:https://shopify.github.io/liquid/tags/raw/
