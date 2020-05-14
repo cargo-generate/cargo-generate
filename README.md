@@ -63,7 +63,7 @@ supported placeholders are:
 - `{% raw %} ... {% endraw %}`: This block allows you to ignore parts of a file, `cargo-generate` will not attempt any template substitution inside this block. Check out the [Liquid Documentation on `raw`] for details. If you want `cargo-generate` to ignore an entire file, you should use [Include / Exclude](#include--exclude) instead of `raw` blocks.
 
 [Liquid Documentation on `date`]: https://shopify.github.io/liquid/filters/date/
-[Liquid Documentation on `raw`]:https://shopify.github.io/liquid/tags/raw/
+[Liquid Documentation on `raw`]: https://shopify.github.io/liquid/tags/raw/
 
 You can also add a `.genignore` file to your template. The files listed in the `.genignore` file
 will be removed from the local machine when `cargo-generate` is run on the end user's machine.
