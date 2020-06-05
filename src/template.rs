@@ -4,15 +4,13 @@ use crate::emoji;
 use crate::include_exclude::*;
 use crate::projectname::ProjectName;
 use console::style;
-use failure;
 use heck::{CamelCase, KebabCase, SnakeCase};
 use indicatif::ProgressBar;
-use liquid_core::{FilterReflection, ParseFilter, Filter, ValueView, Runtime, Object};
+use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, ValueView};
 use quicli::prelude::*;
 use std::fs;
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
-
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::with_stdlib()
@@ -45,10 +43,7 @@ impl Filter for KebabCaseFilter {
             .as_scalar()
             .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
 
-        let input = input
-            .into_string()
-            .to_string()
-            .to_kebab_case();
+        let input = input.into_string().to_string().to_kebab_case();
         Ok(liquid::model::Value::scalar(input))
     }
 }
@@ -75,10 +70,7 @@ impl Filter for PascalCaseFilter {
             .as_scalar()
             .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
 
-        let input = input
-            .into_string()
-            .to_string()
-            .to_camel_case();
+        let input = input.into_string().to_string().to_camel_case();
         Ok(liquid::model::Value::scalar(input))
     }
 }
@@ -105,18 +97,12 @@ impl Filter for SnakeCaseFilter {
             .as_scalar()
             .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
 
-        let input = input
-            .into_string()
-            .to_string()
-            .to_snake_case();
+        let input = input.into_string().to_string().to_snake_case();
         Ok(input.to_value())
     }
 }
 
-pub fn substitute(
-    name: &ProjectName,
-    force: bool,
-) -> Result<Object, failure::Error> {
+pub fn substitute(name: &ProjectName, force: bool) -> Result<Object, failure::Error> {
     let project_name = if force { name.raw() } else { name.kebab_case() };
     let authors = authors::get_authors()?;
 
