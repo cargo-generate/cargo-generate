@@ -803,6 +803,7 @@ fn it_applies_filters() {
             r#"kebab-case = {{crate_name | kebab_case}}
     PascalCase = {{crate_name | pascal_case}}
     snake_case = {{crate_name | snake_case}}
+    without_suffix = {{project-name | split "-project" | first}}
     "#,
         )
         .init_git()
@@ -821,15 +822,12 @@ fn it_applies_filters() {
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(dir
-        .read("foobar-project/filters.txt")
-        .contains("kebab-case = foobar-project"));
-    assert!(dir
-        .read("foobar-project/filters.txt")
-        .contains("PascalCase = FoobarProject"));
-    assert!(dir
-        .read("foobar-project/filters.txt")
-        .contains("snake_case = foobar_project"));
+    let cargo_toml = dir.read("foobar-project/filters.txt");
+    assert!(cargo_toml.contains("kebab-case = foobar-project"));
+    assert!(cargo_toml.contains("PascalCase = FoobarProject"));
+    assert!(cargo_toml.contains("snake_case = foobar_project"));
+    assert!(cargo_toml.contains("without_suffix = foobar"));
+    assert!(!cargo_toml.contains("without_suffix = foobar-project"));
 }
 
 #[test]

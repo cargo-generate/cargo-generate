@@ -20,6 +20,8 @@ fn engine() -> liquid::Parser {
         .filter(KebabCaseFilterParser)
         .filter(PascalCaseFilterParser)
         .filter(SnakeCaseFilterParser)
+        .filter(liquid::filters::std::Split)
+        .filter(liquid::filters::std::First)
         .build()
         .expect("can't fail due to no partials support")
 }
