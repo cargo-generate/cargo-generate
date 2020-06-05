@@ -803,12 +803,13 @@ fn it_applies_filters() {
             r#"kebab-case = {{crate_name | kebab_case}}
     PascalCase = {{crate_name | pascal_case}}
     snake_case = {{crate_name | snake_case}}
-    without_suffix = {{project-name | split "-project" | first}}
+    without_suffix = {{crate_name | split: "_" | first}}
     "#,
         )
         .init_git()
         .build();
     let dir = dir("main").build();
+    // without_suffix = {{crate_name | split "_project" | first}}
 
     Command::main_binary()
         .unwrap()
@@ -827,7 +828,7 @@ fn it_applies_filters() {
     assert!(cargo_toml.contains("PascalCase = FoobarProject"));
     assert!(cargo_toml.contains("snake_case = foobar_project"));
     assert!(cargo_toml.contains("without_suffix = foobar"));
-    assert!(!cargo_toml.contains("without_suffix = foobar-project"));
+    assert!(!cargo_toml.contains("without_suffix = foobar_project"));
 }
 
 #[test]

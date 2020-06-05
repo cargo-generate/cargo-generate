@@ -7,26 +7,23 @@ use console::style;
 use failure;
 use heck::{CamelCase, KebabCase, SnakeCase};
 use indicatif::ProgressBar;
-use liquid;
+use liquid_core::{FilterReflection, ParseFilter, Filter, ValueView, Runtime, Object};
 use quicli::prelude::*;
 use std::fs;
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
 
+
 fn engine() -> liquid::Parser {
-    liquid::ParserBuilder::new()
-        .filter(liquid::filters::std::Date)
-        .filter(liquid::filters::std::Capitalize)
+    liquid::ParserBuilder::with_stdlib()
         .filter(KebabCaseFilterParser)
         .filter(PascalCaseFilterParser)
         .filter(SnakeCaseFilterParser)
-        .filter(liquid::filters::std::Split)
-        .filter(liquid::filters::std::First)
         .build()
         .expect("can't fail due to no partials support")
 }
 
-#[derive(Clone, liquid_derive::ParseFilter, liquid_derive::FilterReflection)]
+#[derive(Clone, ParseFilter, FilterReflection)]
 #[filter(
     name = "kebab_case",
     description = "Change text to kebab-case.",
@@ -38,15 +35,21 @@ pub struct KebabCaseFilterParser;
 #[name = "kebab_case"]
 struct KebabCaseFilter;
 
-impl liquid::compiler::Filter for KebabCaseFilter {
+impl Filter for KebabCaseFilter {
     fn evaluate(
         &self,
-        input: &liquid::value::Value,
-        _context: &liquid::interpreter::Context,
-    ) -> Result<liquid::value::Value, liquid::error::Error> {
-        let input = input.to_str();
-        let input = input.as_ref().to_kebab_case();
-        Ok(liquid::value::Value::scalar(input))
+        input: &dyn ValueView,
+        _runtime: &Runtime,
+    ) -> Result<liquid::model::Value, liquid_core::error::Error> {
+        let input = input
+            .as_scalar()
+            .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
+
+        let input = input
+            .into_string()
+            .to_string()
+            .to_kebab_case();
+        Ok(liquid::model::Value::scalar(input))
     }
 }
 
@@ -62,15 +65,21 @@ pub struct PascalCaseFilterParser;
 #[name = "pascal_case"]
 struct PascalCaseFilter;
 
-impl liquid::compiler::Filter for PascalCaseFilter {
+impl Filter for PascalCaseFilter {
     fn evaluate(
         &self,
-        input: &liquid::value::Value,
-        _context: &liquid::interpreter::Context,
-    ) -> Result<liquid::value::Value, liquid::error::Error> {
-        let input = input.to_str();
-        let input = input.as_ref().to_camel_case();
-        Ok(liquid::value::Value::scalar(input))
+        input: &dyn ValueView,
+        _runtime: &Runtime,
+    ) -> Result<liquid::model::Value, liquid_core::error::Error> {
+        let input = input
+            .as_scalar()
+            .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
+
+        let input = input
+            .into_string()
+            .to_string()
+            .to_camel_case();
+        Ok(liquid::model::Value::scalar(input))
     }
 }
 
@@ -86,43 +95,41 @@ pub struct SnakeCaseFilterParser;
 #[name = "snake_case"]
 struct SnakeCaseFilter;
 
-impl liquid::compiler::Filter for SnakeCaseFilter {
+impl Filter for SnakeCaseFilter {
     fn evaluate(
         &self,
-        input: &liquid::value::Value,
-        _context: &liquid::interpreter::Context,
-    ) -> Result<liquid::value::Value, liquid::error::Error> {
-        let input = input.to_str();
-        let input = input.as_ref().to_snake_case();
-        Ok(liquid::value::Value::scalar(input))
+        input: &dyn ValueView,
+        _runtime: &Runtime<'_>,
+    ) -> Result<liquid::model::Value, liquid_core::error::Error> {
+        let input = input
+            .as_scalar()
+            .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
+
+        let input = input
+            .into_string()
+            .to_string()
+            .to_snake_case();
+        Ok(input.to_value())
     }
 }
 
 pub fn substitute(
     name: &ProjectName,
     force: bool,
-) -> Result<liquid::value::Object, failure::Error> {
+) -> Result<Object, failure::Error> {
     let project_name = if force { name.raw() } else { name.kebab_case() };
+    let authors = authors::get_authors()?;
 
-    let mut template = liquid::value::Object::new();
-    template.insert(
-        "project-name".into(),
-        liquid::value::Value::scalar(project_name),
-    );
-    template.insert(
-        "crate_name".into(),
-        liquid::value::Value::scalar(name.snake_case()),
-    );
-    template.insert(
-        "authors".into(),
-        liquid::value::Value::scalar(authors::get_authors()?),
-    );
-    Ok(template)
+    Ok(liquid::object!({
+        "project-name": project_name,
+        "crate_name": name.snake_case(),
+        "authors": authors,
+    }))
 }
 
 pub fn walk_dir(
     project_dir: &PathBuf,
-    template: liquid::value::Object,
+    template: Object,
     template_config: Option<TemplateConfig>,
     pbar: ProgressBar,
 ) -> Result<(), failure::Error> {
