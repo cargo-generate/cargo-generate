@@ -17,7 +17,7 @@ Here's an example of using `cargo-generate` with [this template]:
 
 ### Using `cargo` with system's OpenSSL
 
-```
+```sh
 cargo install cargo-generate
 ```
 
@@ -27,7 +27,7 @@ See the [`openssl-sys` crate readme] on how to obtain the OpenSSL library for yo
 
 ### Using `cargo` with vendored OpenSSL
 
-```
+```sh
 cargo install cargo-generate --features vendored-openssl
 ```
 
@@ -41,13 +41,13 @@ cargo install cargo-generate --features vendored-openssl
 
 Standard usage is to pass a `--git` flag to `cargo generate` or short `cargo gen`. This will prompt you to enter the name of your project.
 
-```
+```sh
 cargo generate --git https://github.com/githubusername/mytemplate.git
 ```
 
 You can also pass the name of your project to the tool using the `--name` or `-n` flag:
 
-```
+```sh
 cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject
 ```
 
@@ -59,9 +59,10 @@ supported placeholders are:
 - `{{authors}}`: this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.
 - `{{project-name}}`: this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
 - `{{crate_name}}`: the snake_case_version of `project-name`
-- dates: the liquid date filter is enabled for this project. This means you can write something like `{{ "now" | date: "%Y-%m-%d %H:%M" }}`. For more information, check out the [Liquid Documentation on `date`].
 
-[Liquid Documentation on `date`]: https://shopify.github.io/liquid/filters/date/
+Additionally all filters and tags of the liquid template language are supported. For more information, check out the [Liquid Documentation on `Tags` and `Filters`][liquid].
+
+[liquid]: https://shopify.github.io/liquid
 
 You can also add a `.genignore` file to your template. The files listed in the `.genignore` file
 will be removed from the local machine when `cargo-generate` is run on the end user's machine.

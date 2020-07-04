@@ -14,7 +14,6 @@ use crate::projectname::ProjectName;
 use cargo;
 use config::{Config, CONFIG_FILE_NAME};
 use console::style;
-use failure;
 use std::env;
 use std::path::PathBuf;
 use structopt::StructOpt;

@@ -3,7 +3,6 @@ use serde::Deserialize;
 use std::fs;
 use std::io::ErrorKind;
 use std::path::Path;
-use toml;
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
