@@ -18,7 +18,7 @@ faster was can reproduce your issue, the faster we can fix it for you!
 ### Unit tests
 
 After writing your patch, or finishing an awesome feature, make sure that your
-code does not collides with the existing code, in executing the unit tests.
+code does not collide with existing code, by executing the unit tests.
 
 To execute the unit tests, we will use the `test` feature included in `cargo`:
 
