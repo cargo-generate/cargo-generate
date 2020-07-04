@@ -1,7 +1,6 @@
 use crate::cargo::core::GitReference;
 use crate::cargo::sources::git::GitRemote;
 use crate::cargo::util::config::Config;
-use failure;
 use git2::{Repository as GitRepository, RepositoryInitOptions};
 use quicli::prelude::*;
 use remove_dir_all::remove_dir_all;

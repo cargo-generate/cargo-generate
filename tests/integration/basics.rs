@@ -803,11 +803,13 @@ fn it_applies_filters() {
             r#"kebab-case = {{crate_name | kebab_case}}
     PascalCase = {{crate_name | pascal_case}}
     snake_case = {{crate_name | snake_case}}
+    without_suffix = {{crate_name | split: "_" | first}}
     "#,
         )
         .init_git()
         .build();
     let dir = dir("main").build();
+    // without_suffix = {{crate_name | split "_project" | first}}
 
     Command::main_binary()
         .unwrap()
@@ -821,15 +823,12 @@ fn it_applies_filters() {
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(dir
-        .read("foobar-project/filters.txt")
-        .contains("kebab-case = foobar-project"));
-    assert!(dir
-        .read("foobar-project/filters.txt")
-        .contains("PascalCase = FoobarProject"));
-    assert!(dir
-        .read("foobar-project/filters.txt")
-        .contains("snake_case = foobar_project"));
+    let cargo_toml = dir.read("foobar-project/filters.txt");
+    assert!(cargo_toml.contains("kebab-case = foobar-project"));
+    assert!(cargo_toml.contains("PascalCase = FoobarProject"));
+    assert!(cargo_toml.contains("snake_case = foobar_project"));
+    assert!(cargo_toml.contains("without_suffix = foobar"));
+    assert!(!cargo_toml.contains("without_suffix = foobar_project"));
 }
 
 #[test]
@@ -853,4 +852,42 @@ fn it_processes_dot_github_directory_files() {
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     assert_eq!(dir.read("foobar-project/.github/foo.txt"), "foobar-project");
+}
+
+#[test]
+fn it_ignore_tags_inside_raw_block() {
+    let raw_body = r#"{{badges}}
+# {{crate}} {{project-name}}
+{{readme}}
+{{license}}
+## Contribution
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.
+This project try follow rules:
+* [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+* [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+_This README was generated with [cargo-readme](https://github.com/livioribeiro/cargo-readme) from [template](https://github.com/xoac/crates-io-lib-template)
+"#;
+    let raw_template = format!("{{% raw %}}{}{{% endraw %}}", raw_body);
+    let template = dir("template")
+        .file("README.tpl", &raw_template)
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.read("foobar-project/README.tpl").contains(raw_body));
 }
