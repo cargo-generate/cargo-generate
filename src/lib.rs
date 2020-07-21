@@ -44,25 +44,23 @@ use structopt::StructOpt;
 #[derive(StructOpt)]
 #[structopt(bin_name = "cargo")]
 pub enum Cli {
-    #[structopt(name = "generate")]
+    #[structopt(name = "generate", visible_alias = "gen")]
     Generate(Args),
-    #[structopt(name = "gen")]
-    Gen(Args),
 }
 
 #[derive(Debug, StructOpt)]
 pub struct Args {
-    #[structopt(long = "git")]
+    #[structopt(short, long)]
     git: String,
-    /// Branch to use when installing from git
-    #[structopt(long = "branch")]
+    // Branch to use when installing from git
+    #[structopt(short, long)]
     branch: Option<String>,
-    #[structopt(long = "name", short = "n")]
+    #[structopt(long, short)]
     name: Option<String>,
     /// Enforce to create a new project without case conversion of project name
-    #[structopt(long = "force", short = "f")]
+    #[structopt(long, short)]
     force: bool,
-    #[structopt(long = "verbose", short = "v")]
+    #[structopt(long, short)]
     verbose: bool,
 }
 
