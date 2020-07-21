@@ -1,4 +1,4 @@
-use cargo_generate::{generate, Args, Cli};
+use cargo_generate::{generate, Cli};
 use quicli::prelude::*;
 use structopt::StructOpt;
 
@@ -26,11 +26,8 @@ use structopt::StructOpt;
 /// - `authors`: Author names, taken from usual environment variables (i.e.
 ///   those which are also used by Cargo and git)
 fn main() -> CliResult {
-    let args: Args = match Cli::from_args() {
-        Cli::Generate(args) => args,
-        Cli::Gen(args) => args,
-    };
-
+    let Cli::Generate(args) = Cli::from_args();
     generate(args)?;
+
     Ok(())
 }
