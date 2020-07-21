@@ -16,6 +16,7 @@
 - [swift-rust-xcode-template]: Write an iOS app with Swift and Rust, [simlay]
 - [QuickStart WebAssembly]: Create a quick Webassembly application with Rust, [Pankaj Chaudhary]
 - [Win32]: Write low-level Win32 applications, [ArmsOfSorrow]
+- [rust-starter]: Bootstrap a Rust CLI application with Clap, [omarabid]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -48,3 +49,5 @@
 [Pankaj Chaudhary]: https://github.com/PankajChaudhary5
 [Win32]: https://github.com/ArmsOfSorrow/win32-cargo-generate
 [ArmsOfSorrow]: https://github.com/ArmsOfSorrow
+[rust-starter]: https://github.com/omarabid/rust-starter-generate
+[omarabid]: https://github.com/omarabid
