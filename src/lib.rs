@@ -50,10 +50,10 @@ pub enum Cli {
 
 #[derive(Debug, StructOpt)]
 pub struct Args {
-    #[structopt(long)]
+    #[structopt(short, long)]
     git: String,
     // Branch to use when installing from git
-    #[structopt(long)]
+    #[structopt(short, long)]
     branch: Option<String>,
     #[structopt(long, short)]
     name: Option<String>,
