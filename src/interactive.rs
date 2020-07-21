@@ -2,7 +2,6 @@ use crate::emoji;
 use console::style;
 use dialoguer::Input;
 use quicli::prelude::Error;
-use regex;
 
 pub fn name() -> Result<String, Error> {
     let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;

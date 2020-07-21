@@ -14,7 +14,6 @@ use crate::projectname::ProjectName;
 use cargo;
 use config::{Config, CONFIG_FILE_NAME};
 use console::style;
-use failure;
 use std::env;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -55,7 +54,7 @@ pub enum Cli {
 pub struct Args {
     #[structopt(long = "git")]
     git: String,
-    // Branch to use when installing from git
+    /// Branch to use when installing from git
     #[structopt(long = "branch")]
     branch: Option<String>,
     #[structopt(long = "name", short = "n")]
@@ -63,6 +62,8 @@ pub struct Args {
     /// Enforce to create a new project without case conversion of project name
     #[structopt(long = "force", short = "f")]
     force: bool,
+    #[structopt(long = "verbose", short = "v")]
+    verbose: bool,
 }
 
 pub fn generate(args: Args) -> Result<(), failure::Error> {
@@ -80,10 +81,13 @@ fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
     let force = args.force;
     let branch = args.branch.unwrap_or_else(|| "master".to_string());
     let config = GitConfig::new(args.git, branch.clone())?;
+    let verbose = args.verbose;
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, config) {
-            Ok(_) => git::remove_history(dir).unwrap_or(progress(name, dir, force, &branch)?),
-            Err(e) => println!(
+            Ok(_) => {
+                git::remove_history(dir).unwrap_or(progress(name, dir, force, &branch, verbose)?)
+            }
+            Err(e) => failure::bail!(
                 "{} {} {}",
                 emoji::ERROR,
                 style("Git Error:").bold().red(),
@@ -91,7 +95,7 @@ fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
             ),
         };
     } else {
-        println!(
+        failure::bail!(
             "{} {}",
             emoji::ERROR,
             style("Target directory already exists, aborting!")
@@ -133,6 +137,7 @@ fn progress(
     dir: &PathBuf,
     force: bool,
     branch: &str,
+    verbose: bool,
 ) -> Result<(), failure::Error> {
     let template = template::substitute(name, force)?;
 
@@ -148,7 +153,7 @@ fn progress(
 
     git::init(dir, branch)?;
 
-    ignoreme::remove_uneeded_files(dir);
+    ignoreme::remove_unneeded_files(dir, verbose);
 
     gen_success(dir);
 

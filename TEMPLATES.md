@@ -10,6 +10,12 @@
 - [bluepill]: Create rust projects for the 'blue pill' stm32 microcontroller board [mendelt]
 - [cmdr]: Write interactive commandline applications [mendelt]
 - [ggez]: Write games in Rust using ggez, [cyclowns]
+- [generust]: Actix-web server, WASM client, lots of supporting code [kyleu]
+- [template-rust-backend-with-electron-frontend]: Write a Rust native cdylib backend with Electron frontend, [usagi]
+- [OrbTk]: Write user interfaces with OrbTk, [FloVanGH]
+- [swift-rust-xcode-template]: Write an iOS app with Swift and Rust, [simlay]
+- [QuickStart WebAssembly]: Create a quick Webassembly application with Rust, [Pankaj Chaudhary]
+- [Win32]: Write low-level Win32 applications, [ArmsOfSorrow]
 - [rust-starter]: Bootstrap a Rust CLI application with Clap, [omarabid]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
@@ -31,6 +37,17 @@
 [mendelt]: https://github.com/mendelt
 [ggez]: https://github.com/cyclowns/cargo-generate-ggez
 [cyclowns]: https://github.com/cyclowns
+[generust]: https://github.com/kyleu/generust
+[kyleu]: https://github.com/kyleu
+[template-rust-backend-with-electron-frontend]: https://github.com/usagi/template-rust-backend-with-electron-frontend
+[usagi]: https://github.com/usagi
+[OrbTk]: https://github.com/redox-os/orbtk-template
+[FloVanGH]: https://github.com/FloVanGH
+[swift-rust-xcode-template]: https://github.com/simlay/swift-rust-xcode-template
+[simlay]: https://github.com/simlay
+[QuickStart WebAssembly]: https://github.com/knoldus/Quickstart-WebAssembly
+[Pankaj Chaudhary]: https://github.com/PankajChaudhary5
+[Win32]: https://github.com/ArmsOfSorrow/win32-cargo-generate
+[ArmsOfSorrow]: https://github.com/ArmsOfSorrow
 [rust-starter]: https://github.com/omarabid/rust-starter-generate
 [omarabid]: https://github.com/omarabid
-

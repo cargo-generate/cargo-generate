@@ -1,4 +1,3 @@
-use failure;
 use git2::{Config as GitConfig, Repository as GitRepository};
 use quicli::prelude::*;
 use std::env;

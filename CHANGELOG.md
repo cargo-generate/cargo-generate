@@ -1,5 +1,53 @@
 # Changelog
 
+## 🧟‍♀️ 0.5.0
+
+  - ### ✨ Features
+
+    - **Add a verbose flag for printing excluded files - [EverlastingBugstopper], [pull/199]**
+
+      cargo-generate can now be run with a `--verbose` flag that will print the list of files/directories that it is ignoring. This means that by default the output for templates that exclude files will appear no differently from templates that do exclude files.
+
+      [EverlastingBugstopper]: https://github.com/EverlastingBugstopper
+      [pull/199]: https://github.com/ashleygwilliams/cargo-generate/pull/199
+
+  - ### 🤕 Fixes
+
+    - **Update two failure scenarios to exit with code 1 - [EverlastingBugstopper], [pull/198]**
+
+      When cargo-generate fails due to an issue with git or if a target directory already exists, it will now fail with an exit code of 1.
+
+      [EverlastingBugstopper]: https://github.com/EverlastingBugstopper
+      [pull/198]: https://github.com/ashleygwilliams/cargo-generate/pull/198
+
+    - **Fix path display on Windows - [tommyshem], [issue/192] [pull/195]**
+
+      Changes Windows file output from `"C:\\Users\\Me\\src\\example-com\\.genignore"` to `"C:\Users\Me\src\example-com\.genignore"`
+
+      [tommyshem]: https://github.com/tommyshem
+      [pull/195]: https://github.com/ashleygwilliams/cargo-generate/pull/195
+      [issue/192]: https://github.com/ashleygwilliams/cargo-generate/issues/192
+
+    - **Don't remove .github directory when only .git should be removed - [softprops], [issue/190] [pull/191]**
+
+      When generating a new project, cargo-generate will remove the `.git` directory and initialize a new git tree. In doing so, it would remove any file or directory containing `.git`, including `.github`. This release fixes that bug! 
+
+      [softprops]: https://github.com/softprops
+      [pull/191]: https://github.com/ashleygwilliams/cargo-generate/pull/191
+      [issue/190]: https://github.com/ashleygwilliams/cargo-generate/issues/190
+
+  - ### 🛠️ Maintenance
+
+    - **Fix a dead link in TEMPLATES.md - [yaahc], [pull/186]**
+
+      [yaahc]: https://github.com/yaahc
+      [pull/186]: https://github.com/ashleygwilliams/cargo-generate/pull/186
+
+    - **Use Cargo.lock when compiling binary - [xortive], [pull/188]**
+
+    [xortive]: https://github.com/xortive
+    [pull/188]: https://github.com/ashleygwilliams/cargo-generate/pull/188
+
 ## 🍕 0.4.0
 
   - ### ✨ Features
@@ -132,7 +180,7 @@
         dependency, it was discovered that we were shipping broken Windows
         binaries. We've fixed that now!
 
-        [`wrangler`]: https://github.com/cloudflare/wrangler
+        [`wrangler`]: https://github.com/ashleygwilliams/cargo-generate
         [jaysonsantos]: https://github.com/jaysonsantos
         [issue/145]: https://github.com/ashleygwilliams/cargo-generate/issues/145
         [pull/146]: https://github.com/ashleygwilliams/cargo-generate/pull/146
