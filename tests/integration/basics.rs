@@ -316,6 +316,39 @@ version = "0.1.0"
 }
 
 #[test]
+fn it_removes_genignore_files_before_substitution() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .file(".cicd_workflow", "i contain a ${{ github }} var")
+        .file(".genignore", r#".cicd_workflow"#)
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert_eq!(dir.exists("foobar-project/.cicd_workflow"), false);
+}
+
+#[test]
 fn it_does_not_remove_files_from_outside_project_dir() {
     let template = dir("template")
         .file(
