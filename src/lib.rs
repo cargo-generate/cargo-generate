@@ -147,11 +147,11 @@ fn progress(
     let pbar = progressbar::new();
     pbar.tick();
 
+    ignoreme::remove_unneeded_files(dir, verbose);
+
     template::walk_dir(dir, template, template_config, pbar)?;
 
     git::init(dir, branch)?;
-
-    ignoreme::remove_unneeded_files(dir, verbose);
 
     gen_success(dir);
 
