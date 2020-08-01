@@ -1,5 +1,5 @@
+use anyhow::Result;
 use cargo_generate::{generate, Cli};
-use quicli::prelude::*;
 use structopt::StructOpt;
 
 /// Generate a new Cargo project from a given template
@@ -25,7 +25,7 @@ use structopt::StructOpt;
 ///
 /// - `authors`: Author names, taken from usual environment variables (i.e.
 ///   those which are also used by Cargo and git)
-fn main() -> CliResult {
+fn main() -> Result<()> {
     let Cli::Generate(args) = Cli::from_args();
     generate(args)?;
 

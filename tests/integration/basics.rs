@@ -7,6 +7,10 @@ use predicates::prelude::*;
 use std::fs;
 use std::process::Command;
 
+fn binary() -> Command {
+    Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap()
+}
+
 #[test]
 fn it_substitutes_projectname_in_cargo_toml() {
     let template = dir("template")
@@ -23,8 +27,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -58,8 +61,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -93,8 +95,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -126,8 +127,7 @@ extern crate {{crate_name}};
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -161,8 +161,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
@@ -196,8 +195,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -241,8 +239,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
@@ -283,8 +280,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
@@ -316,8 +312,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
@@ -351,8 +346,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
@@ -399,8 +393,7 @@ version = "0.1.0"
         dangerous_file.to_str().expect("Could not read path.")
     ));
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
@@ -441,8 +434,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
@@ -482,8 +474,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--branch")
         .arg("baz")
@@ -523,8 +514,7 @@ version = "0.1.0"
         .build();
 
     let dir = dir("main").build();
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -569,8 +559,7 @@ version = "0.1.0"
             .to_string();
 
     let dir = dir("main").build();
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(relative_path)
@@ -605,8 +594,7 @@ fn it_respects_template_branch_name() {
         .success();
 
     let dir = dir("main").build();
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -645,8 +633,7 @@ exclude = ["excluded2"]
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -687,8 +674,7 @@ exclude = ["excluded"]
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -736,8 +722,7 @@ exclude = ["not-actually-excluded"]
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -780,8 +765,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
@@ -818,8 +802,7 @@ version = "0.1.0"
         .build();
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
@@ -851,8 +834,7 @@ fn it_doesnt_warn_with_neither_config_nor_ignore() {
         .build();
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
@@ -884,8 +866,7 @@ fn it_applies_filters() {
     let dir = dir("main").build();
     // without_suffix = {{crate_name | split "_project" | first}}
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -914,8 +895,7 @@ fn it_processes_dot_github_directory_files() {
         .build();
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
@@ -954,8 +934,7 @@ _This README was generated with [cargo-readme](https://github.com/livioribeiro/c
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())

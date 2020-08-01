@@ -1,8 +1,8 @@
-use crate::cargo::core::GitReference;
-use crate::cargo::sources::git::GitRemote;
-use crate::cargo::util::config::Config;
+use anyhow::{Context, Result};
+use cargo::core::GitReference;
+use cargo::sources::git::GitRemote;
+use cargo::util::config::Config;
 use git2::{Repository as GitRepository, RepositoryInitOptions};
-use quicli::prelude::*;
 use remove_dir_all::remove_dir_all;
 use std::env::current_dir;
 use std::path::Path;
@@ -10,14 +10,14 @@ use std::path::PathBuf;
 use tempfile::Builder;
 use url::{ParseError, Url};
 
-pub struct GitConfig {
+pub(crate) struct GitConfig {
     remote: Url,
     branch: GitReference,
 }
 
 impl GitConfig {
     /// Creates a new `GitConfig` by parsing `git` as a URL or a local path.
-    pub fn new(git: &str, branch: String) -> Result<Self, failure::Error> {
+    pub fn new(git: &str, branch: String) -> Result<Self> {
         let remote = match Url::parse(git) {
             Ok(u) => u,
             Err(ParseError::RelativeUrlWithoutBase) => {
@@ -27,19 +27,23 @@ impl GitConfig {
                     git_path.push(current_dir()?);
                     git_path.push(given_path);
                     if !git_path.exists() {
-                        return Err(format_err!(
-                            "Failed parsing git remote {:?}: path {:?} doesn't exist",
+                        anyhow::bail!(
+                            "Failed to parse git remote {:?}: path {:?} doesn't exist",
                             git,
                             &git_path
-                        ));
+                        );
                     }
                 } else {
                     git_path.push(git)
                 }
-                let rel = "file://".to_string() + &git_path.to_str().unwrap_or("").to_string();
-                Url::parse(&rel)?
+                Url::from_file_path(&git_path).map_err(|()| {
+                    anyhow::format_err!(
+                        "Failed to parse git remote (also tried as a file path): {}",
+                        &git
+                    )
+                })?
             }
-            Err(err) => return Err(format_err!("Failed parsing git remote {:?}: {}", git, err)),
+            Err(err) => anyhow::bail!("Failed parsing git remote {:?}: {}", git, err),
         };
 
         Ok(GitConfig {
@@ -52,41 +56,37 @@ impl GitConfig {
     /// [hub].
     ///
     /// [hub]: https://github.com/github/hub
-    pub fn new_abbr(git: &str, branch: String) -> Result<Self, failure::Error> {
+    pub fn new_abbr(git: &str, branch: String) -> Result<Self, anyhow::Error> {
         Self::new(git, branch.clone()).or_else(|e| {
             Self::new(&format!("https://github.com/{}.git", git), branch).map_err(|_| e)
         })
     }
 }
 
-pub fn create(project_dir: &PathBuf, args: GitConfig) -> Result<(), failure::Error> {
-    let temp = Builder::new()
-        .prefix(project_dir.to_str().unwrap_or("cargo-generate"))
-        .tempdir()?;
+pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<()> {
+    let temp = Builder::new().prefix(project_dir).tempdir()?;
     let config = Config::default()?;
     let remote = GitRemote::new(&args.remote);
     let (db, rev) = remote.checkout(&temp.path(), &args.branch, &config)?;
 
     // This clones the remote and handles all the submodules
-    db.copy_to(rev, project_dir.as_path(), &config)?;
+    db.copy_to(rev, project_dir, &config)?;
     Ok(())
 }
 
-pub fn remove_history(project_dir: &PathBuf) -> Result<(), failure::Error> {
+pub(crate) fn remove_history(project_dir: &Path) -> Result<()> {
     remove_dir_all(project_dir.join(".git")).context("Error cleaning up cloned template")?;
     Ok(())
 }
 
 pub fn init(
-    project_dir: &PathBuf,
-    branch: Option<String>,
-) -> Result<GitRepository, failure::Error> {
+    project_dir: &Path,
+    branch: &str,
+) -> Result<GitRepository> {
     let mut opts = RepositoryInitOptions::new();
     opts.bare(false);
-    if let Some(branch) = branch {
-        opts.initial_head(&branch);
-    }
-    Ok(GitRepository::init_opts(project_dir, &opts).context("Couldn't init new repository")?)
+    opts.initial_head(branch);
+    GitRepository::init_opts(project_dir, &opts).context("Couldn't init new repository")
 }
 
 #[cfg(test)]
