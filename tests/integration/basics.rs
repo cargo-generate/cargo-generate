@@ -499,7 +499,7 @@ fn it_loads_a_submodule() {
         .init_git()
         .build();
 
-    let submodule_url = "file:///".to_string() + submodule.path().to_str().unwrap();
+    let submodule_url = url::Url::from_file_path(submodule.path()).unwrap();
     let template = dir("template")
         .file(
             "Cargo.toml",
@@ -510,7 +510,7 @@ version = "0.1.0"
 "#,
         )
         .init_git()
-        .add_submodule("./submodule/", &submodule_url)
+        .add_submodule("./submodule/", submodule_url.as_str())
         .build();
 
     let dir = dir("main").build();
