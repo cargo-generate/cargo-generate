@@ -24,7 +24,7 @@ matrix:
   - rust: stable
     script:
     - cargo test --all --locked
-    - rustup component add rustfmt-preview
+    - rustup component add rustfmt
     - cargo fmt --all -- --check
     env: RUST_BACKTRACE=1
 
