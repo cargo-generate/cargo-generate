@@ -499,7 +499,7 @@ fn it_loads_a_submodule() {
         .init_git()
         .build();
 
-    let submodule_url = "file://".to_string() + submodule.path().to_str().unwrap();
+    let submodule_url = "file:///".to_string() + submodule.path().to_str().unwrap();
     let template = dir("template")
         .file(
             "Cargo.toml",
