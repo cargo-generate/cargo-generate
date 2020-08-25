@@ -17,6 +17,8 @@
 - [QuickStart WebAssembly]: Create a quick Webassembly application with Rust, [Pankaj Chaudhary]
 - [Win32]: Write low-level Win32 applications, [ArmsOfSorrow]
 - [rust-starter]: Bootstrap a Rust CLI application with Clap, [omarabid]
+- [rust-cli-template]: Write a CLI with [color_eyre] and [tracing] already set
+  up, in addition to benchmarking and testing boilerplate [Rebecca Turner]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -51,3 +53,7 @@
 [ArmsOfSorrow]: https://github.com/ArmsOfSorrow
 [rust-starter]: https://github.com/omarabid/rust-starter-generate
 [omarabid]: https://github.com/omarabid
+[rust-cli-t emplate]: https://github.com/9999years/rust-cli-template
+[Rebecca Turner]: https://github.com/9999years
+[color_eyre]: https://docs.rs/color_eyre
+[tracing]: https://docs.rs/tracing
