@@ -88,16 +88,18 @@ impl ProjectBuilder {
 
             Command::new("git")
                 .arg("init")
+                // Don't fail if `init.defaultBranch` is set to something else like "main"
+                .arg("--initial-branch=main")
                 .current_dir(&self.root)
                 .assert()
                 .success();
 
             if let Some(ref branch) = self.branch {
-                // Create dummy content in master to aid testing
+                // Create dummy content in "main" branch to aid testing
 
                 fs::File::create(self.root.join("dummy.txt"))
                     .expect("Failed to create dummy")
-                    .write_all(b"master dummy")
+                    .write_all(b"main dummy")
                     .expect("Couldn't write out dummy text");
 
                 Command::new("git")
@@ -110,7 +112,7 @@ impl ProjectBuilder {
                 Command::new("git")
                     .arg("commit")
                     .arg("--message")
-                    .arg("initial master commit")
+                    .arg("initial main commit")
                     .current_dir(&self.root)
                     .assert()
                     .success();
@@ -153,7 +155,7 @@ impl ProjectBuilder {
             if self.branch.is_some() {
                 Command::new("git")
                     .arg("checkout")
-                    .arg("master")
+                    .arg("main")
                     .current_dir(&self.root)
                     .assert()
                     .success();
