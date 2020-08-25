@@ -79,8 +79,11 @@ pub fn generate(args: Args) -> Result<(), failure::Error> {
 fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
     let force = args.force;
     let branch_str = args.branch.clone();
-    let branch = GitReference::Branch(args.branch.unwrap_or_else(|| "master".to_string()));
-    let config = GitConfig::new(args.git, branch)?;
+    let branch = args
+        .branch
+        .map(GitReference::Branch)
+        .unwrap_or_else(|| GitReference::Rev("FETCH_HEAD".to_string()));
+    let config = GitConfig::new(args.git.clone(), branch)?;
     let verbose = args.verbose;
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, config) {
