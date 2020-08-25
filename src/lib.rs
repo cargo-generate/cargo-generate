@@ -78,19 +78,15 @@ pub fn generate(args: Args) -> Result<(), failure::Error> {
 
 fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
     let force = args.force;
-    let branch_str = args.branch.unwrap_or_else(|| "master".to_string());
-    let branch = GitReference::Branch(branch_str.clone());
+    let branch_str = args.branch.clone();
+    let branch = GitReference::Branch(args.branch.unwrap_or_else(|| "master".to_string()));
     let config = GitConfig::new(args.git, branch)?;
     let verbose = args.verbose;
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, config) {
-            Ok(_) => git::remove_history(dir).unwrap_or(progress(
-                name,
-                dir,
-                force,
-                &branch_str,
-                verbose,
-            )?),
+            Ok(_) => {
+                git::remove_history(dir).unwrap_or(progress(name, dir, force, branch_str, verbose)?)
+            }
             Err(e) => failure::bail!(
                 "{} {} {}",
                 emoji::ERROR,
@@ -140,7 +136,7 @@ fn progress(
     name: &ProjectName,
     dir: &PathBuf,
     force: bool,
-    branch: &str,
+    branch: Option<String>,
     verbose: bool,
 ) -> Result<(), failure::Error> {
     let template = template::substitute(name, force)?;
