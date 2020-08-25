@@ -16,7 +16,7 @@ pub struct GitConfig {
 }
 
 impl GitConfig {
-    pub fn new(git: String, branch: String) -> Result<Self, failure::Error> {
+    pub fn new(git: String, branch: GitReference) -> Result<Self, failure::Error> {
         let remote = match Url::parse(&git) {
             Ok(u) => u,
             Err(ParseError::RelativeUrlWithoutBase) => {
@@ -34,10 +34,7 @@ impl GitConfig {
             Err(_) => return Err(format_err!("Failed parsing git remote: {}", &git)),
         };
 
-        Ok(GitConfig {
-            remote,
-            branch: GitReference::Branch(branch),
-        })
+        Ok(GitConfig { remote, branch })
     }
 }
 
