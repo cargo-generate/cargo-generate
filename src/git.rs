@@ -122,8 +122,14 @@ mod tests {
             .unwrap()
             .remote
             .into_string();
-        assert!(remote.ends_with("/src"));
-        assert!(remote.starts_with("file:///"));
+        assert!(
+            remote.ends_with("/src"),
+            format!("remote {} ends with /src", &remote)
+        );
+        assert!(
+            remote.starts_with("file:///"),
+            format!("remote {} starts with file:///", &remote)
+        );
 
         // Absolute path.
         // If this fails because you cloned this repository into a non-UTF-8 directory... all
@@ -132,7 +138,10 @@ mod tests {
             .unwrap()
             .remote
             .into_string();
-        assert!(remote.starts_with("file:///"));
+        assert!(
+            remote.starts_with("file:///"),
+            format!("remote {} starts with file:///", &remote)
+        );
     }
 
     #[test]
