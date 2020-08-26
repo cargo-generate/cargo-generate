@@ -126,22 +126,29 @@ mod tests {
             remote.ends_with("/src"),
             format!("remote {} ends with /src", &remote)
         );
-        assert!(
-            remote.starts_with("file:///"),
-            format!("remote {} starts with file:///", &remote)
-        );
 
-        // Absolute path.
-        // If this fails because you cloned this repository into a non-UTF-8 directory... all
-        // I can say is you probably had it comin'.
-        let remote = GitConfig::new(current_dir().unwrap().to_str().unwrap(), String::new())
-            .unwrap()
-            .remote
-            .into_string();
-        assert!(
-            remote.starts_with("file:///"),
-            format!("remote {} starts with file:///", &remote)
-        );
+        #[cfg(unix)]
+        {
+            assert!(
+                remote.starts_with("file:///"),
+                format!("remote {} starts with file:///", &remote)
+            );
+        }
+
+        #[cfg(unix)]
+        {
+            // Absolute path.
+            // If this fails because you cloned this repository into a non-UTF-8 directory... all
+            // I can say is you probably had it comin'.
+            let remote = GitConfig::new(current_dir().unwrap().to_str().unwrap(), String::new())
+                .unwrap()
+                .remote
+                .into_string();
+            assert!(
+                remote.starts_with("file:///"),
+                format!("remote {} starts with file:///", &remote)
+            );
+        }
     }
 
     #[test]
