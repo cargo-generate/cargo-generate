@@ -62,6 +62,21 @@ impl ProjectBuilder {
         self
     }
 
+    /// On Git >=2.28.0 `init.defaultBranch` can be set to change the default initial branch name
+    /// to something other than `master`. Calling this function after the first commit makes sure
+    /// the initial branch is named `main` in all our integration tests so that they're not
+    /// effected by `init.defaultBranch`.
+    fn rename_branch_to_main(&self) {
+        use assert_cmd::prelude::*;
+        std::process::Command::new("git")
+            .arg("branch")
+            .arg("--move")
+            .arg("main")
+            .current_dir(&self.root)
+            .assert()
+            .success();
+    }
+
     pub fn build(self) -> Project {
         drop(remove_dir_all(&self.root));
         fs::create_dir_all(&self.root)
@@ -88,8 +103,6 @@ impl ProjectBuilder {
 
             Command::new("git")
                 .arg("init")
-                // Don't fail if `init.defaultBranch` is set to something else like "main"
-                .arg("--initial-branch=main")
                 .current_dir(&self.root)
                 .assert()
                 .success();
@@ -116,6 +129,8 @@ impl ProjectBuilder {
                     .current_dir(&self.root)
                     .assert()
                     .success();
+
+                self.rename_branch_to_main();
 
                 Command::new("git")
                     .arg("checkout")
@@ -159,6 +174,8 @@ impl ProjectBuilder {
                     .current_dir(&self.root)
                     .assert()
                     .success();
+            } else {
+                self.rename_branch_to_main();
             }
         }
 
