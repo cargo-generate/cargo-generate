@@ -53,7 +53,7 @@
 [ArmsOfSorrow]: https://github.com/ArmsOfSorrow
 [rust-starter]: https://github.com/omarabid/rust-starter-generate
 [omarabid]: https://github.com/omarabid
-[rust-cli-t emplate]: https://github.com/9999years/rust-cli-template
+[rust-cli-template]: https://github.com/9999years/rust-cli-template
 [Rebecca Turner]: https://github.com/9999years
 [color_eyre]: https://docs.rs/color_eyre
 [tracing]: https://docs.rs/tracing
