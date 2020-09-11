@@ -19,6 +19,7 @@
 - [rust-starter]: Bootstrap a Rust CLI application with Clap, [omarabid]
 - [rust-cli-template]: Write a CLI with [color_eyre] and [tracing] already set
   up, in addition to benchmarking and testing boilerplate [Rebecca Turner]
+- [mongodb-service-template]: Create a graphql service using mongodb [briandeboer]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -57,3 +58,5 @@
 [Rebecca Turner]: https://github.com/9999years
 [color_eyre]: https://docs.rs/color_eyre
 [tracing]: https://docs.rs/tracing
+[mongodb-service-template]: https://github.com/briandeboer/mongodb-service-template
+[briandeboer]: https://github.com/briandeboer
