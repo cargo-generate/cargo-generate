@@ -442,7 +442,7 @@ version = "0.1.0"
 
 #[test]
 fn it_allows_a_git_branch_to_be_specified() {
-    // Build and commit on master
+    // Build and commit on branch named 'main'
     let template = dir("template")
         .file(
             "Cargo.toml",
@@ -570,7 +570,7 @@ fn it_respects_template_branch_name() {
     Command::new("git")
         .arg("branch")
         .arg("-m")
-        .arg("master")
+        .arg("main")
         .arg("gh-pages")
         .current_dir(template.path())
         .assert()

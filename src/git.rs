@@ -42,10 +42,7 @@ impl GitConfig {
             Err(err) => return Err(format_err!("Failed parsing git remote {:?}: {}", git, err)),
         };
 
-        Ok(GitConfig {
-            remote,
-            branch: GitReference::Branch(branch),
-        })
+        Ok(GitConfig { remote, branch })
     }
 
     /// Creates a new `GitConfig`, first with `new` and then as a GitHub `owner/repo` remote, like
@@ -77,14 +74,16 @@ pub fn remove_history(project_dir: &PathBuf) -> Result<(), failure::Error> {
     Ok(())
 }
 
-pub fn init(project_dir: &PathBuf, branch: &str) -> Result<GitRepository, failure::Error> {
-    Ok(GitRepository::init_opts(
-        project_dir,
-        RepositoryInitOptions::new()
-            .bare(false)
-            .initial_head(branch),
-    )
-    .context("Couldn't init new repository")?)
+pub fn init(
+    project_dir: &PathBuf,
+    branch: Option<String>,
+) -> Result<GitRepository, failure::Error> {
+    let mut opts = RepositoryInitOptions::new();
+    opts.bare(false);
+    if let Some(branch) = branch {
+        opts.initial_head(&branch);
+    }
+    Ok(GitRepository::init_opts(project_dir, &opts).context("Couldn't init new repository")?)
 }
 
 #[cfg(test)]
