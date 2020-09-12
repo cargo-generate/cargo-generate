@@ -12,7 +12,6 @@ mod template;
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
 use cargo;
-use cargo::core::GitReference;
 use config::{Config, CONFIG_FILE_NAME};
 use console::style;
 use std::env;
@@ -51,16 +50,25 @@ pub enum Cli {
 
 #[derive(Debug, StructOpt)]
 pub struct Args {
+    /// Git repository to clone template from. Can be a URL (like
+    /// `https://github.com/rust-cli/cli-template`), a path (relative or absolute), or an
+    /// `owner/repo` abbreviated GitHub URL (like `rust-cli/cli-template`).
+    /// Note that cargo generate will first attempt to interpret the `owner/repo` form as a
+    /// relative path and only try a GitHub URL if the local path doesn't exist.
     #[structopt(short, long)]
     git: String,
-    // Branch to use when installing from git
+    /// Branch to use when installing from git
     #[structopt(short, long)]
     branch: Option<String>,
+    /// Directory to create / project name; if the name isn't in kebab-case, it will be converted
+    /// to kebab-case unless `--force` is given.
     #[structopt(long, short)]
     name: Option<String>,
-    /// Enforce to create a new project without case conversion of project name
+    /// Don't convert the project name to kebab-case before creating the directory.
+    /// Note that cargo generate won't overwrite an existing directory, even if `--force` is given.
     #[structopt(long, short)]
     force: bool,
+    /// Enables more verbose output.
     #[structopt(long, short)]
     verbose: bool,
 }
@@ -78,18 +86,18 @@ pub fn generate(args: Args) -> Result<(), failure::Error> {
 
 fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
     let force = args.force;
-    let branch_str = args.branch.clone();
-    let branch = args
-        .branch
-        .map(GitReference::Branch)
-        .unwrap_or_else(|| GitReference::Rev("FETCH_HEAD".to_string()));
-    let config = GitConfig::new(args.git.clone(), branch)?;
+    let branch = args.branch.unwrap_or_else(|| "master".to_string());
+    let config = GitConfig::new_abbr(&args.git, branch.clone())?;
     let verbose = args.verbose;
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, config) {
-            Ok(_) => {
-                git::remove_history(dir).unwrap_or(progress(name, dir, force, branch_str, verbose)?)
-            }
+            Ok(_) => git::remove_history(dir).unwrap_or(progress(
+                name,
+                dir,
+                force,
+                Some(branch),
+                verbose,
+            )?),
             Err(e) => failure::bail!(
                 "{} {} {}",
                 emoji::ERROR,
