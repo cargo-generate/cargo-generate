@@ -28,7 +28,7 @@ impl GitConfig {
                     git_path.push(given_path);
                     if !git_path.exists() {
                         anyhow::bail!(
-                            "Failed to parse git remote {:?}: path {:?} doesn't exist",
+                            "Failed parsing git remote {:?}: path {:?} doesn't exist",
                             git,
                             &git_path
                         );
@@ -38,7 +38,7 @@ impl GitConfig {
                 }
                 Url::from_file_path(&git_path).map_err(|()| {
                     anyhow::format_err!(
-                        "Failed to parse git remote (also tried as a file path): {}",
+                        "Failed parsing git remote (also tried as a file path): {}",
                         &git
                     )
                 })?
@@ -56,7 +56,7 @@ impl GitConfig {
     /// [hub].
     ///
     /// [hub]: https://github.com/github/hub
-    pub fn new_abbr(git: &str, branch: String) -> Result<Self, anyhow::Error> {
+    pub fn new_abbr(git: &str, branch: String) -> Result<Self> {
         Self::new(git, branch.clone()).or_else(|e| {
             Self::new(&format!("https://github.com/{}.git", git), branch).map_err(|_| e)
         })
@@ -79,10 +79,7 @@ pub(crate) fn remove_history(project_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-pub fn init(
-    project_dir: &Path,
-    branch: &str,
-) -> Result<GitRepository> {
+pub fn init(project_dir: &Path, branch: &str) -> Result<GitRepository> {
     let mut opts = RepositoryInitOptions::new();
     opts.bare(false);
     opts.initial_head(branch);

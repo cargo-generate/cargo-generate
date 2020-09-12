@@ -93,13 +93,7 @@ fn create_git(args: Args, name: &ProjectName) -> Result<()> {
         match git::create(dir, config) {
             Ok(_) => {
                 git::remove_history(dir)?;
-                progress(
-                    name,
-                    dir,
-                    force,
-                    branch,
-                    verbose,
-                )?;
+                progress(name, dir, force, branch, verbose)?;
             }
             Err(e) => anyhow::bail!(
                 "{} {} {}",
