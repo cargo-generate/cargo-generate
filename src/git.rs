@@ -16,7 +16,7 @@ pub struct GitConfig {
 }
 
 impl GitConfig {
-    pub fn new(git: String, branch: String) -> Result<Self, failure::Error> {
+    pub fn new(git: String, branch: GitReference) -> Result<Self, failure::Error> {
         let remote = match Url::parse(&git) {
             Ok(u) => u,
             Err(ParseError::RelativeUrlWithoutBase) => {
@@ -34,10 +34,7 @@ impl GitConfig {
             Err(_) => return Err(format_err!("Failed parsing git remote: {}", &git)),
         };
 
-        Ok(GitConfig {
-            remote,
-            branch: GitReference::Branch(branch),
-        })
+        Ok(GitConfig { remote, branch })
     }
 }
 
@@ -59,12 +56,14 @@ pub fn remove_history(project_dir: &PathBuf) -> Result<(), failure::Error> {
     Ok(())
 }
 
-pub fn init(project_dir: &PathBuf, branch: &str) -> Result<GitRepository, failure::Error> {
-    Ok(GitRepository::init_opts(
-        project_dir,
-        RepositoryInitOptions::new()
-            .bare(false)
-            .initial_head(branch),
-    )
-    .context("Couldn't init new repository")?)
+pub fn init(
+    project_dir: &PathBuf,
+    branch: Option<String>,
+) -> Result<GitRepository, failure::Error> {
+    let mut opts = RepositoryInitOptions::new();
+    opts.bare(false);
+    if let Some(branch) = branch {
+        opts.initial_head(&branch);
+    }
+    Ok(GitRepository::init_opts(project_dir, &opts).context("Couldn't init new repository")?)
 }

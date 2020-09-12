@@ -62,6 +62,21 @@ impl ProjectBuilder {
         self
     }
 
+    /// On Git >=2.28.0 `init.defaultBranch` can be set to change the default initial branch name
+    /// to something other than `master`. Calling this function after the first commit makes sure
+    /// the initial branch is named `main` in all our integration tests so that they're not
+    /// effected by `init.defaultBranch`.
+    fn rename_branch_to_main(&self) {
+        use assert_cmd::prelude::*;
+        std::process::Command::new("git")
+            .arg("branch")
+            .arg("--move")
+            .arg("main")
+            .current_dir(&self.root)
+            .assert()
+            .success();
+    }
+
     pub fn build(self) -> Project {
         drop(remove_dir_all(&self.root));
         fs::create_dir_all(&self.root)
@@ -93,11 +108,11 @@ impl ProjectBuilder {
                 .success();
 
             if let Some(ref branch) = self.branch {
-                // Create dummy content in master to aid testing
+                // Create dummy content in "main" branch to aid testing
 
                 fs::File::create(self.root.join("dummy.txt"))
                     .expect("Failed to create dummy")
-                    .write_all(b"master dummy")
+                    .write_all(b"main dummy")
                     .expect("Couldn't write out dummy text");
 
                 Command::new("git")
@@ -110,10 +125,12 @@ impl ProjectBuilder {
                 Command::new("git")
                     .arg("commit")
                     .arg("--message")
-                    .arg("initial master commit")
+                    .arg("initial main commit")
                     .current_dir(&self.root)
                     .assert()
                     .success();
+
+                self.rename_branch_to_main();
 
                 Command::new("git")
                     .arg("checkout")
@@ -153,10 +170,12 @@ impl ProjectBuilder {
             if self.branch.is_some() {
                 Command::new("git")
                     .arg("checkout")
-                    .arg("master")
+                    .arg("main")
                     .current_dir(&self.root)
                     .assert()
                     .success();
+            } else {
+                self.rename_branch_to_main();
             }
         }
 
