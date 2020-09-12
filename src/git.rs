@@ -42,7 +42,7 @@ impl GitConfig {
             Err(err) => return Err(format_err!("Failed parsing git remote {:?}: {}", git, err)),
         };
 
-        Ok(GitConfig { remote, branch })
+        Ok(GitConfig { remote, branch: GitReference::Branch(branch) })
     }
 
     /// Creates a new `GitConfig`, first with `new` and then as a GitHub `owner/repo` remote, like

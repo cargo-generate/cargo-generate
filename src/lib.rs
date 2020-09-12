@@ -12,7 +12,6 @@ mod template;
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
 use cargo;
-use cargo::core::GitReference;
 use config::{Config, CONFIG_FILE_NAME};
 use console::style;
 use std::env;
@@ -92,9 +91,13 @@ fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
     let verbose = args.verbose;
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, config) {
-            Ok(_) => {
-                git::remove_history(dir).unwrap_or(progress(name, dir, force, branch_str, verbose)?)
-            }
+            Ok(_) => git::remove_history(dir).unwrap_or(progress(
+                name,
+                dir,
+                force,
+                Some(branch),
+                verbose,
+            )?),
             Err(e) => failure::bail!(
                 "{} {} {}",
                 emoji::ERROR,
