@@ -109,9 +109,17 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(dir.read("foobar-project/Cargo.toml").contains("foobar-project"), "project-name was not substituted");
-    assert!(!dir.read("foobar-project/Cargo.toml").contains("{{ project-description }}"));
-    assert!(!dir.read("foobar-project/Cargo.toml").contains("{{ project-some-other-thing }}"));
+    assert!(
+        dir.read("foobar-project/Cargo.toml")
+            .contains("foobar-project"),
+        "project-name was not substituted"
+    );
+    assert!(!dir
+        .read("foobar-project/Cargo.toml")
+        .contains("{{ project-description }}"));
+    assert!(!dir
+        .read("foobar-project/Cargo.toml")
+        .contains("{{ project-some-other-thing }}"));
 }
 
 #[test]

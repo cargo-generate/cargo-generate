@@ -9,10 +9,11 @@ use heck::{CamelCase, KebabCase, SnakeCase};
 use indicatif::ProgressBar;
 use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, ValueView, Value};
 use std::env;
+use liquid::Template;
+use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, Value, ValueView};
 use std::fs;
 use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
-use liquid::Template;
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::with_stdlib()
@@ -174,7 +175,11 @@ pub(crate) fn walk_dir(
     Ok(())
 }
 
-fn parse_and_replace(context: &Object, filename: &Path, parsed_file: Template) -> Result<(), anyhow::Error> {
+fn parse_and_replace(
+    context: &Object,
+    filename: &Path,
+    parsed_file: Template,
+) -> Result<(), anyhow::Error> {
     let new_content = parse_file(context, filename, &parsed_file);
     fs::write(filename, new_content).with_context(|| {
         format!(
@@ -195,7 +200,8 @@ fn parse_file(context: &Object, filename: &Path, parsed_file: &Template) -> Stri
             let msg = e.to_string();
             if msg.contains("requested variable") {
                 // so, we miss a variable that is present in the file to render
-                let requested_var = regex::Regex::new(r"(?P<p>.*requested\svariable=)(?P<v>.*)").unwrap();
+                let requested_var =
+                    regex::Regex::new(r"(?P<p>.*requested\svariable=)(?P<v>.*)").unwrap();
                 let captures = requested_var.captures(msg.as_str()).unwrap();
 
                 if let Some(Some(req_var)) = captures.iter().last() {
@@ -210,12 +216,14 @@ fn parse_file(context: &Object, filename: &Path, parsed_file: &Template) -> Stri
             eprintln!(
                 "{} {} `{}`",
                 emoji::ERROR,
-                style("Error replacing placeholders, file got only copied.").bold().red(),
+                style("Error replacing placeholders, file got only copied.")
+                    .bold()
+                    .red(),
                 style(filename.display()).bold()
             );
             // fallback: take the file as it is, without substitutions
             fs::read_to_string(filename).unwrap()
-        },
+        }
     }
 }
 
