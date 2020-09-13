@@ -26,12 +26,12 @@ To execute the unit tests, we will use the `test` feature included in `cargo`:
 cargo test
 ```
 
-`cargo test` will execute the unit tests included in the `tests` directory.  
+`cargo test` will execute the unit tests included in the `tests` directory.
 If all the lights are green, you can then validate the manual tests.
 
 ### Manual tests
 
-For complex issues, and solutions, we did not created unit tests yet.  
+For complex issues, and solutions, we did not created unit tests yet.
 Otherwise, we have manual tests in order to check if everything is ok.
 
 For example, to test if your code does not collides with the solution of the
@@ -39,7 +39,7 @@ For example, to test if your code does not collides with the solution of the
 
 **1. Clone an existing template, without any git submodule, locally**
 
-You can take one at the [Templates page].  
+You can take one at the [Templates page].
 For example:
 
 ```sh
@@ -94,7 +94,7 @@ rustup override set stable
 Install the most recent version of `rustfmt` using this command:
 
 ```sh
-rustup component add rustfmt-preview --toolchain stable
+rustup component add rustfmt --toolchain stable
 ```
 
 **3. Running rustfmt**
@@ -102,7 +102,7 @@ rustup component add rustfmt-preview --toolchain stable
 To run `rustfmt`, use this command:
 
 ```sh
-cargo +stable fmt
+cargo fmt
 ```
 
 [rustfmt]: https://github.com/rust-lang-nursery/rustfmt
