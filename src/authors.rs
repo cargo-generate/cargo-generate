@@ -1,25 +1,19 @@
+use anyhow::Result;
 use git2::{Config as GitConfig, Repository as GitRepository};
-use quicli::prelude::*;
 use std::env;
 
-/// Taken from cargo and thus (c) 2018 Cargo Developers
+/// Taken from cargo and thus (c) 2020 Cargo Developers
 ///
-/// cf. https://github.com/rust-lang/cargo/blob/d33c65cbd9d6f7ba1e18b2cdb85fea5a09973d3b/src/cargo/ops/cargo_new.rs#L595-L645
-pub fn get_authors() -> Result<String, failure::Error> {
+/// cf. https://github.com/rust-lang/cargo/blob/2d5c2381e4e50484bf281fc1bfe19743aa9eb37a/src/cargo/ops/cargo_new.rs#L769-L851
+pub(crate) fn get_authors() -> Result<String> {
     fn get_environment_variable(variables: &[&str]) -> Option<String> {
         variables.iter().filter_map(|var| env::var(var).ok()).next()
     }
 
-    fn discover_author() -> Result<(String, Option<String>), failure::Error> {
-        let cwd = env::current_dir()?;
-        let git_config = if let Ok(repo) = GitRepository::discover(&cwd) {
-            repo.config()
-                .ok()
-                .or_else(|| GitConfig::open_default().ok())
-        } else {
-            GitConfig::open_default().ok()
-        };
+    fn discover_author() -> Result<(String, Option<String>)> {
+        let git_config = find_real_git_config();
         let git_config = git_config.as_ref();
+
         let name_variables = [
             "CARGO_NAME",
             "GIT_AUTHOR_NAME",
@@ -36,7 +30,7 @@ pub fn get_authors() -> Result<String, failure::Error> {
             Some(name) => name,
             None => {
                 let username_var = if cfg!(windows) { "USERNAME" } else { "USER" };
-                bail!(
+                anyhow::bail!(
                     "could not determine the current user, please set ${}",
                     username_var
                 )
@@ -53,9 +47,29 @@ pub fn get_authors() -> Result<String, failure::Error> {
             .or_else(|| get_environment_variable(&email_variables[3..]));
 
         let name = name.trim().to_string();
-        let email = email.map(|s| s.trim().to_string());
+        let email = email.map(|s| {
+            let mut s = s.trim();
+
+            // In some cases emails will already have <> remove them since they
+            // are already added when needed.
+            if s.starts_with('<') && s.ends_with('>') {
+                s = &s[1..s.len() - 1];
+            }
+
+            s.to_string()
+        });
 
         Ok((name, email))
+    }
+
+    fn find_real_git_config() -> Option<GitConfig> {
+        match env::current_dir() {
+            Ok(cwd) => GitRepository::discover(cwd)
+                .and_then(|repo| repo.config())
+                .or_else(|_| GitConfig::open_default())
+                .ok(),
+            Err(_) => GitConfig::open_default().ok(),
+        }
     }
 
     let author = match discover_author()? {

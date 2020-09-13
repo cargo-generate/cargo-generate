@@ -1,19 +1,17 @@
 use crate::emoji;
+use anyhow::Result;
 use console::style;
 use dialoguer::Input;
-use quicli::prelude::Error;
 
-pub fn name() -> Result<String, Error> {
+pub(crate) fn name() -> Result<String> {
     let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;
-    let name = loop {
-        let name = Input::new(&format!(
-            "{} {}",
-            emoji::SHRUG,
-            style("Project Name").bold()
-        ))
-        .interact()?;
+    loop {
+        let name: String = Input::new()
+            .with_prompt(format!("{} {}", emoji::SHRUG, style("Project Name").bold()))
+            .interact()?;
+
         if valid_ident.is_match(&name) {
-            break name;
+            return Ok(name);
         } else {
             eprintln!(
                 "{} {} \"{}\" {}",
@@ -23,6 +21,5 @@ pub fn name() -> Result<String, Error> {
                 style("is not a valid crate name").bold().red()
             );
         }
-    };
-    Ok(name)
+    }
 }

@@ -1,37 +1,45 @@
 use crate::emoji;
+use anyhow::Result;
 use serde::Deserialize;
 use std::fs;
 use std::io::ErrorKind;
 use std::path::Path;
 
-pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
+pub(crate) const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
 #[derive(Deserialize, Debug)]
-pub struct Config {
-    pub template: TemplateConfig,
+pub(crate) struct Config {
+    pub(crate) template: TemplateConfig,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct TemplateConfig {
-    pub include: Option<Vec<String>>,
-    pub exclude: Option<Vec<String>>,
+pub(crate) struct TemplateConfig {
+    pub(crate) include: Option<Vec<String>>,
+    pub(crate) exclude: Option<Vec<String>>,
 }
 
 impl Config {
-    pub fn new<P: AsRef<Path>>(path: P) -> Result<Option<Self>, failure::Error> {
+    pub(crate) fn new<P: AsRef<Path>>(path: P) -> Result<Option<Self>> {
         match fs::read_to_string(path) {
             Ok(contents) => {
-                let config: Config = toml::from_str(&contents)?;
+                let mut config: Config = toml::from_str(&contents)?;
 
                 if config.template.include.is_some() && config.template.exclude.is_some() {
-                    println!("{0} Your {1} contains both an include and exclude list. Only the include list will be considered. You should remove the exclude list for clarity. {0}", emoji::WARN, CONFIG_FILE_NAME)
+                    config.template.exclude = None;
+                    println!(
+                        "{0} Your {1} contains both an include and exclude list. \
+                        Only the include list will be considered. \
+                        You should remove the exclude list for clarity. {0}",
+                        emoji::WARN,
+                        CONFIG_FILE_NAME
+                    )
                 }
 
                 Ok(Some(config))
             }
             Err(e) => match e.kind() {
                 ErrorKind::NotFound => Ok(None),
-                _ => failure::bail!(e),
+                _ => anyhow::bail!(e),
             },
         }
     }

@@ -7,6 +7,10 @@ use predicates::prelude::*;
 use std::fs;
 use std::process::Command;
 
+fn binary() -> Command {
+    Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap()
+}
+
 #[test]
 fn it_substitutes_projectname_in_cargo_toml() {
     let template = dir("template")
@@ -23,13 +27,14 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -56,13 +61,14 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -89,13 +95,14 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
         .arg("--name")
         .arg("foobar_project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -120,13 +127,14 @@ extern crate {{crate_name}};
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -153,13 +161,14 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
         .arg("-n")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -186,13 +195,14 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
         .arg("--name")
         .arg("foobar_project")
+        .arg("--branch")
+        .arg("main")
         .arg("--force")
         .current_dir(&dir.path())
         .assert()
@@ -229,13 +239,14 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
         .arg("-n")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -269,13 +280,14 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
         .arg("-n")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .arg("--verbose")
         .current_dir(&dir.path())
         .assert()
@@ -300,13 +312,14 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
         .arg("-n")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -333,13 +346,14 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
         .arg("-n")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -379,13 +393,14 @@ version = "0.1.0"
         dangerous_file.to_str().expect("Could not read path.")
     ));
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
         .arg("-n")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -419,13 +434,14 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
         .arg("-n")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -442,7 +458,7 @@ version = "0.1.0"
 
 #[test]
 fn it_allows_a_git_branch_to_be_specified() {
-    // Build and commit on master
+    // Build and commit on branch named 'main'
     let template = dir("template")
         .file(
             "Cargo.toml",
@@ -458,8 +474,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--branch")
         .arg("baz")
@@ -484,7 +499,7 @@ fn it_loads_a_submodule() {
         .init_git()
         .build();
 
-    let submodule_url = "file://".to_string() + submodule.path().to_str().unwrap();
+    let submodule_url = url::Url::from_file_path(submodule.path()).unwrap();
     let template = dir("template")
         .file(
             "Cargo.toml",
@@ -495,17 +510,18 @@ version = "0.1.0"
 "#,
         )
         .init_git()
-        .add_submodule("./submodule/", &submodule_url)
+        .add_submodule("./submodule/", submodule_url.as_str())
         .build();
 
     let dir = dir("main").build();
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -543,13 +559,14 @@ version = "0.1.0"
             .to_string();
 
     let dir = dir("main").build();
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(relative_path)
         .arg("--name")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -570,15 +587,14 @@ fn it_respects_template_branch_name() {
     Command::new("git")
         .arg("branch")
         .arg("-m")
-        .arg("master")
+        .arg("main")
         .arg("gh-pages")
         .current_dir(template.path())
         .assert()
         .success();
 
     let dir = dir("main").build();
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -617,13 +633,14 @@ exclude = ["excluded2"]
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -657,13 +674,14 @@ exclude = ["excluded"]
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -704,13 +722,14 @@ exclude = ["not-actually-excluded"]
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -746,13 +765,14 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
         .arg("-n")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -782,13 +802,14 @@ version = "0.1.0"
         .build();
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
         .arg("-n")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -813,13 +834,14 @@ fn it_doesnt_warn_with_neither_config_nor_ignore() {
         .build();
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
         .arg("-n")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -844,13 +866,14 @@ fn it_applies_filters() {
     let dir = dir("main").build();
     // without_suffix = {{crate_name | split "_project" | first}}
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -872,13 +895,14 @@ fn it_processes_dot_github_directory_files() {
         .build();
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("gen")
         .arg("--git")
         .arg(template.path())
         .arg("-n")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -910,13 +934,14 @@ _This README was generated with [cargo-readme](https://github.com/livioribeiro/c
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()

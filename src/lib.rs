@@ -11,11 +11,11 @@ mod template;
 
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
-use cargo;
+use anyhow::Result;
 use config::{Config, CONFIG_FILE_NAME};
 use console::style;
 use std::env;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
 /// Generate a new Cargo project from a given template
@@ -50,24 +50,33 @@ pub enum Cli {
 
 #[derive(Debug, StructOpt)]
 pub struct Args {
+    /// Git repository to clone template from. Can be a URL (like
+    /// `https://github.com/rust-cli/cli-template`), a path (relative or absolute), or an
+    /// `owner/repo` abbreviated GitHub URL (like `rust-cli/cli-template`).
+    /// Note that cargo generate will first attempt to interpret the `owner/repo` form as a
+    /// relative path and only try a GitHub URL if the local path doesn't exist.
     #[structopt(short, long)]
     git: String,
-    // Branch to use when installing from git
+    /// Branch to use when installing from git
     #[structopt(short, long)]
     branch: Option<String>,
+    /// Directory to create / project name; if the name isn't in kebab-case, it will be converted
+    /// to kebab-case unless `--force` is given.
     #[structopt(long, short)]
     name: Option<String>,
-    /// Enforce to create a new project without case conversion of project name
+    /// Don't convert the project name to kebab-case before creating the directory.
+    /// Note that cargo generate won't overwrite an existing directory, even if `--force` is given.
     #[structopt(long, short)]
     force: bool,
+    /// Enables more verbose output.
     #[structopt(long, short)]
     verbose: bool,
 }
 
-pub fn generate(args: Args) -> Result<(), failure::Error> {
-    let name = match &args.name {
+pub fn generate(args: Args) -> Result<()> {
+    let name = match args.name {
         Some(ref n) => ProjectName::new(n),
-        None => ProjectName::new(&interactive::name()?),
+        None => ProjectName::new(interactive::name()?),
     };
 
     create_git(args, &name)?;
@@ -75,17 +84,18 @@ pub fn generate(args: Args) -> Result<(), failure::Error> {
     Ok(())
 }
 
-fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
+fn create_git(args: Args, name: &ProjectName) -> Result<()> {
     let force = args.force;
-    let branch = args.branch.unwrap_or_else(|| "master".to_string());
-    let config = GitConfig::new(args.git, branch.clone())?;
+    let branch = args.branch.as_deref().unwrap_or("master");
+    let config = GitConfig::new_abbr(&args.git, branch.to_owned())?;
     let verbose = args.verbose;
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, config) {
             Ok(_) => {
-                git::remove_history(dir).unwrap_or(progress(name, dir, force, &branch, verbose)?)
+                git::remove_history(dir)?;
+                progress(name, dir, force, branch, verbose)?;
             }
-            Err(e) => failure::bail!(
+            Err(e) => anyhow::bail!(
                 "{} {} {}",
                 emoji::ERROR,
                 style("Git Error:").bold().red(),
@@ -93,7 +103,7 @@ fn create_git(args: Args, name: &ProjectName) -> Result<(), failure::Error> {
             ),
         };
     } else {
-        failure::bail!(
+        anyhow::bail!(
             "{} {}",
             emoji::ERROR,
             style("Target directory already exists, aborting!")
@@ -132,15 +142,14 @@ fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
 
 fn progress(
     name: &ProjectName,
-    dir: &PathBuf,
+    dir: &Path,
     force: bool,
     branch: &str,
     verbose: bool,
-) -> Result<(), failure::Error> {
+) -> Result<()> {
     let template = template::substitute(name, force)?;
 
-    let mut config_path = dir.clone();
-    config_path.push(CONFIG_FILE_NAME);
+    let config_path = dir.join(CONFIG_FILE_NAME);
 
     let template_config = Config::new(config_path)?.map(|c| c.template);
 
@@ -158,7 +167,7 @@ fn progress(
     Ok(())
 }
 
-fn gen_success(dir: &PathBuf) {
+fn gen_success(dir: &Path) {
     let dir_string = dir.to_str().unwrap_or("");
     println!(
         "{} {} {} {}",

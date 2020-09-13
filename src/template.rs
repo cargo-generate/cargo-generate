@@ -3,13 +3,13 @@ use crate::config::TemplateConfig;
 use crate::emoji;
 use crate::include_exclude::*;
 use crate::projectname::ProjectName;
+use anyhow::{Context, Result};
 use console::style;
 use heck::{CamelCase, KebabCase, SnakeCase};
 use indicatif::ProgressBar;
 use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, ValueView};
-use quicli::prelude::*;
 use std::fs;
-use std::path::PathBuf;
+use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
 
 fn engine() -> liquid::Parser {
@@ -27,7 +27,7 @@ fn engine() -> liquid::Parser {
     description = "Change text to kebab-case.",
     parsed(KebabCaseFilter)
 )]
-pub struct KebabCaseFilterParser;
+pub(crate) struct KebabCaseFilterParser;
 
 #[derive(Debug, Default, liquid_derive::Display_filter)]
 #[name = "kebab_case"]
@@ -54,7 +54,7 @@ impl Filter for KebabCaseFilter {
     description = "Change text to PascalCase.",
     parsed(PascalCaseFilter)
 )]
-pub struct PascalCaseFilterParser;
+pub(crate) struct PascalCaseFilterParser;
 
 #[derive(Debug, Default, liquid_derive::Display_filter)]
 #[name = "pascal_case"]
@@ -70,7 +70,7 @@ impl Filter for PascalCaseFilter {
             .as_scalar()
             .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
 
-        let input = input.into_string().to_string().to_camel_case();
+        let input = input.into_string().to_camel_case();
         Ok(liquid::model::Value::scalar(input))
     }
 }
@@ -81,7 +81,7 @@ impl Filter for PascalCaseFilter {
     description = "Change text to snake_case.",
     parsed(SnakeCaseFilter)
 )]
-pub struct SnakeCaseFilterParser;
+pub(crate) struct SnakeCaseFilterParser;
 
 #[derive(Debug, Default, liquid_derive::Display_filter)]
 #[name = "snake_case"]
@@ -97,12 +97,12 @@ impl Filter for SnakeCaseFilter {
             .as_scalar()
             .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
 
-        let input = input.into_string().to_string().to_snake_case();
+        let input = input.into_string().to_snake_case();
         Ok(input.to_value())
     }
 }
 
-pub fn substitute(name: &ProjectName, force: bool) -> Result<Object, failure::Error> {
+pub(crate) fn substitute(name: &ProjectName, force: bool) -> Result<Object> {
     let project_name = if force { name.raw() } else { name.kebab_case() };
     let authors = authors::get_authors()?;
 
@@ -113,12 +113,12 @@ pub fn substitute(name: &ProjectName, force: bool) -> Result<Object, failure::Er
     }))
 }
 
-pub fn walk_dir(
-    project_dir: &PathBuf,
+pub(crate) fn walk_dir(
+    project_dir: &Path,
     template: Object,
     template_config: Option<TemplateConfig>,
     pbar: ProgressBar,
-) -> Result<(), failure::Error> {
+) -> Result<()> {
     fn is_dir(entry: &DirEntry) -> bool {
         entry.file_type().is_dir()
     }
@@ -152,7 +152,7 @@ pub fn walk_dir(
                 .clone()
                 .parse_file(filename)?
                 .render(&template)
-                .with_context(|_e| {
+                .with_context(|| {
                     format!(
                         "{} {} `{}`",
                         emoji::ERROR,
@@ -160,7 +160,7 @@ pub fn walk_dir(
                         style(filename.display()).bold()
                     )
                 })?;
-            fs::write(filename, new_contents).with_context(|_e| {
+            fs::write(filename, new_contents).with_context(|| {
                 format!(
                     "{} {} `{}`",
                     emoji::ERROR,
