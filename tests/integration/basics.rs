@@ -68,6 +68,8 @@ version = "0.1.0"
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -75,6 +77,43 @@ version = "0.1.0"
 
     assert!(dir.read("foobar-project/Cargo.toml").contains("fart"));
 }
+
+#[test]
+fn it_skips_substitution_for_unknown_variables_in_cargo_toml() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{ project-name }}"
+description = "{{ project-description }}"
+description2 = "{{ project-some-other-thing }}"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    Command::main_binary()
+        .unwrap()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.read("foobar-project/Cargo.toml").contains("foobar-project"), "project-name was not substituted");
+    assert!(!dir.read("foobar-project/Cargo.toml").contains("{{ project-description }}"));
+    assert!(!dir.read("foobar-project/Cargo.toml").contains("{{ project-some-other-thing }}"));
+}
+
 #[test]
 fn it_substitutes_date() {
     let template = dir("template")
