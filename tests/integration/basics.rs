@@ -61,8 +61,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
@@ -95,8 +94,7 @@ version = "0.1.0"
 
     let dir = dir("main").build();
 
-    Command::main_binary()
-        .unwrap()
+    binary()
         .arg("generate")
         .arg("--git")
         .arg(template.path())
