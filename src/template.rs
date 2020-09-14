@@ -11,6 +11,7 @@ use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, ValueV
 use std::env;
 use liquid::Template;
 use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, Value, ValueView};
+use std::fmt::Write;
 use std::fs;
 use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
@@ -166,7 +167,7 @@ pub(crate) fn walk_dir(
             }
         }
     }
-    if files_with_errors.len() > 0 {
+    if !files_with_errors.is_empty() {
         let warn = construct_substitution_warning(files_with_errors);
         println!("{}", warn);
     }
@@ -175,11 +176,7 @@ pub(crate) fn walk_dir(
     Ok(())
 }
 
-fn parse_and_replace(
-    context: &Object,
-    filename: &Path,
-    parsed_file: Template,
-) -> Result<(), anyhow::Error> {
+fn parse_and_replace(context: &Object, filename: &Path, parsed_file: Template) -> Result<()> {
     let new_content = parse_file(context, filename, &parsed_file);
     fs::write(filename, new_content).with_context(|| {
         format!(
@@ -241,8 +238,7 @@ fn construct_substitution_warning(files_with_errors: Vec<(String, liquid_core::E
         msg.push_str("\n");
     }
     msg.push_str("\n");
-    let info = format!("{}", style("Consider adding these files to a `cargo-generate.toml` in the template repo to skip substitution on these files.\n").bold());
-    msg.push_str(&info);
+    writeln!(msg, "{}", style("Consider adding these files to a `cargo-generate.toml` in the template repo to skip substitution on these files.").bold()).unwrap();
     msg.push_str(
         "Learn more: https://github.com/ashleygwilliams/cargo-generate#include--exclude.\n\n",
     );
