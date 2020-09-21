@@ -1,5 +1,114 @@
 # Changelog
 
+## 🕴️ 0.5.1
+
+  - ### 🤕 Fixes
+
+    - **Ignore files in `.genignore` _before_ walking/substitution - [schell], [pull/235] [issue/236]**
+
+      This fixes scenarios where liquid variables cause parsing errors in files that should be ignored.
+
+      [schell]: https://github.com/schell
+      [pull/235]: https://github.com/ashleygwilliams/cargo-generate/pull/235
+      [issues/236]: https://github.com/ashleygwilliams/cargo-generate/issues/236
+
+    - **Fix in CLI `help` option - [SirWindfield], [pull/234]**
+
+      This fix the display of the `--branch` option in the help message, when executing `cargo generate --help`.
+
+      [SirWindfield]: https://github.com/SirWindfield 
+      [pull/234]: https://github.com/ashleygwilliams/cargo-generate/pull/234
+
+  - ### 👯 New Templates
+
+    - **`generust`: a template that provides a Rust web server and WASM client with some [interesting features](https://github.com/KyleU/generust/blob/master/doc/features.md) - [KyleU], [pull/203]**
+
+      [KyleU]: https://github.com/KyleU
+      [pull/203]: https://github.com/ashleygwilliams/cargo-generate/pull/203
+
+    - **`orbtk`: a template that lets you create user interfaces using [OrbTk](https://github.com/redox-os/orbtk-template) - [FloVanGH], [pull/214]**
+
+      [FloVanGH]: https://github.com/FloVanGH
+      [pull/214]: https://github.com/ashleygwilliams/cargo-generate/pull/214
+
+    - **`template-rust-backend-with-electron-frontend`: a template that lets you write a Rust native cdylib backend with [Electron](https://www.electronjs.org/) frontend - [usagi], [pull/218]**
+
+      [usagi]: https://github.com/usagi
+      [pull/218]: https://github.com/ashleygwilliams/cargo-generate/pull/218
+
+    - **`swift-rust-xcode-template`: a template that lets you write an iOS app with [Swift](https://www.apple.com/swift/) and Rust - [simlay], [pull/219]**
+
+      [simlay]: https://github.com/simlay
+      [pull/219]: https://github.com/ashleygwilliams/cargo-generate/pull/219
+
+    - **`Win32`: a template that provides an interface to write low-level Win32 applications in Rust - [ArmsOfSorrow], [pull/220]**
+
+      [ArmsOfSorrow]: https://github.com/ArmsOfSorrow
+      [pull/220]: https://github.com/ashleygwilliams/cargo-generate/pull/220
+
+    - **`QuickStart WebAssembly`: a template that lets you create a WebAssembly application with Rust - [PankajChaudhary5], [pull/227]**
+
+      [PankajChaudhary5]: https://github.com/PankajChaudhary5
+      [pull/227]: https://github.com/ashleygwilliams/cargo-generate/pull/227
+
+    - **`rust-cli-template`: a template that lets you create easily a CLI with interesting features in it ([color_eyre](https://docs.rs/color_eyre), [tracing](https://docs.rs/tracing), in addition to benchmarking and testing boilerplate) - [9999years], [pull/239]**
+
+      [9999years]: https://github.com/9999years
+      [pull/239]: https://github.com/ashleygwilliams/cargo-generate/pull/239
+
+    - **`mongodb-service-template`: a template that lets you create a GraphQL service with MongoDB as backing storage - [bdbmammoth], [pull/243]**
+
+      [bdbmammoth]: https://github.com/bdbmammoth
+      [pull/243]: https://github.com/ashleygwilliams/cargo-generate/pull/243
+
+  - ### 🛠️ Maintenance
+
+    - **Support for `owner/repo` abbreviation for git URL format - [9999years], [pull/242]**
+
+      [9999years]: https://github.com/9999years
+      [pull/242]: https://github.com/ashleygwilliams/cargo-generate/pull/242
+
+    - **Usage of default git branch instead of `master` - [9999years], [pull/241]**
+
+      [9999years]: https://github.com/9999years
+      [pull/241]: https://github.com/ashleygwilliams/cargo-generate/pull/241
+
+    - **Updated `cargo-generate` to the latest and greatest in the Rust ecosystem - [Veetaha], [pull/237]**
+
+      - Update all dependencies versions to latest ones
+      - Replace `rustfmt-preview` with `rustfmt`
+      - Replace `failure` with `anyhow`
+      - Remove `quicli` completely
+      - Update cargo authors copied code to latest cargo master
+      - Fix clippy lints:
+        - Replace &PathBuf to &Path in code
+        - Remove bare `use crate_name` entires
+        - Replace unexported `pub` with `pub(crate)`
+      - Apply some cosmetic impl refactorings
+
+      [Veetaha]: https://github.com/Veetaha
+      [pull/237]: https://github.com/ashleygwilliams/cargo-generate/pull/237
+
+    - **Code refactoring - [SirWindfield], [pull/233]**
+
+      [SirWindfield]: https://github.com/SirWindfield 
+      [pull/233]: https://github.com/ashleygwilliams/cargo-generate/pull/233
+
+
+    - **Support all `liquid` filters - [sassman], [pull/225]**
+
+      - Upgrade `liquid` to v0.20
+      - Enables all `liquid` default filters
+      - Fix some findings of clippy
+
+      [sassman]: https://github.com/sassman
+      [pull/225]: https://github.com/ashleygwilliams/cargo-generate/pull/225
+
+    - **Typo fixes in CONTRIBUTING.md - [Darrenmeehan], [pull/222]**
+
+      [Darrenmeehan]: https://github.com/Darrenmeehan
+      [pull/222]: https://github.com/ashleygwilliams/cargo-generate/pull/222
+
 ## 🧟‍♀️ 0.5.0
 
   - ### ✨ Features
