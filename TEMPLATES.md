@@ -20,6 +20,7 @@
 - [rust-cli-template]: Write a CLI with [color_eyre] and [tracing] already set
   up, in addition to benchmarking and testing boilerplate [Rebecca Turner]
 - [mongodb-service-template]: Create a graphql service using mongodb [briandeboer]
+- [godot-rust-template]: Create games with Godot and Rust [macalimlim]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -60,3 +61,5 @@
 [tracing]: https://docs.rs/tracing
 [mongodb-service-template]: https://github.com/briandeboer/mongodb-service-template
 [briandeboer]: https://github.com/briandeboer
+[godot-rust-template]: https://github.com/godot-rust/godot-rust-template
+[macalimlim]: https://github.com/macalimlim
