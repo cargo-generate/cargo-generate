@@ -4,6 +4,7 @@ use crate::helpers::project_builder::dir;
 
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
+use std::env;
 use std::fs;
 use std::process::Command;
 
@@ -77,6 +78,33 @@ version = "0.1.0"
     assert!(dir
         .read("foobar-project/Cargo.toml")
         .contains("Copyright 2018"));
+}
+
+#[test]
+fn it_substitutes_os_arch() {
+    let template = dir("template")
+        .file("some-file", r#"{{os-arch}}"#)
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/some-file")
+        .contains(&format!("{}-{}", env::consts::OS, env::consts::ARCH).to_string()));
 }
 
 #[test]
