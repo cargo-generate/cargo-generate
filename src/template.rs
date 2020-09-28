@@ -8,6 +8,7 @@ use console::style;
 use heck::{CamelCase, KebabCase, SnakeCase};
 use indicatif::ProgressBar;
 use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, ValueView};
+use std::env;
 use std::fs;
 use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
@@ -105,11 +106,13 @@ impl Filter for SnakeCaseFilter {
 pub(crate) fn substitute(name: &ProjectName, force: bool) -> Result<Object> {
     let project_name = if force { name.raw() } else { name.kebab_case() };
     let authors = authors::get_authors()?;
+    let os_arch = format!("{}-{}", env::consts::OS, env::consts::ARCH);
 
     Ok(liquid::object!({
         "project-name": project_name,
         "crate_name": name.snake_case(),
         "authors": authors,
+        "os-arch": os_arch,
     }))
 }
 
