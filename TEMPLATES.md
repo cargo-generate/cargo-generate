@@ -21,6 +21,7 @@
   up, in addition to benchmarking and testing boilerplate [Rebecca Turner]
 - [mongodb-service-template]: Create a graphql service using mongodb [briandeboer]
 - [godot-rust-template]: Create games with Godot and Rust [macalimlim]
+- [github-template]: Write a generical rust application with CI and CD hosted on GitHub, [MarcoIeni]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -63,3 +64,5 @@
 [briandeboer]: https://github.com/briandeboer
 [godot-rust-template]: https://github.com/godot-rust/godot-rust-template
 [macalimlim]: https://github.com/macalimlim
+[github-template]: https://rust-github.github.io/
+[MarcoIeni]: https://github.com/MarcoIeni
