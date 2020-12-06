@@ -17,7 +17,7 @@ pub(crate) struct GitConfig {
 
 impl GitConfig {
     /// Creates a new `GitConfig` by parsing `git` as a URL or a local path.
-    pub fn new(git: &str, branch: String) -> Result<Self> {
+    pub fn new(git: &str, branch: Option<String>) -> Result<Self> {
         let remote = match Url::parse(git) {
             Ok(u) => u,
             Err(ParseError::RelativeUrlWithoutBase) => {
@@ -48,7 +48,9 @@ impl GitConfig {
 
         Ok(GitConfig {
             remote,
-            branch: GitReference::Branch(branch),
+            branch: branch
+                .map(GitReference::Branch)
+                .unwrap_or(GitReference::DefaultBranch),
         })
     }
 
@@ -56,22 +58,49 @@ impl GitConfig {
     /// [hub].
     ///
     /// [hub]: https://github.com/github/hub
-    pub fn new_abbr(git: &str, branch: String) -> Result<Self> {
+    pub fn new_abbr(git: &str, branch: Option<String>) -> Result<Self> {
         Self::new(git, branch.clone()).or_else(|e| {
             Self::new(&format!("https://github.com/{}.git", git), branch).map_err(|_| e)
         })
     }
 }
 
-pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<()> {
+pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
     let temp = Builder::new().prefix(project_dir).tempdir()?;
     let config = Config::default()?;
     let remote = GitRemote::new(&args.remote);
-    let (db, rev) = remote.checkout(&temp.path(), &args.branch, &config)?;
+
+    let ((db, rev), branch_name) = match &args.branch {
+        GitReference::Branch(branch_name) => (
+            remote.checkout(&temp.path(), None, &args.branch, None, &config)?,
+            branch_name.clone(),
+        ),
+        GitReference::DefaultBranch => remote
+            .checkout(
+                &temp.path(),
+                None,
+                &GitReference::Branch("main".into()),
+                None,
+                &config,
+            )
+            .map(|x| (x, "main".to_owned()))
+            .or_else(|_| {
+                remote
+                    .checkout(
+                        &temp.path(),
+                        None,
+                        &GitReference::Branch("master".into()),
+                        None,
+                        &config,
+                    )
+                    .map(|x| (x, "master".to_owned()))
+            })?,
+        _ => unreachable!(),
+    };
 
     // This clones the remote and handles all the submodules
     db.copy_to(rev, project_dir, &config)?;
-    Ok(())
+    Ok(branch_name)
 }
 
 pub(crate) fn remove_history(project_dir: &Path) -> Result<()> {

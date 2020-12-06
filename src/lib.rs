@@ -86,14 +86,13 @@ pub fn generate(args: Args) -> Result<()> {
 
 fn create_git(args: Args, name: &ProjectName) -> Result<()> {
     let force = args.force;
-    let branch = args.branch.as_deref().unwrap_or("master");
-    let config = GitConfig::new_abbr(&args.git, branch.to_owned())?;
+    let config = GitConfig::new_abbr(&args.git, args.branch.to_owned())?;
     let verbose = args.verbose;
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, config) {
-            Ok(_) => {
+            Ok(branch) => {
                 git::remove_history(dir)?;
-                progress(name, dir, force, branch, verbose)?;
+                progress(name, dir, force, &branch, verbose)?;
             }
             Err(e) => anyhow::bail!(
                 "{} {} {}",
