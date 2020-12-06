@@ -154,10 +154,7 @@ mod tests {
         assert!(GitConfig::new("aslkdgjlaskjdglskj", None).is_err());
 
         // Local path does exist.
-        let remote = GitConfig::new("src", None)
-            .unwrap()
-            .remote
-            .into_string();
+        let remote = GitConfig::new("src", None).unwrap().remote.into_string();
         assert!(
             remote.ends_with("/src"),
             format!("remote {} ends with /src", &remote)
