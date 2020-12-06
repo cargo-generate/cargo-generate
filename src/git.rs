@@ -75,26 +75,34 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
             remote.checkout(&temp.path(), None, &args.branch, None, &config)?,
             branch_name.clone(),
         ),
-        GitReference::DefaultBranch => remote
-            .checkout(
-                &temp.path(),
-                None,
-                &GitReference::Branch("main".into()),
-                None,
-                &config,
+        GitReference::DefaultBranch => {
+            // Cargo has a specific behavior for now for handling the "default" branch. It forces
+            // it to the branch named "master" even if the actual default branch of the repository
+            // is something else. They intent to change this behavior in the future but they don't
+            // want to break the compatibility.
+            //
+            // See issues:
+            //  - https://github.com/rust-lang/cargo/issues/8364
+            //  - https://github.com/rust-lang/cargo/issues/8468
+            let repo = git2::Repository::init(&temp.path())?;
+            let mut git_remote = repo.remote_anonymous(remote.url().as_str())?;
+            git_remote.connect(git2::Direction::Fetch)?;
+            let default_branch = git_remote.default_branch()?;
+            let branch_name = default_branch
+                .as_str()
+                .unwrap_or("refs/heads/master")
+                .replace("refs/heads/", "");
+            (
+                remote.checkout(
+                    &temp.path(),
+                    None,
+                    &GitReference::Branch(branch_name.clone()),
+                    None,
+                    &config,
+                )?,
+                branch_name,
             )
-            .map(|x| (x, "main".to_owned()))
-            .or_else(|_| {
-                remote
-                    .checkout(
-                        &temp.path(),
-                        None,
-                        &GitReference::Branch("master".into()),
-                        None,
-                        &config,
-                    )
-                    .map(|x| (x, "master".to_owned()))
-            })?,
+        }
         _ => unreachable!(),
     };
 
@@ -124,7 +132,7 @@ mod tests {
         // Remote HTTPS URL.
         let cfg = GitConfig::new(
             "https://github.com/ashleygwilliams/cargo-generate.git",
-            "main".to_owned(),
+            Some("main".to_owned()),
         )
         .unwrap();
 
@@ -138,15 +146,15 @@ mod tests {
         // how common SSH URLs are at this point anyways...?
         assert!(GitConfig::new(
             "ssh://git@github.com:ashleygwilliams/cargo-generate.git",
-            String::new(),
+            None,
         )
         .is_err());
 
         // Local path doesn't exist.
-        assert!(GitConfig::new("aslkdgjlaskjdglskj", String::new()).is_err());
+        assert!(GitConfig::new("aslkdgjlaskjdglskj", None).is_err());
 
         // Local path does exist.
-        let remote = GitConfig::new("src", String::new())
+        let remote = GitConfig::new("src", None)
             .unwrap()
             .remote
             .into_string();
@@ -168,7 +176,7 @@ mod tests {
             // Absolute path.
             // If this fails because you cloned this repository into a non-UTF-8 directory... all
             // I can say is you probably had it comin'.
-            let remote = GitConfig::new(current_dir().unwrap().to_str().unwrap(), String::new())
+            let remote = GitConfig::new(current_dir().unwrap().to_str().unwrap(), None)
                 .unwrap()
                 .remote
                 .into_string();
@@ -183,7 +191,7 @@ mod tests {
     fn gitconfig_new_abbr_test() {
         // Abbreviated owner/repo form
         assert_eq!(
-            GitConfig::new_abbr("ashleygwilliams/cargo-generate", String::new())
+            GitConfig::new_abbr("ashleygwilliams/cargo-generate", None)
                 .unwrap()
                 .remote,
             Url::parse("https://github.com/ashleygwilliams/cargo-generate.git").unwrap()
