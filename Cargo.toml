@@ -7,7 +7,6 @@ authors = [
 ]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/ashleygwilliams/cargo-generate"
-readme = "README.md"
 edition = "2018"
 
 [dependencies]
