@@ -6,11 +6,15 @@ use structopt::StructOpt;
 ///
 /// Right now, only git repositories can be used as templates. Just execute
 ///
+/// ```sh
 /// $ cargo generate --git https://github.com/user/template.git --name foo
+/// ```
 ///
 /// or
 ///
-/// $ cargo gen --git https://github.com/user/template.git --name foo
+/// ```sh
+/// $ cargo generate --git https://github.com/user/template.git --name foo
+/// ```
 ///
 /// and a new Cargo project called foo will be generated.
 ///
