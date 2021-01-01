@@ -357,6 +357,39 @@ version = "0.1.0"
 }
 
 #[test]
+fn it_always_removes_cargo_ok_file() {
+    let template = dir("template")
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .file(".genignore", r#"farts"#)
+        .init_git()
+        .build();
+
+    let dir = dir("main").build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert_eq!(dir.exists("foobar-project/.cargo-ok"), false);
+}
+
+#[test]
 fn it_removes_genignore_files_before_substitution() {
     let template = dir("template")
         .file(
