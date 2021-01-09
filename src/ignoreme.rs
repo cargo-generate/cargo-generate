@@ -3,12 +3,21 @@ use remove_dir_all::*;
 use std::fs::remove_file;
 use std::{
     collections::HashSet,
-    iter,
     path::{Path, PathBuf},
 };
 
 use crate::config::CONFIG_FILE_NAME;
 pub(crate) const IGNORE_FILE_NAME: &str = ".genignore";
+
+// We ignore the `.cargo-ok` file if one is present. This file is a somewhat
+// obscure marker that cargo leaves around after extracting a tarball to
+// indicate that the extraction succeeded, and is very likely not part of the
+// actual template.
+//
+// Leaving it around is mostly harmless in the version of cargo we depend on
+// (prior to 1.49, cargo could get very confused by it) but it serves no purpose
+// after expanding the template, other than cluttering a user's repository.
+const CARGO_OK_FILE_NAME: &str = ".cargo-ok";
 
 /// Takes the directory path and removes the files/directories specified in the
 /// `.genignore` file
@@ -26,12 +35,11 @@ fn check_if_genignore_exists(location: &Path) -> bool {
 }
 
 fn get_ignored(location: &Path) -> Vec<PathBuf> {
-    let configs = Iterator::chain(
-        iter::once(location.join(IGNORE_FILE_NAME)),
-        iter::once(location.join(CONFIG_FILE_NAME)),
-    );
+    let default_ignored = [IGNORE_FILE_NAME, CONFIG_FILE_NAME, CARGO_OK_FILE_NAME]
+        .iter()
+        .map(|&file_name| location.join(file_name));
     if !check_if_genignore_exists(location) {
-        return configs.collect();
+        return default_ignored.collect();
     }
     let all = WalkBuilder::new(location)
         .standard_filters(false)
@@ -45,7 +53,7 @@ fn get_ignored(location: &Path) -> Vec<PathBuf> {
         .map(unwrap_path)
         .collect();
 
-    configs
+    default_ignored
         .chain(all.filter(|it| !whitelisted.contains(it)))
         .collect()
 }
