@@ -64,5 +64,5 @@
 [briandeboer]: https://github.com/briandeboer
 [godot-rust-template]: https://github.com/godot-rust/godot-rust-template
 [macalimlim]: https://github.com/macalimlim
-[github-template]: https://rust-github.github.io/
+[github-template]: https://github.com/rust-github/template
 [MarcoIeni]: https://github.com/MarcoIeni
