@@ -17,7 +17,7 @@ pub(crate) struct GitConfig {
 
 impl GitConfig {
     /// Creates a new `GitConfig` by parsing `git` as a URL or a local path.
-    pub fn new(git: &str, branch: String) -> Result<Self> {
+    pub fn new(git: &str, branch: Option<String>) -> Result<Self> {
         let remote = match Url::parse(git) {
             Ok(u) => u,
             Err(ParseError::RelativeUrlWithoutBase) => {
@@ -48,7 +48,9 @@ impl GitConfig {
 
         Ok(GitConfig {
             remote,
-            branch: GitReference::Branch(branch),
+            branch: branch
+                .map(GitReference::Branch)
+                .unwrap_or(GitReference::DefaultBranch),
         })
     }
 
@@ -56,22 +58,57 @@ impl GitConfig {
     /// [hub].
     ///
     /// [hub]: https://github.com/github/hub
-    pub fn new_abbr(git: &str, branch: String) -> Result<Self> {
+    pub fn new_abbr(git: &str, branch: Option<String>) -> Result<Self> {
         Self::new(git, branch.clone()).or_else(|e| {
             Self::new(&format!("https://github.com/{}.git", git), branch).map_err(|_| e)
         })
     }
 }
 
-pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<()> {
+pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
     let temp = Builder::new().prefix(project_dir).tempdir()?;
     let config = Config::default()?;
     let remote = GitRemote::new(&args.remote);
-    let (db, rev) = remote.checkout(&temp.path(), &args.branch, &config)?;
+
+    let ((db, rev), branch_name) = match &args.branch {
+        GitReference::Branch(branch_name) => (
+            remote.checkout(&temp.path(), None, &args.branch, None, &config)?,
+            branch_name.clone(),
+        ),
+        GitReference::DefaultBranch => {
+            // Cargo has a specific behavior for now for handling the "default" branch. It forces
+            // it to the branch named "master" even if the actual default branch of the repository
+            // is something else. They intent to change this behavior in the future but they don't
+            // want to break the compatibility.
+            //
+            // See issues:
+            //  - https://github.com/rust-lang/cargo/issues/8364
+            //  - https://github.com/rust-lang/cargo/issues/8468
+            let repo = git2::Repository::init(&temp.path())?;
+            let mut git_remote = repo.remote_anonymous(remote.url().as_str())?;
+            git_remote.connect(git2::Direction::Fetch)?;
+            let default_branch = git_remote.default_branch()?;
+            let branch_name = default_branch
+                .as_str()
+                .unwrap_or("refs/heads/master")
+                .replace("refs/heads/", "");
+            (
+                remote.checkout(
+                    &temp.path(),
+                    None,
+                    &GitReference::Branch(branch_name.clone()),
+                    None,
+                    &config,
+                )?,
+                branch_name,
+            )
+        }
+        _ => unreachable!(),
+    };
 
     // This clones the remote and handles all the submodules
     db.copy_to(rev, project_dir, &config)?;
-    Ok(())
+    Ok(branch_name)
 }
 
 pub(crate) fn remove_history(project_dir: &Path) -> Result<()> {
@@ -95,7 +132,7 @@ mod tests {
         // Remote HTTPS URL.
         let cfg = GitConfig::new(
             "https://github.com/ashleygwilliams/cargo-generate.git",
-            "main".to_owned(),
+            Some("main".to_owned()),
         )
         .unwrap();
 
@@ -109,18 +146,15 @@ mod tests {
         // how common SSH URLs are at this point anyways...?
         assert!(GitConfig::new(
             "ssh://git@github.com:ashleygwilliams/cargo-generate.git",
-            String::new(),
+            None,
         )
         .is_err());
 
         // Local path doesn't exist.
-        assert!(GitConfig::new("aslkdgjlaskjdglskj", String::new()).is_err());
+        assert!(GitConfig::new("aslkdgjlaskjdglskj", None).is_err());
 
         // Local path does exist.
-        let remote = GitConfig::new("src", String::new())
-            .unwrap()
-            .remote
-            .into_string();
+        let remote = GitConfig::new("src", None).unwrap().remote.into_string();
         assert!(
             remote.ends_with("/src"),
             format!("remote {} ends with /src", &remote)
@@ -139,7 +173,7 @@ mod tests {
             // Absolute path.
             // If this fails because you cloned this repository into a non-UTF-8 directory... all
             // I can say is you probably had it comin'.
-            let remote = GitConfig::new(current_dir().unwrap().to_str().unwrap(), String::new())
+            let remote = GitConfig::new(current_dir().unwrap().to_str().unwrap(), None)
                 .unwrap()
                 .remote
                 .into_string();
@@ -154,7 +188,7 @@ mod tests {
     fn gitconfig_new_abbr_test() {
         // Abbreviated owner/repo form
         assert_eq!(
-            GitConfig::new_abbr("ashleygwilliams/cargo-generate", String::new())
+            GitConfig::new_abbr("ashleygwilliams/cargo-generate", None)
                 .unwrap()
                 .remote,
             Url::parse("https://github.com/ashleygwilliams/cargo-generate.git").unwrap()
