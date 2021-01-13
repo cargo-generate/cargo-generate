@@ -23,6 +23,8 @@ version = "0.1.0"
         name: Some(String::from("foobar_project")),
         force: true,
         verbose: true,
+        template_values_file: None,
+        silent: false,
     };
     // need to cd to the dir as we aren't running in the cargo shell.
     assert!(std::env::set_current_dir(&dir.root).is_ok());
