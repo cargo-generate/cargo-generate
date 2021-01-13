@@ -30,6 +30,7 @@ url = "2.2.0"
 structopt = "0.3.21"
 anyhow = "1.0.38"
 toml = "0.5.8"
+thiserror = "1.0.23"
 
 [dependencies.openssl]
 version = "0.10.32"
@@ -39,7 +40,6 @@ optional = true
 # same version as cargo's version
 version = "1.0.123"
 features = ["derive"]
-
 
 [dev-dependencies]
 predicates = "1.0.7"
