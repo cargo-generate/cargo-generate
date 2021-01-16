@@ -1,0 +1,128 @@
+## references:
+# cache: https://github.com/actions/cache/blob/main/examples.md#rust---cargo
+# audit: https://github.com/actions-rs/audit-check
+# "needs": https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idneeds
+
+name: Build
+on:
+  push:
+    branches: [ '*' ]
+    paths-ignore:
+      - "**/docs/**"
+      - "**.md"
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+      - "**/docs/**"
+      - "**.md"
+
+jobs:
+  check:
+    name: check
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [ 'macos-latest', 'ubuntu-latest', 'windows-latest']
+    runs-on: ${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: setup | rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          profile: minimal
+          components: clippy, rustfmt
+      - name: setup | cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - run: cargo check
+
+  lint:
+    name: lint
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [ 'macos-latest', 'ubuntu-latest', 'windows-latest']
+        cargo-cmd:
+          - fmt --all -- --check
+          - clippy --all-targets --all-features -- -D warnings
+    runs-on: ${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: setup | rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          profile: minimal
+          components: clippy, rustfmt
+      - name: setup | cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - run: cargo ${{ matrix['cargo-cmd'] }}
+
+  tests:
+    name: test
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [ 'macos-latest', 'ubuntu-latest', 'windows-latest']
+        rust: [ nightly, stable ]
+    runs-on: ${{ matrix.version }}
+    continue-on-error: ${{ matrix.rust == 'nightly' }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: setup | rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          default: true
+          profile: minimal
+      - name: setup | cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: cargo test
+        run: cargo test --all --locked -- -Z unstable-options
+
+  audit:
+    name: security audit
+    needs: check
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: setup | rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          profile: minimal
+      - name: setup | cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: audit
+        uses: actions-rs/audit-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
