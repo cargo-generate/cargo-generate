@@ -8,6 +8,7 @@ authors = [
 license = "MIT/Apache-2.0"
 repository = "https://github.com/cargo-generate/cargo-generate"
 edition = "2018"
+include = ["src/**/*", "LICENSE-*", "*.md"]
 
 [dependencies]
 cargo = "0.50.0"
