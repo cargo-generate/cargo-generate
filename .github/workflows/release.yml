@@ -121,13 +121,14 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: audit
         uses: actions-rs/audit-check@v1
+        continue-on-error: true
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
   # END of build.yml
 
   publish:
     name: post / cargo publish
-    needs: [audit, lint, tests]
+    needs: [lint, tests]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
