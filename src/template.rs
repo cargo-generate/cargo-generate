@@ -15,7 +15,7 @@ use heck::{CamelCase, KebabCase, SnakeCase};
 use indicatif::ProgressBar;
 
 use liquid::Template;
-use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, ValueView, Value};
+use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, Value, ValueView};
 
 use walkdir::{DirEntry, WalkDir};
 
@@ -236,11 +236,11 @@ fn construct_substitution_warning(files_with_errors: Vec<(String, liquid_core::E
             .red(),
     );
     for file_error in files_with_errors {
-        msg.push_str("\t");
+        msg.push('\t');
         msg.push_str(&file_error.0);
-        msg.push_str("\n");
+        msg.push('\n');
     }
-    msg.push_str("\n");
+    msg.push('\n');
     writeln!(msg, "{}", style("Consider adding these files to a `cargo-generate.toml` in the template repo to skip substitution on these files.").bold()).unwrap();
     msg.push_str(
         "Learn more: https://github.com/ashleygwilliams/cargo-generate#include--exclude.\n\n",
