@@ -12,10 +12,11 @@ impl Project {
     pub fn read(&self, path: &str) -> String {
         let mut ret = String::new();
         File::open(self.root.join(path))
-            .expect(&format!("couldn't open file {:?}", self.root.join(path)))
+            .unwrap_or_else(|_| panic!("couldn't open file {:?}", self.root.join(path)))
             .read_to_string(&mut ret)
-            .expect(&format!("couldn't read file {:?}", self.root.join(path)));
-        return ret;
+            .unwrap_or_else(|_| panic!("couldn't read file {:?}", self.root.join(path)));
+
+        ret
     }
 
     pub fn path(&self) -> &Path {
