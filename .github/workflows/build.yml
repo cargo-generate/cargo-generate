@@ -78,6 +78,10 @@ jobs:
           default: true
           profile: minimal
       - uses: Swatinem/rust-cache@v1
+      - name: git test setup preparation
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
       - name: cargo test
         run: cargo test --all --locked -- -Z unstable-options
 
