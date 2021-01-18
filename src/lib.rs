@@ -56,21 +56,21 @@ pub struct Args {
     /// Note that cargo generate will first attempt to interpret the `owner/repo` form as a
     /// relative path and only try a GitHub URL if the local path doesn't exist.
     #[structopt(short, long)]
-    git: String,
+    pub git: String,
     /// Branch to use when installing from git
     #[structopt(short, long)]
-    branch: Option<String>,
+    pub branch: Option<String>,
     /// Directory to create / project name; if the name isn't in kebab-case, it will be converted
     /// to kebab-case unless `--force` is given.
     #[structopt(long, short)]
-    name: Option<String>,
+    pub name: Option<String>,
     /// Don't convert the project name to kebab-case before creating the directory.
     /// Note that cargo generate won't overwrite an existing directory, even if `--force` is given.
     #[structopt(long, short)]
-    force: bool,
+    pub force: bool,
     /// Enables more verbose output.
     #[structopt(long, short)]
-    verbose: bool,
+    pub verbose: bool,
 }
 
 pub fn generate(args: Args) -> Result<()> {
