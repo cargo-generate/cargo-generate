@@ -38,7 +38,8 @@ fn root(name: &str) -> PathBuf {
     me.pop(); // chop off `debug` / `release`
     me.push("generated-tests");
     me.push(&format!("test-{}-{}", idx, name));
-    return me;
+
+    me
 }
 
 impl ProjectBuilder {
@@ -80,21 +81,21 @@ impl ProjectBuilder {
     pub fn build(self) -> Project {
         drop(remove_dir_all(&self.root));
         fs::create_dir_all(&self.root)
-            .expect(&format!("couldn't create {:?} directory", self.root));
+            .unwrap_or_else(|_| panic!("couldn't create {:?} directory", self.root));
 
         for &(ref file, ref contents) in self.files.iter() {
             let dst = self.root.join(file);
+            let parent = dst
+                .parent()
+                .unwrap_or_else(|| panic!("couldn't find parent dir of {:?}", dst));
 
-            fs::create_dir_all(
-                dst.parent()
-                    .expect(&format!("couldn't find parent dir of {:?}", dst)),
-            )
-            .expect(&format!("couldn't create {:?} directory", dst.parent()));
+            fs::create_dir_all(parent)
+                .unwrap_or_else(|_| panic!("couldn't create {:?} directory", parent));
 
             fs::File::create(&dst)
-                .expect(&format!("couldn't create file {:?}", dst))
+                .unwrap_or_else(|_| panic!("couldn't create file {:?}", dst))
                 .write_all(contents.as_ref())
-                .expect(&format!("couldn't write to file {:?}: {:?}", dst, contents));
+                .unwrap_or_else(|_| panic!("couldn't write to file {:?}: {:?}", dst, contents));
         }
 
         if self.git {
