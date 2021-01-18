@@ -3,17 +3,20 @@ use crate::config::TemplateConfig;
 use crate::emoji;
 use crate::include_exclude::*;
 use crate::projectname::ProjectName;
+
+use std::env;
+use std::fmt::Write;
+use std::fs;
+use std::path::Path;
+
 use anyhow::{Context, Result};
 use console::style;
 use heck::{CamelCase, KebabCase, SnakeCase};
 use indicatif::ProgressBar;
-use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, ValueView, Value};
-use std::env;
+
 use liquid::Template;
-use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, Value, ValueView};
-use std::fmt::Write;
-use std::fs;
-use std::path::Path;
+use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, ValueView, Value};
+
 use walkdir::{DirEntry, WalkDir};
 
 fn engine() -> liquid::Parser {
