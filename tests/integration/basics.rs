@@ -1,9 +1,8 @@
-use predicates;
+use predicates::prelude::*;
 
 use crate::helpers::project_builder::dir;
 
 use assert_cmd::prelude::*;
-use predicates::prelude::*;
 use std::env;
 use std::fs;
 use std::process::Command;
@@ -102,9 +101,11 @@ fn it_substitutes_os_arch() {
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(dir
-        .read("foobar-project/some-file")
-        .contains(&format!("{}-{}", env::consts::OS, env::consts::ARCH).to_string()));
+    assert!(dir.read("foobar-project/some-file").contains(&format!(
+        "{}-{}",
+        env::consts::OS,
+        env::consts::ARCH
+    )));
 }
 
 #[test]
@@ -449,10 +450,12 @@ version = "0.1.0"
         .join("..")
         .join("dangerous.todelete.cargogeneratetests");
 
-    fs::write(&dangerous_file, "YOU BETTER NOT").expect(&format!(
-        "Could not write {}",
-        dangerous_file.to_str().expect("Could not read path.")
-    ));
+    fs::write(&dangerous_file, "YOU BETTER NOT").unwrap_or_else(|_| {
+        panic!(
+            "Could not write {}",
+            dangerous_file.to_str().expect("Could not read path.")
+        )
+    });
 
     binary()
         .arg("gen")
