@@ -25,12 +25,20 @@ liquid-derive = "0.21.0"
 walkdir = "2.3.1"
 remove_dir_all = "0.6.1"
 ignore = "0.4.17"
-openssl = { version = "0.10.32", optional = true }
 url = "2.2.0"
 structopt = "0.3.21"
 anyhow = "1.0.38"
-serde = { version = "1.0.119", features = ["derive"] }
 toml = "0.5.8"
+
+[dependencies.openssl]
+version = "0.10.32"
+optional = true
+
+[dependencies.serde]
+# same version as cargo's version
+version = "1.0.82"
+features = ["derive"]
+
 
 [dev-dependencies]
 predicates = "1.0.6"
