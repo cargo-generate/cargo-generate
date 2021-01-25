@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased 0.5.2
+## [0.5.2] 2021-01-25 
 
 - ### ✨ Features
     - **make args fields public to provide a public API by [@No9], [pull/264]**
@@ -736,3 +736,5 @@
 ## 🌌 0.1.0
 
 - First release! 
+
+[0.5.2] https://github.com/cargo-generate/cargo-generate/compare/v0.5.1...v0.5.2
