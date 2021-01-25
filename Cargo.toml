@@ -37,7 +37,7 @@ optional = true
 
 [dependencies.serde]
 # same version as cargo's version
-version = "1.0.82"
+version = "1.0.122"
 features = ["derive"]
 
 
