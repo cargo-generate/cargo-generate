@@ -1,6 +1,16 @@
 # Changelog
 
-## [0.5.2] 2021-01-25 
+## [0.5.3] 2021-02-08
+- ### 🛠️ Maintenance
+  - **Bump [serde](https://github.com/serde-rs/serde) from 1.0.119 to 1.0.123** [pull/287](https://github.com/cargo-generate/cargo-generate/pull/287) by @dependabot-preview
+  - **Bump [liquid](https://github.com/cobalt-org/liquid-rust) from 0.21.4 to 0.21.5** [pull/286](https://github.com/cargo-generate/cargo-generate/pull/286) by @dependabot-preview
+  - **Bump [assert_cmd](https://github.com/assert-rs/assert_cmd) from 1.0.2 to 1.0.3** [pull/285](https://github.com/cargo-generate/cargo-generate/pull/285) by @dependabot-preview
+  - **Bump [cargo](https://github.com/rust-lang/cargo) from 0.50.0 to 0.50.1** [pull/284](https://github.com/cargo-generate/cargo-generate/pull/284) by @dependabot-preview
+  - **Bump [liquid-lib](https://github.com/cobalt-org/liquid-rust) from 0.21.1 to 0.21.2** [pull/283](https://github.com/cargo-generate/cargo-generate/pull/283) by @dependabot-preview
+  - **Bump [liquid-derive](https://github.com/cobalt-org/liquid-rust) from 0.21.0 to 0.21.1** [pull/282](https://github.com/cargo-generate/cargo-generate/pull/282) by @dependabot-preview
+  - **Bump [liquid-core](https://github.com/cobalt-org/liquid-rust) from 0.21.2 to 0.21.3** [pull/281](https://github.com/cargo-generate/cargo-generate/pull/281) by @dependabot-preview
+
+## [0.5.2] 2021-01-25
 
 - ### ✨ Features
     - **make args fields public to provide a public API by [@No9], [pull/264]**
