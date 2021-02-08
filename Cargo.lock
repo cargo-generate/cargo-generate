@@ -778,6 +778,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37d572918e350e82412fe766d24b15e6682fb2ed2bbe018280caa810397cb319"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -891,7 +900,7 @@ checksum = "d683508a7bb9565349c3610408188dc6c743c66d1add07097f1dbd0ebb8bc35d"
 dependencies = [
  "anymap",
  "chrono",
- "itertools",
+ "itertools 0.9.0",
  "kstring",
  "liquid-derive",
  "num-traits",
@@ -913,12 +922,12 @@ dependencies = [
 
 [[package]]
 name = "liquid-lib"
-version = "0.21.1"
+version = "0.21.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa430745b78473580485ced0b9ff2403877c9ba13f3eeceaffb679ac641929c5"
+checksum = "a4780544c8d62eb1881dffddfd82ffe23990a18cc952de27b570b910214543ac"
 dependencies = [
  "chrono",
- "itertools",
+ "itertools 0.10.0",
  "kstring",
  "liquid-core",
  "once_cell",
