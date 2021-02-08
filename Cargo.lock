@@ -38,10 +38,11 @@ checksum = "33954243bd79057c2de7338850b85983a44588021f8a5fee574a8888c6de4344"
 
 [[package]]
 name = "assert_cmd"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3dc1679af9a1ab4bea16f228b05d18f8363f8327b1fa8db00d2760cfafc6b61e"
+checksum = "f2475b58cd94eb4f70159f4fd8844ba3b807532fe3131b3373fae060bbe30396"
 dependencies = [
+ "bstr",
  "doc-comment",
  "predicates",
  "predicates-core",
@@ -108,7 +109,9 @@ version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "473fc6b38233f9af7baa94fb5852dca389e3d95b8e21c8e3719301462c5d9faf"
 dependencies = [
+ "lazy_static",
  "memchr",
+ "regex-automata",
 ]
 
 [[package]]
@@ -131,9 +134,9 @@ checksum = "81a18687293a1546b67c246452202bbbf143d239cb43494cc163da14979082da"
 
 [[package]]
 name = "cargo"
-version = "0.50.0"
+version = "0.50.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7ba419c30742fe3aa35eb9badcaea2901ef08c7b61e66f2505be2f48d4afe7c"
+checksum = "9e85a774d067a36bd0874fdb068e2e70aa6b1a7a22a5de9dc100219c7421e2eb"
 dependencies = [
  "anyhow",
  "atty",
@@ -767,9 +770,9 @@ dependencies = [
 
 [[package]]
 name = "itertools"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "284f18f85651fe11e8a991b2adb42cb078325c996ed026d994719efcfca1d54b"
+checksum = "37d572918e350e82412fe766d24b15e6682fb2ed2bbe018280caa810397cb319"
 dependencies = [
  "either",
 ]
@@ -868,9 +871,9 @@ dependencies = [
 
 [[package]]
 name = "liquid"
-version = "0.21.4"
+version = "0.21.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f3d2ea80af5c2da5b2984fd98613db331dc9ad098782847b090a6a2405e5592"
+checksum = "3ebeca3e471d40ca4816a8f77cb2e89590275d9ba74da4acb37b267f6250b358"
 dependencies = [
  "doc-comment",
  "kstring",
@@ -882,9 +885,9 @@ dependencies = [
 
 [[package]]
 name = "liquid-core"
-version = "0.21.2"
+version = "0.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d683508a7bb9565349c3610408188dc6c743c66d1add07097f1dbd0ebb8bc35d"
+checksum = "719573721a84bb8383be7e4f48337c78fcc2048778f780090d5ee5b6e0d6c66f"
 dependencies = [
  "anymap",
  "chrono",
@@ -899,9 +902,9 @@ dependencies = [
 
 [[package]]
 name = "liquid-derive"
-version = "0.21.0"
+version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c138e9b1b94270041bec237898fac64cec12b533675ddff67956a97be42aca2b"
+checksum = "d5ed0397fd0b3bd70965471955f4ff83d69515c6d58e09f735efd10f2084e7f1"
 dependencies = [
  "proc-macro2",
  "proc-quote",
@@ -910,9 +913,9 @@ dependencies = [
 
 [[package]]
 name = "liquid-lib"
-version = "0.21.1"
+version = "0.21.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa430745b78473580485ced0b9ff2403877c9ba13f3eeceaffb679ac641929c5"
+checksum = "a4780544c8d62eb1881dffddfd82ffe23990a18cc952de27b570b910214543ac"
 dependencies = [
  "chrono",
  "itertools",
@@ -1355,6 +1358,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "regex-automata"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ae1ded71d66a4a97f5e961fd0cb25a5f366a42a41570d16a763a69c092c26ae4"
+dependencies = [
+ "byteorder",
+]
+
+[[package]]
 name = "regex-syntax"
 version = "0.6.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1448,18 +1460,18 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"
-version = "1.0.119"
+version = "1.0.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bdd36f49e35b61d49efd8aa7fc068fd295961fd2286d0b2ee9a4c7a14e99cc3"
+checksum = "92d5161132722baa40d802cc70b15262b98258453e85e5d1d365c757c73869ae"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.119"
+version = "1.0.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "552954ce79a059ddd5fd68c271592374bd15cab2274970380c000118aeffe1cd"
+checksum = "9391c295d64fc0abb2c556bad848f33cb8296276b1ad2677d1ae1ace4f258f31"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1566,9 +1578,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.58"
+version = "1.0.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc60a3d73ea6594cd712d830cc1f0390fd71542d8c8cd24e70cc54cdfd5e05d5"
+checksum = "c700597eca8a5a762beb35753ef6b94df201c81cca676604f547495a0d7f0081"
 dependencies = [
  "proc-macro2",
  "quote",

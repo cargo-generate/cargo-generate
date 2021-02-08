@@ -11,7 +11,7 @@ edition = "2018"
 include = ["src/**/*", "LICENSE-*", "*.md"]
 
 [dependencies]
-cargo = "0.50.0"
+cargo = "0.50.1"
 console = "0.14.0"
 dialoguer = "0.7.1"
 indicatif = "0.15.0"
@@ -19,10 +19,10 @@ git2 = "0.13.17"
 tempfile = "3.2.0"
 regex = "1.4.3"
 heck = "0.3.1"
-liquid = "0.21.4"
-liquid-core = "0.21.2"
-liquid-lib = "0.21.1"
-liquid-derive = "0.21.0"
+liquid = "0.21.5"
+liquid-core = "0.21.3"
+liquid-lib = "0.21.2"
+liquid-derive = "0.21.1"
 walkdir = "2.3.1"
 remove_dir_all = "0.6.1"
 ignore = "0.4.17"
@@ -37,13 +37,13 @@ optional = true
 
 [dependencies.serde]
 # same version as cargo's version
-version = "1.0.82"
+version = "1.0.123"
 features = ["derive"]
 
 
 [dev-dependencies]
 predicates = "1.0.7"
-assert_cmd = "1.0.2"
+assert_cmd = "1.0.3"
 
 [features]
 vendored-openssl = ['openssl/vendored']
