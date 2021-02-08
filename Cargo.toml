@@ -43,7 +43,7 @@ features = ["derive"]
 
 [dev-dependencies]
 predicates = "1.0.7"
-assert_cmd = "1.0.2"
+assert_cmd = "1.0.3"
 
 [features]
 vendored-openssl = ['openssl/vendored']
