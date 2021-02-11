@@ -78,9 +78,11 @@
 //!
 //! `os-arch` and `authors` also can't be overriden and are derived from the environment.
 
+mod app_config;
 mod authors;
 mod config;
 mod emoji;
+mod favorites;
 mod git;
 mod ignoreme;
 mod include_exclude;
@@ -92,12 +94,13 @@ mod template;
 
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use config::{Config, ConfigValues, CONFIG_FILE_NAME};
 use console::style;
-use std::{collections::HashMap, env};
+use favorites::{list_favorites, resolve_favorite};
 use std::{
-    fs,
+    collections::HashMap,
+    env, fs,
     path::{Path, PathBuf},
 };
 use structopt::StructOpt;
@@ -111,13 +114,20 @@ pub enum Cli {
 
 #[derive(Debug, StructOpt)]
 pub struct Args {
+    /// List defined favorite templates from the config
+    #[structopt(long)]
+    pub list_favorites: bool,
+
+    /// Generate a favorite template as defined in the config
+    pub favorite: Option<String>,
+
     /// Git repository to clone template from. Can be a URL (like
     /// `https://github.com/rust-cli/cli-template`), a path (relative or absolute), or an
     /// `owner/repo` abbreviated GitHub URL (like `rust-cli/cli-template`).
     /// Note that cargo generate will first attempt to interpret the `owner/repo` form as a
     /// relative path and only try a GitHub URL if the local path doesn't exist.
     #[structopt(short, long)]
-    pub git: String,
+    pub git: Option<String>,
     /// Branch to use when installing from git
     #[structopt(short, long)]
     pub branch: Option<String>,
@@ -129,11 +139,13 @@ pub struct Args {
     /// Note that cargo generate won't overwrite an existing directory, even if `--force` is given.
     #[structopt(long, short)]
     pub force: bool,
+
     /// Enables more verbose output.
     #[structopt(long, short)]
     pub verbose: bool,
     /// Pass template values through a file
     /// Values should be in the format `key=value`, one per line
+
     #[structopt(long)]
     pub template_values_file: Option<String>,
     /// If silent mode is set all variables will be
@@ -141,9 +153,18 @@ pub struct Args {
     /// If a value is missing the project generation will fail
     #[structopt(long, short, requires("name"))]
     pub silent: bool,
+
+    /// Use specific configuration file. Defaults to $CARGO_HOME/cargo-generate or $HOME/.cargo/cargo-generate
+    #[structopt(short, long, parse(from_os_str))]
+    pub config: Option<PathBuf>,
 }
 
-pub fn generate(args: Args) -> Result<()> {
+pub fn generate(mut args: Args) -> Result<()> {
+    if args.list_favorites {
+        return list_favorites(&args);
+    }
+    resolve_favorite(&mut args)?;
+
     let name = match args.name {
         Some(ref n) => ProjectName::new(n),
         None if !args.silent => ProjectName::new(interactive::name()?),
@@ -158,21 +179,26 @@ pub fn generate(args: Args) -> Result<()> {
     };
 
     create_git(args, &name)?;
-
     Ok(())
 }
 
 fn create_git(args: Args, name: &ProjectName) -> Result<()> {
     let force = args.force;
-    let config = GitConfig::new_abbr(&args.git, args.branch.to_owned())?;
     let template_values = args
         .template_values_file
         .as_ref()
         .map(|p| Path::new(p))
         .map_or(Ok(Default::default()), |path| get_config_file_values(path))?;
+    let git_config = GitConfig::new_abbr(
+        &args
+            .git
+            .clone()
+            .with_context(|| "Missing option git, or a favorite")?,
+        args.branch.to_owned(),
+    )?;
 
     if let Some(dir) = &create_project_dir(&name, force) {
-        match git::create(dir, config) {
+        match git::create(dir, git_config) {
             Ok(branch) => {
                 git::remove_history(dir)?;
                 progress(name, &template_values, dir, &branch, &args)?;

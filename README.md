@@ -52,6 +52,33 @@ You can also pass the name of your project to the tool using the `--name` or `-n
 cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject
 ```
 
+## Favorites
+
+Favorite templates can be defined in a config file, that by default is placed at `$CARGO_HOME/cargo-generate`. To specify an alternative configuration file, use the `--config <config-file>` option.
+
+Each favorite template is specified in its own section, e.g.:
+
+```toml
+[favorites.demo]
+description = "Demo template for cargo-generate"
+git = "https://github.com/ashleygwilliams/wasm-pack-template"
+branch = "master"
+```
+
+Both `branch` and `description` are optional, and the branch may be overridden by specifying `--branch <branch>` on the command line.
+
+When favorites are available, they can be generated simply by invoking:
+
+```cli
+cargo gen <favorite>
+```
+
+or slightly more involved:
+
+```cli
+cargo generate demo --branch master --name expanded_demo
+```
+
 ## Templates
 
 Templates are git repositories whose files contain placeholders. The current
