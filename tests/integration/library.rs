@@ -18,13 +18,16 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     let args_exposed: Args = Args {
-        git: format!("{}", template.path().display()),
+        git: Some(format!("{}", template.path().display())),
         branch: Some(String::from("main")),
         name: Some(String::from("foobar_project")),
         force: true,
         verbose: true,
         template_values_file: None,
         silent: false,
+        list_favorites: false,
+        config: None,
+        favorite: None,
     };
     // need to cd to the dir as we aren't running in the cargo shell.
     assert!(std::env::set_current_dir(&dir.root).is_ok());
