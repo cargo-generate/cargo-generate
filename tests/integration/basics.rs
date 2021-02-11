@@ -1,3 +1,4 @@
+use git2::Repository;
 use predicates::prelude::*;
 
 use crate::helpers::project_builder::tmp_dir;
@@ -1054,4 +1055,40 @@ _This README was generated with [cargo-readme](https://github.com/livioribeiro/c
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.read("foobar-project/README.tpl").contains(raw_body));
+}
+
+#[test]
+fn it_uses_vsc_none_to_avoid_initializing_repository() {
+    // Build and commit on branch named 'main'
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--vcs")
+        .arg("nONE")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
+    assert!(Repository::open(dir.path().join("foobar-project")).is_err());
 }

@@ -1,5 +1,5 @@
 use crate::helpers::project_builder::tmp_dir;
-use cargo_generate::{generate, Args};
+use cargo_generate::{generate, Args, Vcs};
 
 #[test]
 fn it_allows_generate_call_with_public_args() {
@@ -22,6 +22,7 @@ version = "0.1.0"
         branch: Some(String::from("main")),
         name: Some(String::from("foobar_project")),
         force: true,
+        vcs: Vcs::Git,
         verbose: true,
         template_values_file: None,
         silent: false,

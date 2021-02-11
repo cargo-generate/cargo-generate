@@ -102,6 +102,7 @@ use std::{
     collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
+    str::FromStr,
 };
 use structopt::StructOpt;
 
@@ -157,6 +158,28 @@ pub struct Args {
     /// Use specific configuration file. Defaults to $CARGO_HOME/cargo-generate or $HOME/.cargo/cargo-generate
     #[structopt(short, long, parse(from_os_str))]
     pub config: Option<PathBuf>,
+    /// Specify the VCS used to initialize the generated template.
+    #[structopt(long, default_value = "git")]
+    pub vcs: Vcs,
+}
+
+//
+#[derive(Debug, StructOpt)]
+pub enum Vcs {
+    None,
+    Git,
+}
+
+impl FromStr for Vcs {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_uppercase().as_str() {
+            "NONE" => Ok(Vcs::None),
+            "GIT" => Ok(Vcs::Git),
+            _ => Err(anyhow::anyhow!("Must be one of 'git' or 'none'")),
+        }
+    }
 }
 
 pub fn generate(mut args: Args) -> Result<()> {
@@ -296,7 +319,12 @@ fn progress(
         pbar,
     )?;
 
-    git::init(dir, branch)?;
+    match args.vcs {
+        Vcs::None => {}
+        Vcs::Git => {
+            git::init(dir, branch)?;
+        }
+    }
 
     gen_success(dir);
 
