@@ -1,36 +1,32 @@
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::Read;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::str;
+
+use tempfile::TempDir;
 
 #[derive(Debug)]
 pub struct Project {
-    pub root: PathBuf,
+    pub(crate) root: TempDir,
 }
 
 impl Project {
     pub fn read(&self, path: &str) -> String {
         let mut ret = String::new();
-        File::open(self.root.join(path))
-            .unwrap_or_else(|_| panic!("couldn't open file {:?}", self.root.join(path)))
+        let path = self.path().join(path);
+        File::open(&path)
+            .unwrap_or_else(|_| panic!("couldn't open file {:?}", path))
             .read_to_string(&mut ret)
-            .unwrap_or_else(|_| panic!("couldn't read file {:?}", self.root.join(path)));
+            .unwrap_or_else(|_| panic!("couldn't read file {:?}", path));
 
         ret
     }
 
     pub fn path(&self) -> &Path {
-        &self.root
+        self.root.path()
     }
 
     pub fn exists(&self, path: &str) -> bool {
-        self.root.join(path).exists()
-    }
-}
-
-impl Drop for Project {
-    fn drop(&mut self) {
-        drop(fs::remove_dir_all(&self.root));
-        drop(fs::remove_dir(&self.root));
+        self.path().join(path).exists()
     }
 }

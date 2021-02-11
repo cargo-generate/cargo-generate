@@ -117,10 +117,12 @@ pub(crate) fn remove_history(project_dir: &Path) -> Result<()> {
 }
 
 pub fn init(project_dir: &Path, branch: &str) -> Result<GitRepository> {
-    let mut opts = RepositoryInitOptions::new();
-    opts.bare(false);
-    opts.initial_head(branch);
-    GitRepository::init_opts(project_dir, &opts).context("Couldn't init new repository")
+    GitRepository::discover(project_dir).or_else(|_| {
+        let mut opts = RepositoryInitOptions::new();
+        opts.bare(false);
+        opts.initial_head(branch);
+        GitRepository::init_opts(project_dir, &opts).context("Couldn't init new repository")
+    })
 }
 
 #[cfg(test)]

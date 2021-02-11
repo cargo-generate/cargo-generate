@@ -1,45 +1,26 @@
-use std::env;
 use std::fs;
 use std::io::Write;
-use std::path::PathBuf;
 use std::str;
-use std::sync::atomic::*;
 
 use crate::helpers::project::Project;
-use remove_dir_all::remove_dir_all;
-
-static CNT: AtomicUsize = AtomicUsize::new(0);
-thread_local!(static IDX: usize = CNT.fetch_add(1, Ordering::SeqCst));
+use tempfile::{tempdir, TempDir};
 
 pub struct ProjectBuilder {
     files: Vec<(String, String)>,
     submodules: Vec<(String, String)>,
-    root: PathBuf,
+    root: TempDir,
     git: bool,
     branch: Option<String>,
 }
 
-pub fn dir(name: &str) -> ProjectBuilder {
+pub fn tmp_dir() -> ProjectBuilder {
     ProjectBuilder {
         files: Vec::new(),
         submodules: Vec::new(),
-        root: root(name),
+        root: tempdir().unwrap(),
         git: false,
         branch: None,
     }
-}
-
-fn root(name: &str) -> PathBuf {
-    let idx = IDX.with(|x| *x);
-
-    let mut me = env::current_exe().expect("couldn't find current exe");
-    me.pop(); // chop off exe name
-    me.pop(); // chop off `deps`
-    me.pop(); // chop off `debug` / `release`
-    me.push("generated-tests");
-    me.push(&format!("test-{}-{}", idx, name));
-
-    me
 }
 
 impl ProjectBuilder {
@@ -73,29 +54,27 @@ impl ProjectBuilder {
             .arg("branch")
             .arg("--move")
             .arg("main")
-            .current_dir(&self.root)
+            .current_dir(self.root.path())
             .assert()
             .success();
     }
 
     pub fn build(self) -> Project {
-        drop(remove_dir_all(&self.root));
-        fs::create_dir_all(&self.root)
-            .unwrap_or_else(|_| panic!("couldn't create {:?} directory", self.root));
+        let path = self.root.path();
 
         for &(ref file, ref contents) in self.files.iter() {
-            let dst = self.root.join(file);
-            let parent = dst
+            let path = path.join(file);
+            let parent = path
                 .parent()
-                .unwrap_or_else(|| panic!("couldn't find parent dir of {:?}", dst));
+                .unwrap_or_else(|| panic!("couldn't find parent dir of {:?}", path));
 
             fs::create_dir_all(parent)
                 .unwrap_or_else(|_| panic!("couldn't create {:?} directory", parent));
 
-            fs::File::create(&dst)
-                .unwrap_or_else(|_| panic!("couldn't create file {:?}", dst))
+            fs::File::create(&path)
+                .unwrap_or_else(|_| panic!("couldn't create file {:?}", path))
                 .write_all(contents.as_ref())
-                .unwrap_or_else(|_| panic!("couldn't write to file {:?}: {:?}", dst, contents));
+                .unwrap_or_else(|_| panic!("couldn't write to file {:?}: {:?}", path, contents));
         }
 
         if self.git {
@@ -104,14 +83,14 @@ impl ProjectBuilder {
 
             Command::new("git")
                 .arg("init")
-                .current_dir(&self.root)
+                .current_dir(&path)
                 .assert()
                 .success();
 
             if let Some(ref branch) = self.branch {
                 // Create dummy content in "main" branch to aid testing
 
-                fs::File::create(self.root.join("dummy.txt"))
+                fs::File::create(path.join("dummy.txt"))
                     .expect("Failed to create dummy")
                     .write_all(b"main dummy")
                     .expect("Couldn't write out dummy text");
@@ -119,7 +98,7 @@ impl ProjectBuilder {
                 Command::new("git")
                     .arg("add")
                     .arg("dummy.txt")
-                    .current_dir(&self.root)
+                    .current_dir(&path)
                     .assert()
                     .success();
 
@@ -127,7 +106,7 @@ impl ProjectBuilder {
                     .arg("commit")
                     .arg("--message")
                     .arg("initial main commit")
-                    .current_dir(&self.root)
+                    .current_dir(&path)
                     .assert()
                     .success();
 
@@ -137,7 +116,7 @@ impl ProjectBuilder {
                     .arg("checkout")
                     .arg("-b")
                     .arg(branch)
-                    .current_dir(&self.root)
+                    .current_dir(&path)
                     .assert()
                     .success();
             }
@@ -145,7 +124,7 @@ impl ProjectBuilder {
             Command::new("git")
                 .arg("add")
                 .arg("--all")
-                .current_dir(&self.root)
+                .current_dir(&path)
                 .assert()
                 .success();
 
@@ -155,7 +134,7 @@ impl ProjectBuilder {
                     .arg("add")
                     .arg(&m)
                     .arg(&d)
-                    .current_dir(&self.root)
+                    .current_dir(&path)
                     .assert()
                     .success();
             });
@@ -164,7 +143,7 @@ impl ProjectBuilder {
                 .arg("commit")
                 .arg("--message")
                 .arg("initial commit")
-                .current_dir(&self.root)
+                .current_dir(&path)
                 .assert()
                 .success();
 
@@ -172,7 +151,7 @@ impl ProjectBuilder {
                 Command::new("git")
                     .arg("checkout")
                     .arg("main")
-                    .current_dir(&self.root)
+                    .current_dir(&path)
                     .assert()
                     .success();
             } else {

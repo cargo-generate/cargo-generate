@@ -1,9 +1,9 @@
-use crate::helpers::project_builder::dir;
+use crate::helpers::project_builder::tmp_dir;
 use cargo_generate::{generate, Args};
 
 #[test]
 fn it_allows_generate_call_with_public_args() {
-    let template = dir("template")
+    let template = tmp_dir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -15,7 +15,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = dir("main").build();
+    let dir = tmp_dir().build();
 
     let args_exposed: Args = Args {
         git: format!("{}", template.path().display()),
