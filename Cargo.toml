@@ -11,7 +11,7 @@ edition = "2018"
 include = ["src/**/*", "LICENSE-*", "*.md"]
 
 [dependencies]
-cargo = "0.50.1"
+cargo = "0.51.0"
 console = "0.14.0"
 dialoguer = "0.7.1"
 indicatif = "0.15.0"
