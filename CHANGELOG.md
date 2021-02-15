@@ -1,6 +1,8 @@
 # Changelog
 
-## [0.6.0-alpha.1] Unreleased
+## Unreleased
+
+## [0.6.0-alpha.1] 2021-02-15 [PRERELEASED]
 - ### 🛠️ Maintenance
   - [Bump cargo from 0.50.1 to 0.51.0](https://github.com/cargo-generate/cargo-generate/pull/294), 
     by [dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
@@ -783,6 +785,6 @@
 
 - First release! 
 
-[0.6.0] https://github.com/cargo-generate/cargo-generate/compare/v0.5.3...v0.6.0
+[0.6.0-alpha.1] https://github.com/cargo-generate/cargo-generate/compare/v0.5.3...v0.6.0-alpha.1
 [0.5.3] https://github.com/cargo-generate/cargo-generate/compare/v0.5.2...v0.5.3
 [0.5.2] https://github.com/cargo-generate/cargo-generate/compare/v0.5.1...v0.5.2
