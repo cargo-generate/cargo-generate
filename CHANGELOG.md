@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.6.0-alpha.1] Unreleased
+- ### 🛠️ Maintenance
+  - [Bump cargo from 0.50.1 to 0.51.0](https://github.com/cargo-generate/cargo-generate/pull/294), 
+    by [dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- ### ✨ Features
+  - [Add `--vcs none` option to avoid initializing git repo](https://github.com/cargo-generate/cargo-generate/pull/293), 
+    [issue/17](https://github.com/cargo-generate/cargo-generate/issues/17), 
+    by [taurr](https://github.com/taurr)
+  - [Add favorites on cargo-generate.toml user config file](https://github.com/cargo-generate/cargo-generate/pull/292),
+    [issue/210](https://github.com/cargo-generate/cargo-generate/issues/210),
+    by [taurr](https://github.com/taurr)
+    
+    This allows you to specify one or more shortcuts / favourites in your personal cargo-generate config file under
+    `$CARGO_HOME/cargo-generate` or `$HOME/.cargo/cargo-generate`. 
+    You can read more about [this feature here](https://github.com/cargo-generate/cargo-generate#favorites)
+    
+  - [Add user specific template variables](https://github.com/cargo-generate/cargo-generate/pull/275), 
+    [issue/17](https://github.com/cargo-generate/cargo-generate/issues/17), 
+    by [pedrohjordao](https://github.com/pedrohjordao)
+    
+    This allows a template author to define template specific variables. Those variables can be of type string and bool.
+    Further more they can be a choice of a provided list. 
+    You can read more about [this feature here in the docs](https://docs.rs/cargo-generate/0.6.0/cargo_generate/).
+    
+    A brief example:
+    ```toml
+    [placeholders]
+    my-placeholder = { type = "string", prompt = "Hello?", choices = ["hello", "world"], default = "hello", regex = "*" }
+    use-serde = { type = "bool", prompt = "Add serde support?", default = false }
+    ```
+
+- ### 🤕 Fixes
+  - [dont init git when inside an existing repo](https://github.com/cargo-generate/cargo-generate/pull/290),
+    [issue/244](https://github.com/cargo-generate/cargo-generate/issues/244),
+    by [taurr](https://github.com/taurr)
+  
 ## [0.5.3] 2021-02-08
 - ### 🛠️ Maintenance
   - **Bump [serde](https://github.com/serde-rs/serde) from 1.0.119 to 1.0.123** [pull/287](https://github.com/cargo-generate/cargo-generate/pull/287) by @dependabot-preview
@@ -747,4 +783,6 @@
 
 - First release! 
 
+[0.6.0] https://github.com/cargo-generate/cargo-generate/compare/v0.5.3...v0.6.0
+[0.5.3] https://github.com/cargo-generate/cargo-generate/compare/v0.5.2...v0.5.3
 [0.5.2] https://github.com/cargo-generate/cargo-generate/compare/v0.5.1...v0.5.2
