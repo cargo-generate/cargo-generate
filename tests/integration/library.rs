@@ -19,6 +19,7 @@ version = "0.1.0"
 
     let args_exposed: Args = Args {
         git: Some(format!("{}", template.path().display())),
+        dir: None,
         branch: Some(String::from("main")),
         name: Some(String::from("foobar_project")),
         force: true,

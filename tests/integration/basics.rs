@@ -1092,3 +1092,73 @@ version = "0.1.0"
         .contains("foobar-project"));
     assert!(Repository::open(dir.path().join("foobar-project")).is_err());
 }
+
+#[test]
+fn it_can_generate_from_a_directory() {
+    // Build and commit on branch named 'main'
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .build();
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--dir")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
+}
+
+#[test]
+fn it_can_generate_from_a_git_subdir() {
+    // Build and commit on branch named 'main'
+    let template = tmp_dir()
+        .file(
+            "README",
+            r#"# README
+Test repository with sub-dir containing the template"#,
+        )
+        .file(
+            "sub-dir/Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--dir")
+        .arg("sub-dir")
+        .arg("--name")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
+}

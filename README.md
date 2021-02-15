@@ -40,6 +40,8 @@ cargo install cargo-generate --features vendored-openssl
 
 ## Usage
 
+### Template in a git repository
+
 Standard usage is to pass a `--git` flag to `cargo generate` or short `cargo gen`. This will prompt you to enter the name of your project.
 
 ```sh
@@ -52,9 +54,25 @@ You can also pass the name of your project to the tool using the `--name` or `-n
 cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject
 ```
 
-## Favorites
+### Template in a local directory, or git sub-directory
 
-Favorite templates can be defined in a config file, that by default is placed at `$CARGO_HOME/cargo-generate`. 
+Besides `--git` to specify the template repository, `cargo-generate` supports a `--dir` option to specify a local directory as the template.
+
+```sh
+cargo generate --dir ~/my-template-directory --name myproject
+```
+
+Using `--dir` and `--git` together, allows `cargo-generate` to use a sub-directory inside the git repository as the template.
+
+This enables a git repository to contain multiple templates.
+
+```sh
+cargo generate --git username/multi-template-repo --dir directory-in-repo
+```
+
+### Favorites
+
+Favorite templates can be defined in a config file, that by default is placed at `$CARGO_HOME/cargo-generate`.
 To specify an alternative configuration file, use the `--config <config-file>` option.
 
 Each favorite template is specified in its own section, e.g.:
@@ -64,9 +82,12 @@ Each favorite template is specified in its own section, e.g.:
 description = "Demo template for cargo-generate"
 git = "https://github.com/ashleygwilliams/wasm-pack-template"
 branch = "master"
+dir = "directory-for-the-template"
 ```
 
-Both `branch` and `description` are optional, and the branch may be overridden by specifying `--branch <branch>` on the command line.
+`branch`, `description` and `dir` are all optional.
+
+`branch` and `dir` may both be overridden by specifying the corresponding options on the command line.
 
 When favorites are available, they can be generated simply by invoking:
 
@@ -90,7 +111,7 @@ supported placeholders are:
 - `{{crate_name}}`: the snake_case_version of `project-name`
 - `{{os-arch}}`: contains the current operating system and architecture ex: `linux-x86_64`
 
-Additionally all filters and tags of the liquid template language are supported. 
+Additionally all filters and tags of the liquid template language are supported.
 For more information, check out the [Liquid Documentation on `Tags` and `Filters`][liquid].
 
 [liquid]: https://shopify.github.io/liquid
@@ -106,11 +127,11 @@ If you have a great template that you'd like to feature here, please [file an is
 
 ## Template defined placeholders
 
-Sometimes templates need to make decisions. For example one might want to conditionally include some code or not. 
+Sometimes templates need to make decisions. For example one might want to conditionally include some code or not.
 Another use case might be that the user of a template should be able to choose out of provided options in an interactive way.
 Also it might be helpful to offer a reasonable default value that the user just simply can use.
 
-Since version [0.6.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.6.0) it is possible to use placeholders in a `cargo-generate.toml` that is in the root folder of a template.  
+Since version [0.6.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.6.0) it is possible to use placeholders in a `cargo-generate.toml` that is in the root folder of a template.
 Here [an example](https://github.com/sassman/hermit-template-rs):
 
 ```toml
@@ -150,6 +171,7 @@ fn main() {
 ```
 
 > Note: similar to `dependencies` in the `Cargo.toml` file you can also list them as one liners:
+
 ```toml
 [placeholders]
 hypervisor = { type = "string", prompt = "What hypervisor to use?", choices = ["uhyve", "qemu"], default = "qemu" }
@@ -170,7 +192,7 @@ A placeholder can be of type `string` or `bool`. Boolean types are usually helpf
 
 ### `choices` property (optional)
 
-A placeholder can come with a list of choices that the user can choose from. 
+A placeholder can come with a list of choices that the user can choose from.
 It's further also validated at the time when a user generates a project from a template.
 
 ```toml
@@ -188,12 +210,13 @@ default = 'qemu'
 
 ### `regex` property (optional)
 
-A `regex` property is a string, that can be used to enforce a certain validation rule. The input dialog will keep repeating 
+A `regex` property is a string, that can be used to enforce a certain validation rule. The input dialog will keep repeating
 until the user entered something that is allowed by this regex.
 
 ### Placeholder Examples
 
 An example with a regex that allows only numbers
+
 ```toml
 [placeholders]
 phone_number = { type = "string", prompt = "What's your phone number?", regex = "[0-9]+" }
@@ -214,8 +237,8 @@ network_enabled = true
 ## Include / Exclude
 
 Templates support a `cargo-generate.toml`, with a "template" section that allows you to configure the files that will be processed by `cargo-generate`.
-The behavior mirrors Cargo's Include / Exclude functionality, which is [documented here](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional). 
-If you are using placeholders in a file name, and also wish to use placeholders in the contents of that file, 
+The behavior mirrors Cargo's Include / Exclude functionality, which is [documented here](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional).
+If you are using placeholders in a file name, and also wish to use placeholders in the contents of that file,
 you should setup your globs to match on the pre-rename filename.
 
 ```toml

@@ -1,12 +1,21 @@
 //! Generate a new Cargo project from a given template
 //!
-//! Right now, only git repositories can be used as templates. Just execute
+//! Directories, Git repositories or sub-dirs within git repositories can be used as templates.
+//! Just execute
 //!
 //! $ cargo generate --git https://github.com/user/template.git --name foo
 //!
 //! or
 //!
 //! $ cargo gen --git https://github.com/user/template.git --name foo
+//
+//! or
+//!
+//! $ cargo generate --dir my-template-dir
+//
+//! or
+//!
+//! $ cargo generate --git https://github.com/user/template.git --dir sub-dir --name foo
 //!
 //! and a new Cargo project called foo will be generated.
 //!
@@ -83,6 +92,7 @@ mod authors;
 mod config;
 mod emoji;
 mod favorites;
+mod fsutil;
 mod git;
 mod ignoreme;
 mod include_exclude;
@@ -105,6 +115,7 @@ use std::{
     str::FromStr,
 };
 use structopt::StructOpt;
+use thiserror::private::PathAsDisplay;
 
 #[derive(StructOpt)]
 #[structopt(bin_name = "cargo")]
@@ -118,7 +129,6 @@ pub struct Args {
     /// List defined favorite templates from the config
     #[structopt(long)]
     pub list_favorites: bool,
-
     /// Generate a favorite template as defined in the config
     pub favorite: Option<String>,
 
@@ -129,6 +139,10 @@ pub struct Args {
     /// relative path and only try a GitHub URL if the local path doesn't exist.
     #[structopt(short, long)]
     pub git: Option<String>,
+    /// Directory to copy the template from, or in case the --git option has been specified,
+    /// the sub-dir within the git repository from which to copy the template.
+    #[structopt(long)]
+    pub dir: Option<PathBuf>,
     /// Branch to use when installing from git
     #[structopt(short, long)]
     pub branch: Option<String>,
@@ -158,6 +172,7 @@ pub struct Args {
     /// Use specific configuration file. Defaults to $CARGO_HOME/cargo-generate or $HOME/.cargo/cargo-generate
     #[structopt(short, long, parse(from_os_str))]
     pub config: Option<PathBuf>,
+
     /// Specify the VCS used to initialize the generated template.
     #[structopt(long, default_value = "git")]
     pub vcs: Vcs,
@@ -188,61 +203,111 @@ pub fn generate(mut args: Args) -> Result<()> {
     }
     resolve_favorite(&mut args)?;
 
-    let name = match args.name {
+    let project_name = match args.name {
         Some(ref n) => ProjectName::new(n),
         None if !args.silent => ProjectName::new(interactive::name()?),
         None => anyhow::bail!(
             "{} {} {}",
             emoji::ERROR,
             style("Project Name Error:").bold().red(),
-            style("Option `--silent` provided, but project name was not set. Please use `--project-name`.")
+            style("Option `--silent` provided, but project name was not set. Please use `--name`.")
                 .bold()
                 .red(),
         ),
     };
 
-    create_git(args, &name)?;
-    Ok(())
-}
+    let project_dir = create_project_dir(&project_name, args.force).with_context(|| {
+        format!(
+            "{} {}",
+            emoji::ERROR,
+            style("Target directory already exists, aborting!")
+                .bold()
+                .red()
+        )
+    })?;
 
-fn create_git(args: Args, name: &ProjectName) -> Result<()> {
-    let force = args.force;
+    let branch = if let (Some(dir), None) = (&args.dir, &args.git) {
+        populate_from_dir(dir, &project_dir)?
+    } else {
+        populate_from_git(&args, &project_dir)?
+    };
+
     let template_values = args
         .template_values_file
         .as_ref()
         .map(|p| Path::new(p))
         .map_or(Ok(Default::default()), |path| get_config_file_values(path))?;
-    let git_config = GitConfig::new_abbr(
-        &args
-            .git
-            .clone()
-            .with_context(|| "Missing option git, or a favorite")?,
-        args.branch.to_owned(),
-    )?;
 
-    if let Some(dir) = &create_project_dir(&name, force) {
-        match git::create(dir, git_config) {
-            Ok(branch) => {
-                git::remove_history(dir)?;
-                progress(name, &template_values, dir, &branch, &args)?;
-            }
-            Err(e) => anyhow::bail!(
-                "{} {} {}",
-                emoji::ERROR,
-                style("Git Error:").bold().red(),
-                style(e).bold().red(),
-            ),
-        };
+    progress(
+        &project_name,
+        &template_values,
+        &project_dir,
+        &branch,
+        &args,
+    )?;
+    Ok(())
+}
+
+fn populate_from_dir(dir: &PathBuf, project_dir: &PathBuf) -> Result<String> {
+    if dir.exists() {
+        crate::fsutil::copy_dir_all(dir, &project_dir)?;
     } else {
         anyhow::bail!(
-            "{} {}",
+            "{} {} {}",
             emoji::ERROR,
-            style("Target directory already exists, aborting!")
-                .bold()
-                .red(),
+            style("Template does't exist:").bold().red(),
+            style(dir.display()).bold().red(),
         );
     }
-    Ok(())
+    Ok("".into())
+}
+
+fn populate_from_git(args: &Args, project_dir: &PathBuf) -> Result<String> {
+    let git_config = GitConfig::new_abbr(
+        &args.git.clone().with_context(|| {
+            format!(
+                "{} {}",
+                emoji::ERROR,
+                style("Missing option git, or a favorite").bold().red(),
+            )
+        })?,
+        args.branch.to_owned(),
+    )?;
+    let git_clone_dir = tempfile::tempdir()?;
+
+    let branch = git::create(&git_clone_dir.path(), &git_config).map_err(|e| {
+        anyhow::anyhow!(
+            "{} {} {}",
+            emoji::ERROR,
+            style("Git Error:").bold().red(),
+            style(e).bold().red(),
+        )
+    })?;
+    let _ = git::remove_history(&git_clone_dir.path());
+
+    let (template_dir, sub) =
+        args.dir
+            .clone()
+            .map_or((git_clone_dir.path().to_owned(), "".into()), |dir| {
+                (
+                    git_clone_dir.path().join(&dir),
+                    dir.as_display().to_string(),
+                )
+            });
+    if template_dir.exists() {
+        crate::fsutil::copy_dir_all(template_dir, &project_dir)?;
+    } else {
+        anyhow::bail!(
+            "{} {} {}",
+            emoji::ERROR,
+            style("Directory does not exist in the template:")
+                .bold()
+                .red(),
+            style(sub).bold().red(),
+        );
+    }
+
+    Ok(branch)
 }
 
 fn get_config_file_values(path: &Path) -> Result<HashMap<String, toml::Value>> {

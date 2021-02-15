@@ -2,7 +2,7 @@ use crate::{
     app_config::{app_config_path, AppConfig, FavoriteConfig},
     Args,
 };
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
 
 pub(crate) fn list_favorites(args: &Args) -> Result<()> {
     let path = &app_config_path(&args.config)?;
@@ -35,14 +35,14 @@ pub(crate) fn list_favorites(args: &Args) -> Result<()> {
 }
 
 pub(crate) fn resolve_favorite(args: &mut Args) -> Result<()> {
-    if args.git.is_some() {
+    if args.git.is_some() || args.dir.is_some() {
         return Ok(());
     }
 
     let favorite_name = args
         .favorite
         .as_ref()
-        .ok_or_else(|| anyhow!("Please specify either --git option, or a predefined favorite"))?;
+        .context("Please specify either --git, --dir, or a predefined favorite")?;
 
     let app_config_path = app_config_path(&args.config)?;
     let app_config = AppConfig::from_path(app_config_path.as_path())?;
@@ -58,6 +58,7 @@ pub(crate) fn resolve_favorite(args: &mut Args) -> Result<()> {
         })?;
 
     args.git = favorite.git.clone();
+    args.dir = args.dir.as_ref().or_else(|| favorite.dir.as_ref()).cloned();
     args.branch = args
         .branch
         .as_ref()

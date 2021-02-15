@@ -17,6 +17,7 @@ pub(crate) struct AppConfig {
 pub(crate) struct FavoriteConfig {
     pub description: Option<String>,
     pub git: Option<String>,
+    pub dir: Option<PathBuf>,
     pub branch: Option<String>,
 }
 

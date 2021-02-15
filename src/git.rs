@@ -65,7 +65,7 @@ impl GitConfig {
     }
 }
 
-pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
+pub(crate) fn create(project_dir: &Path, args: &GitConfig) -> Result<String> {
     let temp = Builder::new().prefix(project_dir).tempdir()?;
     let config = Config::default()?;
     let remote = GitRemote::new(&args.remote);
