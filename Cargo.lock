@@ -207,6 +207,7 @@ dependencies = [
  "home",
  "ignore",
  "indicatif",
+ "itertools",
  "liquid",
  "liquid-core",
  "liquid-derive",

@@ -2,7 +2,7 @@ use crate::{
     app_config::{app_config_path, AppConfig, FavoriteConfig},
     info, Args,
 };
-use anyhow::{anyhow, Result};
+use anyhow::{Context, Result};
 use console::style;
 
 pub(crate) fn list_favorites(args: &Args) -> Result<()> {
@@ -43,11 +43,12 @@ pub(crate) fn resolve_favorite(args: &mut Args) -> Result<()> {
     let favorite_name = args
         .favorite
         .as_ref()
-        .ok_or_else(|| anyhow!("Please specify either --git option, or a predefined favorite"))?;
+        .with_context(|| "Please specify either --git option, or a predefined favorite")?;
 
     let app_config_path = app_config_path(&args.config)?;
     let app_config = AppConfig::from_path(app_config_path.as_path())?;
-    let favorite = app_config
+
+    let (git, branch, template_values_file) = app_config
         .favorites
         .get(favorite_name.as_str())
         .map_or_else(
@@ -56,17 +57,29 @@ pub(crate) fn resolve_favorite(args: &mut Args) -> Result<()> {
                     "Favorite {} not found in config, using it as a git repo url",
                     style(&favorite_name).bold()
                 );
-                (Some(favorite_name.clone()), args.branch.as_ref().cloned())
+                (
+                    Some(favorite_name.clone()),
+                    args.branch.as_ref().cloned(),
+                    None,
+                )
             },
             |f| {
                 (
                     f.git.clone(),
                     args.branch.as_ref().or_else(|| f.branch.as_ref()).cloned(),
+                    f.template_values.clone(),
                 )
             },
         );
-    args.git = favorite.0;
-    args.branch = favorite.1;
 
+    let args_template_values_file = args.template_values_file.take().unwrap_or_default();
+    let v: Vec<String> = args_template_values_file
+        .into_iter()
+        .chain(template_values_file.into_iter())
+        .collect();
+
+    args.git = git;
+    args.branch = branch;
+    args.template_values_file = Some(v);
     Ok(())
 }

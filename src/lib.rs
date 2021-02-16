@@ -93,7 +93,7 @@ mod template;
 mod template_variables;
 
 use anyhow::{Context, Result};
-use config::{Config, ConfigValues, CONFIG_FILE_NAME};
+use config::{Config, CONFIG_FILE_NAME};
 use console::style;
 use favorites::{list_favorites, resolve_favorite};
 use std::{
@@ -104,8 +104,8 @@ use std::{
 };
 use structopt::StructOpt;
 
-use crate::git::GitConfig;
 use crate::template_variables::{CrateType, ProjectName};
+use crate::{config::ConfigValues, git::GitConfig};
 
 #[derive(StructOpt)]
 #[structopt(bin_name = "cargo")]
@@ -151,8 +151,8 @@ pub struct Args {
 
     /// Pass template values through a file
     /// Values should be in the format `key=value`, one per line
-    #[structopt(long)]
-    pub template_values_file: Option<String>,
+    #[structopt(long, number_of_values = 1)]
+    pub template_values_file: Option<Vec<String>>,
 
     /// If silent mode is set all variables will be
     /// extracted from the template_values_file.
@@ -204,6 +204,7 @@ pub fn generate(mut args: Args) -> Result<()> {
     if args.list_favorites {
         return list_favorites(&args);
     }
+
     resolve_favorite(&mut args)?;
 
     let name = match args.name {
@@ -220,16 +221,11 @@ pub fn generate(mut args: Args) -> Result<()> {
     };
 
     create_git(args, &name)?;
+
     Ok(())
 }
 
 fn create_git(args: Args, name: &ProjectName) -> Result<()> {
-    let force = args.force;
-    let template_values = args
-        .template_values_file
-        .as_ref()
-        .map(|p| Path::new(p))
-        .map_or(Ok(Default::default()), |path| get_config_file_values(path))?;
     let remote = args
         .git
         .clone()
@@ -240,9 +236,13 @@ fn create_git(args: Args, name: &ProjectName) -> Result<()> {
         args.ssh_identity.clone(),
     )?;
 
+    let force = args.force;
+
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, git_config) {
             Ok(branch) => {
+                let template_values =
+                    collect_template_values_from_files(&args.template_values_file)?;
                 progress(name, &template_values, dir, &branch, &args)?;
             }
             Err(e) => anyhow::bail!(
@@ -264,7 +264,30 @@ fn create_git(args: Args, name: &ProjectName) -> Result<()> {
     Ok(())
 }
 
-fn get_config_file_values(path: &Path) -> Result<HashMap<String, toml::Value>> {
+fn collect_template_values_from_files(
+    template_values_file: &Option<Vec<String>>,
+) -> Result<HashMap<String, toml::Value>> {
+    use itertools::*;
+    template_values_file
+        .iter()
+        .flat_map(|v| v.iter())
+        .map(|path| {
+            get_config_file_values(path)
+                .with_context(|| format!("Failed to read values from file: {}", path))
+        })
+        .fold_ok(
+            Default::default(),
+            |mut m1: HashMap<String, toml::Value>, m2| {
+                m1.extend(m2.into_iter());
+                m1
+            },
+        )
+}
+
+fn get_config_file_values<T>(path: T) -> Result<HashMap<String, toml::Value>>
+where
+    T: AsRef<Path>,
+{
     match fs::read_to_string(path) {
         Ok(ref contents) => toml::from_str::<ConfigValues>(contents)
             .map(|v| v.values)
