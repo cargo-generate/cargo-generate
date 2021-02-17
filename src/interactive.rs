@@ -9,36 +9,44 @@ use liquid_core::Value;
 
 pub(crate) fn name() -> Result<String> {
     let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;
-    loop {
-        let name: String = Input::new()
-            .with_prompt(format!("{} {}", emoji::SHRUG, style("Project Name").bold()))
-            .interact()?;
+    let project_var = TemplateSlots {
+        var_name: "crate_name".into(),
+        prompt: "Project Name".into(),
+        var_info: VarInfo::String {
+            entry: StringEntry {
+                default: None,
+                choices: None,
+                regex: Some(valid_ident),
+            },
+        },
+    };
+    prompt_for_variable(&project_var)
+}
 
-        if valid_ident.is_match(&name) {
-            return Ok(name);
-        } else {
-            eprintln!(
-                "{} {} \"{}\" {}",
-                emoji::WARN,
-                style("Sorry,").bold().red(),
-                style(&name).bold().yellow(),
-                style("is not a valid crate name").bold().red()
-            );
-        }
+pub(crate) fn user_question(prompt: &str, default: &Option<String>) -> Result<String> {
+    let mut i = Input::<String>::new();
+    i.with_prompt(prompt.to_string());
+    if let Some(s) = default {
+        i.default(s.to_owned());
+    }
+    i.interact().map_err(Into::<anyhow::Error>::into)
+}
+
+fn extract_default(variable: &VarInfo) -> Option<String> {
+    match variable {
+        VarInfo::Bool {
+            default: Some(d), ..
+        } => Some(if *d { "true".into() } else { "false".into() }),
+        VarInfo::String {
+            entry: StringEntry {
+                default: Some(d), ..
+            },
+        } => Some(d.into()),
+        _ => None,
     }
 }
 
-pub(crate) fn user_question(prompt: &str) -> Result<String> {
-    Input::<String>::new()
-        .with_prompt(prompt.to_string())
-        .interact()
-        .map_err(Into::<anyhow::Error>::into)
-}
-
-pub(crate) fn variable<F: Fn(&str) -> Result<String>>(
-    variable: &TemplateSlots,
-    var_pooler: F,
-) -> Result<Value> {
+fn prompt_for_variable(variable: &TemplateSlots) -> Result<String> {
     let prompt = format!(
         "{} {} {}",
         emoji::SHRUG,
@@ -46,26 +54,34 @@ pub(crate) fn variable<F: Fn(&str) -> Result<String>>(
         choice_options(&variable.var_info)
     );
     loop {
-        let user_entry = var_pooler(&prompt)?;
+        let default = extract_default(&variable.var_info);
+        let user_entry = user_question(prompt.as_str(), &default)?;
 
         if is_valid_variable_value(&user_entry, &variable.var_info) {
-            return into_value(user_entry, &variable.var_info);
+            return Ok(user_entry);
         } else {
             eprintln!(
                 "{} {} \"{}\" {}",
                 emoji::WARN,
                 style("Sorry,").bold().red(),
                 style(&user_entry).bold().yellow(),
-                style("is not a valid value").bold().red()
+                style(format!("is not a valid value for {}", variable.var_name))
+                    .bold()
+                    .red()
             );
         }
     }
 }
 
+pub(super) fn variable(variable: &TemplateSlots) -> Result<Value> {
+    let user_input = prompt_for_variable(&variable)?;
+    into_value(user_input, &variable.var_info)
+}
+
 fn is_valid_variable_value(user_entry: &str, var_info: &VarInfo) -> bool {
     match var_info {
         VarInfo::Bool { .. } => user_entry.parse::<bool>().is_ok(),
-        VarInfo::String { entry } => match entry.as_ref() {
+        VarInfo::String { entry } => match entry {
             StringEntry {
                 choices: Some(options),
                 regex: Some(reg),
@@ -106,20 +122,20 @@ fn choice_options(var_info: &VarInfo) -> String {
         VarInfo::Bool { default: Some(d) } => {
             format!("[true, false] [default: {}]", style(d).bold())
         }
-        VarInfo::String { entry } => match entry.as_ref() {
-            StringEntry {
+        VarInfo::String { entry } => match entry {
+            &StringEntry {
                 choices: Some(ref cs),
                 default: None,
                 ..
             } => format!("[{}]", cs.join(", ")),
-            StringEntry {
+            &StringEntry {
                 choices: Some(ref cs),
                 default: Some(ref d),
                 ..
             } => {
                 format!("[{}] [default: {}]", cs.join(", "), style(d).bold())
             }
-            StringEntry {
+            &StringEntry {
                 choices: None,
                 default: Some(ref d),
                 ..

@@ -302,7 +302,7 @@ fn progress(
         None => Ok(template),
         Some(config) => {
             project_variables::fill_project_varibles(template, config, args.silent, |slot| {
-                interactive::variable(slot, interactive::user_question)
+                interactive::variable(slot)
             })
         }
     }?;
