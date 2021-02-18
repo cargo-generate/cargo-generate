@@ -2,13 +2,22 @@
 
 ## Unreleased
 
+## [0.6.0-alpha.2] 2021-02-18 [PRERELEASED]
+- ### ✨ Features
+    - [interactive variable <enter> leads to default](https://github.com/cargo-generate/cargo-generate/pull/297),
+      [issue/17](https://github.com/cargo-generate/cargo-generate/issues/17),
+      by [sassman](https://github.com/sassman)
+      
+      This allows for lazy typing when using custom variables in templates, so that a user does not need to 
+      type the default value, but rather can press <enter> in order to accept the default value that is presented.
+
 ## [0.6.0-alpha.1] 2021-02-15 [PRERELEASED]
 - ### 🛠️ Maintenance
   - [Bump cargo from 0.50.1 to 0.51.0](https://github.com/cargo-generate/cargo-generate/pull/294), 
     by [dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
 - ### ✨ Features
   - [Add `--vcs none` option to avoid initializing git repo](https://github.com/cargo-generate/cargo-generate/pull/293), 
-    [issue/17](https://github.com/cargo-generate/cargo-generate/issues/17), 
+    [issue/244](https://github.com/cargo-generate/cargo-generate/issues/244), 
     by [taurr](https://github.com/taurr)
   - [Add favorites on cargo-generate.toml user config file](https://github.com/cargo-generate/cargo-generate/pull/292),
     [issue/210](https://github.com/cargo-generate/cargo-generate/issues/210),
@@ -785,6 +794,7 @@
 
 - First release! 
 
+[0.6.0-alpha.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.0-alpha.1...v0.6.0-alpha.2
 [0.6.0-alpha.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.5.3...v0.6.0-alpha.1
 [0.5.3]: https://github.com/cargo-generate/cargo-generate/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.5.1...v0.5.2
