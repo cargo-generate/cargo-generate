@@ -13,11 +13,11 @@ pub(crate) fn name() -> Result<String> {
         var_name: "crate_name".into(),
         prompt: "Project Name".into(),
         var_info: VarInfo::String {
-            entry: StringEntry {
+            entry: Box::new(StringEntry {
                 default: None,
                 choices: None,
                 regex: Some(valid_ident),
-            },
+            }),
         },
     };
     prompt_for_variable(&project_var)
@@ -37,11 +37,12 @@ fn extract_default(variable: &VarInfo) -> Option<String> {
         VarInfo::Bool {
             default: Some(d), ..
         } => Some(if *d { "true".into() } else { "false".into() }),
-        VarInfo::String {
-            entry: StringEntry {
+        VarInfo::String { entry } => match entry.as_ref() {
+            StringEntry {
                 default: Some(d), ..
-            },
-        } => Some(d.into()),
+            } => Some(d.into()),
+            _ => None,
+        },
         _ => None,
     }
 }
@@ -81,7 +82,7 @@ pub(super) fn variable(variable: &TemplateSlots) -> Result<Value> {
 fn is_valid_variable_value(user_entry: &str, var_info: &VarInfo) -> bool {
     match var_info {
         VarInfo::Bool { .. } => user_entry.parse::<bool>().is_ok(),
-        VarInfo::String { entry } => match entry {
+        VarInfo::String { entry } => match entry.as_ref() {
             StringEntry {
                 choices: Some(options),
                 regex: Some(reg),
@@ -122,20 +123,20 @@ fn choice_options(var_info: &VarInfo) -> String {
         VarInfo::Bool { default: Some(d) } => {
             format!("[true, false] [default: {}]", style(d).bold())
         }
-        VarInfo::String { entry } => match entry {
-            &StringEntry {
+        VarInfo::String { entry } => match entry.as_ref() {
+            StringEntry {
                 choices: Some(ref cs),
                 default: None,
                 ..
             } => format!("[{}]", cs.join(", ")),
-            &StringEntry {
+            StringEntry {
                 choices: Some(ref cs),
                 default: Some(ref d),
                 ..
             } => {
                 format!("[{}] [default: {}]", cs.join(", "), style(d).bold())
             }
-            &StringEntry {
+            StringEntry {
                 choices: None,
                 default: Some(ref d),
                 ..

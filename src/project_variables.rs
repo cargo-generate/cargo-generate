@@ -17,7 +17,7 @@ pub(crate) struct TemplateSlots {
 #[derive(Debug, Clone)]
 pub(crate) enum VarInfo {
     Bool { default: Option<bool> },
-    String { entry: StringEntry },
+    String { entry: Box<StringEntry> },
 }
 
 #[derive(Debug, Clone)]
@@ -159,19 +159,19 @@ fn try_key_value_into_slot(
             default: Some(value),
         },
         (SupportedVarType::String, Some(SupportedVarValue::String(value))) => VarInfo::String {
-            entry: StringEntry {
+            entry: Box::new(StringEntry {
                 default: Some(value),
                 choices,
                 regex,
-            },
+            }),
         },
         (SupportedVarType::Bool, None) => VarInfo::Bool { default: None },
         (SupportedVarType::String, None) => VarInfo::String {
-            entry: StringEntry {
+            entry: Box::new(StringEntry {
                 default: None,
                 choices,
                 regex,
-            },
+            }),
         },
         _ => unreachable!("It should not have come to this..."),
     };
