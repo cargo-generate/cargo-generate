@@ -161,6 +161,7 @@ pub struct Args {
     /// Specify the VCS used to initialize the generated template.
     #[structopt(long, default_value = "git")]
     pub vcs: Vcs,
+    /// Do not create a subdirectory for the project
     #[structopt(long = "bare")]
     pub bare: bool,
 }
