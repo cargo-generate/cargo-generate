@@ -30,7 +30,7 @@ url = "2.2.1"
 structopt = "0.3.21"
 anyhow = "1.0.38"
 toml = "0.5.8"
-thiserror = "1.0.23"
+thiserror = "1.0.24"
 home = "0.5.3"
 
 [dependencies.openssl]
