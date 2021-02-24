@@ -104,7 +104,7 @@ mod template;
 
 use crate::git::GitConfig;
 use crate::projectname::ProjectName;
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use config::{Config, ConfigValues, CONFIG_FILE_NAME};
 use console::style;
 use favorites::{list_favorites, resolve_favorite};
@@ -115,7 +115,6 @@ use std::{
     str::FromStr,
 };
 use structopt::StructOpt;
-use thiserror::private::PathAsDisplay;
 
 #[derive(StructOpt)]
 #[structopt(bin_name = "cargo")]
@@ -137,12 +136,14 @@ pub struct Args {
     /// `owner/repo` abbreviated GitHub URL (like `rust-cli/cli-template`).
     /// Note that cargo generate will first attempt to interpret the `owner/repo` form as a
     /// relative path and only try a GitHub URL if the local path doesn't exist.
-    #[structopt(short, long)]
+    #[structopt(short, long, conflicts_with = "dir")]
     pub git: Option<String>,
-    /// Directory to copy the template from, or in case the --git option has been specified,
-    /// the sub-dir within the git repository from which to copy the template.
-    #[structopt(long)]
+    /// Directory to copy the template from in case it is not in a git repository.
+    #[structopt(short, long, conflicts_with = "git")]
     pub dir: Option<PathBuf>,
+    /// Used together with `--git` or `--dir`, to pick files/dirs selectively from the template.
+    #[structopt(short, long, multiple = true, number_of_values = 1)]
+    pub pick: Vec<String>,
     /// Branch to use when installing from git
     #[structopt(short, long)]
     pub branch: Option<String>,
@@ -226,10 +227,18 @@ pub fn generate(mut args: Args) -> Result<()> {
         )
     })?;
 
-    let branch = if let (Some(dir), None) = (&args.dir, &args.git) {
-        populate_from_dir(dir, &project_dir)?
-    } else {
-        populate_from_git(&args, &project_dir)?
+    let branch = match (&args.dir, &args.git) {
+        (Some(dir), None) => populate_from_dir(dir, &args, &project_dir)?,
+        (None, Some(git)) => populate_from_git(&git, &args, &project_dir)?,
+        _ => {
+            bail!(
+                "{} {}",
+                emoji::ERROR,
+                style("Specify either the --git OR the --dir option!")
+                    .bold()
+                    .red()
+            );
+        }
     };
 
     let template_values = args
@@ -248,9 +257,11 @@ pub fn generate(mut args: Args) -> Result<()> {
     Ok(())
 }
 
-fn populate_from_dir(dir: &PathBuf, project_dir: &PathBuf) -> Result<String> {
+fn populate_from_dir(dir: &PathBuf, args: &Args, project_dir: &PathBuf) -> Result<String> {
     if dir.exists() {
-        crate::fsutil::copy_dir_all(dir, &project_dir)?;
+        for path in template_items_to_copy(dir, &args.pick)? {
+            crate::fsutil::copy_all(path, &project_dir)?;
+        }
     } else {
         anyhow::bail!(
             "{} {} {}",
@@ -262,20 +273,12 @@ fn populate_from_dir(dir: &PathBuf, project_dir: &PathBuf) -> Result<String> {
     Ok("".into())
 }
 
-fn populate_from_git(args: &Args, project_dir: &PathBuf) -> Result<String> {
-    let git_config = GitConfig::new_abbr(
-        &args.git.clone().with_context(|| {
-            format!(
-                "{} {}",
-                emoji::ERROR,
-                style("Missing option git, or a favorite").bold().red(),
-            )
-        })?,
-        args.branch.to_owned(),
-    )?;
+fn populate_from_git(repo_path: &str, args: &Args, project_dir: &PathBuf) -> Result<String> {
+    let git_config = GitConfig::new_abbr(repo_path, args.branch.to_owned())?;
     let git_clone_dir = tempfile::tempdir()?;
+    let git_clone_dir = git_clone_dir.path();
 
-    let branch = git::create(&git_clone_dir.path(), &git_config).map_err(|e| {
+    let branch = git::create(git_clone_dir, &git_config).map_err(|e| {
         anyhow::anyhow!(
             "{} {} {}",
             emoji::ERROR,
@@ -283,31 +286,41 @@ fn populate_from_git(args: &Args, project_dir: &PathBuf) -> Result<String> {
             style(e).bold().red(),
         )
     })?;
-    let _ = git::remove_history(&git_clone_dir.path());
+    let _ = git::remove_history(git_clone_dir);
 
-    let (template_dir, sub) =
-        args.dir
-            .clone()
-            .map_or((git_clone_dir.path().to_owned(), "".into()), |dir| {
-                (
-                    git_clone_dir.path().join(&dir),
-                    dir.as_display().to_string(),
-                )
-            });
-    if template_dir.exists() {
-        crate::fsutil::copy_dir_all(template_dir, &project_dir)?;
-    } else {
-        anyhow::bail!(
-            "{} {} {}",
-            emoji::ERROR,
-            style("Directory does not exist in the template:")
-                .bold()
-                .red(),
-            style(sub).bold().red(),
-        );
+    for path in template_items_to_copy(git_clone_dir, &args.pick)? {
+        crate::fsutil::copy_all(path, &project_dir)?;
     }
 
     Ok(branch)
+}
+
+fn template_items_to_copy(
+    template_dir: &Path,
+    picks: &[String],
+) -> Result<Vec<PathBuf>, anyhow::Error> {
+    if picks.is_empty() {
+        Ok(vec![template_dir.to_path_buf()])
+    } else {
+        picks
+            .iter()
+            .map(|pick| (template_dir.join(&pick), pick))
+            .map(|(absolute_pick, pick)| {
+                if absolute_pick.exists() {
+                    Ok(absolute_pick)
+                } else {
+                    Err(anyhow::anyhow!(
+                        "{} {} {}",
+                        emoji::ERROR,
+                        style("Directory does not exist in the template:")
+                            .bold()
+                            .red(),
+                        style(pick).bold().red(),
+                    ))
+                }
+            })
+            .collect::<Result<Vec<_>, _>>()
+    }
 }
 
 fn get_config_file_values(path: &Path) -> Result<HashMap<String, toml::Value>> {

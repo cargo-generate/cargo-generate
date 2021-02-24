@@ -1125,7 +1125,7 @@ version = "0.1.0"
 }
 
 #[test]
-fn it_can_generate_from_a_git_subdir() {
+fn it_can_pick_from_the_template() {
     // Build and commit on branch named 'main'
     let template = tmp_dir()
         .file(
@@ -1149,7 +1149,7 @@ version = "0.1.0"
         .arg("generate")
         .arg("--git")
         .arg(template.path())
-        .arg("--dir")
+        .arg("--pick")
         .arg("sub-dir")
         .arg("--name")
         .arg("foobar-project")

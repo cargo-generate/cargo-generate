@@ -30,6 +30,7 @@ version = "0.1.0"
         list_favorites: false,
         config: None,
         favorite: None,
+        pick: vec![],
     };
     // need to cd to the dir as we aren't running in the cargo shell.
     assert!(std::env::set_current_dir(&dir.root).is_ok());
