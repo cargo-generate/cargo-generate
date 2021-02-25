@@ -1,0 +1,27 @@
+name: e2e test
+on:
+  schedule:
+    - cron: '0 18 * * 5'
+
+# NOTE: needs to stay in sync with ./build.yml
+jobs:
+  check:
+    name: check
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [ 'macos-latest', 'ubuntu-latest', 'windows-latest']
+    runs-on: ${{ matrix.version }}
+    steps:
+      - name: setup | rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          profile: minimal
+      - run: cargo install -f cargo-generate
+      - run: cargo generate --git rustwasm/wasm-pack-template --name demo
+      - name: verify demo works
+        run: |
+          cd demo
+          cargo build
