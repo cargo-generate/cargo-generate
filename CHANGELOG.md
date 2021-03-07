@@ -1,7 +1,54 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
 
+## [0.6.0] 2021-03-07
+- ### ✨ Features
+    - [interactive variable <enter> leads to default](https://github.com/cargo-generate/cargo-generate/pull/297),
+      [issue/17](https://github.com/cargo-generate/cargo-generate/issues/17),
+      by [sassman](https://github.com/sassman)
+
+      This allows for lazy typing when using custom variables in templates, so that a user does not need to
+      type the default value, but rather can press <enter> in order to accept the default value that is presented.
+
+    - [Add `--vcs none` option to avoid initializing git repo](https://github.com/cargo-generate/cargo-generate/pull/293),
+      [issue/244](https://github.com/cargo-generate/cargo-generate/issues/244),
+      by [taurr](https://github.com/taurr)
+
+    - [Add favorites on cargo-generate.toml user config file](https://github.com/cargo-generate/cargo-generate/pull/292),
+      [issue/210](https://github.com/cargo-generate/cargo-generate/issues/210),
+      by [taurr](https://github.com/taurr)
+
+      This allows you to specify one or more shortcuts / favourites in your personal cargo-generate config file under
+      `$CARGO_HOME/cargo-generate` or `$HOME/.cargo/cargo-generate`.
+      You can read more about [this feature here](https://github.com/cargo-generate/cargo-generate#favorites)
+      
+      Update: [on backwards compatibility](https://github.com/cargo-generate/cargo-generate/pull/309) by [sassman](https://github.com/sassman)
+
+    - [Add user specific template variables](https://github.com/cargo-generate/cargo-generate/pull/275),
+      [issue/17](https://github.com/cargo-generate/cargo-generate/issues/17),
+      by [pedrohjordao](https://github.com/pedrohjordao)
+
+      This allows a template author to define template specific variables. Those variables can be of type string and bool.
+      Further more they can be a choice of a provided list.
+      You can read more about [this feature here in the docs](https://docs.rs/cargo-generate/0.6.0/cargo_generate/).
+
+      A brief example:
+      ```toml
+      [placeholders]
+      my-placeholder = { type = "string", prompt = "Hello?", choices = ["hello", "world"], default = "hello", regex = "*" }
+      use-serde = { type = "bool", prompt = "Add serde support?", default = false }
+      ```
+
+- ### 🤕 Fixes
+    - [dont init git when inside an existing repo](https://github.com/cargo-generate/cargo-generate/pull/290),
+      [issue/244](https://github.com/cargo-generate/cargo-generate/issues/244),
+      by [taurr](https://github.com/taurr)
+
+- ### 🛠️ Maintenance
+    - [Bump cargo from 0.50.1 to 0.51.0](https://github.com/cargo-generate/cargo-generate/pull/294),
+      by [dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+      
 ## [0.6.0-alpha.2] 2021-02-18 [PRERELEASED]
 - ### ✨ Features
     - [interactive variable <enter> leads to default](https://github.com/cargo-generate/cargo-generate/pull/297),
@@ -794,6 +841,8 @@
 
 - First release! 
 
+[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.0-alpha.2...v0.6.0
 [0.6.0-alpha.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.0-alpha.1...v0.6.0-alpha.2
 [0.6.0-alpha.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.5.3...v0.6.0-alpha.1
 [0.5.3]: https://github.com/cargo-generate/cargo-generate/compare/v0.5.2...v0.5.3
