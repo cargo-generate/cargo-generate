@@ -80,6 +80,8 @@ or slightly more involved:
 cargo generate demo --branch master --name expanded_demo
 ```
 
+> NOTE: when `<favorite>` is not defined in the config file, it is interpreted as a git repo like as if `--git <favorite>`
+
 ## Templates
 
 Templates are git repositories whose files contain placeholders. The current
