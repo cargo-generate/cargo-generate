@@ -141,10 +141,5 @@ fn favorites_default_to_git_if_not_defined() {
         .current_dir(&dir.path())
         .assert()
         .failure()
-        .stderr(
-            predicates::str::contains(
-                r#"Git Error: unexpected http status code: 404; class=Http (34)"#,
-            )
-            .from_utf8(),
-        );
+        .stderr(predicates::str::contains(r#"status code: 404"#).from_utf8());
 }
