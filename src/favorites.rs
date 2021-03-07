@@ -1,8 +1,9 @@
 use crate::{
     app_config::{app_config_path, AppConfig, FavoriteConfig},
-    Args,
+    info, Args,
 };
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
+use console::style;
 
 pub(crate) fn list_favorites(args: &Args) -> Result<()> {
     let path = &app_config_path(&args.config)?;
@@ -49,20 +50,23 @@ pub(crate) fn resolve_favorite(args: &mut Args) -> Result<()> {
     let favorite = app_config
         .favorites
         .get(favorite_name.as_str())
-        .with_context(|| {
-            format!(
-                "Unknown favorite: {}\nFavorites must be defined in the configuration file at: {}",
-                favorite_name,
-                app_config_path.display()
-            )
-        })?;
-
-    args.git = favorite.git.clone();
-    args.branch = args
-        .branch
-        .as_ref()
-        .or_else(|| favorite.branch.as_ref())
-        .cloned();
+        .map_or_else(
+            || {
+                info!(
+                    "Favorite {} not found in config, using it to a git repo",
+                    style(&favorite_name).bold()
+                );
+                (Some(favorite_name.clone()), args.branch.as_ref().cloned())
+            },
+            |f| {
+                (
+                    f.git.clone(),
+                    args.branch.as_ref().or_else(|| f.branch.as_ref()).cloned(),
+                )
+            },
+        );
+    args.git = favorite.0;
+    args.branch = favorite.1;
 
     Ok(())
 }

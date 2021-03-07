@@ -13,7 +13,7 @@ pub(crate) struct AppConfig {
     pub favorites: HashMap<String, FavoriteConfig>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub(crate) struct FavoriteConfig {
     pub description: Option<String>,
     pub git: Option<String>,

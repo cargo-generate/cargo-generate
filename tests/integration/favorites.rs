@@ -126,7 +126,7 @@ fn git_specification_overrides_favorite() {
 }
 
 #[test]
-fn favorites_fail_if_not_defined() {
+fn favorites_default_to_git_if_not_defined() {
     let favorite_template = create_template("favorite-template");
     let (_config, config_path) = create_favorite_config("test", &favorite_template);
     let dir = tmp_dir().build();
@@ -141,5 +141,10 @@ fn favorites_fail_if_not_defined() {
         .current_dir(&dir.path())
         .assert()
         .failure()
-        .stderr(predicates::str::contains(r#"Unknown favorite: dummy"#).from_utf8());
+        .stderr(
+            predicates::str::contains(
+                r#"Git Error: unexpected http status code: 404; class=Http (34)"#,
+            )
+            .from_utf8(),
+        );
 }

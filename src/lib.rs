@@ -87,6 +87,7 @@ mod git;
 mod ignoreme;
 mod include_exclude;
 mod interactive;
+mod log;
 mod progressbar;
 mod project_variables;
 mod projectname;
@@ -344,9 +345,8 @@ fn gen_success(dir: &Path) {
 
 fn rename_warning(name: &ProjectName) {
     if !name.is_crate_name() {
-        println!(
-            "{} {} `{}` {} `{}`{}",
-            emoji::WARN,
+        info!(
+            "{} `{}` {} `{}`{}",
             style("Renaming project called").bold(),
             style(&name.user_input).bold().yellow(),
             style("to").bold(),
