@@ -42,6 +42,8 @@ cargo install cargo-generate --features vendored-openssl
 
 Standard usage is to pass a `--git` flag to `cargo generate` or short `cargo gen`. This will prompt you to enter the name of your project.
 
+> NOTE: `cargo gen` requires an [cargo alias configuration](#cargo-gen---alias) 
+
 ```sh
 cargo generate --git https://github.com/githubusername/mytemplate.git
 ```
@@ -151,7 +153,7 @@ fn main() {
 {% endif %}
 ```
 
-> Note: similar to `dependencies` in the `Cargo.toml` file you can also list them as one liners:
+> Tip: similar to `dependencies` in the `Cargo.toml` file you can also list them as one liners:
 ```toml
 [placeholders]
 hypervisor = { type = "string", prompt = "What hypervisor to use?", choices = ["uhyve", "qemu"], default = "qemu" }
@@ -225,6 +227,16 @@ you should setup your globs to match on the pre-rename filename.
 include = ["Cargo.toml"]
 # include and exclude are exclusive, if both appear we will use include
 exclude = ["*.c"]
+```
+
+## Cargo gen - alias
+
+`cargo gen` requires an [cargo alias](https://doc.rust-lang.org/cargo/reference/config.html) 
+to be configured in your `$HOME/.cargo/config` like this:
+
+```toml
+[alias]
+gen = "generate"
 ```
 
 ## License
