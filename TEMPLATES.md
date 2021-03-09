@@ -22,7 +22,7 @@
 - [mongodb-service-template]: Create a graphql service using mongodb [briandeboer]
 - [godot-rust-template]: Create games with Godot and Rust [macalimlim]
 - [github-template]: Write a generical rust application with CI and CD hosted on GitHub, [MarcoIeni]
-
+- [rust-arduino-generator]: Run your rust on arduino in a second [HKalbasi]
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
 [wasm-pack]: https://github.com/rustwasm/wasm-pack-template
@@ -66,3 +66,5 @@
 [macalimlim]: https://github.com/macalimlim
 [github-template]: https://github.com/rust-github/template
 [MarcoIeni]: https://github.com/MarcoIeni
+[rust-arduino-generator]: https://github.com/HKalbasi/rust-arduino-generator
+[HKalbasi]: https://github.com/HKalbasi
