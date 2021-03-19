@@ -199,7 +199,7 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "cargo",
- "console 0.14.0",
+ "console 0.14.1",
  "dialoguer",
  "git2",
  "heck",
@@ -311,9 +311,9 @@ dependencies = [
 
 [[package]]
 name = "console"
-version = "0.14.0"
+version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7cc80946b3480f421c2f17ed1cb841753a371c7c5104f51d507e13f532c856aa"
+checksum = "3993e6445baa160675931ec041a5e03ca84b9c6e32a056150d3aa2bdda0a1f45"
 dependencies = [
  "encode_unicode",
  "lazy_static",
@@ -751,7 +751,7 @@ version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7baab56125e25686df467fe470785512329883aab42696d661247aca2a2896e4"
 dependencies = [
- "console 0.14.0",
+ "console 0.13.0",
  "lazy_static",
  "number_prefix",
  "regex",
