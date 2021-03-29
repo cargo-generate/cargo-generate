@@ -159,14 +159,16 @@ mod tests {
         let remote = GitConfig::new("src", None).unwrap().remote.into_string();
         assert!(
             remote.ends_with("/src"),
-            format!("remote {} ends with /src", &remote)
+            "remote {} ends with /src",
+            &remote
         );
 
         #[cfg(unix)]
         {
             assert!(
                 remote.starts_with("file:///"),
-                format!("remote {} starts with file:///", &remote)
+                "remote {} starts with file:///",
+                &remote
             );
         }
 
@@ -181,7 +183,8 @@ mod tests {
                 .into_string();
             assert!(
                 remote.starts_with("file:///"),
-                format!("remote {} starts with file:///", &remote)
+                "remote {} starts with file:///",
+                &remote
             );
         }
     }
