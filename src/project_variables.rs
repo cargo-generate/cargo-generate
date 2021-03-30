@@ -3,9 +3,10 @@ use regex::Regex;
 use thiserror::Error;
 
 use anyhow::Result;
-use liquid::{model::object::Entry, Object};
+use liquid::Object;
 
 use crate::config::{Config, TemplateSlotsTable};
+use liquid_core::model::map::Entry;
 
 #[derive(Debug)]
 pub(crate) struct TemplateSlots {

@@ -7,7 +7,8 @@ use anyhow::{Context, Result};
 use console::style;
 use heck::{CamelCase, KebabCase, SnakeCase};
 use indicatif::ProgressBar;
-use liquid_core::{Filter, FilterReflection, Object, ParseFilter, Runtime, Value, ValueView};
+use liquid_core::{Filter, Object, ParseFilter, Runtime, Value, ValueView};
+use liquid_derive::FilterReflection;
 use std::fs;
 use std::path::Path;
 use std::{collections::HashMap, env};
@@ -38,14 +39,14 @@ impl Filter for KebabCaseFilter {
     fn evaluate(
         &self,
         input: &dyn ValueView,
-        _runtime: &Runtime,
-    ) -> Result<liquid::model::Value, liquid_core::error::Error> {
+        _runtime: &dyn Runtime,
+    ) -> Result<liquid_core::model::Value, liquid_core::error::Error> {
         let input = input
             .as_scalar()
             .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
 
         let input = input.into_string().to_string().to_kebab_case();
-        Ok(liquid::model::Value::scalar(input))
+        Ok(liquid_core::model::Value::scalar(input))
     }
 }
 
@@ -65,7 +66,7 @@ impl Filter for PascalCaseFilter {
     fn evaluate(
         &self,
         input: &dyn ValueView,
-        _runtime: &Runtime,
+        _runtime: &dyn Runtime,
     ) -> Result<liquid::model::Value, liquid_core::error::Error> {
         let input = input
             .as_scalar()
@@ -92,7 +93,7 @@ impl Filter for SnakeCaseFilter {
     fn evaluate(
         &self,
         input: &dyn ValueView,
-        _runtime: &Runtime<'_>,
+        _runtime: &dyn Runtime,
     ) -> Result<liquid::model::Value, liquid_core::error::Error> {
         let input = input
             .as_scalar()
