@@ -207,7 +207,7 @@ dependencies = [
  "ignore",
  "indicatif",
  "liquid",
- "liquid-core",
+ "liquid-core 0.22.0",
  "liquid-derive",
  "liquid-lib",
  "openssl",
@@ -849,7 +849,7 @@ checksum = "3ebeca3e471d40ca4816a8f77cb2e89590275d9ba74da4acb37b267f6250b358"
 dependencies = [
  "doc-comment",
  "kstring",
- "liquid-core",
+ "liquid-core 0.21.3",
  "liquid-derive",
  "liquid-lib",
  "serde",
@@ -866,6 +866,22 @@ dependencies = [
  "itertools",
  "kstring",
  "liquid-derive",
+ "num-traits",
+ "pest",
+ "pest_derive",
+ "serde",
+]
+
+[[package]]
+name = "liquid-core"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be5a88630d73ac78b46277169f92ef135fb09ad50af039f76ccfc35264796cc5"
+dependencies = [
+ "anymap",
+ "chrono",
+ "itertools",
+ "kstring",
  "num-traits",
  "pest",
  "pest_derive",
@@ -892,7 +908,7 @@ dependencies = [
  "chrono",
  "itertools",
  "kstring",
- "liquid-core",
+ "liquid-core 0.21.3",
  "once_cell",
  "percent-encoding",
  "regex",
