@@ -207,9 +207,9 @@ dependencies = [
  "ignore",
  "indicatif",
  "liquid",
- "liquid-core",
- "liquid-derive",
- "liquid-lib",
+ "liquid-core 0.21.3",
+ "liquid-derive 0.21.1",
+ "liquid-lib 0.21.2",
  "openssl",
  "predicates",
  "regex",
@@ -843,15 +843,15 @@ dependencies = [
 
 [[package]]
 name = "liquid"
-version = "0.21.5"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ebeca3e471d40ca4816a8f77cb2e89590275d9ba74da4acb37b267f6250b358"
+checksum = "c09860255f7e7ab76fe682f8d46c1b8b0b4c4330d64136056f650d0e2d49c144"
 dependencies = [
  "doc-comment",
  "kstring",
- "liquid-core",
- "liquid-derive",
- "liquid-lib",
+ "liquid-core 0.22.0",
+ "liquid-derive 0.22.0",
+ "liquid-lib 0.22.0",
  "serde",
 ]
 
@@ -865,7 +865,24 @@ dependencies = [
  "chrono",
  "itertools",
  "kstring",
- "liquid-derive",
+ "liquid-derive 0.21.1",
+ "num-traits",
+ "pest",
+ "pest_derive",
+ "serde",
+]
+
+[[package]]
+name = "liquid-core"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be5a88630d73ac78b46277169f92ef135fb09ad50af039f76ccfc35264796cc5"
+dependencies = [
+ "anymap",
+ "chrono",
+ "itertools",
+ "kstring",
+ "liquid-derive 0.22.0",
  "num-traits",
  "pest",
  "pest_derive",
@@ -884,6 +901,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "liquid-derive"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88408698b7c2a426811369778ed472e219888aa4934f4de69568cc5bf05c8bc9"
+dependencies = [
+ "proc-macro2",
+ "proc-quote",
+ "syn",
+]
+
+[[package]]
 name = "liquid-lib"
 version = "0.21.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -892,7 +920,23 @@ dependencies = [
  "chrono",
  "itertools",
  "kstring",
- "liquid-core",
+ "liquid-core 0.21.3",
+ "once_cell",
+ "percent-encoding",
+ "regex",
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "liquid-lib"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10c14f535f61c4263e57cd4f6ad9701b97459f026420347ed978c4ab0d2512cc"
+dependencies = [
+ "chrono",
+ "itertools",
+ "kstring",
+ "liquid-core 0.22.0",
  "once_cell",
  "percent-encoding",
  "regex",
