@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.6.1] 2021-04-01
+- ### 🛠️ Maintenance
+    - [chore(deps): bump cargo from 0.51.0 to 0.52.0](https://github.com/cargo-generate/cargo-generate/pull/322)
+    - [chore(deps): bump serde from 1.0.124 to 1.0.125](https://github.com/cargo-generate/cargo-generate/pull/321)
+    - [chore(deps): bump walkdir from 2.3.1 to 2.3.2](https://github.com/cargo-generate/cargo-generate/pull/320)
+    - [chore(deps): bump anyhow from 1.0.39 to 1.0.40](https://github.com/cargo-generate/cargo-generate/pull/319)
+    - [chore(deps): bump anyhow from 1.0.38 to 1.0.39](https://github.com/cargo-generate/cargo-generate/pull/317)
+    - [chore(deps): bump dialoguer from 0.7.1 to 0.8.0](https://github.com/cargo-generate/cargo-generate/pull/316)
+    - [chore(deps): bump openssl from 0.10.32 to 0.10.33](https://github.com/cargo-generate/cargo-generate/pull/315)
+    - [chore(deps): bump console from 0.14.0 to 0.14.1](https://github.com/cargo-generate/cargo-generate/pull/314)
+    - [chore(deps): bump regex from 1.4.3 to 1.4.5](https://github.com/cargo-generate/cargo-generate/pull/313)
+    - [chore(deps): bump remove_dir_all from 0.6.1 to 0.7.0](https://github.com/cargo-generate/cargo-generate/pull/311)
+
 ## [0.6.0] 2021-03-07
 - ### ✨ Features
     - [interactive variable <enter> leads to default](https://github.com/cargo-generate/cargo-generate/pull/297),
@@ -841,7 +854,8 @@
 
 - First release! 
 
-[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.0-alpha.2...v0.6.0
 [0.6.0-alpha.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.0-alpha.1...v0.6.0-alpha.2
 [0.6.0-alpha.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.5.3...v0.6.0-alpha.1
