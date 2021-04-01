@@ -14,6 +14,7 @@
     - [chore(deps): bump console from 0.14.0 to 0.14.1](https://github.com/cargo-generate/cargo-generate/pull/314)
     - [chore(deps): bump regex from 1.4.3 to 1.4.5](https://github.com/cargo-generate/cargo-generate/pull/313)
     - [chore(deps): bump remove_dir_all from 0.6.1 to 0.7.0](https://github.com/cargo-generate/cargo-generate/pull/311)
+    - [chore(deps): bump liquid from 0.21.5 to 0.22.0](https://github.com/cargo-generate/cargo-generate/pull/305)
 
 ## [0.6.0] 2021-03-07
 - ### ✨ Features
