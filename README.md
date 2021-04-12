@@ -92,6 +92,7 @@ supported placeholders are:
 - `{{authors}}`: this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.
 - `{{project-name}}`: this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
 - `{{crate_name}}`: the snake_case_version of `project-name`
+- `{{crate_type}}`: this is supplied by either passing the `--bin` or `--lib` flag to the command line, contains either `bin` or `lib`, `--bin` is the default
 - `{{os-arch}}`: contains the current operating system and architecture ex: `linux-x86_64`
 
 Additionally all filters and tags of the liquid template language are supported. 
@@ -107,6 +108,30 @@ Here's a list of [currently available templates](TEMPLATES.md).
 If you have a great template that you'd like to feature here, please [file an issue or a PR]!
 
 [file an issue or a PR]: https://github.com/cargo-generate/cargo-generate/issues
+
+### Example for `--bin` and `--lib` 
+
+A template could be prepared in a way to act as a binary or a library. For example the `Cargo.toml` might look like:
+
+```toml
+[package]
+# the usual stuff
+
+[dependencies]
+{% if crate_type == "bin" %}
+structopt = "0.3.21"
+{% endif %}
+# other general dependencies
+
+{% if crate_type == "bin" %}
+[[bin]]
+path = "src/main.rs"
+name = "{{crate_name}}-cli"
+{% endif %}
+```
+
+Now a user of this template could decide weather they want the binary version by passing `--bin` 
+or use only the library version by passing `--lib` as a command line argument.
 
 ## Template defined placeholders
 
