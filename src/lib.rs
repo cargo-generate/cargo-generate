@@ -79,22 +79,19 @@
 //! `os-arch` and `authors` also can't be overriden and are derived from the environment.
 
 mod app_config;
-mod authors;
 mod config;
 mod emoji;
 mod favorites;
 mod git;
-mod ignoreme;
+mod ignore_me;
 mod include_exclude;
 mod interactive;
 mod log;
 mod progressbar;
 mod project_variables;
-mod projectname;
 mod template;
+mod template_variables;
 
-use crate::git::GitConfig;
-use crate::projectname::ProjectName;
 use anyhow::{Context, Result};
 use config::{Config, ConfigValues, CONFIG_FILE_NAME};
 use console::style;
@@ -106,6 +103,9 @@ use std::{
     str::FromStr,
 };
 use structopt::StructOpt;
+
+use crate::git::GitConfig;
+use crate::template_variables::{CrateType, ProjectName};
 
 #[derive(StructOpt)]
 #[structopt(bin_name = "cargo")]
@@ -130,13 +130,16 @@ pub struct Args {
     /// relative path and only try a GitHub URL if the local path doesn't exist.
     #[structopt(short, long)]
     pub git: Option<String>,
+
     /// Branch to use when installing from git
     #[structopt(short, long)]
     pub branch: Option<String>,
+
     /// Directory to create / project name; if the name isn't in kebab-case, it will be converted
     /// to kebab-case unless `--force` is given.
     #[structopt(long, short)]
     pub name: Option<String>,
+
     /// Don't convert the project name to kebab-case before creating the directory.
     /// Note that cargo generate won't overwrite an existing directory, even if `--force` is given.
     #[structopt(long, short)]
@@ -145,11 +148,12 @@ pub struct Args {
     /// Enables more verbose output.
     #[structopt(long, short)]
     pub verbose: bool,
+
     /// Pass template values through a file
     /// Values should be in the format `key=value`, one per line
-
     #[structopt(long)]
     pub template_values_file: Option<String>,
+
     /// If silent mode is set all variables will be
     /// extracted from the template_values_file.
     /// If a value is missing the project generation will fail
@@ -159,9 +163,18 @@ pub struct Args {
     /// Use specific configuration file. Defaults to $CARGO_HOME/cargo-generate or $HOME/.cargo/cargo-generate
     #[structopt(short, long, parse(from_os_str))]
     pub config: Option<PathBuf>,
+
     /// Specify the VCS used to initialize the generated template.
     #[structopt(long, default_value = "git")]
     pub vcs: Vcs,
+
+    /// Populates a template variable `crate_type` with value `"lib"`
+    #[structopt(long, conflicts_with = "bin")]
+    pub lib: bool,
+
+    /// Populates a template variable `crate_type` with value `"bin"`
+    #[structopt(long, conflicts_with = "lib")]
+    pub bin: bool,
 }
 
 //
@@ -293,25 +306,22 @@ fn progress(
     branch: &str,
     args: &Args,
 ) -> Result<()> {
-    let template = template::substitute(name, template_values, args.force)?;
-
+    let crate_type: CrateType = args.into();
+    let template = template::substitute(name, &crate_type, template_values, args.force)?;
     let config_path = dir.join(CONFIG_FILE_NAME);
-
     let template_config = Config::new(config_path)?;
-
     let template = match template_config.as_ref() {
         None => Ok(template),
         Some(config) => {
-            project_variables::fill_project_varibles(template, config, args.silent, |slot| {
+            project_variables::fill_project_variables(template, config, args.silent, |slot| {
                 interactive::variable(slot)
             })
         }
     }?;
-
     let pbar = progressbar::new();
     pbar.tick();
 
-    ignoreme::remove_unneeded_files(dir, args.verbose);
+    ignore_me::remove_unneeded_files(dir, args.verbose);
 
     template::walk_dir(
         dir,

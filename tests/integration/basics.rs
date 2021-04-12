@@ -1092,3 +1092,68 @@ version = "0.1.0"
         .contains("foobar-project"));
     assert!(Repository::open(dir.path().join("foobar-project")).is_err());
 }
+
+#[test]
+fn it_provides_crate_type_lib() {
+    // Build and commit on branch named 'main'
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "this is a {{crate_type}}"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--lib")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    let cargo_toml = dir.read("foobar-project/Cargo.toml");
+    assert!(cargo_toml.contains("this is a lib"));
+}
+
+#[test]
+fn it_provides_crate_type_bin() {
+    // Build and commit on branch named 'main'
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "this is a {{crate_type}}"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    let cargo_toml = dir.read("foobar-project/Cargo.toml");
+    assert!(cargo_toml.contains("this is a bin"));
+}
