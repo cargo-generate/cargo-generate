@@ -1,12 +1,11 @@
+use anyhow::Result;
+use liquid::Object;
+use liquid_core::model::map::Entry;
 use liquid_core::Value;
 use regex::Regex;
 use thiserror::Error;
 
-use anyhow::Result;
-use liquid::Object;
-
 use crate::config::{Config, TemplateSlotsTable};
-use liquid_core::model::map::Entry;
 
 #[derive(Debug)]
 pub(crate) struct TemplateSlots {
@@ -78,9 +77,15 @@ enum SupportedVarType {
     String,
 }
 
-const INVALID_NAMES: [&str; 4] = ["authors", "os-arch", "project-name", "crate_name"];
+const RESERVED_NAMES: [&str; 5] = [
+    "authors",
+    "os-arch",
+    "project-name",
+    "crate_name",
+    "crate_type",
+];
 
-pub(crate) fn fill_project_varibles<F>(
+pub(crate) fn fill_project_variables<F>(
     mut template_object: Object,
     template_config: &Config,
     silent: bool,
@@ -118,10 +123,10 @@ where
 }
 
 fn try_into_template_slots(
-    table: &TemplateSlotsTable,
+    TemplateSlotsTable(table): &TemplateSlotsTable,
 ) -> Result<Vec<TemplateSlots>, ConversionError> {
-    let mut slots = Vec::with_capacity(table.0.len());
-    for (key, values) in table.0.iter() {
+    let mut slots = Vec::with_capacity(table.len());
+    for (key, values) in table.iter() {
         slots.push(try_key_value_into_slot(key, values)?);
     }
     Ok(slots)
@@ -131,7 +136,7 @@ fn try_key_value_into_slot(
     key: &str,
     values: &toml::Value,
 ) -> Result<TemplateSlots, ConversionError> {
-    if INVALID_NAMES.contains(&key) {
+    if RESERVED_NAMES.contains(&key) {
         return Err(ConversionError::InvalidPlaceholderName {
             var_name: key.to_string(),
         });
