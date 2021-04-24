@@ -1,18 +1,18 @@
-use crate::authors;
-use crate::config::TemplateConfig;
-use crate::emoji;
-use crate::include_exclude::*;
-use crate::projectname::ProjectName;
 use anyhow::{Context, Result};
 use console::style;
 use heck::{CamelCase, KebabCase, SnakeCase};
 use indicatif::ProgressBar;
 use liquid_core::{Filter, Object, ParseFilter, Runtime, Value, ValueView};
 use liquid_derive::FilterReflection;
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use std::{collections::HashMap, env};
 use walkdir::{DirEntry, WalkDir};
+
+use crate::config::TemplateConfig;
+use crate::emoji;
+use crate::include_exclude::*;
+use crate::template_variables::{get_authors, get_os_arch, Authors, CrateType, ProjectName};
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::with_stdlib()
@@ -106,16 +106,21 @@ impl Filter for SnakeCaseFilter {
 
 pub(crate) fn substitute(
     name: &ProjectName,
+    crate_type: &CrateType,
     template_values: &HashMap<String, toml::Value>,
     force: bool,
 ) -> Result<Object> {
     let project_name = if force { name.raw() } else { name.kebab_case() };
-    let authors = authors::get_authors()?;
-    let os_arch = format!("{}-{}", env::consts::OS, env::consts::ARCH);
+    let authors: Authors = get_authors()?;
+    let os_arch = get_os_arch();
 
     let mut liquid_object = Object::new();
     liquid_object.insert("project-name".into(), Value::Scalar(project_name.into()));
     liquid_object.insert("crate_name".into(), Value::Scalar(name.snake_case().into()));
+    liquid_object.insert(
+        "crate_type".into(),
+        Value::Scalar(crate_type.to_string().into()),
+    );
     liquid_object.insert("authors".into(), Value::Scalar(authors.into()));
     liquid_object.insert("os-arch".into(), Value::Scalar(os_arch.into()));
 

@@ -22,6 +22,7 @@
 - [mongodb-service-template]: Create a graphql service using mongodb [briandeboer]
 - [godot-rust-template]: Create games with Godot and Rust [macalimlim]
 - [github-template]: Write a generical rust application with CI and CD hosted on GitHub, [MarcoIeni]
+- [serenity]: Write a Discord bot in rust using the Serenity library, [chilipepperhott]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -66,3 +67,5 @@
 [macalimlim]: https://github.com/macalimlim
 [github-template]: https://github.com/rust-github/template
 [MarcoIeni]: https://github.com/MarcoIeni
+[serenity]: https://github.com/chilipepperhott/discord-bot-template
+[chilipepperhott]: https://github.com/chilipepperhott
