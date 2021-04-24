@@ -2,11 +2,12 @@ use anyhow::{Context, Result};
 use cargo::core::GitReference;
 use cargo::sources::git::GitRemote;
 use cargo::util::config::Config;
-use git2::{ProxyOptions, Repository as GitRepository, RepositoryInitOptions};
+use git2::{
+    Cred, ProxyOptions, RemoteCallbacks, Repository as GitRepository, RepositoryInitOptions,
+};
 use remove_dir_all::remove_dir_all;
-use std::env::current_dir;
-use std::path::Path;
-use std::path::PathBuf;
+use std::env::{self, current_dir};
+use std::path::{Path, PathBuf};
 use tempfile::Builder;
 use url::{ParseError, Url};
 
@@ -65,7 +66,37 @@ impl GitConfig {
     }
 }
 
-pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
+fn create_with_ssh(project_dir: &Path, args: GitConfig) -> Result<String> {
+    let mut callbacks = RemoteCallbacks::new();
+
+    callbacks.credentials(|_url, username_from_url, _allowed_types| {
+        Cred::ssh_key(
+            username_from_url.unwrap_or("git"),
+            None,
+            Path::new(&format!("{}/.ssh/id_rsa", env::var("HOME").unwrap())),
+            None,
+        )
+    });
+
+    let branch = match args.branch {
+        GitReference::Branch(branch_name) => branch_name,
+        GitReference::DefaultBranch => "master".into(),
+        _ => unreachable!(),
+    };
+
+    let mut fo = git2::FetchOptions::new();
+    fo.remote_callbacks(callbacks);
+
+    let mut builder = git2::build::RepoBuilder::new();
+    builder.fetch_options(fo);
+    builder.branch(&branch);
+
+    builder.clone(args.remote.as_str(), project_dir)?;
+
+    Ok(branch)
+}
+
+fn create_with_http(project_dir: &Path, args: GitConfig) -> Result<String> {
     let temp = Builder::new().prefix(project_dir).tempdir()?;
     let config = Config::default()?;
     let remote = GitRemote::new(&args.remote);
@@ -111,6 +142,14 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
     // This clones the remote and handles all the submodules
     db.copy_to(rev, project_dir, &config)?;
     Ok(branch_name)
+}
+
+pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
+    if args.remote.to_string().contains("ssh://") {
+        create_with_ssh(project_dir, args)
+    } else {
+        create_with_http(project_dir, args)
+    }
 }
 
 pub(crate) fn remove_history(project_dir: &Path) -> Result<()> {
