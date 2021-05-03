@@ -226,18 +226,15 @@ fn create_git(args: Args, name: &ProjectName) -> Result<()> {
         .as_ref()
         .map(|p| Path::new(p))
         .map_or(Ok(Default::default()), |path| get_config_file_values(path))?;
-    let git_config = GitConfig::new_abbr(
-        &args
-            .git
-            .clone()
-            .with_context(|| "Missing option git, or a favorite")?,
-        args.branch.to_owned(),
-    )?;
+    let remote = args
+        .git
+        .clone()
+        .with_context(|| "Missing option git, or a favorite")?;
+    let git_config = GitConfig::new_abbr(remote.into(), args.branch.to_owned())?;
 
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, git_config) {
             Ok(branch) => {
-                git::remove_history(dir)?;
                 progress(name, &template_values, dir, &branch, &args)?;
             }
             Err(e) => anyhow::bail!(

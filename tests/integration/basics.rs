@@ -563,7 +563,7 @@ version = "0.1.0"
             .path()
             .join("dangerous.todelete.cargogeneratetests")
     )
-    .expect("should exist")
+    .unwrap()
     .is_file());
 }
 
@@ -1157,4 +1157,48 @@ version = "0.1.0"
 
     let cargo_toml = dir.read("foobar-project/Cargo.toml");
     assert!(cargo_toml.contains("this is a bin"));
+}
+
+#[cfg(test)]
+mod ssh_remote {
+    use super::*;
+
+    #[test]
+    fn it_should_support_a_public_repo() {
+        let dir = tmp_dir().build();
+
+        binary()
+            .arg("generate")
+            .arg("--git")
+            .arg("git@github.com:ashleygwilliams/wasm-pack-template.git")
+            .arg("--name")
+            .arg("foobar-project")
+            .current_dir(&dir.path())
+            .assert()
+            .success()
+            .stdout(predicates::str::contains("Done!").from_utf8());
+
+        let cargo_toml = dir.read("foobar-project/Cargo.toml");
+        assert!(cargo_toml.contains("foobar-project"));
+    }
+
+    #[test]
+    #[ignore]
+    fn it_should_support_a_private_repo() {
+        let dir = tmp_dir().build();
+
+        binary()
+            .arg("generate")
+            .arg("--git")
+            .arg("git@github.com:cargo-generate/wasm-pack-template.git")
+            .arg("--name")
+            .arg("foobar-project")
+            .current_dir(&dir.path())
+            .assert()
+            .success()
+            .stdout(predicates::str::contains("Done!").from_utf8());
+
+        let cargo_toml = dir.read("foobar-project/Cargo.toml");
+        assert!(cargo_toml.contains("foobar-project"));
+    }
 }
