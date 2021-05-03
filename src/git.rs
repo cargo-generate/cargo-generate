@@ -64,40 +64,11 @@ impl GitConfig {
     }
 }
 
-fn create_with_ssh(project_dir: &Path, args: GitConfig) -> Result<String> {
-    let mut callbacks = RemoteCallbacks::new();
-
-    callbacks.credentials(|_url, username_from_url, _allowed_types| {
-        Cred::ssh_key(
-            username_from_url.unwrap_or("git"),
-            None,
-            Path::new(&format!("{}/.ssh/id_rsa", env::var("HOME").unwrap())),
-            None,
-        )
-    });
-
-    let branch = match args.branch {
-        GitReference::Branch(branch_name) => branch_name,
-        GitReference::DefaultBranch => "master".into(),
-        _ => unreachable!(),
-    };
-
-    let mut fo = git2::FetchOptions::new();
-    fo.remote_callbacks(callbacks);
-
-    let mut builder = git2::build::RepoBuilder::new();
-    builder.fetch_options(fo);
-    builder.branch(&branch);
-
-    builder.clone(args.remote.as_str(), project_dir)?;
-
-    Ok(branch)
-}
-
-fn create_with_http(project_dir: &Path, args: GitConfig) -> Result<String> {
+pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
     let temp = Builder::new().prefix(project_dir).tempdir()?;
     let config = Config::default()?;
     let remote = GitRemote::new(&args.remote);
+    let is_http = args.remote.to_string().contains("http");
 
     let ((db, rev), branch_name) = match &args.branch {
         GitReference::Branch(branch_name) => (
@@ -115,8 +86,26 @@ fn create_with_http(project_dir: &Path, args: GitConfig) -> Result<String> {
             //  - https://github.com/rust-lang/cargo/issues/8468
             let repo = git2::Repository::init(&temp.path())?;
             let mut git_remote = repo.remote_anonymous(remote.url().as_str())?;
-            git_remote.connect(git2::Direction::Fetch)?;
-            let default_branch = git_remote.default_branch()?;
+
+            let default_branch = if is_http {
+                git_remote.connect(git2::Direction::Fetch)?;
+                git_remote.default_branch()?
+            } else {
+                let mut cb = RemoteCallbacks::new();
+                cb.credentials(|_url, username_from_url, _allowed_types| {
+                    Cred::ssh_key(
+                        username_from_url.unwrap_or("git"),
+                        None,
+                        Path::new(&format!("{}/.ssh/id_rsa", env::var("HOME").unwrap())),
+                        None,
+                    )
+                });
+                let remote_conn = git_remote
+                    .connect_auth(git2::Direction::Fetch, Some(cb), None)
+                    .context("git_remote connect_auth failed")?;
+                remote_conn.default_branch()?
+            };
+
             let branch_name = default_branch
                 .as_str()
                 .unwrap_or("refs/heads/master")
@@ -136,16 +125,29 @@ fn create_with_http(project_dir: &Path, args: GitConfig) -> Result<String> {
     };
 
     // This clones the remote and handles all the submodules
-    db.copy_to(rev, project_dir, &config)?;
-    Ok(branch_name)
-}
-
-pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
-    if args.remote.to_string().contains("ssh://") {
-        create_with_ssh(project_dir, args)
+    if is_http {
+        db.copy_to(rev, project_dir, &config)?;
     } else {
-        create_with_http(project_dir, args)
+        let mut callbacks = RemoteCallbacks::new();
+
+        callbacks.credentials(|_url, username_from_url, _allowed_types| {
+            Cred::ssh_key(
+                username_from_url.unwrap_or("git"),
+                None,
+                Path::new(&format!("{}/.ssh/id_rsa", env::var("HOME").unwrap())),
+                None,
+            )
+        });
+
+        let mut fo = git2::FetchOptions::new();
+        fo.remote_callbacks(callbacks);
+
+        let mut builder = git2::build::RepoBuilder::new();
+        builder.fetch_options(fo);
+        builder.branch(&branch_name);
+        builder.clone(args.remote.as_str(), project_dir)?;
     }
+    Ok(branch_name)
 }
 
 pub(crate) fn remove_history(project_dir: &Path) -> Result<()> {
