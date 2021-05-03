@@ -4,7 +4,7 @@ use cargo::sources::git::GitRemote;
 use cargo::util::config::Config;
 use git2::{Cred, RemoteCallbacks, Repository as GitRepository, RepositoryInitOptions};
 use remove_dir_all::remove_dir_all;
-use std::env::{self, current_dir};
+use std::env::current_dir;
 use std::path::{Path, PathBuf};
 use tempfile::Builder;
 use url::{ParseError, Url};
@@ -64,6 +64,17 @@ impl GitConfig {
     }
 }
 
+fn git_credentials_callback(
+    _url: &str,
+    username_from_url: Option<&str>,
+    _allowed_types: git2::CredentialType,
+) -> Result<git2::Cred, git2::Error> {
+    let mut priv_key =
+        dirs::home_dir().ok_or_else(|| git2::Error::from_str("$HOME was not set"))?;
+    priv_key.push(".ssh/id_rsa");
+    Cred::ssh_key(username_from_url.unwrap_or("git"), None, &priv_key, None)
+}
+
 pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
     let temp = Builder::new().prefix(project_dir).tempdir()?;
     let config = Config::default()?;
@@ -92,14 +103,7 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
                 git_remote.default_branch()?
             } else {
                 let mut cb = RemoteCallbacks::new();
-                cb.credentials(|_url, username_from_url, _allowed_types| {
-                    Cred::ssh_key(
-                        username_from_url.unwrap_or("git"),
-                        None,
-                        Path::new(&format!("{}/.ssh/id_rsa", env::var("HOME").unwrap())),
-                        None,
-                    )
-                });
+                cb.credentials(git_credentials_callback);
                 let remote_conn = git_remote
                     .connect_auth(git2::Direction::Fetch, Some(cb), None)
                     .context("git_remote connect_auth failed")?;
@@ -129,15 +133,7 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
         db.copy_to(rev, project_dir, &config)?;
     } else {
         let mut callbacks = RemoteCallbacks::new();
-
-        callbacks.credentials(|_url, username_from_url, _allowed_types| {
-            Cred::ssh_key(
-                username_from_url.unwrap_or("git"),
-                None,
-                Path::new(&format!("{}/.ssh/id_rsa", env::var("HOME").unwrap())),
-                None,
-            )
-        });
+        callbacks.credentials(git_credentials_callback);
 
         let mut fo = git2::FetchOptions::new();
         fo.remote_callbacks(callbacks);
