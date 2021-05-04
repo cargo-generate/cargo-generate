@@ -64,22 +64,24 @@ impl GitConfig {
     }
 }
 
-fn git_credentials_callback(
-    _url: &str,
-    username_from_url: Option<&str>,
-    _allowed_types: git2::CredentialType,
-) -> Result<git2::Cred, git2::Error> {
+fn git_credentials_callback<'a>() -> Result<RemoteCallbacks<'a>> {
     let mut priv_key =
         dirs::home_dir().ok_or_else(|| git2::Error::from_str("$HOME was not set"))?;
     priv_key.push(".ssh/id_rsa");
-    Cred::ssh_key(username_from_url.unwrap_or("git"), None, &priv_key, None)
+    let mut cb = RemoteCallbacks::new();
+    cb.credentials(
+        move |_url, username_from_url: Option<&str>, _allowed_types| {
+            Cred::ssh_key(username_from_url.unwrap_or("git"), None, &priv_key, None)
+        },
+    );
+    Ok(cb)
 }
 
 pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
     let temp = Builder::new().prefix(project_dir).tempdir()?;
     let config = Config::default()?;
     let remote = GitRemote::new(&args.remote);
-    let is_http = args.remote.to_string().contains("http");
+    let is_ssh = args.remote.to_string().starts_with("ssh://");
 
     let ((db, rev), branch_name) = match &args.branch {
         GitReference::Branch(branch_name) => (
@@ -98,16 +100,18 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
             let repo = git2::Repository::init(&temp.path())?;
             let mut git_remote = repo.remote_anonymous(remote.url().as_str())?;
 
-            let default_branch = if is_http {
-                git_remote.connect(git2::Direction::Fetch)?;
-                git_remote.default_branch()?
-            } else {
-                let mut cb = RemoteCallbacks::new();
-                cb.credentials(git_credentials_callback);
+            let default_branch = if is_ssh {
                 let remote_conn = git_remote
-                    .connect_auth(git2::Direction::Fetch, Some(cb), None)
+                    .connect_auth(
+                        git2::Direction::Fetch,
+                        Some(git_credentials_callback()?),
+                        None,
+                    )
                     .context("git_remote connect_auth failed")?;
                 remote_conn.default_branch()?
+            } else {
+                git_remote.connect(git2::Direction::Fetch)?;
+                git_remote.default_branch()?
             };
 
             let branch_name = default_branch
@@ -129,12 +133,8 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
     };
 
     // This clones the remote and handles all the submodules
-    if is_http {
-        db.copy_to(rev, project_dir, &config)?;
-    } else {
-        let mut callbacks = RemoteCallbacks::new();
-        callbacks.credentials(git_credentials_callback);
-
+    if is_ssh {
+        let callbacks = git_credentials_callback()?;
         let mut fo = git2::FetchOptions::new();
         fo.remote_callbacks(callbacks);
 
@@ -142,6 +142,8 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
         builder.fetch_options(fo);
         builder.branch(&branch_name);
         builder.clone(args.remote.as_str(), project_dir)?;
+    } else {
+        db.copy_to(rev, project_dir, &config)?;
     }
     Ok(branch_name)
 }
