@@ -318,8 +318,7 @@ fn progress(
             })
         }
     }?;
-    let pbar = progressbar::new();
-    pbar.tick();
+    let mut pbar = progressbar::new();
 
     ignore_me::remove_unneeded_files(dir, args.verbose);
 
@@ -327,8 +326,10 @@ fn progress(
         dir,
         template,
         template_config.and_then(|c| c.template),
-        pbar,
+        &mut pbar,
     )?;
+
+    pbar.join().unwrap();
 
     match args.vcs {
         Vcs::None => {}

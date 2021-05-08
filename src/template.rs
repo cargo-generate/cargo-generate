@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use console::style;
 use heck::{CamelCase, KebabCase, SnakeCase};
-use indicatif::ProgressBar;
+use indicatif::{MultiProgress, ProgressBar};
 use liquid_core::{Filter, Object, ParseFilter, Runtime, Value, ValueView};
 use liquid_derive::FilterReflection;
 use std::collections::HashMap;
@@ -12,6 +12,7 @@ use walkdir::{DirEntry, WalkDir};
 use crate::config::TemplateConfig;
 use crate::emoji;
 use crate::include_exclude::*;
+use crate::progressbar::spinner;
 use crate::template_variables::{get_authors, get_os_arch, Authors, CrateType, ProjectName};
 
 fn engine() -> liquid::Parser {
@@ -147,7 +148,7 @@ pub(crate) fn walk_dir(
     project_dir: &Path,
     template: Object,
     template_config: Option<TemplateConfig>,
-    pbar: ProgressBar,
+    mp: &mut MultiProgress,
 ) -> Result<()> {
     fn is_dir(entry: &DirEntry) -> bool {
         entry.file_type().is_dir()
@@ -166,16 +167,24 @@ pub(crate) fn walk_dir(
         || Ok(Matcher::default()),
         |config| Matcher::new(config, project_dir),
     )?;
+    let spinner_style = spinner();
 
+    let mut progress = 0;
     for entry in WalkDir::new(project_dir) {
         let entry = entry?;
         if is_dir(&entry) || is_git_metadata(&entry) {
             continue;
         }
 
+        let pbar = mp.add(ProgressBar::new(50));
+        pbar.set_style(spinner_style.clone());
+        pbar.set_prefix(format!("[{}/?]", progress + 1));
+        progress += 1;
+
         let filename = entry.path();
         let relative_path = filename.strip_prefix(project_dir)?;
-        pbar.set_message(&filename.display().to_string());
+        let f = relative_path.display();
+        pbar.set_message(format!("Processing: {}", f));
 
         if matcher.should_include(relative_path) {
             let new_contents = engine
@@ -190,6 +199,7 @@ pub(crate) fn walk_dir(
                         style(filename.display()).bold()
                     )
                 })?;
+            pbar.inc(50);
             fs::write(filename, new_contents).with_context(|| {
                 format!(
                     "{} {} `{}`",
@@ -198,9 +208,12 @@ pub(crate) fn walk_dir(
                     style(filename.display()).bold()
                 )
             })?;
+            pbar.inc(50);
+            pbar.finish_with_message(format!("Done: {}", f));
+        } else {
+            pbar.finish_with_message(format!("Skipped: {}", f));
         }
     }
 
-    pbar.finish_and_clear();
     Ok(())
 }
