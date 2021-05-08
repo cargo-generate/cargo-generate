@@ -53,7 +53,7 @@ pub(crate) fn resolve_favorite(args: &mut Args) -> Result<()> {
         .map_or_else(
             || {
                 info!(
-                    "Favorite {} not found in config, using it to a git repo",
+                    "Favorite {} not found in config, using it as a git repo url",
                     style(&favorite_name).bold()
                 );
                 (Some(favorite_name.clone()), args.branch.as_ref().cloned())
