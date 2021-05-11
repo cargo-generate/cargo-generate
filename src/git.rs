@@ -156,7 +156,7 @@ mod tests {
         assert!(GitConfig::new("aslkdgjlaskjdglskj", None).is_err());
 
         // Local path does exist.
-        let remote = GitConfig::new("src", None).unwrap().remote.into_string();
+        let remote: String = GitConfig::new("src", None).unwrap().remote.into();
         assert!(
             remote.ends_with("/src"),
             "remote {} ends with /src",
@@ -177,14 +177,14 @@ mod tests {
             // Absolute path.
             // If this fails because you cloned this repository into a non-UTF-8 directory... all
             // I can say is you probably had it comin'.
-            let remote = GitConfig::new(current_dir().unwrap().to_str().unwrap(), None)
+            let remote: String = GitConfig::new(current_dir().unwrap().to_str().unwrap(), None)
                 .unwrap()
                 .remote
-                .into_string();
+                .into();
             assert!(
                 remote.starts_with("file:///"),
                 "remote {} starts with file:///",
-                &remote
+                remote
             );
         }
     }
