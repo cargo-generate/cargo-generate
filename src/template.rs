@@ -170,7 +170,7 @@ pub(crate) fn walk_dir(
     let spinner_style = spinner();
 
     let mut progress = 0;
-    for entry in WalkDir::new(project_dir) {
+    for entry in WalkDir::new(project_dir).sort_by_file_name() {
         let entry = entry?;
         if is_dir(&entry) || is_git_metadata(&entry) {
             continue;
@@ -178,7 +178,7 @@ pub(crate) fn walk_dir(
 
         let pbar = mp.add(ProgressBar::new(50));
         pbar.set_style(spinner_style.clone());
-        pbar.set_prefix(format!("[{}/?]", progress + 1));
+        pbar.set_prefix(format!("[{:2}/?]", progress + 1));
         progress += 1;
 
         let filename = entry.path();
