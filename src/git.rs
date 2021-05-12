@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use cargo::core::GitReference;
 use cargo::sources::git::GitRemote;
 use cargo::util::config::Config;
-use git2::{Repository as GitRepository, RepositoryInitOptions};
+use git2::{ProxyOptions, Repository as GitRepository, RepositoryInitOptions};
 use remove_dir_all::remove_dir_all;
 use std::env::current_dir;
 use std::path::Path;
@@ -68,6 +68,12 @@ impl GitConfig {
 pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
     let temp = Builder::new().prefix(project_dir).tempdir()?;
     let config = Config::default()?;
+    // let proxy_settings = if std::env::var("HTTP_PROXY").is_ok() {
+    let proxy_settings = {
+        let mut proxy = ProxyOptions::new();
+        proxy.auto();
+        Some(proxy)
+    };
     let remote = GitRemote::new(&args.remote);
 
     let ((db, rev), branch_name) = match &args.branch {
@@ -86,7 +92,8 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
             //  - https://github.com/rust-lang/cargo/issues/8468
             let repo = git2::Repository::init(&temp.path())?;
             let mut git_remote = repo.remote_anonymous(remote.url().as_str())?;
-            git_remote.connect(git2::Direction::Fetch)?;
+            // git_remote.connect(git2::Direction::Fetch)?;
+            git_remote.connect_auth(git2::Direction::Fetch, None, proxy_settings)?;
             let default_branch = git_remote.default_branch()?;
             let branch_name = default_branch
                 .as_str()
@@ -129,33 +136,28 @@ pub fn init(project_dir: &Path, branch: &str) -> Result<GitRepository> {
 mod tests {
     use super::*;
 
+    const REPO_URL: &str = "https://github.com/cargo-generate/cargo-generate.git";
+
     #[test]
-    fn gitconfig_new_test() {
-        // Remote HTTPS URL.
-        let cfg = GitConfig::new(
-            "https://github.com/ashleygwilliams/cargo-generate.git",
-            Some("main".to_owned()),
-        )
-        .unwrap();
-
-        assert_eq!(
-            cfg.remote,
-            Url::parse("https://github.com/ashleygwilliams/cargo-generate.git").unwrap()
-        );
-        assert_eq!(cfg.branch, GitReference::Branch("main".to_owned()));
-
-        // Fails because "ashleygwilliams" is a "bad port number". Out of scope for now -- not sure
-        // how common SSH URLs are at this point anyways...?
-        assert!(GitConfig::new(
-            "ssh://git@github.com:ashleygwilliams/cargo-generate.git",
+    #[should_panic(expected = "invalid port number")]
+    fn should_fail_for_ssh_remote_urls() {
+        GitConfig::new(
+            REPO_URL
+                .replace("https://github.com/", "ssh://git@github.com:")
+                .as_str(),
             None,
         )
-        .is_err());
+        .unwrap();
+    }
 
-        // Local path doesn't exist.
-        assert!(GitConfig::new("aslkdgjlaskjdglskj", None).is_err());
+    #[test]
+    #[should_panic(expected = "aslkdgjlaskjdglskj\" doesn't exist")]
+    fn should_fail_for_non_existing_local_path() {
+        GitConfig::new("aslkdgjlaskjdglskj", None).unwrap();
+    }
 
-        // Local path does exist.
+    #[test]
+    fn should_support_a_local_relative_path() {
         let remote: String = GitConfig::new("src", None).unwrap().remote.into();
         assert!(
             remote.ends_with("/src"),
@@ -164,39 +166,46 @@ mod tests {
         );
 
         #[cfg(unix)]
-        {
-            assert!(
-                remote.starts_with("file:///"),
-                "remote {} starts with file:///",
-                &remote
-            );
-        }
-
-        #[cfg(unix)]
-        {
-            // Absolute path.
-            // If this fails because you cloned this repository into a non-UTF-8 directory... all
-            // I can say is you probably had it comin'.
-            let remote: String = GitConfig::new(current_dir().unwrap().to_str().unwrap(), None)
-                .unwrap()
-                .remote
-                .into();
-            assert!(
-                remote.starts_with("file:///"),
-                "remote {} starts with file:///",
-                remote
-            );
-        }
+        assert!(
+            remote.starts_with("file:///"),
+            "remote {} starts with file:///",
+            &remote
+        );
     }
 
     #[test]
-    fn gitconfig_new_abbr_test() {
-        // Abbreviated owner/repo form
+    #[cfg(unix)]
+    fn should_support_a_local_absolute_path() {
+        // Absolute path.
+        // If this fails because you cloned this repository into a non-UTF-8 directory... all
+        // I can say is you probably had it comin'.
+        let remote: String = GitConfig::new(current_dir().unwrap().to_str().unwrap(), None)
+            .unwrap()
+            .remote
+            .into();
+        assert!(
+            remote.starts_with("file:///"),
+            "remote {} starts with file:///",
+            remote
+        );
+    }
+
+    #[test]
+    fn should_test_happy_path() {
+        // Remote HTTPS URL.
+        let cfg = GitConfig::new(REPO_URL, Some("main".to_owned())).unwrap();
+
+        assert_eq!(cfg.remote, Url::parse(REPO_URL).unwrap());
+        assert_eq!(cfg.branch, GitReference::Branch("main".to_owned()));
+    }
+
+    #[test]
+    fn should_support_abbreviated_repository_short_urls_like() {
         assert_eq!(
-            GitConfig::new_abbr("ashleygwilliams/cargo-generate", None)
+            GitConfig::new_abbr("cargo-generate/cargo-generate", None)
                 .unwrap()
                 .remote,
-            Url::parse("https://github.com/ashleygwilliams/cargo-generate.git").unwrap()
+            Url::parse(REPO_URL).unwrap()
         );
     }
 }
