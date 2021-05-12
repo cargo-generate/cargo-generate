@@ -150,10 +150,6 @@ pub(crate) fn walk_dir(
     template_config: Option<TemplateConfig>,
     mp: &mut MultiProgress,
 ) -> Result<()> {
-    fn is_dir(entry: &DirEntry) -> bool {
-        entry.file_type().is_dir()
-    }
-
     fn is_git_metadata(entry: &DirEntry) -> bool {
         entry
             .path()
@@ -169,22 +165,28 @@ pub(crate) fn walk_dir(
     )?;
     let spinner_style = spinner();
 
-    let mut progress = 0;
-    for entry in WalkDir::new(project_dir).sort_by_file_name() {
-        let entry = entry?;
-        if is_dir(&entry) || is_git_metadata(&entry) {
-            continue;
-        }
-
-        let pbar = mp.add(ProgressBar::new(50));
-        pbar.set_style(spinner_style.clone());
-        pbar.set_prefix(format!("[{:2}/?]", progress + 1));
-        progress += 1;
+    let files = WalkDir::new(project_dir)
+        .sort_by_file_name()
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| !e.file_type().is_dir())
+        .filter(|e| !is_git_metadata(e))
+        .collect::<Vec<_>>();
+    let total = files.len().to_string();
+    for (progress, entry) in files.into_iter().enumerate() {
+        let pb = mp.add(ProgressBar::new(50));
+        pb.set_style(spinner_style.clone());
+        pb.set_prefix(format!(
+            "[{:width$}/{}]",
+            progress + 1,
+            total,
+            width = total.len()
+        ));
 
         let filename = entry.path();
         let relative_path = filename.strip_prefix(project_dir)?;
         let f = relative_path.display();
-        pbar.set_message(format!("Processing: {}", f));
+        pb.set_message(format!("Processing: {}", f));
 
         if matcher.should_include(relative_path) {
             let new_contents = engine
@@ -199,7 +201,7 @@ pub(crate) fn walk_dir(
                         style(filename.display()).bold()
                     )
                 })?;
-            pbar.inc(50);
+            pb.inc(50);
             fs::write(filename, new_contents).with_context(|| {
                 format!(
                     "{} {} `{}`",
@@ -208,10 +210,10 @@ pub(crate) fn walk_dir(
                     style(filename.display()).bold()
                 )
             })?;
-            pbar.inc(50);
-            pbar.finish_with_message(format!("Done: {}", f));
+            pb.inc(50);
+            pb.finish_with_message(format!("Done: {}", f));
         } else {
-            pbar.finish_with_message(format!("Skipped: {}", f));
+            pb.finish_with_message(format!("Skipped: {}", f));
         }
     }
 
