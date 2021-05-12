@@ -68,12 +68,6 @@ impl GitConfig {
 pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
     let temp = Builder::new().prefix(project_dir).tempdir()?;
     let config = Config::default()?;
-    // let proxy_settings = if std::env::var("HTTP_PROXY").is_ok() {
-    let proxy_settings = {
-        let mut proxy = ProxyOptions::new();
-        proxy.auto();
-        Some(proxy)
-    };
     let remote = GitRemote::new(&args.remote);
 
     let ((db, rev), branch_name) = match &args.branch {
@@ -91,10 +85,11 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
             //  - https://github.com/rust-lang/cargo/issues/8364
             //  - https://github.com/rust-lang/cargo/issues/8468
             let repo = git2::Repository::init(&temp.path())?;
-            let mut git_remote = repo.remote_anonymous(remote.url().as_str())?;
-            // git_remote.connect(git2::Direction::Fetch)?;
-            git_remote.connect_auth(git2::Direction::Fetch, None, proxy_settings)?;
-            let default_branch = git_remote.default_branch()?;
+            let mut origin = repo.remote_anonymous(remote.url().as_str())?;
+            let mut proxy = ProxyOptions::new();
+            proxy.auto();
+            origin.connect_auth(git2::Direction::Fetch, None, Some(proxy))?;
+            let default_branch = origin.default_branch()?;
             let branch_name = default_branch
                 .as_str()
                 .unwrap_or("refs/heads/master")
