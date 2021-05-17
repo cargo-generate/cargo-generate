@@ -28,6 +28,14 @@ See the [`openssl-sys` crate readme] on how to obtain the OpenSSL library for yo
 
 ### Using `cargo` with vendored OpenSSL
 
+> NOTE: `vendored-openssl` requires the following packages to be installed:
+>  - libssl-dev
+>  - gcc
+>  - m4
+>  - ca-certificates
+>  - make
+>  - perl
+
 ```sh
 cargo install cargo-generate --features vendored-openssl
 ```
