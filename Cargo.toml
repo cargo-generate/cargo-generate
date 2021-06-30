@@ -34,7 +34,7 @@ thiserror = "1.0.25"
 home = "0.5.3"
 
 [dependencies.openssl]
-version = "0.10.34"
+version = "0.10.35"
 optional = true
 
 [dependencies.serde]
