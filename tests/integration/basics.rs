@@ -6,6 +6,7 @@ use crate::helpers::project_builder::tmp_dir;
 use assert_cmd::prelude::*;
 use std::env;
 use std::fs;
+use std::ops::Not;
 use std::process::Command;
 
 fn binary() -> Command {
@@ -327,9 +328,9 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert_eq!(dir.exists("foobar-project/notme.sh"), true);
-    assert_eq!(dir.exists("foobar-project/deleteme.sh"), false);
-    assert_eq!(dir.exists("foobar-project/deleteme.trash"), false);
+    assert!(dir.exists("foobar-project/notme.sh"));
+    assert!(dir.exists("foobar-project/deleteme.sh").not());
+    assert!(dir.exists("foobar-project/deleteme.trash").not());
 }
 
 #[test]
@@ -400,7 +401,7 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert_eq!(dir.exists("foobar-project/.genignore"), false);
+    assert!(dir.exists("foobar-project/.genignore").not());
 }
 
 #[test]
@@ -433,7 +434,7 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert_eq!(dir.exists("foobar-project/.cargo-ok"), false);
+    assert!(dir.exists("foobar-project/.cargo-ok").not());
 }
 
 #[test]
@@ -467,7 +468,7 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert_eq!(dir.exists("foobar-project/.cicd_workflow"), false);
+    assert!(dir.exists("foobar-project/.cicd_workflow").not());
 }
 
 #[test]
@@ -885,7 +886,7 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert_eq!(dir.exists("foobar-project/cargo-generate.toml"), false);
+    assert!(dir.exists("foobar-project/cargo-generate.toml").not());
 }
 
 //https://github.com/ashleygwilliams/cargo-generate/issues/181
@@ -923,7 +924,7 @@ version = "0.1.0"
         .stdout(predicates::str::contains("neither").count(0).from_utf8())
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert_eq!(dir.exists("foobar-project/cargo-generate.toml"), false);
+    assert!(dir.exists("foobar-project/cargo-generate.toml").not());
 }
 
 #[test]
