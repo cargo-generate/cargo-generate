@@ -7,6 +7,7 @@ use remove_dir_all::remove_dir_all;
 use std::borrow::Cow;
 use std::env::current_dir;
 use std::path::{Path, PathBuf};
+use url::Url;
 
 #[derive(Debug, PartialEq)]
 enum RepoKind {
@@ -44,10 +45,11 @@ impl<'a> GitConfig<'a> {
                 } else {
                     git_path.push(git.as_ref());
                 }
-                (
-                    format!("file://{}", git_path.display()).into(),
-                    RepoKind::LocalFolder,
-                )
+                let git_path = match Url::from_directory_path(&git_path) {
+                    Ok(url) => url,
+                    Err(_) => anyhow::bail!("path {} is not a valid url", git_path.display()),
+                };
+                (git_path.as_str().to_owned().into(), RepoKind::LocalFolder)
             }
             k => (git, k),
         };
@@ -143,7 +145,10 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
 }
 
 fn remove_history(project_dir: &Path) -> Result<()> {
-    remove_dir_all(project_dir.join(".git")).context("Error cleaning up cloned template")?;
+    let git_dir = project_dir.join(".git");
+    if git_dir.exists() {
+        remove_dir_all(git_dir).context("Error cleaning up cloned template")?;
+    }
     Ok(())
 }
 
@@ -158,7 +163,7 @@ pub fn init(project_dir: &Path, branch: &str) -> Result<Repository> {
 
 /// determines what kind of repository we got
 fn determine_repo_kind(remote_url: &str) -> RepoKind {
-    if remote_url.starts_with("ssh://") || remote_url.starts_with("git@") {
+    if remote_url.starts_with("git@") {
         RepoKind::RemoteSsh
     } else if remote_url.starts_with("http://") {
         RepoKind::RemoteHttp
@@ -188,10 +193,6 @@ mod tests {
                 RepoKind::RemoteHttp,
             ),
             (REPO_URL_SSH, RepoKind::RemoteSsh),
-            (
-                "ssh://git@github.com:cargo-generate/cargo-generate.git",
-                RepoKind::RemoteSsh,
-            ),
             ("./", RepoKind::LocalFolder),
             ("ftp://foobar.bak", RepoKind::Invalid),
         ] {
@@ -216,12 +217,11 @@ mod tests {
     fn should_support_a_local_relative_path() {
         let remote: String = GitConfig::new("src".into(), None).unwrap().remote.into();
         assert!(
-            remote.ends_with("/src"),
-            "remote {} ends with /src",
+            remote.ends_with("/src/"),
+            "remote {} ends with /src/",
             &remote
         );
 
-        #[cfg(unix)]
         assert!(
             remote.starts_with("file:///"),
             "remote {} starts with file:///",
@@ -230,7 +230,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(unix)]
     fn should_support_a_local_absolute_path() {
         // Absolute path.
         // If this fails because you cloned this repository into a non-UTF-8 directory... all

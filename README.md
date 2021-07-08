@@ -62,6 +62,27 @@ You can also pass the name of your project to the tool using the `--name` or `-n
 cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject
 ```
 
+## Private ssh repositories
+
+New in version [0.7.0] is support for both http(s) and ssh (private/public) git repositories.
+For example:
+```sh
+cargo generate --git git@github.com:rustwasm/wasm-pack-template.git --name mywasm
+```
+leads to the same result as:
+```sh
+cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name mywasm
+```
+as well as:
+```sh
+cargo generate --git rustwasm/wasm-pack-template --name mywasm
+```
+
+## http(s) proxy
+
+New in version [0.7.0] is automatic proxy usage. http(s)_PROXY env variables are provided, they 
+will be used for cloning a http(s) template repository 
+
 ## Favorites
 
 Favorite templates can be defined in a config file, that by default is placed at `$CARGO_HOME/cargo-generate`. 
@@ -103,7 +124,7 @@ supported placeholders are:
 - `{{crate_type}}`: this is supplied by either passing the `--bin` or `--lib` flag to the command line, contains either `bin` or `lib`, `--bin` is the default
 - `{{os-arch}}`: contains the current operating system and architecture ex: `linux-x86_64`
 
-Additionally all filters and tags of the liquid template language are supported. 
+Additionally, **all filters and tags** of the liquid template language are supported. 
 For more information, check out the [Liquid Documentation on `Tags` and `Filters`][liquid].
 
 [liquid]: https://shopify.github.io/liquid
@@ -145,7 +166,7 @@ or use only the library version by passing `--lib` as a command line argument.
 
 Sometimes templates need to make decisions. For example one might want to conditionally include some code or not. 
 Another use case might be that the user of a template should be able to choose out of provided options in an interactive way.
-Also it might be helpful to offer a reasonable default value that the user just simply can use.
+Also, it might be helpful to offer a reasonable default value that the user just simply can use.
 
 Since version [0.6.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.6.0) it is possible to use placeholders in a `cargo-generate.toml` that is in the root folder of a template.  
 Here [an example](https://github.com/sassman/hermit-template-rs):
@@ -290,3 +311,4 @@ conditions.
 If you want to contribute to `cargo-generate`, please read our [CONTRIBUTING notes].
 
 [CONTRIBUTING notes]: CONTRIBUTING.md
+[0.7.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0
