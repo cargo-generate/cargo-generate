@@ -79,6 +79,12 @@ jobs:
         run: |
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.CI_SSH_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+          if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
       - name: cargo test
         run: cargo test --all --locked -- -Z unstable-options
 
