@@ -1183,7 +1183,6 @@ mod ssh_remote {
     }
 
     #[test]
-    #[ignore]
     fn it_should_support_a_private_repo() {
         let dir = tmp_dir().build();
 
