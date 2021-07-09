@@ -31,6 +31,7 @@ version = "0.1.0"
         favorite: None,
         bin: true,
         lib: false,
+        ssh_identity: None,
     };
     // need to cd to the dir as we aren't running in the cargo shell.
     assert!(std::env::set_current_dir(&dir.root).is_ok());
