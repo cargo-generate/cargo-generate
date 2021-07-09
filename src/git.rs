@@ -1,6 +1,8 @@
+use crate::emoji;
 use anyhow::Context;
 use anyhow::Result;
 use cargo::core::GitReference;
+use console::style;
 use git2::build::RepoBuilder;
 use git2::{Cred, FetchOptions, ProxyOptions, RemoteCallbacks, Repository, RepositoryInitOptions};
 use remove_dir_all::remove_dir_all;
@@ -22,11 +24,16 @@ pub(crate) struct GitConfig<'a> {
     remote: Cow<'a, str>,
     branch: GitReference,
     kind: RepoKind,
+    identity: Option<PathBuf>,
 }
 
 impl<'a> GitConfig<'a> {
     /// Creates a new `GitConfig` by parsing `git` as a URL or a local path.
-    pub fn new(git: Cow<'a, str>, branch: Option<String>) -> Result<Self> {
+    pub fn new(
+        git: Cow<'a, str>,
+        branch: Option<String>,
+        identity: Option<PathBuf>,
+    ) -> Result<Self> {
         let (remote, kind) = match determine_repo_kind(git.as_ref()) {
             RepoKind::Invalid => anyhow::bail!("Invalid git remote '{}'", &git),
             RepoKind::LocalFolder => {
@@ -57,6 +64,7 @@ impl<'a> GitConfig<'a> {
         Ok(GitConfig {
             remote,
             kind,
+            identity,
             branch: branch
                 .map(GitReference::Branch)
                 .unwrap_or(GitReference::DefaultBranch),
@@ -67,24 +75,59 @@ impl<'a> GitConfig<'a> {
     /// [hub].
     ///
     /// [hub]: https://github.com/github/hub
-    pub fn new_abbr(git: Cow<'a, str>, branch: Option<String>) -> Result<Self> {
-        Self::new(git.clone(), branch.clone()).or_else(|_| {
+    pub fn new_abbr(
+        git: Cow<'a, str>,
+        branch: Option<String>,
+        identity: Option<PathBuf>,
+    ) -> Result<Self> {
+        Self::new(git.clone(), branch.clone(), identity.clone()).or_else(|_| {
             let full_remote = format!("https://github.com/{}.git", &git);
-            Self::new(full_remote.into(), branch)
+            Self::new(full_remote.into(), branch, identity)
         })
     }
 }
 
-fn git_ssh_credentials_callback<'a>() -> Result<RemoteCallbacks<'a>> {
-    let mut priv_key = dirs::home_dir().context("$HOME was not set")?;
-    priv_key.push(".ssh/id_rsa");
+/// takes care of `~/` paths, defaults to `$HOME/.ssh/id_rsa` and resolves symlinks.
+fn get_private_key_path(identity: Option<PathBuf>) -> Result<PathBuf> {
+    let mut private_key = identity.unwrap_or(home()?.join(".ssh/id_rsa"));
+
+    if private_key.to_str().unwrap().starts_with("~/") {
+        private_key = home()?.join(private_key.strip_prefix("~/").unwrap());
+    }
+
+    private_key
+        .canonicalize()
+        .context("private key path was not was incorrect")
+}
+
+fn git_ssh_credentials_callback<'a>(identity: Option<PathBuf>) -> Result<RemoteCallbacks<'a>> {
+    let private_key = get_private_key_path(identity)?;
+    println!(
+        "{} {} `{}` {}",
+        emoji::INFO,
+        style("Using private key:").bold(),
+        style(pretty_path(&private_key)?).bold().yellow(),
+        style("for git-ssh checkout").bold()
+    );
     let mut cb = RemoteCallbacks::new();
     cb.credentials(
         move |_url, username_from_url: Option<&str>, _allowed_types| {
-            Cred::ssh_key(username_from_url.unwrap_or("git"), None, &priv_key, None)
+            Cred::ssh_key(username_from_url.unwrap_or("git"), None, &private_key, None)
         },
     );
     Ok(cb)
+}
+
+/// home path wrapper
+fn home() -> Result<PathBuf> {
+    dirs::home_dir().context("$HOME was not set")
+}
+
+/// prevents from long stupid paths, and replace the home path by the literal `$HOME`
+fn pretty_path(a: &Path) -> Result<String> {
+    Ok(a.display()
+        .to_string()
+        .replace(&home()?.display().to_string(), "$HOME"))
 }
 
 /// thanks to @extrawurst for pointing this out
@@ -127,7 +170,7 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
             fo.proxy_options(proxy);
         }
         RepoKind::RemoteSsh => {
-            let callbacks = git_ssh_credentials_callback()?;
+            let callbacks = git_ssh_credentials_callback(args.identity)?;
             fo.remote_callbacks(callbacks);
         }
         RepoKind::Invalid => {
@@ -203,19 +246,22 @@ mod tests {
 
     #[test]
     fn should_not_fail_for_ssh_remote_urls() {
-        let config = GitConfig::new(REPO_URL_SSH.into(), None).unwrap();
+        let config = GitConfig::new(REPO_URL_SSH.into(), None, None).unwrap();
         assert_eq!(config.kind, RepoKind::RemoteSsh);
     }
 
     #[test]
     #[should_panic(expected = "Invalid git remote 'aslkdgjlaskjdglskj'")]
     fn should_fail_for_non_existing_local_path() {
-        GitConfig::new("aslkdgjlaskjdglskj".into(), None).unwrap();
+        GitConfig::new("aslkdgjlaskjdglskj".into(), None, None).unwrap();
     }
 
     #[test]
     fn should_support_a_local_relative_path() {
-        let remote: String = GitConfig::new("src".into(), None).unwrap().remote.into();
+        let remote: String = GitConfig::new("src".into(), None, None)
+            .unwrap()
+            .remote
+            .into();
         assert!(
             remote.ends_with("/src/"),
             "remote {} ends with /src/",
@@ -234,11 +280,14 @@ mod tests {
         // Absolute path.
         // If this fails because you cloned this repository into a non-UTF-8 directory... all
         // I can say is you probably had it comin'.
-        let remote: String =
-            GitConfig::new(current_dir().unwrap().display().to_string().into(), None)
-                .unwrap()
-                .remote
-                .into();
+        let remote: String = GitConfig::new(
+            current_dir().unwrap().display().to_string().into(),
+            None,
+            None,
+        )
+        .unwrap()
+        .remote
+        .into();
         assert!(
             remote.starts_with("file:///"),
             "remote {} starts with file:///",
@@ -249,7 +298,7 @@ mod tests {
     #[test]
     fn should_test_happy_path() {
         // Remote HTTPS URL.
-        let cfg = GitConfig::new(REPO_URL.into(), Some("main".to_owned())).unwrap();
+        let cfg = GitConfig::new(REPO_URL.into(), Some("main".to_owned()), None).unwrap();
 
         assert_eq!(cfg.remote.as_ref(), Url::parse(REPO_URL).unwrap().as_str());
         assert_eq!(cfg.branch, GitReference::Branch("main".to_owned()));
@@ -258,7 +307,7 @@ mod tests {
     #[test]
     fn should_support_abbreviated_repository_short_urls_like() {
         assert_eq!(
-            GitConfig::new_abbr("cargo-generate/cargo-generate".into(), None)
+            GitConfig::new_abbr("cargo-generate/cargo-generate".into(), None, None)
                 .unwrap()
                 .remote
                 .as_ref(),

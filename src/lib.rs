@@ -175,6 +175,10 @@ pub struct Args {
     /// Populates a template variable `crate_type` with value `"bin"`
     #[structopt(long, conflicts_with = "lib")]
     pub bin: bool,
+
+    /// Use a different ssh identity
+    #[structopt(short = "i", long = "identity", parse(from_os_str))]
+    pub ssh_identity: Option<PathBuf>,
 }
 
 //
@@ -230,7 +234,11 @@ fn create_git(args: Args, name: &ProjectName) -> Result<()> {
         .git
         .clone()
         .with_context(|| "Missing option git, or a favorite")?;
-    let git_config = GitConfig::new_abbr(remote.into(), args.branch.to_owned())?;
+    let git_config = GitConfig::new_abbr(
+        remote.into(),
+        args.branch.to_owned(),
+        args.ssh_identity.clone(),
+    )?;
 
     if let Some(dir) = &create_project_dir(&name, force) {
         match git::create(dir, git_config) {
