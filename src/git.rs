@@ -7,9 +7,8 @@ use git2::build::RepoBuilder;
 use git2::{Cred, FetchOptions, ProxyOptions, RemoteCallbacks, Repository, RepositoryInitOptions};
 use remove_dir_all::remove_dir_all;
 use std::borrow::Cow;
-use std::env::current_dir;
+use std::ops::Deref;
 use std::path::{Path, PathBuf};
-use url::Url;
 
 #[derive(Debug, PartialEq)]
 enum RepoKind {
@@ -37,26 +36,14 @@ impl<'a> GitConfig<'a> {
         let (remote, kind) = match determine_repo_kind(git.as_ref()) {
             RepoKind::Invalid => anyhow::bail!("Invalid git remote '{}'", &git),
             RepoKind::LocalFolder => {
-                let given_path = Path::new(git.as_ref());
-                let mut git_path = PathBuf::new();
-                if given_path.is_relative() {
-                    git_path.push(current_dir()?);
-                    git_path.push(given_path);
-                    if !git_path.exists() {
-                        anyhow::bail!(
-                            "Failed parsing git remote {:?}: path {:?} doesn't exist",
-                            &git,
-                            &git_path
-                        );
-                    }
-                } else {
-                    git_path.push(git.as_ref());
+                let full_path = canonicalize_path(git.deref().as_ref())?;
+                if !full_path.exists() {
+                    anyhow::bail!("The given git remote {:?} does not exist.", &git,);
                 }
-                let git_path = match Url::from_directory_path(&git_path) {
-                    Ok(url) => url,
-                    Err(_) => anyhow::bail!("path {} is not a valid url", git_path.display()),
-                };
-                (git_path.as_str().to_owned().into(), RepoKind::LocalFolder)
+                (
+                    full_path.display().to_string().into(),
+                    RepoKind::LocalFolder,
+                )
             }
             k => (git, k),
         };
@@ -87,17 +74,39 @@ impl<'a> GitConfig<'a> {
     }
 }
 
+fn canonicalize_path(p: &Path) -> Result<PathBuf> {
+    let p = if p.to_str().unwrap().starts_with("~/") {
+        home()?.join(p.strip_prefix("~/").unwrap())
+    } else {
+        p.to_path_buf()
+    };
+
+    p.canonicalize().context("path does not exist")
+}
+
+#[test]
+fn should_canonicalize() {
+    #[cfg(target_os = "macos")]
+    assert!(canonicalize_path(&PathBuf::from("../"))
+        .unwrap()
+        .starts_with("/Users/"));
+    #[cfg(target_os = "linux")]
+    assert!(canonicalize_path(&PathBuf::from("../"))
+        .unwrap()
+        .starts_with("/home/"));
+    #[cfg(windows)]
+    assert!(canonicalize_path(&PathBuf::from("../"))
+        .unwrap()
+        // not a bug, a feature:
+        // https://stackoverflow.com/questions/41233684/why-does-my-canonicalized-path-get-prefixed-with
+        .starts_with("\\\\?\\D:\\"));
+}
+
 /// takes care of `~/` paths, defaults to `$HOME/.ssh/id_rsa` and resolves symlinks.
 fn get_private_key_path(identity: Option<PathBuf>) -> Result<PathBuf> {
-    let mut private_key = identity.unwrap_or(home()?.join(".ssh/id_rsa"));
+    let private_key = identity.unwrap_or(home()?.join(".ssh/id_rsa"));
 
-    if private_key.to_str().unwrap().starts_with("~/") {
-        private_key = home()?.join(private_key.strip_prefix("~/").unwrap());
-    }
-
-    private_key
-        .canonicalize()
-        .context("private key path was not was incorrect")
+    canonicalize_path(&private_key).context("private key path was not was incorrect")
 }
 
 fn git_ssh_credentials_callback<'a>(identity: Option<PathBuf>) -> Result<RemoteCallbacks<'a>> {
@@ -222,6 +231,7 @@ fn determine_repo_kind(remote_url: &str) -> RepoKind {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::env::current_dir;
     use url::Url;
 
     const REPO_URL: &str = "https://github.com/cargo-generate/cargo-generate.git";
@@ -262,15 +272,25 @@ mod tests {
             .unwrap()
             .remote
             .into();
+        #[cfg(unix)]
         assert!(
-            remote.ends_with("/src/"),
-            "remote {} ends with /src/",
+            remote.ends_with("/src"),
+            "remote {} ends with /src",
+            &remote
+        );
+        #[cfg(windows)]
+        assert!(
+            remote.ends_with("\\src"),
+            "remote {} ends with \\src",
             &remote
         );
 
+        #[cfg(unix)]
+        assert!(remote.starts_with('/'), "remote {} starts with /", &remote);
+        #[cfg(windows)]
         assert!(
-            remote.starts_with("file:///"),
-            "remote {} starts with file:///",
+            remote.starts_with("\\\\?\\D:\\"),
+            "remote {} starts with \\\\?\\D:\\",
             &remote
         );
     }
@@ -288,10 +308,13 @@ mod tests {
         .unwrap()
         .remote
         .into();
+        #[cfg(unix)]
+        assert!(remote.starts_with('/'), "remote {} starts with /", &remote);
+        #[cfg(windows)]
         assert!(
-            remote.starts_with("file:///"),
-            "remote {} starts with file:///",
-            remote
+            remote.starts_with("\\\\?\\"),
+            "remote {} starts with \\\\?\\ then the drive letter",
+            &remote
         );
     }
 
