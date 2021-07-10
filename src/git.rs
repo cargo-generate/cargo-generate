@@ -99,7 +99,7 @@ fn should_canonicalize() {
         .unwrap()
         // not a bug, a feature:
         // https://stackoverflow.com/questions/41233684/why-does-my-canonicalized-path-get-prefixed-with
-        .starts_with("\\\\?\\D:\\"));
+        .starts_with("\\\\?\\"));
 }
 
 /// takes care of `~/` paths, defaults to `$HOME/.ssh/id_rsa` and resolves symlinks.
@@ -289,8 +289,8 @@ mod tests {
         assert!(remote.starts_with('/'), "remote {} starts with /", &remote);
         #[cfg(windows)]
         assert!(
-            remote.starts_with("\\\\?\\D:\\"),
-            "remote {} starts with \\\\?\\D:\\",
+            remote.starts_with("\\\\?\\"),
+            "remote {} starts with \\\\?\\",
             &remote
         );
     }

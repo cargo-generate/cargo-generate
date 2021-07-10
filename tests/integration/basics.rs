@@ -1160,6 +1160,7 @@ version = "0.1.0"
 }
 
 #[cfg(test)]
+#[cfg(unix)]
 mod ssh_remote {
     use super::*;
 
