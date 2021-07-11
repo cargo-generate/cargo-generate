@@ -62,9 +62,9 @@ You can also pass the name of your project to the tool using the `--name` or `-n
 cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject
 ```
 
-## Private ssh repositories
+## git over ssh
 
-New in version [0.7.0] is support for both http(s) and ssh (private/public) git repositories.
+New in version [0.7.0] is the support for both public and private and ssh git remote urls.
 For example:
 ```sh
 cargo generate --git git@github.com:rustwasm/wasm-pack-template.git --name mywasm
@@ -78,10 +78,12 @@ as well as:
 cargo generate --git rustwasm/wasm-pack-template --name mywasm
 ```
 
+> NOTE: you can pass a custom ssh identity file with via `-i | --identity` like `-i ~/.ssh/id_rsa_other`
+
 ## http(s) proxy
 
-New in version [0.7.0] is automatic proxy usage. http(s)_PROXY env variables are provided, they 
-will be used for cloning a http(s) template repository 
+New in version [0.7.0] is automatic proxy usage. So, if http(s)_PROXY env variables are provided, they 
+will be used for cloning a http(s) template repository. 
 
 ## Favorites
 
@@ -118,11 +120,21 @@ cargo generate demo --branch master --name expanded_demo
 Templates are git repositories whose files contain placeholders. The current
 supported placeholders are:
 
-- `{{authors}}`: this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.
-- `{{project-name}}`: this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
-- `{{crate_name}}`: the snake_case_version of `project-name`
-- `{{crate_type}}`: this is supplied by either passing the `--bin` or `--lib` flag to the command line, contains either `bin` or `lib`, `--bin` is the default
-- `{{os-arch}}`: contains the current operating system and architecture ex: `linux-x86_64`
+- `{{authors}}`
+  
+  this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.
+- `{{project-name}}`
+  
+  this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
+- `{{crate_name}}`
+  
+  the snake_case_version of `project-name`
+- `{{crate_type}}`
+  
+  this is supplied by either passing the `--bin` or `--lib` flag to the command line, contains either `bin` or `lib`, `--bin` is the default
+- `{{os-arch}}`
+  
+  contains the current operating system and architecture ex: `linux-x86_64`
 
 Additionally, **all filters and tags** of the liquid template language are supported. 
 For more information, check out the [Liquid Documentation on `Tags` and `Filters`][liquid].

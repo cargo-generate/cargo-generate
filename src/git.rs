@@ -99,6 +99,8 @@ fn should_canonicalize() {
         .unwrap()
         // not a bug, a feature:
         // https://stackoverflow.com/questions/41233684/why-does-my-canonicalized-path-get-prefixed-with
+        .to_str()
+        .unwrap()
         .starts_with("\\\\?\\"));
 }
 
@@ -129,14 +131,27 @@ fn git_ssh_credentials_callback<'a>(identity: Option<PathBuf>) -> Result<RemoteC
 
 /// home path wrapper
 fn home() -> Result<PathBuf> {
-    dirs::home_dir().context("$HOME was not set")
+    canonicalize_path(&dirs::home_dir().context("$HOME was not set")?)
+}
+
+#[test]
+fn should_pretty_path() {
+    let p = pretty_path(home().unwrap().as_path().join(".cargo").as_path()).unwrap();
+    #[cfg(unix)]
+    assert_eq!(p, "$HOME/.cargo");
+    #[cfg(windows)]
+    assert_eq!(p, "%userprofile%\\.cargo");
 }
 
 /// prevents from long stupid paths, and replace the home path by the literal `$HOME`
 fn pretty_path(a: &Path) -> Result<String> {
+    #[cfg(unix)]
+    let home_var = "$HOME";
+    #[cfg(windows)]
+    let home_var = "%userprofile%";
     Ok(a.display()
         .to_string()
-        .replace(&home()?.display().to_string(), "$HOME"))
+        .replace(&home()?.display().to_string(), home_var))
 }
 
 /// thanks to @extrawurst for pointing this out

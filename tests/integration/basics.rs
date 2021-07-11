@@ -1055,7 +1055,12 @@ _This README was generated with [cargo-readme](https://github.com/livioribeiro/c
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(dir.read("foobar-project/README.tpl").contains(raw_body));
+    let template = dir.read("foobar-project/README.tpl");
+    assert!(template.contains("{{badges}}"));
+    assert!(template.contains("{{crate}}"));
+    assert!(template.contains("{{project-name}}"));
+    assert!(template.contains("{{readme}}"));
+    assert!(template.contains("{{license}}"));
 }
 
 #[test]
