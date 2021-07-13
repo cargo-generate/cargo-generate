@@ -108,7 +108,7 @@ fn should_canonicalize() {
 fn get_private_key_path(identity: Option<PathBuf>) -> Result<PathBuf> {
     let private_key = identity.unwrap_or(home()?.join(".ssh/id_rsa"));
 
-    canonicalize_path(&private_key).context("private key path was not was incorrect")
+    canonicalize_path(&private_key).context("private key path was incorrect")
 }
 
 fn git_ssh_credentials_callback<'a>(identity: Option<PathBuf>) -> Result<RemoteCallbacks<'a>> {
