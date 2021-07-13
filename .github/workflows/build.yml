@@ -91,7 +91,7 @@ jobs:
   audit:
     name: security audit
     needs: check
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: setup | rust

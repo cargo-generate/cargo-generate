@@ -93,7 +93,7 @@ jobs:
   audit:
     name: security audit
     needs: check
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: setup | rust
@@ -113,7 +113,7 @@ jobs:
   publish:
     name: post / cargo publish
     needs: [lint, tests]
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: setup | rust
@@ -130,7 +130,7 @@ jobs:
   release:
     name: post / github release
     needs: publish
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: setup | rust
