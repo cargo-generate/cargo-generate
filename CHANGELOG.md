@@ -2,6 +2,57 @@
 
 ## [Unreleased]
 
+## [0.7.0] 2021-07-13
+- ### ✨ Features
+- [feat(remote:ssh): support for ssh remote urls](https://github.com/cargo-generate/cargo-generate/pull/372)
+  
+  Finally, `cargo-generate` supports git ssh remote urls. [Read more in the docs](https://github.com/cargo-generate/cargo-generate#git-over-ssh)
+- [feat(http:proxy): support http_proxy env vars](https://github.com/cargo-generate/cargo-generate/pull/342)
+  
+  The typically known environment variables `HTTP_PROXY` and `HTTPS_PROXY` are now supported by `cargo-generate`. 
+  [Read more in the docs](https://github.com/cargo-generate/cargo-generate#https-proxy)
+- [feat(progress-bar): more useful progress bar](https://github.com/cargo-generate/cargo-generate/pull/339)
+- [feat(crate-types): crate types --lib and --bin as in cargo init](https://github.com/cargo-generate/cargo-generate/pull/326)
+  
+  Similar to `cargo init --lib`, a `crate-type` support is now there. 
+  [Read more in the docs](https://github.com/cargo-generate/cargo-generate#example-for---bin-and---lib)
+  
+- [Add serenity template](https://github.com/cargo-generate/cargo-generate/pull/324)
+- [Upgrade to GitHub-native Dependabot](https://github.com/cargo-generate/cargo-generate/pull/331)
+  
+- ### 🛠️ Maintenance
+- [chore(deps): bump anyhow from 1.0.41 to 1.0.42](https://github.com/cargo-generate/cargo-generate/pull/371)
+- [chore(deps): bump predicates from 1.0.8 to 2.0.0](https://github.com/cargo-generate/cargo-generate/pull/366)
+- [chore(deps): bump thiserror from 1.0.25 to 1.0.26](https://github.com/cargo-generate/cargo-generate/pull/365)
+- [chore(deps): bump structopt from 0.3.21 to 0.3.22](https://github.com/cargo-generate/cargo-generate/pull/364)
+- [chore(deps): bump assert_cmd from 1.0.5 to 1.0.7](https://github.com/cargo-generate/cargo-generate/pull/363)
+- [chore(clippy): make clippy happy](https://github.com/cargo-generate/cargo-generate/pull/361)
+- [chore(deps): bump openssl from 0.10.34 to 0.10.35](https://github.com/cargo-generate/cargo-generate/pull/358)
+- [chore(deps): bump cargo from 0.53.0 to 0.54.0](https://github.com/cargo-generate/cargo-generate/pull/357)
+- [chore(deps): bump anyhow from 1.0.40 to 1.0.41](https://github.com/cargo-generate/cargo-generate/pull/356)
+- [chore(deps): bump ignore from 0.4.17 to 0.4.18](https://github.com/cargo-generate/cargo-generate/pull/355)
+- [chore(deps): bump heck from 0.3.2 to 0.3.3](https://github.com/cargo-generate/cargo-generate/pull/354)
+- [chore(deps): bump assert_cmd from 1.0.4 to 1.0.5](https://github.com/cargo-generate/cargo-generate/pull/353)
+- [chore(deps): bump git2 from 0.13.19 to 0.13.20](https://github.com/cargo-generate/cargo-generate/pull/352)
+- [chore(deps): bump indicatif from 0.16.0 to 0.16.2](https://github.com/cargo-generate/cargo-generate/pull/351)
+- [chore(deps): bump thiserror from 1.0.24 to 1.0.25](https://github.com/cargo-generate/cargo-generate/pull/349)
+- [chore(docs): enhance vendored openssl installation](https://github.com/cargo-generate/cargo-generate/pull/347)
+- [chore(deps): bump assert_cmd from 1.0.3 to 1.0.4](https://github.com/cargo-generate/cargo-generate/pull/346)
+- [chore(deps): bump git2 from 0.13.18 to 0.13.19](https://github.com/cargo-generate/cargo-generate/pull/345)
+- [chore(deps): bump url from 2.2.1 to 2.2.2](https://github.com/cargo-generate/cargo-generate/pull/338)
+- [chore(deps): bump cargo from 0.52.0 to 0.53.0](https://github.com/cargo-generate/cargo-generate/pull/337)
+- [chore(deps): bump regex from 1.4.6 to 1.5.4](https://github.com/cargo-generate/cargo-generate/pull/336)
+- [chore(deps): bump openssl from 0.10.33 to 0.10.34](https://github.com/cargo-generate/cargo-generate/pull/335)
+- [chore(deps): bump predicates from 1.0.7 to 1.0.8](https://github.com/cargo-generate/cargo-generate/pull/334)
+- [chore(deps): bump regex from 1.4.5 to 1.4.6](https://github.com/cargo-generate/cargo-generate/pull/330)
+- [chore(deps): bump git2 from 0.13.17 to 0.13.18](https://github.com/cargo-generate/cargo-generate/pull/329)
+
+## Contributors
+- [@SkamDart](https://github.com/skamdart)
+- [@chilipepperhott](https://github.com/chilipepperhott)
+- [@sassman](https://github.com/sassman)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+
 ## [0.6.1] 2021-04-01
 - ### 🛠️ Maintenance
     - [chore(deps): bump cargo from 0.51.0 to 0.52.0](https://github.com/cargo-generate/cargo-generate/pull/322)
@@ -855,7 +906,8 @@
 
 - First release! 
 
-[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.0-alpha.2...v0.6.0
 [0.6.0-alpha.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.6.0-alpha.1...v0.6.0-alpha.2
