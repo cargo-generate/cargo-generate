@@ -61,7 +61,7 @@ pub enum ConversionError {
     RegexDoesntMatchField { var_name: String, field: String },
     #[error("regex of `{var_name}` is not a valid regex")]
     InvalidRegex { var_name: String, regex: String },
-    #[error("placeholder `{var_name}` is not valid as you can't override `project-name`, `crate_name`, `authors` and `os-arch`")]
+    #[error("placeholder `{var_name}` is not valid as you can't override `project-name`, `crate_name`, `crate_type`, `authors` and `os-arch`")]
     InvalidPlaceholderName { var_name: String },
 }
 
