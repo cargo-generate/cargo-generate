@@ -1,4 +1,5 @@
 use crate::emoji;
+use crate::info;
 use anyhow::Context;
 use anyhow::Result;
 use cargo::core::GitReference;
@@ -7,8 +8,10 @@ use git2::build::RepoBuilder;
 use git2::{Cred, FetchOptions, ProxyOptions, RemoteCallbacks, Repository, RepositoryInitOptions};
 use remove_dir_all::remove_dir_all;
 use std::borrow::Cow;
-use std::ops::Deref;
+use std::ops::{Add, Deref, Sub};
 use std::path::{Path, PathBuf};
+use std::thread::sleep;
+use std::time::Duration;
 
 #[derive(Debug, PartialEq)]
 enum RepoKind {
@@ -72,6 +75,13 @@ impl<'a> GitConfig<'a> {
             Self::new(full_remote.into(), branch, identity)
         })
     }
+}
+
+pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
+    let branch = git_clone_all(project_dir, args)?;
+    remove_history(project_dir, None)?;
+
+    Ok(branch)
 }
 
 fn canonicalize_path(p: &Path) -> Result<PathBuf> {
@@ -179,7 +189,7 @@ fn init_all_submodules(repo: &Repository) -> Result<()> {
     Ok(())
 }
 
-pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
+fn git_clone_all(project_dir: &Path, args: GitConfig) -> Result<String> {
     let mut builder = RepoBuilder::new();
     if let GitReference::Branch(branch_name) = &args.branch {
         builder.branch(branch_name.as_str());
@@ -206,15 +216,29 @@ pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
     let repo = builder.clone(args.remote.as_ref(), project_dir)?;
     let branch = get_branch_name_repo(&repo)?;
     init_all_submodules(&repo)?;
-    remove_history(project_dir)?;
 
     Ok(branch)
 }
 
-fn remove_history(project_dir: &Path) -> Result<()> {
+fn remove_history(project_dir: &Path, attempt: Option<u8>) -> Result<()> {
     let git_dir = project_dir.join(".git");
-    if git_dir.exists() {
-        remove_dir_all(git_dir).context("Error cleaning up cloned template")?;
+    if git_dir.exists() && git_dir.is_dir() {
+        if let Err(e) = remove_dir_all(git_dir) {
+            // see https://github.com/cargo-generate/cargo-generate/issues/375
+            if e.to_string().contains(
+                "The process cannot access the file because it is being used by another process.",
+            ) {
+                let attempt = attempt.unwrap_or(1);
+                if attempt == 5 {
+                    info!("cargo-generate was not able to delete the git history after {} retries. Please delete the `.git` sub-folder manually", attempt);
+                    return Ok(());
+                }
+                let wait_for = Duration::from_secs(2_u64.pow(attempt.sub(1) as u32));
+                info!("Git history cleanup failed with a windows process blocking error. [Retry in {:?}]", wait_for);
+                sleep(wait_for);
+                remove_history(project_dir, Some(attempt.add(1)))?
+            }
+        }
     }
     Ok(())
 }
