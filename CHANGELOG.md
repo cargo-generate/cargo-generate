@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.7.1] 2021-07-18
+- ### 🤕 Fixes
+    - [Error on Windows: Git Error: Error cleaning up cloned template #375](https://github.com/cargo-generate/cargo-generate/issues/375),
+      [pull/376](https://github.com/cargo-generate/cargo-generate/pull/376),
+      by [@sassman](https://github.com/sassman)
+
 ## [0.7.0] 2021-07-13
 - ### ✨ Features
 - [feat(remote:ssh): support for ssh remote urls](https://github.com/cargo-generate/cargo-generate/pull/372)
