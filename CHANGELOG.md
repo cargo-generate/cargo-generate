@@ -7,6 +7,8 @@
     - [Error on Windows: Git Error: Error cleaning up cloned template #375](https://github.com/cargo-generate/cargo-generate/issues/375),
       [pull/376](https://github.com/cargo-generate/cargo-generate/pull/376),
       by [@sassman](https://github.com/sassman)
+    - [fix: fix InvalidPlaceholderName error string](https://github.com/cargo-generate/cargo-generate/pull/374)
+      by [@NOBLES5E](https://github.com/NOBLES5E)
 
 ## [0.7.0] 2021-07-13
 - ### ✨ Features
