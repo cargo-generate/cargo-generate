@@ -1,0 +1,53 @@
+name: Release Binary Assets
+on:
+  release:
+    types:
+      - published
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+      - uses: Swatinem/rust-cache@v1
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          use-cross: true
+          args: --features vendored-openssl --release --target=${{ matrix.target }}
+      - name: Create Archive
+        id: archive
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          filename="cargo-generate-$TAG-$TARGET.tar.gz"
+          tar -czvf "$filename" --directory="target/$TARGET/release" cargo-generate
+          echo "::set-output name=filename::$filename"
+      - name: Upload Archive
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: ${{ steps.archive.outputs.filename }}
+          artifactContentType: application/octet-stream
