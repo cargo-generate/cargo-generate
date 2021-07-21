@@ -51,3 +51,5 @@ jobs:
           artifactErrorsFailBuild: true
           artifacts: ${{ steps.archive.outputs.filename }}
           artifactContentType: application/octet-stream
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
