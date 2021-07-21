@@ -41,7 +41,7 @@ jobs:
           TAG: ${{ github.event.release.tag_name }}
         run: |
           filename="cargo-generate-$TAG-$TARGET.tar.gz"
-          tar -czvf "$filename" README.md LICENSE-MIT LICENSE-APACHE --directory="target/$TARGET/release" cargo-generate
+          tar -czvf "$filename" README.md LICENSE-MIT LICENSE-APACHE -C "target/$TARGET/release" cargo-generate
           echo "::set-output name=filename::$filename"
       - name: Upload Archive
         uses: ncipollo/release-action@v1
