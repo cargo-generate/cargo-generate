@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+## [0.7.2] 2021-07-22
+- ### ✨ Features
+    - [Prebuilt binaries workfow for common targets](https://github.com/cargo-generate/cargo-generate/pull/377) 
+      by [@jashandeep-sohi](https://github.com/jashandeep-sohi)
+      Whenever a GitHub Release is published, cargo-generate binaries are build and attached to the release.
 
 ## [0.7.1] 2021-07-18
 - ### 🤕 Fixes
