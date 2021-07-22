@@ -66,6 +66,7 @@ jobs:
         rust: [ nightly, stable ]
     runs-on: ${{ matrix.version }}
     continue-on-error: ${{ matrix.rust == 'nightly' }}
+    environment: build
     steps:
       - uses: actions/checkout@v2
       - name: setup | rust
@@ -82,7 +83,8 @@ jobs:
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
-          key: ${{ secrets.CI_SSH_KEY }}
+          key: ${{ secrets.CI_SSH_PRIVATE_KEY_TESTING }}
+          # figured by `ssh-keyscan github.com`
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
           if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
       - name: cargo test

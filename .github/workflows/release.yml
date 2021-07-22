@@ -68,6 +68,7 @@ jobs:
         rust: [ nightly, stable ]
     runs-on: ${{ matrix.version }}
     continue-on-error: ${{ matrix.rust == 'nightly' }}
+    environment: build
     steps:
       - uses: actions/checkout@v2
       - name: setup | rust
@@ -84,7 +85,8 @@ jobs:
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
-          key: ${{ secrets.CI_SSH_KEY }}
+          key: ${{ secrets.CI_SSH_PRIVATE_KEY_TESTING }}
+          # figured by `ssh-keyscan github.com`
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
           if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
       - name: cargo test
@@ -114,6 +116,7 @@ jobs:
     name: post / cargo publish
     needs: [lint, tests]
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@v2
       - name: setup | rust
@@ -131,6 +134,7 @@ jobs:
     name: post / github release
     needs: publish
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@v2
       - name: setup | rust
@@ -155,7 +159,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         with:
           # This pulls from the "Get Changelog Entry" step above, referencing it's ID to get its outputs object.
           # See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
