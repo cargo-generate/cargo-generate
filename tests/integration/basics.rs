@@ -14,6 +14,38 @@ fn binary() -> Command {
 }
 
 #[test]
+fn it_removes_git_history() {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    let repo = git2::Repository::open(&dir.path().join("foobar-project")).unwrap();
+    let references = repo.references().unwrap().count();
+    assert_eq!(0, references);
+}
+
+#[test]
 fn it_substitutes_projectname_in_cargo_toml() {
     let template = tmp_dir()
         .file(
