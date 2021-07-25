@@ -18,6 +18,7 @@ pub(crate) struct FavoriteConfig {
     pub description: Option<String>,
     pub git: Option<String>,
     pub branch: Option<String>,
+    pub subfolder: Option<String>,
 }
 
 impl Default for AppConfig {

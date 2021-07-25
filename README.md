@@ -62,6 +62,16 @@ You can also pass the name of your project to the tool using the `--name` or `-n
 cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject
 ```
 
+If the git repository contains multiple templates, the specific subfolder in the git repository may be specified like this:
+
+```sh
+cargo generate --git "https://github.com/githubusername/mytemplate.git <relative-template-path>"
+```
+
+> NOTE: The specified `relative-template-path` will be used as the actual template root, whether or not this is actually true!
+
+> NOTE: When using the `subfolder` feature, `cargo-generate` will search for
+
 ## git over ssh
 
 New in version [0.7.0] is the support for both public and private and ssh git remote urls.
@@ -82,7 +92,7 @@ cargo generate --git rustwasm/wasm-pack-template --name mywasm
 
 ## http(s) proxy
 
-New in version [0.7.0] is automatic proxy usage. So, if http(s)_PROXY env variables are provided, they 
+New in version [0.7.0] is automatic proxy usage. So, if http(s)\_PROXY env variables are provided, they 
 will be used for cloning a http(s) template repository. 
 
 ## Favorites
@@ -94,12 +104,13 @@ Each favorite template is specified in its own section, e.g.:
 
 ```toml
 [favorites.demo]
-description = "Demo template for cargo-generate"
+description = "<optional description, visible with --list-favorites>"
 git = "https://github.com/ashleygwilliams/wasm-pack-template"
-branch = "master"
+branch = "<optional-branch>"
+subfolder = "<optional-subfolder>"
 ```
 
-Both `branch` and `description` are optional, and the branch may be overridden by specifying `--branch <branch>` on the command line.
+Values may be overridden using the CLI arguments of the same names (e.g. `--subfolder` for the `subfolder` value).
 
 When favorites are available, they can be generated simply by invoking:
 
@@ -110,7 +121,7 @@ cargo gen <favorite>
 or slightly more involved:
 
 ```cli
-cargo generate demo --branch master --name expanded_demo
+cargo generate demo --branch mybranch --name expanded_demo --subfolder myfolder
 ```
 
 > NOTE: when `<favorite>` is not defined in the config file, it is interpreted as a git repo like as if `--git <favorite>`
@@ -294,6 +305,8 @@ include = ["Cargo.toml"]
 # include and exclude are exclusive, if both appear we will use include
 exclude = ["*.c"]
 ```
+
+The `cargo-generate.toml` file should be placed in the root of the template. If using the `subfolder` feature, the root is the `subfolder` inside the repository, though `cargo-generate` will look for the file in all parent folders until it reaches the repository root.
 
 ## Cargo gen - alias
 
