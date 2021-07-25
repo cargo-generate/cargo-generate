@@ -35,7 +35,7 @@ pub(crate) fn list_favorites(args: &Args) -> Result<()> {
     Ok(())
 }
 
-pub(crate) fn resolve_favorite(args: &mut Args) -> Result<()> {
+pub(crate) fn resolve_favorite_args(args: &mut Args) -> Result<()> {
     if args.git.is_some() {
         return Ok(());
     }
@@ -47,7 +47,8 @@ pub(crate) fn resolve_favorite(args: &mut Args) -> Result<()> {
 
     let app_config_path = app_config_path(&args.config)?;
     let app_config = AppConfig::from_path(app_config_path.as_path())?;
-    let favorite = app_config
+
+    let (git, branch) = app_config
         .favorites
         .get(favorite_name.as_str())
         .map_or_else(
@@ -65,8 +66,8 @@ pub(crate) fn resolve_favorite(args: &mut Args) -> Result<()> {
                 )
             },
         );
-    args.git = favorite.0;
-    args.branch = favorite.1;
+    args.git = git;
+    args.branch = branch;
 
     Ok(())
 }
