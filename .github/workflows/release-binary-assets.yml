@@ -41,6 +41,12 @@ jobs:
           command: build
           use-cross: ${{ matrix.cross }}
           args: --features vendored-openssl --release --target=${{ matrix.target }}
+      - name: Smoke Test
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          use-cross: ${{ matrix.cross }}
+          args: --features vendored-openssl --release --target=${{ matrix.target }} -- -V
       - name: Create Archive
         id: archive
         shell: bash
