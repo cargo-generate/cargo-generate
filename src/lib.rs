@@ -92,10 +92,10 @@ mod project_variables;
 mod template;
 mod template_variables;
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use config::{Config, ConfigValues, CONFIG_FILE_NAME};
 use console::style;
-use favorites::{list_favorites, resolve_favorite};
+use favorites::{list_favorites, resolve_favorite_args};
 use std::{
     collections::HashMap,
     env, fs,
@@ -103,6 +103,7 @@ use std::{
     str::FromStr,
 };
 use structopt::StructOpt;
+use tempfile::TempDir;
 
 use crate::git::GitConfig;
 use crate::template_variables::{CrateType, ProjectName};
@@ -195,7 +196,7 @@ impl FromStr for Vcs {
         match s.to_uppercase().as_str() {
             "NONE" => Ok(Vcs::None),
             "GIT" => Ok(Vcs::Git),
-            _ => Err(anyhow::anyhow!("Must be one of 'git' or 'none'")),
+            _ => Err(anyhow!("Must be one of 'git' or 'none'")),
         }
     }
 }
@@ -204,62 +205,91 @@ pub fn generate(mut args: Args) -> Result<()> {
     if args.list_favorites {
         return list_favorites(&args);
     }
-    resolve_favorite(&mut args)?;
 
-    let name = match args.name {
-        Some(ref n) => ProjectName::new(n),
-        None if !args.silent => ProjectName::new(interactive::name()?),
-        None => anyhow::bail!(
-            "{} {} {}",
-            emoji::ERROR,
-            style("Project Name Error:").bold().red(),
-            style("Option `--silent` provided, but project name was not set. Please use `--project-name`.")
-                .bold()
-                .red(),
-        ),
-    };
+    resolve_favorite_args(&mut args)?;
+    let project_name = resolve_project_name(&args)?;
+    let project_dir = create_project_dir(&project_name, args.force)?;
 
-    create_git(args, &name)?;
-    Ok(())
-}
+    let (template_base_dir, branch) = clone_git_template_into_temp(&args)?;
+    copy_dir_all(&template_base_dir, &project_dir)?;
+    drop(template_base_dir);
 
-fn create_git(args: Args, name: &ProjectName) -> Result<()> {
-    let force = args.force;
     let template_values = args
         .template_values_file
         .as_ref()
         .map(|p| Path::new(p))
         .map_or(Ok(Default::default()), |path| get_config_file_values(path))?;
-    let remote = args
-        .git
-        .clone()
-        .with_context(|| "Missing option git, or a favorite")?;
-    let git_config = GitConfig::new_abbr(
-        remote.into(),
-        args.branch.to_owned(),
-        args.ssh_identity.clone(),
+
+    progress(
+        &project_name,
+        &template_values,
+        &project_dir,
+        &branch,
+        &args,
     )?;
 
-    if let Some(dir) = &create_project_dir(&name, force) {
-        match git::create(dir, git_config) {
-            Ok(branch) => {
-                progress(name, &template_values, dir, &branch, &args)?;
-            }
-            Err(e) => anyhow::bail!(
-                "{} {} {}",
-                emoji::ERROR,
-                style("Git Error:").bold().red(),
-                style(e).bold().red(),
-            ),
-        };
-    } else {
-        anyhow::bail!(
-            "{} {}",
+    Ok(())
+}
+
+fn resolve_project_name(args: &Args) -> Result<ProjectName> {
+    match args.name {
+        Some(ref n) => Ok(ProjectName::new(n)),
+        None if !args.silent => Ok(ProjectName::new(interactive::name()?)),
+        None => Err(anyhow!(
+            "{} {} {}",
             emoji::ERROR,
-            style("Target directory already exists, aborting!")
+            style("Project Name Error:").bold().red(),
+            style("Option `--silent` provided, but project name was not set. Please use `--name`.")
                 .bold()
                 .red(),
-        );
+        )),
+    }
+}
+
+fn clone_git_template_into_temp(args: &Args) -> Result<(TempDir, String)> {
+    let git_clone_dir = tempfile::tempdir()?;
+    let git_config = {
+        let remote = args
+            .git
+            .clone()
+            .with_context(|| "Missing option git, or a favorite")?;
+        GitConfig::new_abbr(
+            remote.into(),
+            args.branch.to_owned(),
+            args.ssh_identity.clone(),
+        )?
+    };
+
+    let branch = git::create(&git_clone_dir.path(), git_config).map_err(|e| {
+        anyhow!(
+            "{} {} {}",
+            emoji::ERROR,
+            style("Git Error:").bold().red(),
+            style(e).bold().red(),
+        )
+    })?;
+
+    Ok((git_clone_dir, branch))
+}
+
+pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
+    fs::create_dir_all(&dst)?;
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let ty = entry.file_type()?;
+        if ty.is_dir() {
+            if entry.file_name() != ".git" {
+                copy_dir_all(entry.path(), dst.as_ref().join(entry.file_name()))?;
+            }
+        } else if ty.is_file() {
+            fs::copy(entry.path(), dst.as_ref().join(entry.file_name()))?;
+        } else {
+            bail!(
+                "{} {}",
+                crate::emoji::WARN,
+                style("Symbolic links not supported").bold().red(),
+            )
+        }
     }
     Ok(())
 }
@@ -269,7 +299,7 @@ fn get_config_file_values(path: &Path) -> Result<HashMap<String, toml::Value>> {
         Ok(ref contents) => toml::from_str::<ConfigValues>(contents)
             .map(|v| v.values)
             .map_err(|e| e.into()),
-        Err(e) => anyhow::bail!(
+        Err(e) => bail!(
             "{} {} {}",
             emoji::ERROR,
             style("Values File Error:").bold().red(),
@@ -278,7 +308,7 @@ fn get_config_file_values(path: &Path) -> Result<HashMap<String, toml::Value>> {
     }
 }
 
-fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
+fn create_project_dir(name: &ProjectName, force: bool) -> Result<PathBuf> {
     let dir_name = if force {
         name.raw()
     } else {
@@ -296,11 +326,16 @@ fn create_project_dir(name: &ProjectName, force: bool) -> Option<PathBuf> {
         style(&dir_name).bold().yellow(),
         style("...").bold()
     );
-
     if project_dir.exists() {
-        None
+        Err(anyhow!(
+            "{} {}",
+            emoji::ERROR,
+            style("Target directory already exists, aborting!")
+                .bold()
+                .red()
+        ))
     } else {
-        Some(project_dir)
+        Ok(project_dir)
     }
 }
 
