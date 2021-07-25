@@ -51,15 +51,21 @@ impl TryFrom<String> for Config {
 }
 
 impl Config {
-    pub(crate) fn new<P: AsRef<Path>>(path: P) -> Result<Option<Self>> {
-        match fs::read_to_string(path) {
-            Ok(contents) => Config::try_from(contents)
-                .map(Option::from)
-                .map_err(|e| e.into()),
-            Err(e) => match e.kind() {
-                ErrorKind::NotFound => Ok(None),
-                _ => anyhow::bail!(e),
+    pub(crate) fn from_path<P>(path: &Option<P>) -> Result<Option<Self>>
+    where
+        P: AsRef<Path>,
+    {
+        match path {
+            Some(path) => match fs::read_to_string(path) {
+                Ok(contents) => Config::try_from(contents)
+                    .map(Option::from)
+                    .map_err(|e| e.into()),
+                Err(e) => match e.kind() {
+                    ErrorKind::NotFound => Ok(None),
+                    _ => anyhow::bail!(e),
+                },
             },
+            None => Ok(None),
         }
     }
 }
@@ -89,7 +95,7 @@ mod tests {
         )
         .unwrap();
 
-        let config = Config::new(&config_path).unwrap().unwrap();
+        let config = Config::from_path(&Some(config_path)).unwrap().unwrap();
 
         assert_eq!(
             config.template,

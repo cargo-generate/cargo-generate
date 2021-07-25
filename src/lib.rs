@@ -97,6 +97,7 @@ use config::{Config, ConfigValues, CONFIG_FILE_NAME};
 use console::style;
 use favorites::{list_favorites, resolve_favorite_args};
 use std::{
+    borrow::Borrow,
     collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
@@ -121,15 +122,22 @@ pub struct Args {
     #[structopt(long)]
     pub list_favorites: bool,
 
-    /// Generate a favorite template as defined in the config
+    /// Generate a favorite template as defined in the config. In case the favorite is undefined,
+    /// use in place of the `--git` option, otherwise specifies the subfolder
+    #[structopt(name = "favorite|git|subfolder")]
     pub favorite: Option<String>,
+
+    /// Specifies a subfolder within the template repository to be used as the actual template.
+    #[structopt()]
+    pub subfolder: Option<String>,
 
     /// Git repository to clone template from. Can be a URL (like
     /// `https://github.com/rust-cli/cli-template`), a path (relative or absolute), or an
     /// `owner/repo` abbreviated GitHub URL (like `rust-cli/cli-template`).
+    ///
     /// Note that cargo generate will first attempt to interpret the `owner/repo` form as a
     /// relative path and only try a GitHub URL if the local path doesn't exist.
-    #[structopt(short, long)]
+    #[structopt(short, long, conflicts_with = "subfolder")]
     pub git: Option<String>,
 
     /// Branch to use when installing from git
@@ -207,27 +215,52 @@ pub fn generate(mut args: Args) -> Result<()> {
     }
 
     resolve_favorite_args(&mut args)?;
+
     let project_name = resolve_project_name(&args)?;
     let project_dir = create_project_dir(&project_name, args.force)?;
 
     let (template_base_dir, branch) = clone_git_template_into_temp(&args)?;
-    copy_dir_all(&template_base_dir, &project_dir)?;
-    drop(template_base_dir);
+    let template_folder = resolve_template_dir(&template_base_dir, &args)?;
 
     let template_values = args
         .template_values_file
         .as_ref()
         .map(|p| Path::new(p))
-        .map_or(Ok(Default::default()), |path| get_config_file_values(path))?;
+        .map_or(Ok(Default::default()), |path| get_config_file_values(&path))?;
 
-    progress(
+    let template_config = Config::from_path(
+        &locate_template_file(&CONFIG_FILE_NAME, &template_base_dir, &args.subfolder).ok(),
+    )?;
+
+    expand_template(
         &project_name,
+        &template_folder,
         &template_values,
-        &project_dir,
-        &branch,
+        template_config,
         &args,
     )?;
 
+    copy_dir_all(&template_folder, &project_dir)?;
+
+    initialize_vcs(args, &project_dir, branch)?;
+
+    println!(
+        "{} {} {} {}",
+        emoji::SPARKLE,
+        style("Done!").bold().green(),
+        style("New project created").bold(),
+        style(&project_dir.display()).underlined()
+    );
+    Ok(())
+}
+
+fn initialize_vcs(args: Args, project_dir: &Path, branch: String) -> Result<()> {
+    match args.vcs {
+        Vcs::None => {}
+        Vcs::Git => {
+            git::init(project_dir, &branch)?;
+        }
+    };
     Ok(())
 }
 
@@ -246,19 +279,59 @@ fn resolve_project_name(args: &Args) -> Result<ProjectName> {
     }
 }
 
+fn resolve_template_dir(template_base_dir: &TempDir, args: &Args) -> Result<PathBuf> {
+    match &args.subfolder {
+        Some(subfolder) => {
+            let template_base_dir = fs::canonicalize(template_base_dir.path())?;
+            let template_dir = fs::canonicalize(template_base_dir.join(subfolder))?;
+
+            if !template_dir.starts_with(&template_base_dir) {
+                return Err(anyhow!(
+                    "{} {} {}",
+                    emoji::ERROR,
+                    style("Subfolder Error:").bold().red(),
+                    style("Invalid subfolder. Must be part of the template folder structure.")
+                        .bold()
+                        .red(),
+                ));
+            }
+            if !template_dir.is_dir() {
+                return Err(anyhow!(
+                    "{} {} {}",
+                    emoji::ERROR,
+                    style("Subfolder Error:").bold().red(),
+                    style("The specified subfolder must be a valid folder.")
+                        .bold()
+                        .red(),
+                ));
+            }
+
+            println!(
+                "{} {} `{}`{}",
+                emoji::WRENCH,
+                style("Using template subfolder").bold(),
+                style(subfolder).bold().yellow(),
+                style("...").bold()
+            );
+            Ok(template_dir)
+        }
+        None => Ok(template_base_dir.path().to_owned()),
+    }
+}
+
 fn clone_git_template_into_temp(args: &Args) -> Result<(TempDir, String)> {
     let git_clone_dir = tempfile::tempdir()?;
-    let git_config = {
-        let remote = args
-            .git
-            .clone()
-            .with_context(|| "Missing option git, or a favorite")?;
-        GitConfig::new_abbr(
-            remote.into(),
-            args.branch.to_owned(),
-            args.ssh_identity.clone(),
-        )?
-    };
+
+    let remote = args
+        .git
+        .clone()
+        .with_context(|| "Missing option git, or a favorite")?;
+
+    let git_config = GitConfig::new_abbr(
+        remote.into(),
+        args.branch.to_owned(),
+        args.ssh_identity.clone(),
+    )?;
 
     let branch = git::create(&git_clone_dir.path(), git_config).map_err(|e| {
         anyhow!(
@@ -278,9 +351,7 @@ pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resu
         let entry = entry?;
         let ty = entry.file_type()?;
         if ty.is_dir() {
-            if entry.file_name() != ".git" {
-                copy_dir_all(entry.path(), dst.as_ref().join(entry.file_name()))?;
-            }
+            copy_dir_all(entry.path(), dst.as_ref().join(entry.file_name()))?;
         } else if ty.is_file() {
             fs::copy(entry.path(), dst.as_ref().join(entry.file_name()))?;
         } else {
@@ -292,6 +363,33 @@ pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resu
         }
     }
     Ok(())
+}
+
+fn locate_template_file<T>(
+    name: &str,
+    template_folder: T,
+    subfolder: &Option<String>,
+) -> Result<PathBuf>
+where
+    T: AsRef<Path>,
+{
+    let template_folder = template_folder.as_ref().to_path_buf();
+    let mut search_folder = subfolder
+        .as_ref()
+        .map_or_else(|| template_folder.to_owned(), |s| template_folder.join(s));
+    loop {
+        let file_path = search_folder.join(name.borrow());
+        if file_path.exists() {
+            return Ok(file_path);
+        }
+        if search_folder == template_folder {
+            bail!("File not found within template");
+        }
+        search_folder = search_folder
+            .parent()
+            .ok_or_else(|| anyhow!("Reached root folder"))?
+            .to_path_buf();
+    }
 }
 
 fn get_config_file_values(path: &Path) -> Result<HashMap<String, toml::Value>> {
@@ -339,17 +437,15 @@ fn create_project_dir(name: &ProjectName, force: bool) -> Result<PathBuf> {
     }
 }
 
-fn progress(
+fn expand_template(
     name: &ProjectName,
-    template_values: &HashMap<String, toml::Value>,
     dir: &Path,
-    branch: &str,
+    template_values: &HashMap<String, toml::Value>,
+    template_config: Option<Config>,
     args: &Args,
 ) -> Result<()> {
     let crate_type: CrateType = args.into();
     let template = template::substitute(name, &crate_type, template_values, args.force)?;
-    let config_path = dir.join(CONFIG_FILE_NAME);
-    let template_config = Config::new(config_path)?;
     let template = match template_config.as_ref() {
         None => Ok(template),
         Some(config) => {
@@ -371,27 +467,7 @@ fn progress(
 
     pbar.join().unwrap();
 
-    match args.vcs {
-        Vcs::None => {}
-        Vcs::Git => {
-            git::init(dir, branch)?;
-        }
-    }
-
-    gen_success(dir);
-
     Ok(())
-}
-
-fn gen_success(dir: &Path) {
-    let dir_string = dir.to_str().unwrap_or("");
-    println!(
-        "{} {} {} {}",
-        emoji::SPARKLE,
-        style("Done!").bold().green(),
-        style("New project created").bold(),
-        style(dir_string).underlined()
-    );
 }
 
 fn rename_warning(name: &ProjectName) {

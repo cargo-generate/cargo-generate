@@ -37,6 +37,7 @@ pub(crate) fn list_favorites(args: &Args) -> Result<()> {
 
 pub(crate) fn resolve_favorite_args(args: &mut Args) -> Result<()> {
     if args.git.is_some() {
+        args.subfolder = args.favorite.take();
         return Ok(());
     }
 
@@ -48,7 +49,7 @@ pub(crate) fn resolve_favorite_args(args: &mut Args) -> Result<()> {
     let app_config_path = app_config_path(&args.config)?;
     let app_config = AppConfig::from_path(app_config_path.as_path())?;
 
-    let (git, branch) = app_config
+    let (git, branch, subfolder) = app_config
         .favorites
         .get(favorite_name.as_str())
         .map_or_else(
@@ -57,17 +58,27 @@ pub(crate) fn resolve_favorite_args(args: &mut Args) -> Result<()> {
                     "Favorite {} not found in config, using it as a git repo url",
                     style(&favorite_name).bold()
                 );
-                (Some(favorite_name.clone()), args.branch.as_ref().cloned())
+                (
+                    Some(favorite_name.clone()),
+                    args.branch.as_ref().cloned(),
+                    args.subfolder.clone(),
+                )
             },
             |f| {
                 (
                     f.git.clone(),
                     args.branch.as_ref().or_else(|| f.branch.as_ref()).cloned(),
+                    args.subfolder
+                        .as_ref()
+                        .or_else(|| f.subfolder.as_ref())
+                        .cloned(),
                 )
             },
         );
+
     args.git = git;
     args.branch = branch;
+    args.subfolder = subfolder;
 
     Ok(())
 }

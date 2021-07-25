@@ -51,16 +51,16 @@ branch = "{branch}"
 }
 
 #[test]
-fn it_survives_an_empty_config() {
-    let empty_config = tmp_dir().build();
-    let empty_config_path = empty_config.path().join("cargo-generate");
+fn favorite_with_git_becomes_subfolder() {
+    let favorite_template = create_template("favorite-template");
     let git_template = create_template("git-template");
+    let (_config, config_path) = create_favorite_config("test", &favorite_template);
     let dir = tmp_dir().build();
 
     binary()
         .arg("generate")
         .arg("--config")
-        .arg(empty_config_path)
+        .arg(config_path)
         .arg("--name")
         .arg("foobar-project")
         .arg("--git")
@@ -68,12 +68,89 @@ fn it_survives_an_empty_config() {
         .arg("test")
         .current_dir(&dir.path())
         .assert()
+        .failure();
+}
+
+#[test]
+fn favorite_subfolder_must_be_valid() {
+    let template = tmp_dir()
+        .file("Cargo.toml", "")
+        .file(
+            "inner/Cargo.toml",
+            r#"
+                [package]
+                name = "{{project-name}}"
+                description = "A wonderful project"
+                version = "0.1.0"
+            "#,
+        )
+        .init_git()
+        .build();
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("-n")
+        .arg("outer")
+        .arg(template.path())
+        .arg("Cargo.toml")
+        .current_dir(&dir.path())
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("must be a valid folder").from_utf8());
+
+    binary()
+        .arg("generate")
+        .arg("-n")
+        .arg("outer")
+        .arg(template.path())
+        .arg("non-existant")
+        .current_dir(&dir.path())
+        .assert()
+        .failure(); // Error text is OS specific
+
+    binary()
+        .arg("generate")
+        .arg("-n")
+        .arg("outer")
+        .arg(template.path())
+        .arg(dir.path().parent().unwrap())
+        .current_dir(&dir.path())
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("Invalid subfolder.").from_utf8());
+}
+
+#[test]
+fn favorite_with_subfolder() -> anyhow::Result<()> {
+    let template = tmp_dir()
+        .file("Cargo.toml", "")
+        .file(
+            "inner/Cargo.toml",
+            r#"
+                [package]
+                name = "{{project-name}}"
+                description = "A wonderful project"
+                version = "0.1.0"
+            "#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+    binary()
+        .arg("generate")
+        .arg("-n")
+        .arg("outer")
+        .arg(template.path())
+        .arg("inner")
+        .current_dir(&dir.path())
+        .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(dir
-        .read("foobar-project/Cargo.toml")
-        .contains(r#"description = "git-template""#));
+    assert!(dir.read("outer/Cargo.toml").contains("outer"));
+    Ok(())
 }
 
 #[test]
@@ -97,32 +174,6 @@ fn it_can_use_favorites() {
     assert!(dir
         .read("favorite-project/Cargo.toml")
         .contains(r#"description = "favorite-template""#));
-}
-
-#[test]
-fn git_specification_overrides_favorite() {
-    let git_template = create_template("git-template");
-    let favorite_template = create_template("favorite-template");
-    let (_config, config_path) = create_favorite_config("test", &favorite_template);
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("generate")
-        .arg("--config")
-        .arg(config_path)
-        .arg("--name")
-        .arg("favorite-project")
-        .arg("--git")
-        .arg(git_template.path())
-        .arg("test")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    assert!(dir
-        .read("favorite-project/Cargo.toml")
-        .contains(r#"description = "git-template""#));
 }
 
 #[test]
