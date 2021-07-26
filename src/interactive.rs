@@ -4,8 +4,10 @@ use crate::{
 };
 use anyhow::Result;
 use console::style;
+use dialoguer::theme::ColorfulTheme;
 use dialoguer::Input;
 use liquid_core::Value;
+use std::ops::Index;
 
 pub(crate) fn name() -> Result<String> {
     let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;
@@ -48,12 +50,28 @@ fn extract_default(variable: &VarInfo) -> Option<String> {
 }
 
 fn prompt_for_variable(variable: &TemplateSlots) -> Result<String> {
-    let prompt = format!(
-        "{} {} {}",
-        emoji::SHRUG,
-        style(&variable.prompt).bold(),
-        choice_options(&variable.var_info)
-    );
+    let prompt = format!("{} {}", emoji::SHRUG, style(&variable.prompt).bold(),);
+
+    if let VarInfo::String { entry } = &variable.var_info {
+        if let Some(choices) = &entry.choices {
+            use dialoguer::Select;
+
+            let default = if let Some(default) = &entry.default {
+                choices.binary_search(default).unwrap_or(0)
+            } else {
+                0
+            };
+            let chosen = Select::with_theme(&ColorfulTheme::default())
+                .items(choices)
+                .with_prompt(&prompt)
+                .default(default)
+                .interact()?;
+
+            return Ok(choices.index(chosen).to_string());
+        }
+    }
+
+    let prompt = format!("{} {}", prompt, choice_options(&variable.var_info));
     loop {
         let default = extract_default(&variable.var_info);
         let user_entry = user_question(prompt.as_str(), &default)?;
