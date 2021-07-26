@@ -44,7 +44,7 @@ version = "1.0.125"
 features = ["derive"]
 
 [dev-dependencies]
-predicates = "2.0.0"
+predicates = "2.0.1"
 assert_cmd = "1.0.7"
 
 [features]
