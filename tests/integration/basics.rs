@@ -1170,6 +1170,8 @@ mod ssh_remote {
     use super::*;
 
     #[test]
+    #[ignore]
+    // for now only locally working
     fn it_should_support_a_public_repo() {
         let dir = tmp_dir().build();
 
@@ -1189,6 +1191,8 @@ mod ssh_remote {
     }
 
     #[test]
+    #[ignore]
+    // for now only locally working
     fn it_should_support_a_private_repo() {
         let dir = tmp_dir().build();
 
