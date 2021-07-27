@@ -58,7 +58,7 @@ jobs:
           tar -czvf "$filename" README.md LICENSE-MIT LICENSE-APACHE -C "target/$TARGET/release" "${{ matrix.binName }}"
           echo "::set-output name=filename::$filename"
       - name: Upload Archive
-        uses: ncipollo/release-action@v1
+        uses: jashandeep-sohi/release-action@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           allowUpdates: true
@@ -67,3 +67,4 @@ jobs:
           artifactContentType: application/octet-stream
           omitBodyDuringUpdate: true
           omitNameDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
