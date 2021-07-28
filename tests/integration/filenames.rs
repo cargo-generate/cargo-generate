@@ -28,6 +28,12 @@ fn it_substitutes_filename() {
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert_eq!(dir.exists("foobar-project/main.rs"), true);
-    assert_eq!(dir.exists("foobar-project/foobar-project.rs"), true);
+    assert!(
+        dir.exists("foobar-project/main.rs"),
+        "project should contain foobar-project/main.rs"
+    );
+    assert!(
+        dir.exists("foobar-project/foobar-project.rs"),
+        "project should contain foobar-project/foobar-project.rs"
+    );
 }

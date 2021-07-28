@@ -5,18 +5,24 @@ use std::path::{Path, PathBuf};
 
 pub fn substitute_filename(filepath: &Path, parser: &Parser, context: &Object) -> Result<PathBuf> {
     let filename = filepath.file_name().and_then(|s| s.to_str()).unwrap();
-    let path = filepath.parent().unwrap_or(Path::new(""));
+    let path = filepath.parent().unwrap_or_else(|| Path::new(""));
 
     let parsed_filename = parser.parse(filename)?.render(context)?;
+    let parsed_filename = sanitize_filename(parsed_filename.as_str());
+
+    Ok(path.join(Path::new(parsed_filename.as_str())))
+}
+
+fn sanitize_filename(filename: &str) -> String {
+    use sanitize_filename::sanitize_with_options;
 
     let options = sanitize_filename::Options {
         truncate: true,   // true by default, truncates to 255 bytes
         replacement: "_", // str to replace sanitized chars/strings
         ..sanitize_filename::Options::default()
     };
-    let sanitized = sanitize_filename::sanitize_with_options(parsed_filename, options);
 
-    Ok(path.join(Path::new(sanitized.as_str())))
+    sanitize_with_options(filename, options)
 }
 
 #[cfg(test)]
