@@ -1,6 +1,7 @@
 use git2::Repository;
 use predicates::prelude::*;
 
+use crate::helpers::project::binary;
 use crate::helpers::project_builder::tmp_dir;
 
 use assert_cmd::prelude::*;
@@ -8,10 +9,6 @@ use std::env;
 use std::fs;
 use std::ops::Not;
 use std::process::Command;
-
-fn binary() -> Command {
-    Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap()
-}
 
 #[test]
 fn it_removes_git_history() {
