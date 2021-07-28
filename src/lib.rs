@@ -82,6 +82,7 @@ mod app_config;
 mod config;
 mod emoji;
 mod favorites;
+mod filenames;
 mod git;
 mod ignore_me;
 mod include_exclude;

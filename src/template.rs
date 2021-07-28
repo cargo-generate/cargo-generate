@@ -11,6 +11,7 @@ use walkdir::{DirEntry, WalkDir};
 
 use crate::config::TemplateConfig;
 use crate::emoji;
+use crate::filenames::substitute_filename;
 use crate::include_exclude::*;
 use crate::progressbar::spinner;
 use crate::template_variables::{get_authors, get_os_arch, Authors, CrateType, ProjectName};
@@ -201,13 +202,23 @@ pub(crate) fn walk_dir(
                         style(filename.display()).bold()
                     )
                 })?;
-            pb.inc(50);
-            fs::write(filename, new_contents).with_context(|| {
+            pb.inc(25);
+            let new_filename =
+                substitute_filename(filename, &engine, &template).with_context(|| {
+                    format!(
+                        "{} {} `{}`",
+                        emoji::ERROR,
+                        style("Error templating a filename").bold().red(),
+                        style(filename.display()).bold()
+                    )
+                })?;
+            pb.inc(25);
+            fs::write(new_filename.as_path(), new_contents).with_context(|| {
                 format!(
                     "{} {} `{}`",
                     emoji::ERROR,
                     style("Error writing").bold().red(),
-                    style(filename.display()).bold()
+                    style(new_filename.display()).bold()
                 )
             })?;
             pb.inc(50);

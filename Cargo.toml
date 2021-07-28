@@ -33,6 +33,7 @@ anyhow = "1.0.42"
 toml = "0.5.8"
 thiserror = "1.0.26"
 home = "0.5.3"
+sanitize-filename = "0.3"
 
 [dependencies.openssl]
 version = "0.10.35"

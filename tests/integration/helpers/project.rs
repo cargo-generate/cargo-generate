@@ -1,9 +1,15 @@
+use assert_cmd::prelude::*;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use std::process::Command;
 use std::str;
 
 use tempfile::TempDir;
+
+pub fn binary() -> Command {
+    Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap()
+}
 
 #[derive(Debug)]
 pub struct Project {
