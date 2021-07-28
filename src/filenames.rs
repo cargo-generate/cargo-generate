@@ -36,22 +36,43 @@ mod tests {
             substitute_filename("{{author}}.rs", prepare_context("sassman")).unwrap(),
             "sassman.rs"
         );
+        #[cfg(unix)]
         assert_eq!(
             substitute_filename("/tmp/project/{{author}}.rs", prepare_context("sassman")).unwrap(),
             "/tmp/project/sassman.rs"
+        );
+        #[cfg(windows)]
+        assert_eq!(
+            substitute_filename(
+                "C:\\tmp\\project\\{{author}}.rs",
+                prepare_context("sassman")
+            )
+            .unwrap(),
+            "C:\\tmp\\project\\sassman.rs"
         );
     }
 
     #[test]
     fn should_prevent_invalid_filenames() {
+        #[cfg(unix)]
         assert_eq!(
             substitute_filename("/tmp/project/{{author}}.rs", prepare_context("s/a/s")).unwrap(),
             "/tmp/project/s_a_s.rs"
+        );
+        #[cfg(windows)]
+        assert_eq!(
+            substitute_filename(
+                "C:\\tmp\\project\\{{author}}.rs",
+                prepare_context("s\\a\\s")
+            )
+            .unwrap(),
+            "C:\\tmp\\project\\s_a_s.rs"
         );
     }
 
     #[test]
     fn should_prevent_exploitation() {
+        #[cfg(unix)]
         assert_eq!(
             substitute_filename(
                 "/tmp/project/{{author}}.rs",
