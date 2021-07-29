@@ -28,7 +28,7 @@ impl Matcher {
     fn create_matcher(project_dir: &Path, patterns: &[String]) -> Result<Gitignore> {
         let mut builder = GitignoreBuilder::new(project_dir);
         for rule in patterns {
-            builder.add_line(None, &rule)?;
+            builder.add_line(None, rule)?;
         }
         Ok(builder.build()?)
     }
