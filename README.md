@@ -65,7 +65,7 @@ cargo generate --git https://github.com/githubusername/mytemplate.git --name myp
 If the git repository contains multiple templates, the specific subfolder in the git repository may be specified like this:
 
 ```sh
-cargo generate --git "https://github.com/githubusername/mytemplate.git <relative-template-path>"
+cargo generate --git https://github.com/githubusername/mytemplate.git <relative-template-path>
 ```
 
 > NOTE: The specified `relative-template-path` will be used as the actual template root, whether or not this is actually true!
