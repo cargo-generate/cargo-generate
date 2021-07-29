@@ -227,10 +227,10 @@ pub fn generate(mut args: Args) -> Result<()> {
         .template_values_file
         .as_ref()
         .map(|p| Path::new(p))
-        .map_or(Ok(Default::default()), |path| get_config_file_values(&path))?;
+        .map_or(Ok(Default::default()), |path| get_config_file_values(path))?;
 
     let template_config = Config::from_path(
-        &locate_template_file(&CONFIG_FILE_NAME, &template_base_dir, &args.subfolder).ok(),
+        &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &args.subfolder).ok(),
     )?;
 
     expand_template(
@@ -334,7 +334,7 @@ fn clone_git_template_into_temp(args: &Args) -> Result<(TempDir, String)> {
         args.ssh_identity.clone(),
     )?;
 
-    let branch = git::create(&git_clone_dir.path(), git_config).map_err(|e| {
+    let branch = git::create(git_clone_dir.path(), git_config).map_err(|e| {
         anyhow!(
             "{} {} {}",
             emoji::ERROR,
@@ -411,7 +411,7 @@ fn create_project_dir(name: &ProjectName, force: bool) -> Result<PathBuf> {
     let dir_name = if force {
         name.raw()
     } else {
-        rename_warning(&name);
+        rename_warning(name);
         name.kebab_case()
     };
     let project_dir = env::current_dir()

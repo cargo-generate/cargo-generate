@@ -93,7 +93,7 @@ fn prompt_for_variable(variable: &TemplateSlots) -> Result<String> {
 }
 
 pub(super) fn variable(variable: &TemplateSlots) -> Result<Value> {
-    let user_input = prompt_for_variable(&variable)?;
+    let user_input = prompt_for_variable(variable)?;
     into_value(user_input, &variable.var_info)
 }
 
