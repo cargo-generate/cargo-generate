@@ -1,10 +1,13 @@
 use anyhow::{Context, Result};
+use console::style;
 use serde::Deserialize;
 use std::{
     collections::HashMap,
     fs,
     path::{Path, PathBuf},
 };
+
+use crate::emoji;
 
 pub(crate) const CONFIG_FILE_NAME: &str = "cargo-generate";
 
@@ -36,6 +39,12 @@ impl AppConfig {
             Ok(if cfg.trim().is_empty() {
                 AppConfig::default()
             } else {
+                println!(
+                    "{} {} {}",
+                    emoji::INFO,
+                    style("Using application config:").bold(),
+                    style(path.display()).underlined()
+                );
                 toml::from_str(&cfg)?
             })
         } else {
