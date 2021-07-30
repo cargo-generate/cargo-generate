@@ -11,6 +11,38 @@ use std::ops::Not;
 use std::process::Command;
 
 #[test]
+fn it_can_use_a_plain_folder() {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--name")
+        .arg("foobar-project")
+        .arg(template.path())
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8().and(
+            predicates::str::contains("Template does not seem to be a git repository").from_utf8(),
+        ));
+
+    let repo = git2::Repository::open(&dir.path().join("foobar-project")).unwrap();
+    let references = repo.references().unwrap().count();
+    assert_eq!(0, references);
+}
+
+#[test]
 fn it_removes_git_history() {
     let template = tmp_dir()
         .file(
