@@ -94,7 +94,7 @@ mod template;
 mod template_variables;
 
 use anyhow::{anyhow, bail, Context, Result};
-use config::{Config, ConfigValues, CONFIG_FILE_NAME};
+use config::{Config, CONFIG_FILE_NAME};
 use console::style;
 use favorites::{list_favorites, resolve_favorite_args};
 use std::{
@@ -107,11 +107,11 @@ use std::{
 use structopt::StructOpt;
 use tempfile::TempDir;
 
-use crate::template_variables::{CrateType, ProjectName};
 use crate::{
     app_config::{app_config_path, AppConfig},
-    git::GitConfig,
+    template_variables::{CrateType, ProjectName},
 };
+use crate::{git::GitConfig, template_variables::resolve_template_values};
 
 #[derive(StructOpt)]
 #[structopt(bin_name = "cargo")]
@@ -192,10 +192,13 @@ pub struct Args {
     /// Use a different ssh identity
     #[structopt(short = "i", long = "identity", parse(from_os_str))]
     pub ssh_identity: Option<PathBuf>,
+
+    /// Define a value for use during template expansion
+    #[structopt(long, short)]
+    pub define: Vec<String>,
 }
 
-//
-#[derive(Debug, StructOpt)]
+#[derive(Debug, StructOpt, Clone, Copy)]
 pub enum Vcs {
     None,
     Git,
@@ -213,6 +216,18 @@ impl FromStr for Vcs {
     }
 }
 
+impl Vcs {
+    fn initialize(&self, project_dir: &Path, branch: String) -> Result<()> {
+        match self {
+            Vcs::None => {}
+            Vcs::Git => {
+                git::init(project_dir, &branch)?;
+            }
+        };
+        Ok(())
+    }
+}
+
 pub fn generate(mut args: Args) -> Result<()> {
     let path = &app_config_path(&args.config)?;
     let app_config = AppConfig::from_path(path)?;
@@ -224,20 +239,24 @@ pub fn generate(mut args: Args) -> Result<()> {
     resolve_favorite_args(&app_config, &mut args)?;
 
     let project_name = resolve_project_name(&args)?;
-    let project_dir = create_project_dir(&project_name, args.force)?;
+    let project_dir = resolve_project_dir(&project_name, args.force)?;
 
     let (template_base_dir, branch) = clone_git_template_into_temp(&args)?;
     let template_folder = resolve_template_dir(&template_base_dir, &args)?;
 
-    let template_values = args
-        .template_values_file
-        .as_ref()
-        .map(|p| Path::new(p))
-        .map_or(Ok(Default::default()), |path| get_config_file_values(path))?;
-
     let template_config = Config::from_path(
         &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &args.subfolder).ok(),
     )?;
+
+    let template_values = resolve_template_values(&args)?;
+
+    println!(
+        "{} {} `{}`{}",
+        emoji::WRENCH,
+        style("Creating project called").bold(),
+        style(project_dir.display()).bold().yellow(),
+        style("...").bold()
+    );
 
     expand_template(
         &project_name,
@@ -246,10 +265,8 @@ pub fn generate(mut args: Args) -> Result<()> {
         template_config,
         &args,
     )?;
-
     copy_dir_all(&template_folder, &project_dir)?;
-
-    initialize_vcs(args, &project_dir, branch)?;
+    args.vcs.initialize(&project_dir, branch)?;
 
     println!(
         "{} {} {} {}",
@@ -258,16 +275,6 @@ pub fn generate(mut args: Args) -> Result<()> {
         style("New project created").bold(),
         style(&project_dir.display()).underlined()
     );
-    Ok(())
-}
-
-fn initialize_vcs(args: Args, project_dir: &Path, branch: String) -> Result<()> {
-    match args.vcs {
-        Vcs::None => {}
-        Vcs::Git => {
-            git::init(project_dir, &branch)?;
-        }
-    };
     Ok(())
 }
 
@@ -399,21 +406,7 @@ where
     }
 }
 
-fn get_config_file_values(path: &Path) -> Result<HashMap<String, toml::Value>> {
-    match fs::read_to_string(path) {
-        Ok(ref contents) => toml::from_str::<ConfigValues>(contents)
-            .map(|v| v.values)
-            .map_err(|e| e.into()),
-        Err(e) => bail!(
-            "{} {} {}",
-            emoji::ERROR,
-            style("Values File Error:").bold().red(),
-            style(e).bold().red(),
-        ),
-    }
-}
-
-fn create_project_dir(name: &ProjectName, force: bool) -> Result<PathBuf> {
+fn resolve_project_dir(name: &ProjectName, force: bool) -> Result<PathBuf> {
     let dir_name = if force {
         name.raw()
     } else {
@@ -424,13 +417,6 @@ fn create_project_dir(name: &ProjectName, force: bool) -> Result<PathBuf> {
         .unwrap_or_else(|_e| ".".into())
         .join(&dir_name);
 
-    println!(
-        "{} {} `{}`{}",
-        emoji::WRENCH,
-        style("Creating project called").bold(),
-        style(&dir_name).bold().yellow(),
-        style("...").bold()
-    );
     if project_dir.exists() {
         Err(anyhow!(
             "{} {}",
