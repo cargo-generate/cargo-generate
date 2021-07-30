@@ -107,8 +107,11 @@ use std::{
 use structopt::StructOpt;
 use tempfile::TempDir;
 
-use crate::git::GitConfig;
 use crate::template_variables::{CrateType, ProjectName};
+use crate::{
+    app_config::{app_config_path, AppConfig},
+    git::GitConfig,
+};
 
 #[derive(StructOpt)]
 #[structopt(bin_name = "cargo")]
@@ -211,11 +214,14 @@ impl FromStr for Vcs {
 }
 
 pub fn generate(mut args: Args) -> Result<()> {
+    let path = &app_config_path(&args.config)?;
+    let app_config = AppConfig::from_path(path)?;
+
     if args.list_favorites {
-        return list_favorites(&args);
+        return list_favorites(&app_config, &args);
     }
 
-    resolve_favorite_args(&mut args)?;
+    resolve_favorite_args(&app_config, &mut args)?;
 
     let project_name = resolve_project_name(&args)?;
     let project_dir = create_project_dir(&project_name, args.force)?;

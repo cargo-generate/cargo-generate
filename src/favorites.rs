@@ -1,15 +1,11 @@
 use crate::{
-    app_config::{app_config_path, AppConfig, FavoriteConfig},
-    info, Args,
+    app_config::{AppConfig, FavoriteConfig},
+    emoji, info, Args,
 };
 use anyhow::{anyhow, Result};
 use console::style;
 
-pub(crate) fn list_favorites(args: &Args) -> Result<()> {
-    let path = &app_config_path(&args.config)?;
-    println!("Listing favorites defined in: {}", path.as_path().display());
-    let app_config = AppConfig::from_path(path)?;
-
+pub(crate) fn list_favorites(app_config: &AppConfig, args: &Args) -> Result<()> {
     let data = {
         let mut d = app_config
             .favorites
@@ -20,22 +16,33 @@ pub(crate) fn list_favorites(args: &Args) -> Result<()> {
         d
     };
 
-    println!("Possible favorites:");
+    if data.is_empty() {
+        println!(
+            "{} {}",
+            emoji::WARN,
+            style("No favorites defined").bold().red()
+        );
+        return Ok(());
+    }
+
+    println!("{} {}", emoji::WRENCH, style("Possible favorites:").bold());
     let longest_key = data.iter().map(|(k, _)| k.len()).max().unwrap_or(0);
     let longest_key = ((longest_key + 5) / 4) * 4;
     data.iter().for_each(|(key, conf)| {
         println!(
-            "{}:{}{}",
-            key,
+            "    {} {}:{}{}",
+            emoji::DIAMOND,
+            style(key).bold(),
             " ".repeat(longest_key - key.len()),
             conf.description.as_ref().cloned().unwrap_or_default()
         );
     });
+    println!("{} {}", emoji::SPARKLE, style("Done").bold().green());
 
     Ok(())
 }
 
-pub(crate) fn resolve_favorite_args(args: &mut Args) -> Result<()> {
+pub(crate) fn resolve_favorite_args(app_config: &AppConfig, args: &mut Args) -> Result<()> {
     if args.git.is_some() {
         args.subfolder = args.favorite.take();
         return Ok(());
@@ -45,9 +52,6 @@ pub(crate) fn resolve_favorite_args(args: &mut Args) -> Result<()> {
         .favorite
         .as_ref()
         .ok_or_else(|| anyhow!("Please specify either --git option, or a predefined favorite"))?;
-
-    let app_config_path = app_config_path(&args.config)?;
-    let app_config = AppConfig::from_path(app_config_path.as_path())?;
 
     let (git, branch, subfolder) = app_config
         .favorites
