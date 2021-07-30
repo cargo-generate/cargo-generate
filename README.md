@@ -300,6 +300,12 @@ hypervisor = "qemu"
 network_enabled = true
 ```
 
+Values can also be specified on the command line using the `--define` flag. Values specified like this will override any other.
+
+```sh
+cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject -d hypervisor=none -d network_enabled=false
+```
+
 ## Include / Exclude
 
 Templates support a `cargo-generate.toml`, with a "template" section that allows you to configure the files that will be processed by `cargo-generate`.
