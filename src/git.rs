@@ -1,3 +1,4 @@
+use crate::copy_dir_all;
 use crate::emoji;
 use crate::info;
 use anyhow::Context;
@@ -5,6 +6,7 @@ use anyhow::Result;
 use cargo::core::GitReference;
 use console::style;
 use git2::build::RepoBuilder;
+use git2::ErrorCode;
 use git2::{Cred, FetchOptions, ProxyOptions, RemoteCallbacks, Repository, RepositoryInitOptions};
 use remove_dir_all::remove_dir_all;
 use std::borrow::Cow;
@@ -213,11 +215,27 @@ fn git_clone_all(project_dir: &Path, args: GitConfig) -> Result<String> {
     }
     builder.fetch_options(fo);
 
-    let repo = builder.clone(args.remote.as_ref(), project_dir)?;
-    let branch = get_branch_name_repo(&repo)?;
-    init_all_submodules(&repo)?;
+    match builder.clone(args.remote.as_ref(), project_dir) {
+        Ok(repo) => {
+            let branch = get_branch_name_repo(&repo)?;
+            init_all_submodules(&repo)?;
+            Ok(branch)
+        }
+        Err(e) => {
+            if e.code() != ErrorCode::NotFound {
+                return Err(e.into());
+            }
 
-    Ok(branch)
+            let path = Path::new(&*args.remote);
+            if !path.exists() || !path.is_dir() {
+                return Err(e.into());
+            }
+
+            info!("Template does not seem to be a git repository, using as a plain folder");
+            copy_dir_all(path, project_dir)?;
+            Ok("".to_string())
+        }
+    }
 }
 
 fn remove_history(project_dir: &Path, attempt: Option<u8>) -> Result<()> {
