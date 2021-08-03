@@ -300,11 +300,13 @@ hypervisor = "qemu"
 network_enabled = true
 ```
 
-Values can also be specified on the command line using the `--define` flag. Values specified like this will override any other.
+Values can also be specified on the command line using the `--define | -d` flag. Values specified like this will override any other.
 
 ```sh
-cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject -d hypervisor=none -d network_enabled=false
+cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject --define hypervisor=none -d network_enabled=false
 ```
+
+If a value has been specified before, the last `-d` of a variable will overide any previous value.
 
 ## Include / Exclude
 
