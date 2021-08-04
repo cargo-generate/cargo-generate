@@ -1,16 +1,21 @@
 use crate::Result;
 
 use liquid::{Object, Parser};
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 pub fn substitute_filename(filepath: &Path, parser: &Parser, context: &Object) -> Result<PathBuf> {
-    let filename = filepath.file_name().and_then(|s| s.to_str()).unwrap();
-    let path = filepath.parent().unwrap_or_else(|| Path::new(""));
-
-    let parsed_filename = parser.parse(filename)?.render(context)?;
-    let parsed_filename = sanitize_filename(parsed_filename.as_str());
-
-    Ok(path.join(Path::new(parsed_filename.as_str())))
+    let mut path = PathBuf::new();
+    for elem in filepath.components() {
+        match elem {
+            Component::Normal(e) => {
+                let parsed = parser.parse(e.to_str().unwrap())?.render(context)?;
+                let parsed = sanitize_filename(parsed.as_str());
+                path.push(parsed);
+            }
+            other => path.push(other),
+        }
+    }
+    Ok(path)
 }
 
 fn sanitize_filename(filename: &str) -> String {
@@ -41,6 +46,15 @@ mod tests {
             substitute_filename("/tmp/project/{{author}}.rs", prepare_context("sassman")).unwrap(),
             "/tmp/project/sassman.rs"
         );
+        #[cfg(unix)]
+        assert_eq!(
+            substitute_filename(
+                "/tmp/project/{{author}}/{{author}}.rs",
+                prepare_context("sassman")
+            )
+            .unwrap(),
+            "/tmp/project/sassman/sassman.rs"
+        );
         #[cfg(windows)]
         assert_eq!(
             substitute_filename(
@@ -49,6 +63,15 @@ mod tests {
             )
             .unwrap(),
             "C:\\tmp\\project\\sassman.rs"
+        );
+        #[cfg(windows)]
+        assert_eq!(
+            substitute_filename(
+                "C:\\tmp\\project\\{{author}}\\{{author}}.rs",
+                prepare_context("sassman")
+            )
+            .unwrap(),
+            "C:\\tmp\\project\\sassman\\sassman.rs"
         );
     }
 
@@ -59,6 +82,15 @@ mod tests {
             substitute_filename("/tmp/project/{{author}}.rs", prepare_context("s/a/s")).unwrap(),
             "/tmp/project/s_a_s.rs"
         );
+        #[cfg(unix)]
+        assert_eq!(
+            substitute_filename(
+                "/tmp/project/{{author}}/{{author}}.rs",
+                prepare_context("s/a/s")
+            )
+            .unwrap(),
+            "/tmp/project/s_a_s/s_a_s.rs"
+        );
         #[cfg(windows)]
         assert_eq!(
             substitute_filename(
@@ -67,6 +99,15 @@ mod tests {
             )
             .unwrap(),
             "C:\\tmp\\project\\s_a_s.rs"
+        );
+        #[cfg(windows)]
+        assert_eq!(
+            substitute_filename(
+                "C:\\tmp\\project\\{{author}}\\{{author}}.rs",
+                prepare_context("s\\a\\s")
+            )
+            .unwrap(),
+            "C:\\tmp\\project\\s_a_s\\s_a_s.rs"
         );
     }
 
@@ -81,6 +122,15 @@ mod tests {
             .unwrap(),
             "/tmp/project/.._.._etc_passwd.rs"
         );
+        #[cfg(unix)]
+        assert_eq!(
+            substitute_filename(
+                "/tmp/project/{{author}}/main.rs",
+                prepare_context("../../etc/passwd")
+            )
+            .unwrap(),
+            "/tmp/project/.._.._etc_passwd/main.rs"
+        );
         #[cfg(windows)]
         assert_eq!(
             substitute_filename(
@@ -89,6 +139,15 @@ mod tests {
             )
             .unwrap(),
             "C:\\tmp\\project\\.._.._etc_passwd.rs"
+        );
+        #[cfg(windows)]
+        assert_eq!(
+            substitute_filename(
+                "C:\\tmp\\project\\{{author}}\\main.rs",
+                prepare_context("..\\..\\etc\\passwd")
+            )
+            .unwrap(),
+            "C:\\tmp\\project\\.._.._etc_passwd\\main.rs"
         );
     }
 
