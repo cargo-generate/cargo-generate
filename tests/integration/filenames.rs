@@ -12,6 +12,10 @@ fn it_substitutes_filename() {
             "{{project-name}}.rs",
             r#"println!("Welcome in {{project-name}}");"#,
         )
+        .file(
+            "src/{{project-name}}/lib.rs",
+            r#"println!("Welcome in {{project-name}}-lib");"#,
+        )
         .init_git()
         .build();
 
@@ -35,5 +39,13 @@ fn it_substitutes_filename() {
     assert!(
         dir.exists("foobar-project/foobar-project.rs"),
         "project should contain foobar-project/foobar-project.rs"
+    );
+    assert!(
+        dir.exists("foobar-project/src/foobar-project/lib.rs"),
+        "project should contain foobar-project/src/foobar-project/lib.rs"
+    );
+    assert!(
+        !dir.exists("foobar-project/src/{{project-name}}/lib.rs"),
+        "project should not contain foobar-project/src/foobar-project/lib.rs"
     );
 }
