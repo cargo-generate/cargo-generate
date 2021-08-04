@@ -152,11 +152,11 @@ For more information, check out the [Liquid Documentation on `Tags` and `Filters
 
 [liquid]: https://shopify.github.io/liquid
 
-You can use those placeholders in the file names of the generated project.  
-For example, for a project named `awesome`, the filename `{{project_name}}.rs` will be transformed to `awesome.rs` during generation.
+You can use those placeholders in the file and directory names of the generated project.  
+For example, for a project named `awesome`, the filename `{{project_name}}/{{project_name}}.rs` will be transformed to `awesome/awesome.rs` during generation.
 Only files that are **not** listed in the exclude settings will be templated.
 
-> NOTE: invalid characters for a filename will be sanitized after template substitution. Invalid is e.g. `/` or `\`.
+> NOTE: invalid characters for a filename or directory name will be sanitized after template substitution. Invalid is e.g. `/` or `\`.
 
 You can also add a `.genignore` file to your template. The files listed in the `.genignore` file
 will be removed from the local machine when `cargo-generate` is run on the end user's machine.
