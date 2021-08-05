@@ -194,7 +194,7 @@ pub struct Args {
     pub ssh_identity: Option<PathBuf>,
 
     /// Define a value for use during template expansion
-    #[structopt(long, short)]
+    #[structopt(long, short, number_of_values = 1)]
     pub define: Vec<String>,
 }
 

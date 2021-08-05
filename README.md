@@ -70,7 +70,7 @@ cargo generate --git https://github.com/githubusername/mytemplate.git <relative-
 
 > NOTE: The specified `relative-template-path` will be used as the actual template root, whether or not this is actually true!
 
-> NOTE: When using the `subfolder` feature, `cargo-generate` will search for
+> NOTE: When using the `subfolder` feature, `cargo-generate` will search for the `cargo-generate.toml` file in the subfolder first, traversing back towards the template root in case it is not found.
 
 ## git over ssh
 
@@ -99,6 +99,8 @@ will be used for cloning a http(s) template repository.
 
 Favorite templates can be defined in a config file, that by default is placed at `$CARGO_HOME/cargo-generate`. 
 To specify an alternative configuration file, use the `--config <config-file>` option.
+
+> NOTE: A relative `--config` option, will be relative to the template root during expansion.
 
 Each favorite template is specified in its own section, e.g.:
 
@@ -291,6 +293,8 @@ phone_number = { type = "string", prompt = "What's your phone number?", regex = 
 ## Default values for placeholders from a file
 
 For automation purposes the user of the template may provide provide a file containing the values for the keys in the template by using the `--template-values-file` flag.
+
+> NOTE: A relative path will be relative to current working dir, which is *not* inside the expanding template!
 
 The file should be a toml file containing the following (for the example template provided above):
 
