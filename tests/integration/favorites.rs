@@ -1,25 +1,23 @@
 use predicates::prelude::*;
 
+use crate::helpers::project::binary;
 use crate::helpers::{project::Project, project_builder::tmp_dir};
 
 use assert_cmd::prelude::*;
-use std::env;
-use std::{path::PathBuf, process::Command};
-
-fn binary() -> Command {
-    Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap()
-}
+use indoc::indoc;
+use std::path::PathBuf;
 
 fn create_template(name: &str) -> Project {
     tmp_dir()
         .file(
             "Cargo.toml",
             format!(
-                r#"[package]
-name = "{{project-name}}"
-description = "{}"
-version = "0.1.0"
-"#,
+                indoc! {r#"
+                    [package]
+                    name = "{{project-name}}"
+                    description = "{}"
+                    version = "0.1.0"
+                    "#},
                 name
             )
             .as_str(),
@@ -33,12 +31,12 @@ fn create_favorite_config(name: &str, template: &Project) -> (Project, PathBuf) 
         .file(
             "cargo-generate",
             format!(
-                r#"
-[favorites.{name}]
-description = "Favorite for the {name} template"
-git = "{git}"
-branch = "{branch}"
-"#,
+                indoc! {r#"
+                    [favorites.{name}]
+                    description = "Favorite for the {name} template"
+                    git = "{git}"
+                    branch = "{branch}"
+                    "#},
                 name = name,
                 git = template.path().display().to_string().escape_default(),
                 branch = "main"
@@ -77,12 +75,12 @@ fn favorite_subfolder_must_be_valid() {
         .file("Cargo.toml", "")
         .file(
             "inner/Cargo.toml",
-            r#"
+            indoc! {r#"
                 [package]
                 name = "{{project-name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
-            "#,
+            "#},
         )
         .init_git()
         .build();
@@ -127,12 +125,12 @@ fn favorite_with_subfolder() -> anyhow::Result<()> {
         .file("Cargo.toml", "")
         .file(
             "inner/Cargo.toml",
-            r#"
+            indoc! {r#"
                 [package]
                 name = "{{project-name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
-            "#,
+            "#},
         )
         .init_git()
         .build();

@@ -5,3 +5,4 @@ mod basics;
 mod favorites;
 mod filenames;
 mod library;
+mod values;
