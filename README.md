@@ -50,7 +50,7 @@ cargo install cargo-generate --features vendored-openssl
 
 Standard usage is to pass a `--git` flag to `cargo generate` or short `cargo gen`. This will prompt you to enter the name of your project.
 
-> NOTE: `cargo gen` requires an [cargo alias configuration](#cargo-gen---alias) 
+> NOTE: `cargo gen` requires a [cargo alias configuration](#cargo-gen---alias) 
 
 ```sh
 cargo generate --git https://github.com/githubusername/mytemplate.git
