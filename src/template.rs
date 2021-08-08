@@ -168,10 +168,11 @@ pub(crate) fn walk_dir(
 
     let files = WalkDir::new(project_dir)
         .sort_by_file_name()
+        .contents_first(true)
         .into_iter()
         .filter_map(Result::ok)
-        .filter(|e| !e.file_type().is_dir())
         .filter(|e| !is_git_metadata(e))
+        .filter(|e| e.path() != project_dir)
         .collect::<Vec<_>>();
     let total = files.len().to_string();
     for (progress, entry) in files.into_iter().enumerate() {
@@ -190,43 +191,57 @@ pub(crate) fn walk_dir(
         pb.set_message(format!("Processing: {}", f));
 
         if matcher.should_include(relative_path) {
-            let new_contents = engine
-                .clone()
-                .parse_file(filename)?
-                .render(&template)
-                .with_context(|| {
+            if entry.file_type().is_file() {
+                let new_contents = engine
+                    .clone()
+                    .parse_file(filename)?
+                    .render(&template)
+                    .with_context(|| {
+                        format!(
+                            "{} {} `{}`",
+                            emoji::ERROR,
+                            style("Error replacing placeholders").bold().red(),
+                            style(filename.display()).bold()
+                        )
+                    })?;
+                pb.inc(25);
+                let new_filename =
+                    substitute_filename(filename, &engine, &template).with_context(|| {
+                        format!(
+                            "{} {} `{}`",
+                            emoji::ERROR,
+                            style("Error templating a filename").bold().red(),
+                            style(filename.display()).bold()
+                        )
+                    })?;
+                pb.inc(25);
+                let relative_path = new_filename.strip_prefix(project_dir)?;
+                let f = relative_path.display();
+                fs::create_dir_all(new_filename.parent().unwrap()).unwrap();
+                fs::write(new_filename.as_path(), new_contents).with_context(|| {
                     format!(
                         "{} {} `{}`",
                         emoji::ERROR,
-                        style("Error replacing placeholders").bold().red(),
-                        style(filename.display()).bold()
+                        style("Error writing").bold().red(),
+                        style(new_filename.display()).bold()
                     )
                 })?;
-            pb.inc(25);
-            let new_filename =
-                substitute_filename(filename, &engine, &template).with_context(|| {
-                    format!(
-                        "{} {} `{}`",
-                        emoji::ERROR,
-                        style("Error templating a filename").bold().red(),
-                        style(filename.display()).bold()
-                    )
-                })?;
-            pb.inc(25);
-            fs::write(new_filename.as_path(), new_contents).with_context(|| {
-                format!(
-                    "{} {} `{}`",
-                    emoji::ERROR,
-                    style("Error writing").bold().red(),
-                    style(new_filename.display()).bold()
-                )
-            })?;
-            pb.inc(50);
-            pb.finish_with_message(format!("Done: {}", f));
+                pb.inc(50);
+                pb.finish_with_message(format!("Done: {}", f));
+            } else {
+                let new_filename = substitute_filename(filename, &engine, &template)?;
+                let relative_path = new_filename.strip_prefix(project_dir)?;
+                let f = relative_path.display();
+                pb.inc(50);
+                if filename != new_filename {
+                    fs::remove_dir_all(filename)?;
+                }
+                pb.inc(50);
+                pb.finish_with_message(format!("Done: {}", f));
+            }
         } else {
             pb.finish_with_message(format!("Skipped: {}", f));
         }
     }
-
     Ok(())
 }

@@ -12,12 +12,20 @@ jobs:
         include:
           - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
+            cross: true
+            binName: cargo-generate
           - target: aarch64-unknown-linux-musl
             os: ubuntu-latest
+            cross: true
+            binName: cargo-generate
           - target: x86_64-apple-darwin
             os: macos-latest
+            cross: false
+            binName: cargo-generate
           - target: x86_64-pc-windows-msvc
             os: windows-latest
+            cross: false
+            binName: cargo-generate.exe
     steps:
       - uses: actions/checkout@v2
       - name: Setup Rust
@@ -31,8 +39,14 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          use-cross: true
+          use-cross: ${{ matrix.cross }}
           args: --features vendored-openssl --release --target=${{ matrix.target }}
+      - name: Smoke Test
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          use-cross: ${{ matrix.cross }}
+          args: --features vendored-openssl --release --target=${{ matrix.target }} -- -V
       - name: Create Archive
         id: archive
         shell: bash
@@ -41,10 +55,10 @@ jobs:
           TAG: ${{ github.event.release.tag_name }}
         run: |
           filename="cargo-generate-$TAG-$TARGET.tar.gz"
-          tar -czvf "$filename" README.md LICENSE-MIT LICENSE-APACHE -C "target/$TARGET/release" cargo-generate
+          tar -czvf "$filename" README.md LICENSE-MIT LICENSE-APACHE -C "target/$TARGET/release" "${{ matrix.binName }}"
           echo "::set-output name=filename::$filename"
       - name: Upload Archive
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v1.8.7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           allowUpdates: true
@@ -53,3 +67,4 @@ jobs:
           artifactContentType: application/octet-stream
           omitBodyDuringUpdate: true
           omitNameDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
