@@ -17,17 +17,29 @@ pub(crate) use os_arch::get_os_arch;
 pub(crate) use project_name::ProjectName;
 
 pub(crate) fn resolve_template_values(args: &Args) -> Result<HashMap<String, Value>> {
-    let mut template_values = args
-        .template_values_file
-        .as_ref()
-        .map(|p| Path::new(p))
+    let mut values = std::env::var("CARGO_GENERATE_TEMPLATE_VALUES_FILE")
+        .ok()
         .map_or(Ok(Default::default()), |path| {
-            read_template_values_file(path)
+            read_template_values_file(Path::new(&path))
         })?;
 
-    add_cli_defined_values(&mut template_values, &args.define)?;
+    values.extend(std::env::vars().filter_map(|(key, value)| {
+        key.strip_prefix("CARGO_GENERATE_VALUE_")
+            .map(|key| (key.to_owned(), Value::from(value)))
+    }));
 
-    Ok(template_values)
+    values.extend(
+        args.template_values_file
+            .as_ref()
+            .map(|p| Path::new(p))
+            .map_or(Ok(Default::default()), |path| {
+                read_template_values_file(path)
+            })?,
+    );
+
+    add_cli_defined_values(&mut values, &args.define)?;
+
+    Ok(values)
 }
 
 fn read_template_values_file(path: &Path) -> Result<HashMap<String, Value>> {
