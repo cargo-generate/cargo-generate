@@ -7,33 +7,19 @@ use assert_cmd::prelude::*;
 use indoc::indoc;
 
 #[test]
-fn it_accepts_template_values_from_multiple_places() {
+fn it_accepts_template_values_file_from_environment() {
     let template = tmp_dir()
         .file(
             "my-env-values.toml",
             indoc! {r#"
                 [values]
-                MY_VALUE1 = "env-file-value"
-                MY_VALUE2 = "env-file-value"
-                MY_VALUE3 = "env-file-value"
-                MY_VALUE4 = "env-file-value"
-            "#},
-        )
-        .file(
-            "my-values.toml",
-            indoc! {r#"
-                [values]
-                MY_VALUE3 = "file-value"
-                MY_VALUE4 = "file-value"
+                MY_VALUE = "env-file-value"
             "#},
         )
         .file(
             "random.toml",
             indoc! {r#"
-                value1 = "{{MY_VALUE1}}"
-                value2 = "{{MY_VALUE2}}"
-                value3 = "{{MY_VALUE3}}"
-                value4 = "{{MY_VALUE4}}"
+                value = "{{MY_VALUE}}"
             "#},
         )
         .init_git()
@@ -45,29 +31,139 @@ fn it_accepts_template_values_from_multiple_places() {
         .arg("generate")
         .arg("--name")
         .arg("foobar-project")
-        .arg("--define")
-        .arg("MY_VALUE4=def-value")
         .arg("--git")
         .arg(template.path())
-        .arg("--template-values-file")
-        .arg(template.path().join("my-values.toml"))
         .current_dir(&dir.path())
         .env(
             "CARGO_GENERATE_TEMPLATE_VALUES_FILE",
             template.path().join("my-env-values.toml"),
         )
-        .env("CARGO_GENERATE_VALUE_MY_VALUE2", "env-def-value")
-        .env("CARGO_GENERATE_VALUE_MY_VALUE3", "env-def-value")
-        .env("CARGO_GENERATE_VALUE_MY_VALUE4", "env-def-value")
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     let random_toml = dbg!(dir.read("foobar-project/random.toml"));
-    assert!(random_toml.contains("value1 = \"env-file-value\""));
-    assert!(random_toml.contains("value2 = \"env-def-value\""));
-    assert!(random_toml.contains("value3 = \"file-value\""));
-    assert!(random_toml.contains("value4 = \"def-value\""));
+    assert!(random_toml.contains("value = \"env-file-value\""));
+}
+
+#[test]
+fn it_accepts_individual_template_values_from_environment() {
+    let template = tmp_dir()
+        .file(
+            "my-env-values.toml",
+            indoc! {r#"
+                [values]
+                MY_VALUE = "env-file-value"
+            "#},
+        )
+        .file(
+            "random.toml",
+            indoc! {r#"
+                value = "{{MY_VALUE}}"
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--git")
+        .arg(template.path())
+        .current_dir(&dir.path())
+        .env(
+            "CARGO_GENERATE_TEMPLATE_VALUES_FILE",
+            template.path().join("my-env-values.toml"),
+        )
+        .env("CARGO_GENERATE_VALUE_MY_VALUE", "env-def-value")
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    let random_toml = dbg!(dir.read("foobar-project/random.toml"));
+    assert!(random_toml.contains("value = \"env-def-value\""));
+}
+
+#[test]
+fn it_accepts_template_values_file_via_flag() {
+    let template = tmp_dir()
+        .file(
+            "my-values.toml",
+            indoc! {r#"
+                [values]
+                MY_VALUE = "file-value"
+            "#},
+        )
+        .file(
+            "random.toml",
+            indoc! {r#"
+                value = "{{MY_VALUE}}"
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--template-values-file")
+        .arg(template.path().join("my-values.toml"))
+        .current_dir(&dir.path())
+        .env("CARGO_GENERATE_VALUE_MY_VALUE", "env-def-value")
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    let random_toml = dbg!(dir.read("foobar-project/random.toml"));
+    assert!(random_toml.contains("value = \"file-value\""));
+}
+
+#[test]
+fn it_accepts_individual_template_values_via_flag() {
+    let template = tmp_dir()
+        .file(
+            "my-values.toml",
+            indoc! {r#"
+                [values]
+                MY_VALUE = "file-value"
+            "#},
+        )
+        .file(
+            "random.toml",
+            indoc! {r#"
+                value = "{{MY_VALUE}}"
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--template-values-file")
+        .arg(template.path().join("my-values.toml"))
+        .arg("--define")
+        .arg("MY_VALUE=def-value")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    let random_toml = dbg!(dir.read("foobar-project/random.toml"));
+    assert!(random_toml.contains("value = \"def-value\""));
 }
 
 #[test]

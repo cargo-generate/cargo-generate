@@ -205,13 +205,13 @@ Since version [0.6.0](https://github.com/cargo-generate/cargo-generate/releases/
 Here [an example](https://github.com/sassman/hermit-template-rs):
 
 ```toml
-[placeholders.hypervisor]
+[placeholders.HYPERVISOR]
 type = "string"
 prompt = "What hypervisor to use?"
 choices = ["uhyve", "qemu"]
 default = "qemu"
 
-[placeholders.network_enabled]
+[placeholders.NETWORK_ENABLED]
 type = "bool"
 prompt = "Want to enable network?"
 default = true
@@ -219,10 +219,10 @@ default = true
 
 As you can see the `placeholders` configuration section accepts a table of keywords that will become the placeholder name.
 
-In this example the placeholder `hypervisor` and `network_enabled` will become template variables and can be used like this:
+In this example the placeholder `HYPERVISOR` and `NETWORK_ENABLED` will become template variables and can be used like this:
 
 ```rs
-{% if network_enabled %}
+{% if NETWORK_ENABLED %}
 use std::net::TcpListener;
 
 fn main() {
@@ -243,8 +243,8 @@ fn main() {
 > Tip: similar to `dependencies` in the `Cargo.toml` file you can also list them as one liners:
 ```toml
 [placeholders]
-hypervisor = { type = "string", prompt = "What hypervisor to use?", choices = ["uhyve", "qemu"], default = "qemu" }
-network_enabled = { type = "bool", prompt = "Want to enable network?", default = true }
+HYPERVISOR = { type = "string", prompt = "What HYPERVISOR to use?", choices = ["uhyve", "qemu"], default = "qemu" }
+NETWORK_ENABLED = { type = "bool", prompt = "Want to enable network?", default = true }
 ```
 
 ### `prompt` property
@@ -252,7 +252,7 @@ network_enabled = { type = "bool", prompt = "Want to enable network?", default =
 The `prompt` will be used to display a question / message for this very placeholder on the interactive dialog when using the template.
 
 ```plain
-🤷  What hypervisor to use? [uhyve, qemu] [default: qemu]:
+🤷  What HYPERVISOR to use? [uhyve, qemu] [default: qemu]:
 ```
 
 ### `type` property
@@ -292,7 +292,21 @@ phone_number = { type = "string", prompt = "What's your phone number?", regex = 
 
 ## Default values for placeholders from a file
 
-For automation purposes the user of the template may provide provide a file containing the values for the keys in the template by using the `--template-values-file` flag.
+For automation purposes the user of the template may provide the values for the keys in the template using one or more of the following methods.
+
+> NOTE: The methods are listed by falling priority
+
+#### `--define` or `-d` flag
+
+The user may specify variables individually using the `--define` flag.
+
+```sh
+cargo generate template-above -n project-name -d HYPERVISOR=qemu -d NETWORK_ENABLED=true
+```
+
+#### <a name="valuesfile"></a> `--template_values_file` flag
+
+The user of the template may provide a file containing the values for the keys in the template by using the `--template-values-file` flag.
 
 > NOTE: A relative path will be relative to current working dir, which is *not* inside the expanding template!
 
@@ -300,17 +314,27 @@ The file should be a toml file containing the following (for the example templat
 
 ```toml
 [values]
-hypervisor = "qemu"
-network_enabled = true
+HYPERVISOR = "qemu"
+NETWORK_ENABLED = true
 ```
 
-Values can also be specified on the command line using the `--define | -d` flag. Values specified like this will override any other.
+#### Individual values via environment variables
+
+Variables may be specified using environment variables. To do so, set the env var `CARGO_GENERATE_VALUE_<variable key>` to the desired value.
 
 ```sh
-cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject --define hypervisor=none -d network_enabled=false
+set CARGO_GENERATE_VALUE_HYPERVISOR=qemu
+set CARGO_GENERATE_VALUE_NETWORK_ENABLED=true
+cargo generate template-above
 ```
 
-If a value has been specified before, the last `-d` of a variable will overide any previous value.
+> :warning: Windows does not like lowercase in environment variables. For that reason we recommend using all uppercase variable names.
+
+#### Template values file via environment variable
+
+As a last resort, the user may use the environment variable `CARGO_GENERATE_TEMPLATE_VALUES` to specify a file with default values.
+
+For the file format, see [above](#valuesfile)
 
 ## Include / Exclude
 
