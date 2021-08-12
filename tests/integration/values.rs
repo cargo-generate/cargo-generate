@@ -13,13 +13,13 @@ fn it_accepts_template_values_file_from_environment() {
             "my-env-values.toml",
             indoc! {r#"
                 [values]
-                MY_VALUE = "env-file-value"
+                my_value = "env-file-value"
             "#},
         )
         .file(
             "random.toml",
             indoc! {r#"
-                value = "{{MY_VALUE}}"
+                value = "{{my_value}}"
             "#},
         )
         .init_git()
@@ -53,13 +53,13 @@ fn it_accepts_individual_template_values_from_environment() {
             "my-env-values.toml",
             indoc! {r#"
                 [values]
-                MY_VALUE = "env-file-value"
+                my_value = "env-file-value"
             "#},
         )
         .file(
             "random.toml",
             indoc! {r#"
-                value = "{{MY_VALUE}}"
+                value = "{{my_value}}"
             "#},
         )
         .init_git()
@@ -94,13 +94,13 @@ fn it_accepts_template_values_file_via_flag() {
             "my-values.toml",
             indoc! {r#"
                 [values]
-                MY_VALUE = "file-value"
+                my_value = "file-value"
             "#},
         )
         .file(
             "random.toml",
             indoc! {r#"
-                value = "{{MY_VALUE}}"
+                value = "{{my_value}}"
             "#},
         )
         .init_git()
@@ -133,13 +133,13 @@ fn it_accepts_individual_template_values_via_flag() {
             "my-values.toml",
             indoc! {r#"
                 [values]
-                MY_VALUE = "file-value"
+                my_value = "file-value"
             "#},
         )
         .file(
             "random.toml",
             indoc! {r#"
-                value = "{{MY_VALUE}}"
+                value = "{{my_value}}"
             "#},
         )
         .init_git()
@@ -156,7 +156,7 @@ fn it_accepts_individual_template_values_via_flag() {
         .arg("--template-values-file")
         .arg(template.path().join("my-values.toml"))
         .arg("--define")
-        .arg("MY_VALUE=def-value")
+        .arg("my_value=def-value")
         .current_dir(&dir.path())
         .assert()
         .success()

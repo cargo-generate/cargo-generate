@@ -25,7 +25,7 @@ pub(crate) fn resolve_template_values(args: &Args) -> Result<HashMap<String, Val
 
     values.extend(std::env::vars().filter_map(|(key, value)| {
         key.strip_prefix("CARGO_GENERATE_VALUE_")
-            .map(|key| (key.to_owned(), Value::from(value)))
+            .map(|key| (key.to_lowercase(), Value::from(value)))
     }));
 
     values.extend(

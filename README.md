@@ -50,7 +50,7 @@ cargo install cargo-generate --features vendored-openssl
 
 Standard usage is to pass a `--git` flag to `cargo generate` or short `cargo gen`. This will prompt you to enter the name of your project.
 
-> NOTE: `cargo gen` requires a [cargo alias configuration](#cargo-gen---alias) 
+> NOTE: `cargo gen` requires a [cargo alias configuration](#cargo-gen---alias)
 
 ```sh
 cargo generate --git https://github.com/githubusername/mytemplate.git
@@ -92,12 +92,12 @@ cargo generate --git rustwasm/wasm-pack-template --name mywasm
 
 ## http(s) proxy
 
-New in version [0.7.0] is automatic proxy usage. So, if http(s)\_PROXY env variables are provided, they 
-will be used for cloning a http(s) template repository. 
+New in version [0.7.0] is automatic proxy usage. So, if http(s)\_PROXY env variables are provided, they
+will be used for cloning a http(s) template repository.
 
 ## Favorites
 
-Favorite templates can be defined in a config file, that by default is placed at `$CARGO_HOME/cargo-generate`. 
+Favorite templates can be defined in a config file, that by default is placed at `$CARGO_HOME/cargo-generate`.
 To specify an alternative configuration file, use the `--config <config-file>` option.
 
 > NOTE: A relative `--config` option, will be relative to the template root during expansion.
@@ -134,27 +134,27 @@ Templates are git repositories whose files contain placeholders. The current
 supported placeholders are:
 
 - `{{authors}}`
-  
+
   this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.
 - `{{project-name}}`
-  
+
   this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
 - `{{crate_name}}`
-  
+
   the snake_case_version of `project-name`
 - `{{crate_type}}`
-  
+
   this is supplied by either passing the `--bin` or `--lib` flag to the command line, contains either `bin` or `lib`, `--bin` is the default
 - `{{os-arch}}`
-  
+
   contains the current operating system and architecture ex: `linux-x86_64`
 
-Additionally, **all filters and tags** of the liquid template language are supported. 
+Additionally, **all filters and tags** of the liquid template language are supported.
 For more information, check out the [Liquid Documentation on `Tags` and `Filters`][liquid].
 
 [liquid]: https://shopify.github.io/liquid
 
-You can use those placeholders in the file and directory names of the generated project.  
+You can use those placeholders in the file and directory names of the generated project.
 For example, for a project named `awesome`, the filename `{{project_name}}/{{project_name}}.rs` will be transformed to `awesome/awesome.rs` during generation.
 Only files that are **not** listed in the exclude settings will be templated.
 
@@ -164,14 +164,14 @@ You can also add a `.genignore` file to your template. The files listed in the `
 will be removed from the local machine when `cargo-generate` is run on the end user's machine.
 The `.genignore` file is always ignored, so there is no need to list it in the `.genignore` file.
 
-> NOTE: 
+> NOTE:
 
 Here's a list of [currently available templates](TEMPLATES.md).
 If you have a great template that you'd like to feature here, please [file an issue or a PR]!
 
 [file an issue or a PR]: https://github.com/cargo-generate/cargo-generate/issues
 
-### Example for `--bin` and `--lib` 
+### Example for `--bin` and `--lib`
 
 A template could be prepared in a way to act as a binary or a library. For example the `Cargo.toml` might look like:
 
@@ -192,26 +192,26 @@ name = "{{crate_name}}-cli"
 {% endif %}
 ```
 
-Now a user of this template could decide weather they want the binary version by passing `--bin` 
+Now a user of this template could decide weather they want the binary version by passing `--bin`
 or use only the library version by passing `--lib` as a command line argument.
 
 ## Template defined placeholders
 
-Sometimes templates need to make decisions. For example one might want to conditionally include some code or not. 
+Sometimes templates need to make decisions. For example one might want to conditionally include some code or not.
 Another use case might be that the user of a template should be able to choose out of provided options in an interactive way.
 Also, it might be helpful to offer a reasonable default value that the user just simply can use.
 
-Since version [0.6.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.6.0) it is possible to use placeholders in a `cargo-generate.toml` that is in the root folder of a template.  
+Since version [0.6.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.6.0) it is possible to use placeholders in a `cargo-generate.toml` that is in the root folder of a template.
 Here [an example](https://github.com/sassman/hermit-template-rs):
 
 ```toml
-[placeholders.HYPERVISOR]
+[placeholders.hypervisor]
 type = "string"
 prompt = "What hypervisor to use?"
 choices = ["uhyve", "qemu"]
 default = "qemu"
 
-[placeholders.NETWORK_ENABLED]
+[placeholders.network_enabled]
 type = "bool"
 prompt = "Want to enable network?"
 default = true
@@ -219,10 +219,10 @@ default = true
 
 As you can see the `placeholders` configuration section accepts a table of keywords that will become the placeholder name.
 
-In this example the placeholder `HYPERVISOR` and `NETWORK_ENABLED` will become template variables and can be used like this:
+In this example the placeholder `hypervisor` and `network_enabled` will become template variables and can be used like this:
 
 ```rs
-{% if NETWORK_ENABLED %}
+{% if network_enabled %}
 use std::net::TcpListener;
 
 fn main() {
@@ -243,8 +243,8 @@ fn main() {
 > Tip: similar to `dependencies` in the `Cargo.toml` file you can also list them as one liners:
 ```toml
 [placeholders]
-HYPERVISOR = { type = "string", prompt = "What HYPERVISOR to use?", choices = ["uhyve", "qemu"], default = "qemu" }
-NETWORK_ENABLED = { type = "bool", prompt = "Want to enable network?", default = true }
+hypervisor = { type = "string", prompt = "What hypervisor to use?", choices = ["uhyve", "qemu"], default = "qemu" }
+network_enabled = { type = "bool", prompt = "Want to enable network?", default = true }
 ```
 
 ### `prompt` property
@@ -252,7 +252,7 @@ NETWORK_ENABLED = { type = "bool", prompt = "Want to enable network?", default =
 The `prompt` will be used to display a question / message for this very placeholder on the interactive dialog when using the template.
 
 ```plain
-🤷  What HYPERVISOR to use? [uhyve, qemu] [default: qemu]:
+🤷  What hypervisor to use? [uhyve, qemu] [default: qemu]:
 ```
 
 ### `type` property
@@ -261,7 +261,7 @@ A placeholder can be of type `string` or `bool`. Boolean types are usually helpf
 
 ### `choices` property (optional)
 
-A placeholder can come with a list of choices that the user can choose from. 
+A placeholder can come with a list of choices that the user can choose from.
 It's further also validated at the time when a user generates a project from a template.
 
 ```toml
@@ -279,7 +279,7 @@ default = 'qemu'
 
 ### `regex` property (optional)
 
-A `regex` property is a string, that can be used to enforce a certain validation rule. The input dialog will keep repeating 
+A `regex` property is a string, that can be used to enforce a certain validation rule. The input dialog will keep repeating
 until the user entered something that is allowed by this regex.
 
 ### Placeholder Examples
@@ -301,7 +301,7 @@ For automation purposes the user of the template may provide the values for the 
 The user may specify variables individually using the `--define` flag.
 
 ```sh
-cargo generate template-above -n project-name -d HYPERVISOR=qemu -d NETWORK_ENABLED=true
+cargo generate template-above -n project-name -d hypervisor=qemu -d network_enabled=true
 ```
 
 #### <a name="valuesfile"></a> `--template_values_file` flag
@@ -314,8 +314,8 @@ The file should be a toml file containing the following (for the example templat
 
 ```toml
 [values]
-HYPERVISOR = "qemu"
-NETWORK_ENABLED = true
+hypervisor = "qemu"
+network_enabled = true
 ```
 
 #### Individual values via environment variables
@@ -328,7 +328,7 @@ set CARGO_GENERATE_VALUE_NETWORK_ENABLED=true
 cargo generate template-above
 ```
 
-> :warning: Windows does not like lowercase in environment variables. For that reason we recommend using all uppercase variable names.
+> :warning: Windows does not support mixed case environment variables. Internally, `cargo-generate` will ensure the variable name is all lowercase. For that reason, it is strongly recommended that template authors only use lowercase variable/placeholder names.
 
 #### Template values file via environment variable
 
@@ -339,8 +339,8 @@ For the file format, see [above](#valuesfile)
 ## Include / Exclude
 
 Templates support a `cargo-generate.toml`, with a "template" section that allows you to configure the files that will be processed by `cargo-generate`.
-The behavior mirrors Cargo's Include / Exclude functionality, which is [documented here](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional). 
-If you are using placeholders in a file name, and also wish to use placeholders in the contents of that file, 
+The behavior mirrors Cargo's Include / Exclude functionality, which is [documented here](https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional).
+If you are using placeholders in a file name, and also wish to use placeholders in the contents of that file,
 you should setup your globs to match on the pre-rename filename.
 
 ```toml
@@ -354,7 +354,7 @@ The `cargo-generate.toml` file should be placed in the root of the template. If 
 
 ## Cargo gen - alias
 
-`cargo gen` requires an [cargo alias](https://doc.rust-lang.org/cargo/reference/config.html) 
+`cargo gen` requires an [cargo alias](https://doc.rust-lang.org/cargo/reference/config.html)
 to be configured in your `$HOME/.cargo/config` like this:
 
 ```toml
