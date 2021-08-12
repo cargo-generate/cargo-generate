@@ -164,12 +164,15 @@ You can also add a `.genignore` file to your template. The files listed in the `
 will be removed from the local machine when `cargo-generate` is run on the end user's machine.
 The `.genignore` file is always ignored, so there is no need to list it in the `.genignore` file.
 
-> NOTE:
+### Templates by the community
 
-Here's a list of [currently available templates](TEMPLATES.md).
-If you have a great template that you'd like to feature here, please [file an issue or a PR]!
+It's encouraged to classify your template repository [with a GitHub topic](https://docs.github.com/en/github/administering-a-repository/managing-repository-settings/classifying-your-repository-with-topics) labeled `cargo-generate`.
 
-[file an issue or a PR]: https://github.com/cargo-generate/cargo-generate/issues
+So that every developer can find the template via [cargo-generate topic on GitHub](https://github.com/topics/cargo-generate).
+
+If you have a great template, please tag your repository with the topic [and tweet about it](https://twitter.com/intent/tweet?text=See%20my%20new%20%23cargogenerate%20%23template%20%0A%0A%3E%20your%20link%20goes%20here) by including the hashtag [`#cargogenerate`](https://twitter.com/search?q=%23cargogenerate&src=typed_query) (since twitter does not support hashtags with `-`).
+
+> Note: the list of [currently available templates](TEMPLATES.md) is still available, but is now deprecated.
 
 ### Example for `--bin` and `--lib`
 
