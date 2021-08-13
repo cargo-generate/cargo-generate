@@ -39,6 +39,16 @@ pub struct Args {
     #[structopt(short, long, conflicts_with = "subfolder")]
     pub git: Option<String>,
 
+    /// Local path to copy the template from. Can not be specified together with --git.
+    #[structopt(
+        short,
+        long,
+        conflicts_with = "git",
+        conflicts_with = "favorite",
+        conflicts_with = "subfolder"
+    )]
+    pub path: Option<PathBuf>,
+
     /// Branch to use when installing from git
     #[structopt(short, long)]
     pub branch: Option<String>,

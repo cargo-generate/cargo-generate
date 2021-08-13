@@ -128,8 +128,7 @@ pub fn generate(mut args: Args) -> Result<()> {
     let project_name = resolve_project_name(&args)?;
     let project_dir = resolve_project_dir(&project_name, args.force)?;
 
-    let (template_base_dir, branch) = clone_git_template_into_temp(&args)?;
-    let template_folder = resolve_template_dir(&template_base_dir, &args)?;
+    let (template_base_dir, template_folder, branch) = prepare_local_template(&args)?;
 
     let template_config = Config::from_path(
         &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &args.subfolder).ok(),
@@ -163,6 +162,31 @@ pub fn generate(mut args: Args) -> Result<()> {
         style(&project_dir.display()).underlined()
     );
     Ok(())
+}
+
+fn prepare_local_template(args: &Args) -> Result<(TempDir, PathBuf, String), anyhow::Error> {
+    let (template_base_dir, template_folder, branch) = match (&args.git, &args.path) {
+        (Some(_), None) => {
+            let (template_base_dir, branch) = clone_git_template_into_temp(args)?;
+            let template_folder = resolve_template_dir(&template_base_dir, args)?;
+            (template_base_dir, template_folder, branch)
+        }
+        (None, Some(_)) => {
+            let template_base_dir = copy_path_template_into_temp(args)?;
+            let branch = args.branch.clone().unwrap_or_else(|| String::from("main"));
+            let template_folder = template_base_dir.path().into();
+            (template_base_dir, template_folder, branch)
+        }
+        _ => bail!(
+            "{} {} {} {} {}",
+            emoji::ERROR,
+            style("Please specify either").bold(),
+            style("--git <repo>").bold().yellow(),
+            style("or").bold(),
+            style("--path <path>").bold().yellow(),
+        ),
+    };
+    Ok((template_base_dir, template_folder, branch))
 }
 
 fn resolve_project_name(args: &Args) -> Result<ProjectName> {
@@ -220,13 +244,24 @@ fn resolve_template_dir(template_base_dir: &TempDir, args: &Args) -> Result<Path
     }
 }
 
+fn copy_path_template_into_temp(args: &Args) -> Result<TempDir> {
+    let path_clone_dir = tempfile::tempdir()?;
+    copy_dir_all(
+        args.path
+            .as_ref()
+            .with_context(|| "Missing option git, path or a favorite")?,
+        path_clone_dir.path(),
+    )?;
+    Ok(path_clone_dir)
+}
+
 fn clone_git_template_into_temp(args: &Args) -> Result<(TempDir, String)> {
     let git_clone_dir = tempfile::tempdir()?;
 
     let remote = args
         .git
         .clone()
-        .with_context(|| "Missing option git, or a favorite")?;
+        .with_context(|| "Missing option git, path or a favorite")?;
 
     let git_config = GitConfig::new_abbr(
         remote.into(),
