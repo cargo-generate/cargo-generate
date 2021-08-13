@@ -48,12 +48,16 @@ pub(crate) fn resolve_favorite_args(app_config: &AppConfig, args: &mut Args) -> 
         return Ok(());
     }
 
+    if args.path.is_some() {
+        return Ok(());
+    }
+
     let favorite_name = args
         .favorite
         .as_ref()
         .ok_or_else(|| anyhow!("Please specify either --git option, or a predefined favorite"))?;
 
-    let (git, branch, subfolder) = app_config
+    let (git, branch, subfolder, path) = app_config
         .favorites
         .get(favorite_name.as_str())
         .map_or_else(
@@ -66,6 +70,7 @@ pub(crate) fn resolve_favorite_args(app_config: &AppConfig, args: &mut Args) -> 
                     Some(favorite_name.clone()),
                     args.branch.as_ref().cloned(),
                     args.subfolder.clone(),
+                    None,
                 )
             },
             |f| {
@@ -76,6 +81,7 @@ pub(crate) fn resolve_favorite_args(app_config: &AppConfig, args: &mut Args) -> 
                         .as_ref()
                         .or_else(|| f.subfolder.as_ref())
                         .cloned(),
+                    f.path.clone(),
                 )
             },
         );
@@ -83,6 +89,7 @@ pub(crate) fn resolve_favorite_args(app_config: &AppConfig, args: &mut Args) -> 
     args.git = git;
     args.branch = branch;
     args.subfolder = subfolder;
+    args.path = path;
 
     Ok(())
 }
