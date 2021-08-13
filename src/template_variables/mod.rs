@@ -16,12 +16,19 @@ pub(crate) use crate_type::CrateType;
 pub(crate) use os_arch::get_os_arch;
 pub(crate) use project_name::ProjectName;
 
-pub(crate) fn resolve_template_values(args: &Args) -> Result<HashMap<String, Value>> {
-    let mut values = std::env::var("CARGO_GENERATE_TEMPLATE_VALUES_FILE")
-        .ok()
-        .map_or(Ok(Default::default()), |path| {
-            read_template_values_file(Path::new(&path))
-        })?;
+pub(crate) fn resolve_template_values(
+    favorite_values: Option<HashMap<String, toml::Value>>,
+    args: &Args,
+) -> Result<HashMap<String, Value>> {
+    let mut values = favorite_values.unwrap_or_default();
+
+    values.extend(
+        std::env::var("CARGO_GENERATE_TEMPLATE_VALUES_FILE")
+            .ok()
+            .map_or(Ok(Default::default()), |path| {
+                read_template_values_file(Path::new(&path))
+            })?,
+    );
 
     values.extend(std::env::vars().filter_map(|(key, value)| {
         key.strip_prefix("CARGO_GENERATE_VALUE_")

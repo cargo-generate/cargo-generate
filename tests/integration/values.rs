@@ -7,8 +7,60 @@ use assert_cmd::prelude::*;
 use indoc::indoc;
 
 #[test]
+fn it_accepts_default_template_values() {
+    let config_dir = tmp_dir()
+        .file(
+            "cargo-generate",
+            indoc! {r#"
+                [values]
+                my_value = "default value"
+                "#},
+        )
+        .build();
+
+    let template_dir = tmp_dir()
+        .file(
+            "random.toml",
+            indoc! {r#"
+                value = "{{my_value}}"
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let working_dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--config")
+        .arg(config_dir.path().join("cargo-generate"))
+        .arg("--name")
+        .arg("my-project")
+        .arg("--git")
+        .arg(template_dir.path())
+        .current_dir(&working_dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(working_dir
+        .read("my-project/random.toml")
+        .contains(r#"value = "default value""#));
+}
+
+#[test]
 fn it_accepts_template_values_file_from_environment() {
-    let template = tmp_dir()
+    let config_dir = tmp_dir()
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [values]
+                my_value = "default value"
+                "#},
+        )
+        .build();
+
+    let template_dir = tmp_dir()
         .file(
             "my-env-values.toml",
             indoc! {r#"
@@ -29,14 +81,16 @@ fn it_accepts_template_values_file_from_environment() {
 
     binary()
         .arg("generate")
+        .arg("--config")
+        .arg(config_dir.path().join("cargo-generate.toml"))
         .arg("--name")
         .arg("foobar-project")
         .arg("--git")
-        .arg(template.path())
+        .arg(template_dir.path())
         .current_dir(&dir.path())
         .env(
             "CARGO_GENERATE_TEMPLATE_VALUES_FILE",
-            template.path().join("my-env-values.toml"),
+            template_dir.path().join("my-env-values.toml"),
         )
         .assert()
         .success()

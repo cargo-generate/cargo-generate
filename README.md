@@ -335,9 +335,27 @@ cargo generate template-above
 
 #### Template values file via environment variable
 
-As a last resort, the user may use the environment variable `CARGO_GENERATE_TEMPLATE_VALUES` to specify a file with default values.
+The user may use the environment variable `CARGO_GENERATE_TEMPLATE_VALUES` to specify a file with default values.
 
 For the file format, see [above](#valuesfile)
+
+#### Default values
+
+Default values may be specified in the config file (specified with the `--config` flag, or in the default config file `$CARGO_HOME/cargo-generate`)
+
+**Example config file:**
+
+```toml
+[values]
+placeholder1 = "default value"
+
+[favorites.my_favorite]
+git = some template git repo
+
+[favorites.my_favorite.values]
+placeholder1 = "default value overriding the default"
+placeholder2 = "default value for favorite"
+```
 
 ## Include / Exclude
 

@@ -1,6 +1,6 @@
 use crate::copy_dir_all;
 use crate::emoji;
-use crate::info;
+use crate::warn;
 use anyhow::Context;
 use anyhow::Result;
 use cargo::core::GitReference;
@@ -235,7 +235,7 @@ fn git_clone_all(project_dir: &Path, args: GitConfig) -> Result<String> {
                 return Err(e.into());
             }
 
-            info!("Template does not seem to be a git repository, using as a plain folder");
+            warn!("Template does not seem to be a git repository, using as a plain folder");
             copy_dir_all(path, project_dir)?;
             Ok("".to_string())
         }
@@ -252,11 +252,11 @@ fn remove_history(project_dir: &Path, attempt: Option<u8>) -> Result<()> {
             ) {
                 let attempt = attempt.unwrap_or(1);
                 if attempt == 5 {
-                    info!("cargo-generate was not able to delete the git history after {} retries. Please delete the `.git` sub-folder manually", attempt);
+                    warn!("cargo-generate was not able to delete the git history after {} retries. Please delete the `.git` sub-folder manually", attempt);
                     return Ok(());
                 }
                 let wait_for = Duration::from_secs(2_u64.pow(attempt.sub(1) as u32));
-                info!("Git history cleanup failed with a windows process blocking error. [Retry in {:?}]", wait_for);
+                warn!("Git history cleanup failed with a windows process blocking error. [Retry in {:?}]", wait_for);
                 sleep(wait_for);
                 remove_history(project_dir, Some(attempt.add(1)))?
             }

@@ -116,14 +116,13 @@ use crate::{
 use crate::{git::GitConfig, template_variables::resolve_template_values};
 
 pub fn generate(mut args: Args) -> Result<()> {
-    let path = &app_config_path(&args.config)?;
-    let app_config = AppConfig::from_path(path)?;
+    let app_config = AppConfig::from_path(&app_config_path(&args.config)?)?;
 
     if args.list_favorites {
         return list_favorites(&app_config, &args);
     }
 
-    resolve_favorite_args(&app_config, &mut args)?;
+    let default_values = resolve_favorite_args(&app_config, &mut args)?;
 
     let project_name = resolve_project_name(&args)?;
     let project_dir = resolve_project_dir(&project_name, args.force)?;
@@ -134,7 +133,7 @@ pub fn generate(mut args: Args) -> Result<()> {
         &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &args.subfolder).ok(),
     )?;
 
-    let template_values = resolve_template_values(&args)?;
+    let template_values = resolve_template_values(default_values, &args)?;
 
     println!(
         "{} {} `{}`{}",
@@ -387,7 +386,7 @@ fn expand_template(
 
 fn rename_warning(name: &ProjectName) {
     if !name.is_crate_name() {
-        info!(
+        warn!(
             "{} `{}` {} `{}`{}",
             style("Renaming project called").bold(),
             style(&name.user_input).bold().yellow(),
