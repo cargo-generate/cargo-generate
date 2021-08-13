@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! info {
+macro_rules! warn {
     ($($arg:tt)*) => ({
         println!("{} {}",
             $crate::emoji::WARN,

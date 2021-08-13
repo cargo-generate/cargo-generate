@@ -13,7 +13,8 @@ pub(crate) const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
 #[derive(Deserialize)]
 pub(crate) struct AppConfig {
-    pub favorites: HashMap<String, FavoriteConfig>,
+    pub favorites: Option<HashMap<String, FavoriteConfig>>,
+    pub values: Option<HashMap<String, toml::Value>>,
 }
 
 #[derive(Deserialize, Default)]
@@ -23,12 +24,14 @@ pub(crate) struct FavoriteConfig {
     pub branch: Option<String>,
     pub subfolder: Option<String>,
     pub path: Option<PathBuf>,
+    pub values: Option<HashMap<String, toml::Value>>,
 }
 
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            favorites: HashMap::new(),
+            favorites: None,
+            values: None,
         }
     }
 }
@@ -49,7 +52,7 @@ impl AppConfig {
                 toml::from_str(&cfg)?
             })
         } else {
-            crate::info!(
+            crate::warn!(
                 "Unable to load config file: {}",
                 style(path.display()).bold().yellow()
             );
