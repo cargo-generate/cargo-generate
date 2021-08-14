@@ -103,9 +103,13 @@ fn should_canonicalize() {
         .unwrap()
         .starts_with("/Users/"));
     #[cfg(target_os = "linux")]
-    assert!(canonicalize_path(&PathBuf::from("../"))
-        .unwrap()
-        .starts_with("/home/"));
+    assert_eq!(
+        canonicalize_path(&PathBuf::from("../")).ok(),
+        std::env::current_dir()
+            .unwrap()
+            .parent()
+            .map(|p| p.to_path_buf())
+    );
     #[cfg(windows)]
     assert!(canonicalize_path(&PathBuf::from("../"))
         .unwrap()
