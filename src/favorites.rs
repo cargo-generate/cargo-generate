@@ -48,7 +48,7 @@ pub(crate) fn list_favorites(app_config: &AppConfig, args: &Args) -> Result<()> 
     Ok(())
 }
 
-pub(crate) fn resolve_favorite_args(
+pub(crate) fn resolve_favorite_args_and_default_values(
     app_config: &AppConfig,
     args: &mut Args,
 ) -> Result<Option<HashMap<String, toml::Value>>> {
