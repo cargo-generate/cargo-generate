@@ -125,7 +125,7 @@ pub fn generate(mut args: Args) -> Result<()> {
     let default_values = resolve_favorite_args_and_default_values(&app_config, &mut args)?;
 
     let project_name = resolve_project_name(&args)?;
-    let project_dir = resolve_project_dir(&project_name, args.force)?;
+    let project_dir = resolve_project_dir(&project_name, &args)?;
 
     let (template_base_dir, template_folder, branch) = prepare_local_template(&args)?;
 
@@ -137,10 +137,9 @@ pub fn generate(mut args: Args) -> Result<()> {
     let template_values = resolve_template_values(default_values, &args)?;
 
     println!(
-        "{} {} `{}`{}",
+        "{} {} {}",
         emoji::WRENCH,
-        style("Creating project called").bold(),
-        style(project_dir.display()).bold().yellow(),
+        style("Generating template").bold(),
         style("...").bold()
     );
 
@@ -151,8 +150,19 @@ pub fn generate(mut args: Args) -> Result<()> {
         template_config,
         &args,
     )?;
+
+    println!(
+        "{} {} `{}`{}",
+        emoji::WRENCH,
+        style("Moving generated files into:").bold(),
+        style(project_dir.display()).bold().yellow(),
+        style("...").bold()
+    );
     copy_dir_all(&template_folder, &project_dir)?;
-    args.vcs.initialize(&project_dir, branch)?;
+
+    if !args.init {
+        args.vcs.initialize(&project_dir, branch)?;
+    }
 
     println!(
         "{} {} {} {}",
@@ -310,23 +320,54 @@ fn clone_git_template_into_temp(args: &Args) -> Result<(TempDir, String)> {
 }
 
 pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
-    fs::create_dir_all(&dst)?;
-    for entry in fs::read_dir(src)? {
-        let entry = entry?;
-        let ty = entry.file_type()?;
-        if ty.is_dir() {
-            copy_dir_all(entry.path(), dst.as_ref().join(entry.file_name()))?;
-        } else if ty.is_file() {
-            fs::copy(entry.path(), dst.as_ref().join(entry.file_name()))?;
-        } else {
-            bail!(
-                "{} {}",
-                crate::emoji::WARN,
-                style("Symbolic links not supported").bold().red(),
-            )
+    fn check_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
+        if !dst.as_ref().exists() {
+            return Ok(());
         }
+
+        for src_entry in fs::read_dir(src)? {
+            let src_entry = src_entry?;
+            let dst_path = dst.as_ref().join(src_entry.file_name());
+            let entry_type = src_entry.file_type()?;
+
+            if entry_type.is_dir() {
+                check_dir_all(src_entry.path(), dst_path)?;
+            } else if entry_type.is_file() {
+                if dst_path.exists() {
+                    bail!(
+                        "{} {} {}",
+                        crate::emoji::WARN,
+                        style("File already exists:").bold().red(),
+                        style(dst_path.display()).bold().red(),
+                    )
+                }
+            } else {
+                bail!(
+                    "{} {}",
+                    crate::emoji::WARN,
+                    style("Symbolic links not supported").bold().red(),
+                )
+            }
+        }
+        Ok(())
     }
-    Ok(())
+    fn copy_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
+        fs::create_dir_all(&dst)?;
+        for src_entry in fs::read_dir(src)? {
+            let src_entry = src_entry?;
+            let dst_path = dst.as_ref().join(src_entry.file_name());
+            let entry_type = src_entry.file_type()?;
+            if entry_type.is_dir() {
+                copy_dir_all(src_entry.path(), dst_path)?;
+            } else if entry_type.is_file() {
+                fs::copy(src_entry.path(), dst_path)?;
+            }
+        }
+        Ok(())
+    }
+
+    check_dir_all(&src, &dst)?;
+    copy_all(src, dst)
 }
 
 fn locate_template_file<T>(
@@ -356,8 +397,13 @@ where
     }
 }
 
-fn resolve_project_dir(name: &ProjectName, force: bool) -> Result<PathBuf> {
-    let dir_name = if force {
+fn resolve_project_dir(name: &ProjectName, args: &Args) -> Result<PathBuf> {
+    if args.init {
+        let cwd = env::current_dir()?;
+        return Ok(cwd);
+    }
+
+    let dir_name = if args.force {
         name.raw()
     } else {
         rename_warning(name);

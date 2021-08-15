@@ -101,6 +101,10 @@ pub struct Args {
     /// Define a value for use during template expansion
     #[structopt(long, short, number_of_values = 1)]
     pub define: Vec<String>,
+
+    /// Generate the template directly into the current dir. No subfolder will be created and no vcs is initialized.
+    #[structopt(long)]
+    pub init: bool,
 }
 
 #[derive(Debug, StructOpt, Clone, Copy)]

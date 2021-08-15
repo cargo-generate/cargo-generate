@@ -62,6 +62,8 @@ You can also pass the name of your project to the tool using the `--name` or `-n
 cargo generate --git https://github.com/githubusername/mytemplate.git --name myproject
 ```
 
+#### Templates in subfolders
+
 If the git repository contains multiple templates, the specific subfolder in the git repository may be specified like this:
 
 ```sh
@@ -71,6 +73,16 @@ cargo generate --git https://github.com/githubusername/mytemplate.git <relative-
 > NOTE: The specified `relative-template-path` will be used as the actual template root, whether or not this is actually true!
 
 > NOTE: When using the `subfolder` feature, `cargo-generate` will search for the `cargo-generate.toml` file in the subfolder first, traversing back towards the template root in case it is not found.
+
+#### Generating into current dir
+
+If the user wants to generate a template straight into the current folder, without creating a subfolder for the contents and without attempting to initialize a `.git` repo or similar, the `--init` flag can be used.
+
+```sh
+cargo generate --init --git https://github.com/githubusername/mytemplate.git
+```
+
+> NOTE: `cargo-generate` will not allow any existing files to be overwritten and will fail to generate any files should there be any conflicts.
 
 ## git over ssh
 
