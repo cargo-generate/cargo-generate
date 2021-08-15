@@ -97,7 +97,7 @@ will be used for cloning a http(s) template repository.
 
 ## Favorites
 
-Favorite templates can be defined in a config file, that by default is placed at `$CARGO_HOME/cargo-generate`.
+Favorite templates can be defined in a config file, that by default is placed at `$CARGO_HOME/cargo-generate.toml` or `$CARGO_HOME/cargo-generate`.
 To specify an alternative configuration file, use the `--config <config-file>` option.
 
 > NOTE: A relative `--config` option, will be relative to the template root during expansion.
