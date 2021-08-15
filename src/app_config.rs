@@ -9,7 +9,7 @@ use std::{
 
 use crate::emoji;
 
-pub(crate) const CONFIG_FILE_NAME: &str = "cargo-generate";
+pub(crate) const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
 #[derive(Deserialize)]
 pub(crate) struct AppConfig {
@@ -48,6 +48,10 @@ impl AppConfig {
                 toml::from_str(&cfg)?
             })
         } else {
+            crate::info!(
+                "Unable to load config file: {}",
+                style(path.display()).bold().yellow()
+            );
             Ok(Default::default())
         }
     }
@@ -55,7 +59,21 @@ impl AppConfig {
 
 pub(crate) fn app_config_path(path: &Option<PathBuf>) -> Result<PathBuf> {
     path.clone()
-        .or_else(|| home::cargo_home().map_or(None, |h| Some(h.join(CONFIG_FILE_NAME))))
+        .or_else(|| {
+            home::cargo_home().map_or(None, |home| {
+                let preferred_path = home.join(CONFIG_FILE_NAME);
+                match preferred_path.exists() {
+                    true => Some(preferred_path),
+                    false => {
+                        let without_extension = preferred_path.with_extension("");
+                        match without_extension.exists() {
+                            true => Some(without_extension),
+                            false => Some(preferred_path),
+                        }
+                    }
+                }
+            })
+        })
         .with_context(|| {
             format!(
                 r#"
