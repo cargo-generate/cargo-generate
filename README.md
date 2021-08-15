@@ -350,7 +350,7 @@ Default values may be specified in the config file (specified with the `--config
 placeholder1 = "default value"
 
 [favorites.my_favorite]
-git = some template git repo
+git = https://github.com/githubusername/mytemplate.git
 
 [favorites.my_favorite.values]
 placeholder1 = "default value overriding the default"

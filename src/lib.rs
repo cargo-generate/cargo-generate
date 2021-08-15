@@ -99,7 +99,7 @@ pub use args::*;
 use anyhow::{anyhow, bail, Context, Result};
 use config::{Config, CONFIG_FILE_NAME};
 use console::style;
-use favorites::{list_favorites, resolve_favorite_args};
+use favorites::{list_favorites, resolve_favorite_args_and_default_values};
 use std::{
     borrow::Borrow,
     collections::HashMap,
@@ -122,7 +122,7 @@ pub fn generate(mut args: Args) -> Result<()> {
         return list_favorites(&app_config, &args);
     }
 
-    let default_values = resolve_favorite_args(&app_config, &mut args)?;
+    let default_values = resolve_favorite_args_and_default_values(&app_config, &mut args)?;
 
     let project_name = resolve_project_name(&args)?;
     let project_dir = resolve_project_dir(&project_name, args.force)?;
