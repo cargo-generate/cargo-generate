@@ -348,6 +348,73 @@ version = "0.1.0"
 }
 
 #[test]
+fn it_can_generate_into_cwd() -> anyhow::Result<()> {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+    let dir = tmp_dir().build();
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("my-proj")
+        .arg("--init")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+    assert!(dir.read("Cargo.toml").contains("my-proj"));
+    assert!(!dir.path().join(".git").exists());
+    Ok(())
+}
+
+#[test]
+fn it_refuses_to_overwrite_files() -> anyhow::Result<()> {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+    let dir = tmp_dir().build();
+    let _ = binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("my-proj")
+        .arg("--init")
+        .current_dir(&dir.path())
+        .status();
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("overwritten-proj")
+        .arg("--init")
+        .current_dir(&dir.path())
+        .assert()
+        .failure();
+    assert!(dir.read("Cargo.toml").contains("my-proj"));
+    Ok(())
+}
+
+#[test]
 fn it_allows_user_defined_projectname_when_passing_force_flag() {
     let template = tmp_dir()
         .file(
