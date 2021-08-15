@@ -133,6 +133,7 @@ pub fn generate(mut args: Args) -> Result<()> {
         &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &args.subfolder).ok(),
     )?;
 
+    check_cargo_generate_version(&template_config)?;
     let template_values = resolve_template_values(default_values, &args)?;
 
     println!(
@@ -186,6 +187,34 @@ fn prepare_local_template(args: &Args) -> Result<(TempDir, PathBuf, String), any
         ),
     };
     Ok((template_base_dir, template_folder, branch))
+}
+
+fn check_cargo_generate_version(template_config: &Option<Config>) -> Result<(), anyhow::Error> {
+    if let Some(Config {
+        template:
+            Some(config::TemplateConfig {
+                cargo_generate_version: Some(requirement),
+                include: _,
+                exclude: _,
+            }),
+        placeholders: _,
+    }) = template_config
+    {
+        let version = semver::Version::parse(env!("CARGO_PKG_VERSION"))?;
+        if !requirement.matches(&version) {
+            bail!(
+                "{} {} {} {} {}",
+                emoji::ERROR,
+                style("Required cargo-generate version not met. Required:")
+                    .bold()
+                    .red(),
+                style(requirement).bold().yellow(),
+                style(" was:").bold().red(),
+                style(version).bold().yellow(),
+            );
+        }
+    }
+    Ok(())
 }
 
 fn resolve_project_name(args: &Args) -> Result<ProjectName> {

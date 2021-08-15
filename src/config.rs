@@ -1,5 +1,6 @@
 use crate::emoji;
 use anyhow::Result;
+use semver::VersionReq;
 use serde::Deserialize;
 use std::path::Path;
 use std::{collections::HashMap, fs};
@@ -20,6 +21,7 @@ pub(crate) struct ConfigValues {
 
 #[derive(Deserialize, Debug, PartialEq)]
 pub(crate) struct TemplateConfig {
+    pub(crate) cargo_generate_version: Option<VersionReq>,
     pub(crate) include: Option<Vec<String>>,
     pub(crate) exclude: Option<Vec<String>>,
 }
@@ -75,6 +77,7 @@ mod tests {
     use super::*;
     use std::fs::File;
     use std::io::Write;
+    use std::str::FromStr;
     use tempfile::tempdir;
     use toml::Value;
 
@@ -87,6 +90,7 @@ mod tests {
         file.write_all(
             r#"
             [template]
+            cargo_generate_version = ">=0.8.0"
             include = ["Cargo.toml"]
             [placeholders]
             test = {a = "a"}
@@ -100,6 +104,7 @@ mod tests {
         assert_eq!(
             config.template,
             Some(TemplateConfig {
+                cargo_generate_version: Some(VersionReq::from_str(">=0.8.0").unwrap()),
                 include: Some(vec!["Cargo.toml".into()]),
                 exclude: None
             })

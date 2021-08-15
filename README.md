@@ -373,6 +373,18 @@ exclude = ["*.c"]
 
 The `cargo-generate.toml` file should be placed in the root of the template. If using the `subfolder` feature, the root is the `subfolder` inside the repository, though `cargo-generate` will look for the file in all parent folders until it reaches the repository root.
 
+## Require `cargo-generate` version from template
+
+Using the supported `cargo-generate.toml` file, the template author may setup version requirements towards `cargo-generate`.
+
+```toml
+[template]
+cargo_generate_version = ">0.8.0"
+```
+
+The format for the version requirement is [documented here](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html).
+
+
 ## Cargo gen - alias
 
 `cargo gen` requires an [cargo alias](https://doc.rust-lang.org/cargo/reference/config.html)
