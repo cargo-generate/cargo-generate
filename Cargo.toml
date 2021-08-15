@@ -35,6 +35,7 @@ toml = "0.5.8"
 thiserror = "1.0.26"
 home = "0.5.3"
 sanitize-filename = "0.3"
+semver = "1.0.4"
 
 [dependencies.openssl]
 version = "0.10.35"

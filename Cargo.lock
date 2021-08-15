@@ -219,6 +219,7 @@ dependencies = [
  "regex",
  "remove_dir_all 0.7.0",
  "sanitize-filename",
+ "semver",
  "serde",
  "structopt",
  "tempfile",
