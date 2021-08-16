@@ -108,3 +108,17 @@ jobs:
         continue-on-error: true
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          
+  publish-dry-run:
+    name: Publish dry run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: setup | rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          profile: minimal
+      - uses: Swatinem/rust-cache@v1
+      - run: cargo publish --dry-run
