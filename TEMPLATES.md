@@ -1,5 +1,9 @@
 # Available Templates
 
+You can find all the available templates by looking at the [cargo-generate topic](https://github.com/topics/cargo-generate) in GitHub.
+
+The following is a **deprecated** list of projects that haven't added the topic yet:
+
 - [PyO3]: Write a Python Library in Rust, [DD5HT]
 - [wasm-pack]: Write a wasm Library in Rust, [ashleygwilliams]
 - [CLI]: Write a CLI (Command Line Interface) Application in Rust, [rust-cli]
@@ -21,7 +25,6 @@
   up, in addition to benchmarking and testing boilerplate [Rebecca Turner]
 - [mongodb-service-template]: Create a graphql service using mongodb [briandeboer]
 - [godot-rust-template]: Create games with Godot and Rust [macalimlim]
-- [github-template]: Write a generical rust application with CI and CD hosted on GitHub, [MarcoIeni]
 - [serenity]: Write a Discord bot in rust using the Serenity library, [chilipepperhott]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
@@ -65,7 +68,5 @@
 [briandeboer]: https://github.com/briandeboer
 [godot-rust-template]: https://github.com/godot-rust/godot-rust-template
 [macalimlim]: https://github.com/macalimlim
-[github-template]: https://github.com/rust-github/template
-[MarcoIeni]: https://github.com/MarcoIeni
 [serenity]: https://github.com/chilipepperhott/discord-bot-template
 [chilipepperhott]: https://github.com/chilipepperhott
