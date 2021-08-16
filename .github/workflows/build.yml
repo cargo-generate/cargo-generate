@@ -110,7 +110,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           
   publish-dry-run:
-    name: Publish dry run
+    name: publish dry run
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
