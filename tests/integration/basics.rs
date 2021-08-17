@@ -1323,6 +1323,81 @@ version = "0.1.0"
     assert!(cargo_toml.contains("this is a bin"));
 }
 
+#[test]
+fn it_skips_substitution_for_random_garbage_in_cargo_toml() {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{function fart() { return "pfffttt"; } fart();}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.read("foobar-project/Cargo.toml").contains("fart"));
+}
+
+#[test]
+fn it_skips_substitution_for_unknown_variables_in_cargo_toml() {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{ project-name }}"
+description = "{{ project-description }}"
+description2 = "{{ project-some-other-thing }}"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(
+        dir.read("foobar-project/Cargo.toml")
+            .contains("foobar-project"),
+        "project-name was not substituted"
+    );
+    assert!(!dir
+        .read("foobar-project/Cargo.toml")
+        .contains("{{ project-description }}"));
+    assert!(!dir
+        .read("foobar-project/Cargo.toml")
+        .contains("{{ project-some-other-thing }}"));
+}
+
 #[cfg(test)]
 #[cfg(unix)]
 mod ssh_remote {
