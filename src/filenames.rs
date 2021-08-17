@@ -1,5 +1,6 @@
 use crate::Result;
 
+use crate::template::render_string_gracefully;
 use liquid::{Object, Parser};
 use std::path::{Component, Path, PathBuf};
 
@@ -8,7 +9,7 @@ pub fn substitute_filename(filepath: &Path, parser: &Parser, context: &Object) -
     for elem in filepath.components() {
         match elem {
             Component::Normal(e) => {
-                let parsed = parser.parse(e.to_str().unwrap())?.render(context)?;
+                let parsed = render_string_gracefully(context, parser, e.to_str().unwrap())?;
                 let parsed = sanitize_filename(parsed.as_str());
                 path.push(parsed);
             }
