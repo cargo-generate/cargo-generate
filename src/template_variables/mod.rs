@@ -124,11 +124,7 @@ mod test {
         let result = add_cli_defined_values(&mut template_values, &definitions);
         assert!(result.is_ok());
 
-        let val = template_values
-            .get("my0123456789key")
-            .unwrap()
-            .as_str()
-            .unwrap();
+        let val = template_values["my0123456789key"].as_str().unwrap();
         assert_eq!(val, "42");
     }
 
@@ -139,7 +135,7 @@ mod test {
         let result = add_cli_defined_values(&mut template_values, &definitions);
         assert!(result.is_ok());
 
-        let val = template_values.get("my-key").unwrap().as_str().unwrap();
+        let val = template_values["my-key"].as_str().unwrap();
         assert_eq!(val, "42");
     }
 
@@ -150,7 +146,7 @@ mod test {
         let result = add_cli_defined_values(&mut template_values, &definitions);
         assert!(result.is_ok());
 
-        let val = template_values.get("my_key").unwrap().as_str().unwrap();
+        let val = template_values["my_key"].as_str().unwrap();
         assert_eq!(val, "42");
     }
 
@@ -169,7 +165,7 @@ mod test {
         let result = add_cli_defined_values(&mut template_values, &definitions);
         assert!(result.is_ok());
 
-        let val = template_values.get("key").unwrap().as_str().unwrap();
+        let val = template_values["key"].as_str().unwrap();
         assert_eq!(val, "42");
     }
 }
