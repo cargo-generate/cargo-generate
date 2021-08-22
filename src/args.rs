@@ -28,7 +28,6 @@ pub struct Args {
         conflicts_with = "force",
         conflicts_with = "template_values_file",
         conflicts_with = "silent",
-        conflicts_with = "config",
         conflicts_with = "vcs",
         conflicts_with = "lib",
         conflicts_with = "bin",
