@@ -18,7 +18,24 @@ pub enum Cli {
 #[derive(Debug, StructOpt)]
 pub struct Args {
     /// List defined favorite templates from the config
-    #[structopt(long)]
+    #[structopt(
+        long,
+        conflicts_with = "git",
+        conflicts_with = "subfolder",
+        conflicts_with = "path",
+        conflicts_with = "branch",
+        conflicts_with = "name",
+        conflicts_with = "force",
+        conflicts_with = "template_values_file",
+        conflicts_with = "silent",
+        conflicts_with = "config",
+        conflicts_with = "vcs",
+        conflicts_with = "lib",
+        conflicts_with = "bin",
+        conflicts_with = "ssh_identity",
+        conflicts_with = "define",
+        conflicts_with = "init"
+    )]
     pub list_favorites: bool,
 
     /// Generate a favorite template as defined in the config. In case the favorite is undefined,
