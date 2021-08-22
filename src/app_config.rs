@@ -66,14 +66,14 @@ pub(crate) fn app_config_path(path: &Option<PathBuf>) -> Result<PathBuf> {
         .or_else(|| {
             home::cargo_home().map_or(None, |home| {
                 let preferred_path = home.join(CONFIG_FILE_NAME);
-                match preferred_path.exists() {
-                    true => Some(preferred_path),
-                    false => {
-                        let without_extension = preferred_path.with_extension("");
-                        match without_extension.exists() {
-                            true => Some(without_extension),
-                            false => Some(preferred_path),
-                        }
+                if preferred_path.exists() {
+                    Some(preferred_path)
+                } else {
+                    let without_extension = preferred_path.with_extension("");
+                    if without_extension.exists() {
+                        Some(without_extension)
+                    } else {
+                        Some(preferred_path)
                     }
                 }
             })

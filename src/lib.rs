@@ -78,6 +78,8 @@
 //!
 //! `os-arch` and `authors` also can't be overriden and are derived from the environment.
 
+#![warn(clippy::unneeded_field_pattern, clippy::match_bool, clippy::get_unwrap)]
+
 mod app_config;
 mod args;
 mod config;
@@ -204,10 +206,9 @@ fn check_cargo_generate_version(template_config: &Option<Config>) -> Result<(), 
         template:
             Some(config::TemplateConfig {
                 cargo_generate_version: Some(requirement),
-                include: _,
-                exclude: _,
+                ..
             }),
-        placeholders: _,
+        ..
     }) = template_config
     {
         let version = semver::Version::parse(env!("CARGO_PKG_VERSION"))?;
