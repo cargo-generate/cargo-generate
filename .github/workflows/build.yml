@@ -88,7 +88,7 @@ jobs:
 #          known_hosts: ${{ secrets.KNOWN_HOSTS }}
 #          if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
       - name: cargo test
-        run: cargo test --all --locked -- -Z unstable-options
+        run: cargo test --workspace --locked -- -Z unstable-options
 
   audit:
     name: security audit
@@ -108,7 +108,7 @@ jobs:
         continue-on-error: true
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          
+
   publish-dry-run:
     name: publish dry run
     runs-on: ubuntu-latest
@@ -122,3 +122,20 @@ jobs:
           profile: minimal
       - uses: Swatinem/rust-cache@v1
       - run: cargo publish --dry-run
+
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: setup | rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          profile: minimal
+      - uses: Swatinem/rust-cache@v1
+      - name: check documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --no-deps --document-private-items --all-features --workspace

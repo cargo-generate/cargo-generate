@@ -6,7 +6,7 @@ pub(crate) type Authors = String;
 
 /// Taken from cargo and thus (c) 2020 Cargo Developers
 ///
-/// cf. https://github.com/rust-lang/cargo/blob/2d5c2381e4e50484bf281fc1bfe19743aa9eb37a/src/cargo/ops/cargo_new.rs#L769-L851
+/// cf. <https://github.com/rust-lang/cargo/blob/2d5c2381e4e50484bf281fc1bfe19743aa9eb37a/src/cargo/ops/cargo_new.rs#L769-L851>
 pub(crate) fn get_authors() -> Result<Authors> {
     fn get_environment_variable(variables: &[&str]) -> Option<String> {
         variables.iter().filter_map(|var| env::var(var).ok()).next()

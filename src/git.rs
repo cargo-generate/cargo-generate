@@ -171,7 +171,7 @@ fn pretty_path(a: &Path) -> Result<String> {
 }
 
 /// thanks to @extrawurst for pointing this out
-/// https://github.com/extrawurst/gitui/blob/master/asyncgit/src/sync/branch/mod.rs#L38
+/// <https://github.com/extrawurst/gitui/blob/master/asyncgit/src/sync/branch/mod.rs#L38>
 fn get_branch_name_repo(repo: &Repository) -> Result<String> {
     let iter = repo.branches(None)?;
 
