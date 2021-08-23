@@ -1,4 +1,3 @@
-use crate::emoji;
 use anyhow::Result;
 use semver::VersionReq;
 use serde::Deserialize;
@@ -8,22 +7,27 @@ use std::{convert::TryFrom, io::ErrorKind};
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug, PartialEq, Default)]
 pub struct Config {
     pub template: Option<TemplateConfig>,
     pub placeholders: Option<TemplateSlotsTable>,
+    pub conditional: Option<HashMap<String, ConditionalConfig>>,
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
-pub struct ConfigValues {
-    pub values: HashMap<String, toml::Value>,
-}
-
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug, PartialEq, Default)]
 pub struct TemplateConfig {
     pub cargo_generate_version: Option<VersionReq>,
     pub include: Option<Vec<String>>,
     pub exclude: Option<Vec<String>>,
+    pub ignore: Option<Vec<String>>,
+}
+
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct ConditionalConfig {
+    pub include: Option<Vec<String>>,
+    pub exclude: Option<Vec<String>>,
+    pub ignore: Option<Vec<String>>,
+    pub placeholders: Option<TemplateSlotsTable>,
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -33,21 +37,7 @@ impl TryFrom<String> for Config {
     type Error = toml::de::Error;
 
     fn try_from(contents: String) -> Result<Self, Self::Error> {
-        let mut config: Self = toml::from_str(&contents)?;
-
-        if let Some(ref mut template) = config.template {
-            if template.include.is_some() && template.exclude.is_some() {
-                template.exclude = None;
-                println!(
-                    "{0} Your {1} contains both an include and exclude list. \
-                        Only the include list will be considered. \
-                        You should remove the exclude list for clarity. {0}",
-                    emoji::WARN,
-                    CONFIG_FILE_NAME
-                )
-            }
-        }
-
+        let config: Self = toml::from_str(&contents)?;
         Ok(config)
     }
 }
@@ -106,7 +96,8 @@ mod tests {
             Some(TemplateConfig {
                 cargo_generate_version: Some(VersionReq::from_str(">=0.8.0").unwrap()),
                 include: Some(vec!["Cargo.toml".into()]),
-                exclude: None
+                exclude: None,
+                ignore: None,
             })
         );
         assert!(config.placeholders.is_some());
@@ -121,7 +112,8 @@ mod tests {
             result,
             Config {
                 template: None,
-                placeholders: None
+                placeholders: None,
+                conditional: Default::default(),
             }
         )
     }

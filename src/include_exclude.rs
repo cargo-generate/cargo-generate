@@ -1,4 +1,7 @@
-use crate::config::TemplateConfig;
+use crate::{
+    config::{TemplateConfig, CONFIG_FILE_NAME},
+    emoji,
+};
 use anyhow::Result;
 use ignore::gitignore::{Gitignore, GitignoreBuilder};
 use std::path::Path;
@@ -12,7 +15,18 @@ enum MatcherKind {
 }
 
 impl Matcher {
-    pub fn new(template_config: TemplateConfig, project_dir: &Path) -> Result<Self> {
+    pub(crate) fn new(mut template_config: TemplateConfig, project_dir: &Path) -> Result<Self> {
+        if template_config.include.is_some() && template_config.exclude.is_some() {
+            template_config.exclude = None;
+            println!(
+                "{0} Your {1} contains both an include and exclude list. \
+                    Only the include list will be considered. \
+                    You should remove the exclude list for clarity. {0}",
+                emoji::WARN,
+                CONFIG_FILE_NAME
+            )
+        }
+
         let kind = match (&template_config.exclude, &template_config.include) {
             (None, None) => None,
             (None, Some(it)) => Some(MatcherKind::Include(Self::create_matcher(project_dir, it)?)),

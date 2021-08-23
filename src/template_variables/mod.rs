@@ -3,11 +3,12 @@ mod crate_type;
 mod os_arch;
 mod project_name;
 
-use crate::{config::ConfigValues, emoji, Args};
+use crate::{emoji, Args};
 
 use anyhow::Result;
 use console::style;
 use regex::Regex;
+use serde::Deserialize;
 use std::{collections::HashMap, fmt::Display, fs, path::Path};
 use toml::Value;
 
@@ -49,9 +50,14 @@ pub fn resolve_template_values(
     Ok(values)
 }
 
+#[derive(Deserialize, Debug, PartialEq)]
+struct TemplateValuesToml {
+    pub(crate) values: HashMap<String, toml::Value>,
+}
+
 fn read_template_values_file(path: &Path) -> Result<HashMap<String, Value>> {
     match fs::read_to_string(path) {
-        Ok(ref contents) => toml::from_str::<ConfigValues>(contents)
+        Ok(ref contents) => toml::from_str::<TemplateValuesToml>(contents)
             .map(|v| v.values)
             .map_err(|e| e.into()),
         Err(e) => anyhow::bail!(

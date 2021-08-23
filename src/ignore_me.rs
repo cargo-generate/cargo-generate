@@ -22,9 +22,22 @@ const CARGO_OK_FILE_NAME: &str = ".cargo-ok";
 /// Takes the directory path and removes the files/directories specified in the
 /// `.genignore` file
 /// It handles all errors internally
-pub fn remove_unneeded_files(dir: &Path, verbose: bool) {
-    let items = get_ignored(dir);
-    remove_dir_files(items, verbose);
+pub fn remove_unneeded_files(
+    dir: &Path,
+    ignored_files: &Option<Vec<String>>,
+    verbose: bool,
+) -> anyhow::Result<()> {
+    let mut items = get_ignored(dir);
+    if let Some(ignored_files) = ignored_files {
+        for f in ignored_files {
+            let mut p = PathBuf::new();
+            p.push(dir);
+            p.push(f);
+            items.push(p);
+        }
+    }
+    remove_dir_files(&items, verbose);
+    Ok(())
 }
 
 fn check_if_genignore_exists(location: &Path) -> bool {
@@ -62,7 +75,7 @@ fn unwrap_path(it: Result<ignore::DirEntry, ignore::Error>) -> PathBuf {
     it.expect("Found invalid path: Aborting").into_path()
 }
 
-fn remove_dir_files(files: Vec<PathBuf>, verbose: bool) {
+fn remove_dir_files(files: &[PathBuf], verbose: bool) {
     for item in files.iter().filter(|file| file.exists()) {
         let ignore_message = format!("Ignoring: {}", &item.display());
         if item.is_dir() {

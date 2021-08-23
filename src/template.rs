@@ -1,10 +1,8 @@
 use anyhow::{Context, Result};
 use console::style;
-use heck::{CamelCase, KebabCase, SnakeCase};
 use indicatif::{MultiProgress, ProgressBar};
-use liquid_core::{Filter, Object, ParseFilter, Runtime, Value, ValueView};
-use liquid_derive::FilterReflection;
-use std::collections::HashMap;
+use liquid::Parser;
+use liquid_core::{Object, Value};
 use std::fs;
 use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
@@ -14,9 +12,10 @@ use crate::emoji;
 use crate::filenames::substitute_filename;
 use crate::include_exclude::*;
 use crate::progressbar::spinner;
+use crate::template_filters::{
+    KebabCaseFilterParser, PascalCaseFilterParser, SnakeCaseFilterParser,
+};
 use crate::template_variables::{get_authors, get_os_arch, Authors, CrateType, ProjectName};
-
-use liquid::Parser;
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::with_stdlib()
@@ -27,96 +26,14 @@ fn engine() -> liquid::Parser {
         .expect("can't fail due to no partials support")
 }
 
-#[derive(Clone, ParseFilter, FilterReflection)]
-#[filter(
-    name = "kebab_case",
-    description = "Change text to kebab-case.",
-    parsed(KebabCaseFilter)
-)]
-pub struct KebabCaseFilterParser;
-
-#[derive(Debug, Default, liquid_derive::Display_filter)]
-#[name = "kebab_case"]
-struct KebabCaseFilter;
-
-impl Filter for KebabCaseFilter {
-    fn evaluate(
-        &self,
-        input: &dyn ValueView,
-        _runtime: &dyn Runtime,
-    ) -> Result<liquid_core::model::Value, liquid_core::error::Error> {
-        let input = input
-            .as_scalar()
-            .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
-
-        let input = input.into_string().to_string().to_kebab_case();
-        Ok(liquid_core::model::Value::scalar(input))
-    }
-}
-
-#[derive(Clone, liquid_derive::ParseFilter, liquid_derive::FilterReflection)]
-#[filter(
-    name = "pascal_case",
-    description = "Change text to PascalCase.",
-    parsed(PascalCaseFilter)
-)]
-pub struct PascalCaseFilterParser;
-
-#[derive(Debug, Default, liquid_derive::Display_filter)]
-#[name = "pascal_case"]
-struct PascalCaseFilter;
-
-impl Filter for PascalCaseFilter {
-    fn evaluate(
-        &self,
-        input: &dyn ValueView,
-        _runtime: &dyn Runtime,
-    ) -> Result<liquid::model::Value, liquid_core::error::Error> {
-        let input = input
-            .as_scalar()
-            .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
-
-        let input = input.into_string().to_camel_case();
-        Ok(liquid::model::Value::scalar(input))
-    }
-}
-
-#[derive(Clone, liquid_derive::ParseFilter, liquid_derive::FilterReflection)]
-#[filter(
-    name = "snake_case",
-    description = "Change text to snake_case.",
-    parsed(SnakeCaseFilter)
-)]
-pub struct SnakeCaseFilterParser;
-
-#[derive(Debug, Default, liquid_derive::Display_filter)]
-#[name = "snake_case"]
-struct SnakeCaseFilter;
-
-impl Filter for SnakeCaseFilter {
-    fn evaluate(
-        &self,
-        input: &dyn ValueView,
-        _runtime: &dyn Runtime,
-    ) -> Result<liquid::model::Value, liquid_core::error::Error> {
-        let input = input
-            .as_scalar()
-            .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
-
-        let input = input.into_string().to_snake_case();
-        Ok(input.to_value())
-    }
-}
-
-pub fn substitute(
+pub fn create_liquid_object(
     name: &ProjectName,
     crate_type: &CrateType,
-    template_values: &HashMap<String, toml::Value>,
     force: bool,
 ) -> Result<Object> {
-    let project_name = if force { name.raw() } else { name.kebab_case() };
     let authors: Authors = get_authors()?;
     let os_arch = get_os_arch();
+    let project_name = if force { name.raw() } else { name.kebab_case() };
 
     let mut liquid_object = Object::new();
     liquid_object.insert("project-name".into(), Value::Scalar(project_name.into()));
@@ -128,29 +45,13 @@ pub fn substitute(
     liquid_object.insert("authors".into(), Value::Scalar(authors.into()));
     liquid_object.insert("os-arch".into(), Value::Scalar(os_arch.into()));
 
-    template_values.iter().try_for_each(|(k, v)| {
-        let value = match v {
-            toml::Value::String(content) => Value::Scalar(content.clone().into()),
-            toml::Value::Boolean(content) => Value::Scalar((*content).into()),
-            _ => anyhow::bail!(format!(
-                "{} {}",
-                emoji::ERROR,
-                style("Unsupported value type. Only Strings and Booleans are supported.")
-                    .bold()
-                    .red(),
-            )),
-        };
-        liquid_object.insert(k.clone().into(), value);
-        Ok(())
-    })?;
-
     Ok(liquid_object)
 }
 
 pub fn walk_dir(
     project_dir: &Path,
     template: Object,
-    template_config: Option<TemplateConfig>,
+    template_config: TemplateConfig,
     mp: &mut MultiProgress,
 ) -> Result<()> {
     fn is_git_metadata(entry: &DirEntry) -> bool {
@@ -162,10 +63,7 @@ pub fn walk_dir(
 
     let engine = engine();
 
-    let matcher = template_config.map_or_else(
-        || Ok(Matcher::default()),
-        |config| Matcher::new(config, project_dir),
-    )?;
+    let matcher = Matcher::new(template_config, project_dir)?;
     let spinner_style = spinner();
 
     let mut files_with_errors = Vec::new();
