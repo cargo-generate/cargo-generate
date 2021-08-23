@@ -2,16 +2,116 @@
 
 ## [Unreleased]
 
+## [0.9.0] 2021-08-24
+### ✨ Features
+- [enable paging for long choice lists](https://github.com/cargo-generate/cargo-generate/pull/423)
+  
+  improving the handling of very long choice lists long
+  [see #400](https://github.com/cargo-generate/cargo-generate/issues/400), by [@taurr](https://github.com/taurr)
+
+- [template parsing: handle undefined variables gracefully](https://github.com/cargo-generate/cargo-generate/pull/422)
+
+  Undefined template variables do not cause any breaking of the template generation any longer. They will be kept as they are.
+
+  [see #204](https://github.com/cargo-generate/cargo-generate/issues/204),
+  [#205](https://github.com/cargo-generate/cargo-generate/issues/205),
+  by [@sassman](https://github.com/sassman)
+
+- [TEMPLATES.md: link to cargo-generate topic](https://github.com/cargo-generate/cargo-generate/pull/416)
+
+  Template repos should be tagged with the `cargo-generate` GitHub topic, [read more..](https://github.com/cargo-generate/cargo-generate/blob/master/TEMPLATES.md#available-templates)
+
+  by [@MarcoIeni](https://github.com/MarcoIeni),
+  [#407](https://github.com/cargo-generate/cargo-generate/pull/407)
+  by [@sassman](https://github.com/sassman)
+
+- [Add `init` like behavior.](https://github.com/cargo-generate/cargo-generate/pull/414)
+
+  a template can now be generated into the current dir, without a git init or anything, [read more..](https://github.com/cargo-generate/cargo-generate#generating-into-current-dir)
+
+  [see #193](https://github.com/cargo-generate/cargo-generate/issues/193),
+  by [@taurr](https://github.com/taurr)
+
+- [Allow version requirement in `cargo-generate.toml`](https://github.com/cargo-generate/cargo-generate/pull/413)
+
+  a template can now define the compatible cargo generate version number requirement as a requirement, [read more..](https://github.com/cargo-generate/cargo-generate#require-cargo-generate-version-from-template)
+  [see #76](https://github.com/cargo-generate/cargo-generate/issues/76),
+  by [@taurr](https://github.com/taurr)
+
+- [Allow cargo-generate.toml as alternative to cargo-generate.](https://github.com/cargo-generate/cargo-generate/pull/412), 
+  by [@taurr](https://github.com/taurr)
+
+- [fix(tests:linux): use the current directory for canonicalize result](https://github.com/cargo-generate/cargo-generate/pull/411), 
+  by [@orhun](https://github.com/orhun)
+
+- [Introduce `--path` flag](https://github.com/cargo-generate/cargo-generate/pull/410)
+
+  supporting now local folders (that are not under git) as templates via `--path <local-folder>`
+
+  [see #406](https://github.com/cargo-generate/cargo-generate/issues/406),
+  [#47](https://github.com/cargo-generate/cargo-generate/issues/47)
+
+  also [#390](https://github.com/cargo-generate/cargo-generate/pull/390),
+  [#387](https://github.com/cargo-generate/cargo-generate/issues/387)
+  by [@taurr](https://github.com/taurr)
+
+- [Allow specification of default template values](https://github.com/cargo-generate/cargo-generate/pull/409)
+
+  default values for template variables can now be defined on several levels, external file, in the favorites configuration and via environment variables, [read more..](https://github.com/cargo-generate/cargo-generate#default-values-for-placeholders-from-a-file)
+  
+  [see #389](https://github.com/cargo-generate/cargo-generate/issues/389),
+  [#46](https://github.com/cargo-generate/cargo-generate/issues/46),
+  by [@taurr](https://github.com/taurr)
+
+- [template variables via environment variables](https://github.com/cargo-generate/cargo-generate/pull/404)
+
+  [#389](https://github.com/cargo-generate/cargo-generate/issues/389),
+  by [@taurr](https://github.com/taurr)
+
+- [template variables in Directories](https://github.com/cargo-generate/cargo-generate/pull/397), 
+  [#396](https://github.com/cargo-generate/cargo-generate/issues/396)
+
+  supporting now template variables as directory names like `{{project_name}}/{{project_name}}.rs`
+
+  by [dave-tucker](https://github.com/dave-tucker)
+  and [#395](https://github.com/cargo-generate/cargo-generate/pull/395)
+  by [@taurr](https://github.com/taurr)
+
+- [Allow `--define` to specify values](https://github.com/cargo-generate/cargo-generate/pull/392)
+  [#389](https://github.com/cargo-generate/cargo-generate/issues/389)
+  
+  command line argument `--define` to define template variables
+  
+  by [@taurr](https://github.com/taurr)
+
+- [Improve output of --list-favorites](https://github.com/cargo-generate/cargo-generate/pull/388)
+  by [@taurr](https://github.com/taurr)
+
+### 🛠️ Maintenance
+- [chore(deps): bump openssl from 0.10.35 to 0.10.36](https://github.com/cargo-generate/cargo-generate/pull/429)
+- [README: improve cargo_generate_version example](https://github.com/cargo-generate/cargo-generate/pull/428)
+- [ci: add documentation check](https://github.com/cargo-generate/cargo-generate/pull/426)
+- [fix additional clippy lints](https://github.com/cargo-generate/cargo-generate/pull/425)
+- [Fix typo in README.md](https://github.com/cargo-generate/cargo-generate/pull/399)
+- [Only use cross for linux prebuilt binaries](https://github.com/cargo-generate/cargo-generate/pull/398)
+- [chore(deps): bump anyhow from 1.0.42 to 1.0.43](https://github.com/cargo-generate/cargo-generate/pull/421)
+- [chore(deps): bump predicates from 2.0.1 to 2.0.2](https://github.com/cargo-generate/cargo-generate/pull/420)
+- [chore(deps): bump git2 from 0.13.20 to 0.13.21](https://github.com/cargo-generate/cargo-generate/pull/419)
+- [chore(deps): bump cargo from 0.54.0 to 0.55.0](https://github.com/cargo-generate/cargo-generate/pull/394)
+- [chore(deps): bump assert_cmd from 1.0.7 to 1.0.8](https://github.com/cargo-generate/cargo-generate/pull/393)
+- [chore(deps): bump assert_cmd from 1.0.8 to 2.0.0](https://github.com/cargo-generate/cargo-generate/pull/403)
+
 ## [0.8.0] 2021-07-30
 
 - ### ✨ Features
   - [feat(template:filenames): template filenames now](https://github.com/cargo-generate/cargo-generate/pull/386)
-    
+
     solves [#159](https://github.com/cargo-generate/cargo-generate/issues/159)
-    
+
     A template author can use those placeholders in file names.  
-    For example, a project named `awesome`, with a file name `{{project_name}}.rs` will be transformed to `awesome.rs` during generation. [read more..](https://github.com/cargo-generate/cargo-generate#templates)
-    
+    For example, a project named `awesome`, with a file name `{{project_name}}.rs` will be transformed to `awesome.rs`
+    during generation. [read more..](https://github.com/cargo-generate/cargo-generate#templates)
+
     by [@sassman](https://github.com/sassman)
 
   - [feat(template:choices): better ux for template choice parameters](https://github.com/cargo-generate/cargo-generate/pull/381)
@@ -68,24 +168,23 @@
 
 - ### ✨ Features
   - [feat(remote:ssh): support for ssh remote urls](https://github.com/cargo-generate/cargo-generate/pull/372)
-  
 
-  Finally, `cargo-generate` supports git ssh remote
-  urls. [Read more in the docs](https://github.com/cargo-generate/cargo-generate#git-over-ssh)
-  
-  - [feat(http:proxy): support http_proxy env vars](https://github.com/cargo-generate/cargo-generate/pull/342)
+Finally, `cargo-generate` supports git ssh remote
+urls. [Read more in the docs](https://github.com/cargo-generate/cargo-generate#git-over-ssh)
 
-  The typically known environment variables `HTTP_PROXY` and `HTTPS_PROXY` are now supported by `cargo-generate`.
-  [Read more in the docs](https://github.com/cargo-generate/cargo-generate#https-proxy)
-  
-  - [feat(progress-bar): more useful progress bar](https://github.com/cargo-generate/cargo-generate/pull/339)
-  - [feat(crate-types): crate types --lib and --bin as in cargo init](https://github.com/cargo-generate/cargo-generate/pull/326)
+- [feat(http:proxy): support http_proxy env vars](https://github.com/cargo-generate/cargo-generate/pull/342)
 
-  Similar to `cargo init --lib`, a `crate-type` support is now there.
-  [Read more in the docs](https://github.com/cargo-generate/cargo-generate#example-for---bin-and---lib)
+The typically known environment variables `HTTP_PROXY` and `HTTPS_PROXY` are now supported by `cargo-generate`.
+[Read more in the docs](https://github.com/cargo-generate/cargo-generate#https-proxy)
 
-  - [Add serenity template](https://github.com/cargo-generate/cargo-generate/pull/324)
-  - [Upgrade to GitHub-native Dependabot](https://github.com/cargo-generate/cargo-generate/pull/331)
+- [feat(progress-bar): more useful progress bar](https://github.com/cargo-generate/cargo-generate/pull/339)
+- [feat(crate-types): crate types --lib and --bin as in cargo init](https://github.com/cargo-generate/cargo-generate/pull/326)
+
+Similar to `cargo init --lib`, a `crate-type` support is now there.
+[Read more in the docs](https://github.com/cargo-generate/cargo-generate#example-for---bin-and---lib)
+
+- [Add serenity template](https://github.com/cargo-generate/cargo-generate/pull/324)
+- [Upgrade to GitHub-native Dependabot](https://github.com/cargo-generate/cargo-generate/pull/331)
 
 - ### 🛠️ Maintenance
   - [chore(deps): bump anyhow from 1.0.41 to 1.0.42](https://github.com/cargo-generate/cargo-generate/pull/371)
@@ -978,7 +1077,9 @@
 
 - First release!
 
-[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.9.0...HEAD
+
+[0.9.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.8.0...v0.9.0
 
 [0.8.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.7.2...v0.8.0
 
