@@ -91,8 +91,10 @@ fn prompt_for_variable(variable: &TemplateSlots) -> Result<String> {
     }
 }
 
-pub(super) fn variable(variable: &TemplateSlots) -> Result<Value> {
-    let user_input = prompt_for_variable(variable)?;
+pub(super) fn variable(variable: &TemplateSlots, provided_value: Option<&str>) -> Result<Value> {
+    let user_input = provided_value
+        .map(|v| Ok(v.to_string()))
+        .unwrap_or_else(|| prompt_for_variable(variable))?;
     into_value(user_input, &variable.var_info)
 }
 

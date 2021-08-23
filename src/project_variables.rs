@@ -88,7 +88,6 @@ const RESERVED_NAMES: [&str; 5] = [
 pub fn fill_project_variables<F>(
     mut template_object: Object,
     template_config: &Config,
-    silent: bool,
     value_provider: F,
 ) -> Result<Object>
 where
@@ -105,16 +104,10 @@ where
 
         match template_object.entry(key) {
             Entry::Occupied(_) => (), // we already have the value from the config file
-            Entry::Vacant(entry) if !silent => {
+            Entry::Vacant(entry) => {
                 // we don't have the file from the config and we can ask for it
                 let value = value_provider(&slot)?;
-
                 entry.insert(value);
-            }
-            Entry::Vacant(_) => {
-                anyhow::bail!(ConversionError::MissingPlaceholderVariable {
-                    var_name: slot.var_name
-                })
             }
         }
     }

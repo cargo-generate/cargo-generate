@@ -119,6 +119,7 @@ mod log;
 mod progressbar;
 mod project_variables;
 mod template;
+mod template_filters;
 mod template_variables;
 
 pub use args::*;
@@ -127,6 +128,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use config::{Config, CONFIG_FILE_NAME};
 use console::style;
 use favorites::{list_favorites, resolve_favorite_args_and_default_values};
+use liquid::ValueView;
 use std::{
     borrow::Borrow,
     collections::HashMap,
@@ -138,6 +140,7 @@ use tempfile::TempDir;
 
 use crate::{
     app_config::{app_config_path, AppConfig},
+    project_variables::ConversionError,
     template_variables::{CrateType, ProjectName},
 };
 use crate::{git::GitConfig, template_variables::resolve_template_values};
@@ -158,7 +161,8 @@ pub fn generate(mut args: Args) -> Result<()> {
 
     let template_config = Config::from_path(
         &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &args.subfolder).ok(),
-    )?;
+    )?
+    .unwrap_or_default();
 
     check_cargo_generate_version(&template_config)?;
     let template_values = resolve_template_values(default_values, &args)?;
@@ -226,15 +230,15 @@ fn prepare_local_template(args: &Args) -> Result<(TempDir, PathBuf, String), any
     Ok((template_base_dir, template_folder, branch))
 }
 
-fn check_cargo_generate_version(template_config: &Option<Config>) -> Result<(), anyhow::Error> {
-    if let Some(Config {
+fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::Error> {
+    if let Config {
         template:
             Some(config::TemplateConfig {
                 cargo_generate_version: Some(requirement),
                 ..
             }),
         ..
-    }) = template_config
+    } = template_config
     {
         let version = semver::Version::parse(env!("CARGO_PKG_VERSION"))?;
         if !requirement.matches(&version) {
@@ -456,33 +460,135 @@ fn expand_template(
     name: &ProjectName,
     dir: &Path,
     template_values: &HashMap<String, toml::Value>,
-    template_config: Option<Config>,
+    template_config: Config,
     args: &Args,
 ) -> Result<()> {
     let crate_type: CrateType = args.into();
-    let template = template::substitute(name, &crate_type, template_values, args.force)?;
-    let template = match template_config.as_ref() {
-        None => Ok(template),
-        Some(config) => {
-            project_variables::fill_project_variables(template, config, args.silent, |slot| {
-                interactive::variable(slot)
+    let template = template::create_liquid_object(name, &crate_type, args.force)?;
+    let template = project_variables::fill_project_variables(template, &template_config, |slot| {
+        let provided_value = template_values.get(&slot.var_name).and_then(|v| v.as_str());
+        if provided_value.is_none() && args.silent {
+            anyhow::bail!(ConversionError::MissingPlaceholderVariable {
+                var_name: slot.var_name.clone()
             })
         }
-    }?;
+        interactive::variable(slot, provided_value)
+    })?;
+    let template = add_missing_provided_values(template, template_values)?;
+
+    let (template_cfg, template) = merge_conditionals(template_config, template, args)?;
+
     let mut pbar = progressbar::new();
 
-    ignore_me::remove_unneeded_files(dir, args.verbose);
+    ignore_me::remove_unneeded_files(dir, &template_cfg.ignore, args.verbose)?;
 
-    template::walk_dir(
-        dir,
-        template,
-        template_config.and_then(|c| c.template),
-        &mut pbar,
-    )?;
+    template::walk_dir(dir, template, template_cfg, &mut pbar)?;
 
     pbar.join().unwrap();
 
     Ok(())
+}
+
+pub(crate) fn add_missing_provided_values(
+    mut liquid_object: liquid::Object,
+    template_values: &HashMap<String, toml::Value>,
+) -> Result<liquid::Object, anyhow::Error> {
+    template_values.iter().try_for_each(|(k, v)| {
+        if liquid_object.contains_key(k.as_str()) {
+            return Ok(());
+        }
+        let value = match v {
+            toml::Value::String(content) => liquid_core::Value::Scalar(content.clone().into()),
+            toml::Value::Boolean(content) => liquid_core::Value::Scalar((*content).into()),
+            _ => anyhow::bail!(format!(
+                "{} {}",
+                emoji::ERROR,
+                style("Unsupported value type. Only Strings and Booleans are supported.")
+                    .bold()
+                    .red(),
+            )),
+        };
+        liquid_object.insert(k.clone().into(), value);
+        Ok(())
+    })?;
+    Ok(liquid_object)
+}
+
+fn merge_conditionals(
+    mut template_config: Config,
+    liquid_object: liquid::Object,
+    args: &Args,
+) -> Result<(config::TemplateConfig, liquid::Object), anyhow::Error> {
+    let mut template_cfg = template_config.template.unwrap_or_default();
+    let conditionals = template_config.conditional.take();
+    if conditionals.is_none() {
+        return Ok((template_cfg, liquid_object));
+    }
+
+    let mut conditionals = conditionals.unwrap();
+    let mut engine = rhai::Engine::new();
+    engine.on_var({
+        let liqobj = liquid_object.clone();
+        move |name, _, _| match liqobj.get(name) {
+            Some(value) => Ok(value.as_view().as_scalar().map(|scalar| {
+                scalar.to_bool().map_or_else(
+                    || {
+                        let v = scalar.to_kstr();
+                        v.as_str().into()
+                    },
+                    |v| v.into(),
+                )
+            })),
+            None => Ok(None),
+        }
+    });
+
+    for (_, conditional_template_cfg) in conditionals
+        .iter_mut()
+        .filter(|(key, _)| engine.eval_expression::<bool>(key).unwrap_or_default())
+    {
+        if let Some(mut extra_includes) = conditional_template_cfg.include.take() {
+            let mut includes = template_cfg.include.unwrap_or_default();
+            includes.append(&mut extra_includes);
+            template_cfg.include = Some(includes);
+        }
+        if let Some(mut extra_excludes) = conditional_template_cfg.exclude.take() {
+            let mut excludes = template_cfg.exclude.unwrap_or_default();
+            excludes.append(&mut extra_excludes);
+            template_cfg.exclude = Some(excludes);
+        }
+        if let Some(mut extra_ignores) = conditional_template_cfg.ignore.take() {
+            let mut ignores = template_cfg.ignore.unwrap_or_default();
+            ignores.append(&mut extra_ignores);
+            template_cfg.ignore = Some(ignores);
+        }
+        if let Some(extra_placeholders) = conditional_template_cfg.placeholders.take() {
+            match template_config.placeholders.as_mut() {
+                Some(placeholders) => {
+                    for (k, v) in extra_placeholders.0 {
+                        placeholders.0.insert(k, v);
+                    }
+                }
+                None => {
+                    template_config.placeholders = Some(extra_placeholders);
+                }
+            }
+        }
+    }
+
+    template_config.template = Some(template_cfg);
+    let template =
+        project_variables::fill_project_variables(liquid_object, &template_config, |slot| {
+            if args.silent {
+                anyhow::bail!(ConversionError::MissingPlaceholderVariable {
+                    var_name: slot.var_name.clone()
+                })
+            }
+            interactive::variable(slot, None)
+        })?;
+    template_cfg = template_config.template.unwrap_or_default();
+
+    Ok((template_cfg, template))
 }
 
 fn rename_warning(name: &ProjectName) {

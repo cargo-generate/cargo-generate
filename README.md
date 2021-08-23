@@ -28,7 +28,7 @@ See the [`openssl-sys` crate readme] on how to obtain the OpenSSL library for yo
 
 ### Using `cargo` with vendored OpenSSL
 
-> NOTE: `vendored-openssl` requires the following packages to be installed:
+> :warning: NOTE: `vendored-openssl` requires the following packages to be installed:
 >  - libssl-dev
 >  - gcc
 >  - m4
@@ -58,7 +58,7 @@ pacman -S cargo-generate
 
 Standard usage is to pass a `--git` flag to `cargo generate` or short `cargo gen`. This will prompt you to enter the name of your project.
 
-> NOTE: `cargo gen` requires a [cargo alias configuration](#cargo-gen---alias)
+> :warning: NOTE: `cargo gen` requires a [cargo alias configuration](#cargo-gen---alias)
 
 ```sh
 cargo generate --git https://github.com/githubusername/mytemplate.git
@@ -78,9 +78,9 @@ If the git repository contains multiple templates, the specific subfolder in the
 cargo generate --git https://github.com/githubusername/mytemplate.git <relative-template-path>
 ```
 
-> NOTE: The specified `relative-template-path` will be used as the actual template root, whether or not this is actually true!
+> :warning: NOTE: The specified `relative-template-path` will be used as the actual template root, whether or not this is actually true!
 
-> NOTE: When using the `subfolder` feature, `cargo-generate` will search for the `cargo-generate.toml` file in the subfolder first, traversing back towards the template root in case it is not found.
+> :warning: NOTE: When using the `subfolder` feature, `cargo-generate` will search for the `cargo-generate.toml` file in the subfolder first, traversing back towards the template root in case it is not found.
 
 #### Generating into current dir
 
@@ -90,7 +90,7 @@ If the user wants to generate a template straight into the current folder, witho
 cargo generate --init --git https://github.com/githubusername/mytemplate.git
 ```
 
-> NOTE: `cargo-generate` will not allow any existing files to be overwritten and will fail to generate any files should there be any conflicts.
+> :warning: NOTE: `cargo-generate` will not allow any existing files to be overwritten and will fail to generate any files should there be any conflicts.
 
 #### Generating using a local template
 
@@ -101,7 +101,7 @@ git clone https://github.com/githubusername/mytemplate.git $HOME/mytemplate # Cl
 cargo generate --path $HOME/mytemplate # Use it locally
 ```
 
-> NOTE: `cargo-generate` will not allow to use the association `--path` and `--git` flags.
+> :warning: NOTE: `cargo-generate` will not allow to use the association `--path` and `--git` flags.
 
 ## git over ssh
 
@@ -119,7 +119,7 @@ as well as:
 cargo generate --git rustwasm/wasm-pack-template --name mywasm
 ```
 
-> NOTE: you can pass a custom ssh identity file with via `-i | --identity` like `-i ~/.ssh/id_rsa_other`
+> :warning: NOTE: you can pass a custom ssh identity file with via `-i | --identity` like `-i ~/.ssh/id_rsa_other`
 
 ## http(s) proxy
 
@@ -131,7 +131,7 @@ will be used for cloning a http(s) template repository.
 Favorite templates can be defined in a config file, that by default is placed at `$CARGO_HOME/cargo-generate.toml` or `$CARGO_HOME/cargo-generate`.
 To specify an alternative configuration file, use the `--config <config-file>` option.
 
-> NOTE: A relative `--config` option, will be relative to the template root during expansion.
+> :warning: NOTE: A relative `--config` option, will be relative to the template root during expansion.
 
 Each favorite template is specified in its own section, e.g.:
 
@@ -157,7 +157,7 @@ or slightly more involved:
 cargo generate demo --branch mybranch --name expanded_demo --subfolder myfolder
 ```
 
-> NOTE: when `<favorite>` is not defined in the config file, it is interpreted as a git repo like as if `--git <favorite>`
+> :warning: NOTE: when `<favorite>` is not defined in the config file, it is interpreted as a git repo like as if `--git <favorite>`
 
 ## Templates
 
@@ -189,11 +189,13 @@ You can use those placeholders in the file and directory names of the generated 
 For example, for a project named `awesome`, the filename `{{project_name}}/{{project_name}}.rs` will be transformed to `awesome/awesome.rs` during generation.
 Only files that are **not** listed in the exclude settings will be templated.
 
-> NOTE: invalid characters for a filename or directory name will be sanitized after template substitution. Invalid is e.g. `/` or `\`.
+> :warning: NOTE: invalid characters for a filename or directory name will be sanitized after template substitution. Invalid is e.g. `/` or `\`.
 
-You can also add a `.genignore` file to your template. The files listed in the `.genignore` file
-will be removed from the local machine when `cargo-generate` is run on the end user's machine.
-The `.genignore` file is always ignored, so there is no need to list it in the `.genignore` file.
+> :warning: **Deprecated** in favor of using [ignore in `cargo-generate.toml`](#Ignoring-files)
+>
+> You can also add a `.genignore` file to your template. The files listed in the `.genignore` file
+> will be removed from the local machine when `cargo-generate` is run on the end user's machine.
+> The `.genignore` file is always ignored, so there is no need to list it in the `.genignore` file.
 
 ### Templates by the community
 
@@ -203,7 +205,7 @@ So that every developer can find the template via [cargo-generate topic on GitHu
 
 If you have a great template, please tag your repository with the topic [and tweet about it](https://twitter.com/intent/tweet?text=See%20my%20new%20%23cargogenerate%20%23template%20%0A%0A%3E%20your%20link%20goes%20here) by including the hashtag [`#cargogenerate`](https://twitter.com/search?q=%23cargogenerate&src=typed_query) (since twitter does not support hashtags with `-`).
 
-> Note: the list of [currently available templates](TEMPLATES.md) is still available, but is now deprecated.
+> :warning: Note: the list of [currently available templates](TEMPLATES.md) is still available, but is now deprecated.
 
 ### Example for `--bin` and `--lib`
 
@@ -274,7 +276,7 @@ fn main() {
 {% endif %}
 ```
 
-> Tip: similar to `dependencies` in the `Cargo.toml` file you can also list them as one liners:
+> :bulb: Tip: similar to `dependencies` in the `Cargo.toml` file you can also list them as one liners:
 ```toml
 [placeholders]
 hypervisor = { type = "string", prompt = "What hypervisor to use?", choices = ["uhyve", "qemu"], default = "qemu" }
@@ -328,7 +330,7 @@ phone_number = { type = "string", prompt = "What's your phone number?", regex = 
 
 For automation purposes the user of the template may provide the values for the keys in the template using one or more of the following methods.
 
-> NOTE: The methods are listed by falling priority
+The methods are listed by falling priority.
 
 #### `--define` or `-d` flag
 
@@ -342,7 +344,7 @@ cargo generate template-above -n project-name -d hypervisor=qemu -d network_enab
 
 The user of the template may provide a file containing the values for the keys in the template by using the `--template-values-file` flag.
 
-> NOTE: A relative path will be relative to current working dir, which is *not* inside the expanding template!
+> :warning: NOTE: A relative path will be relative to current working dir, which is *not* inside the expanding template!
 
 The file should be a toml file containing the following (for the example template provided above):
 
@@ -402,7 +404,26 @@ include = ["Cargo.toml"]
 exclude = ["*.c"]
 ```
 
+> :warning: NOTE: `exclude` only makes `cargo-generate` ignore any `liquid` tags in the file. In order to exclude a file from being copied to the final dir, see [ignoring files](#Ignoring-files).
+
 The `cargo-generate.toml` file should be placed in the root of the template. If using the `subfolder` feature, the root is the `subfolder` inside the repository, though `cargo-generate` will look for the file in all parent folders until it reaches the repository root.
+
+## Ignoring files
+
+The template author may choose to ignore files completely, by including an `ignore` list in the `cargo-generate.toml` file.
+
+Example:
+
+```toml
+[template]
+ignore = [ 
+  "file",
+  "or folder",
+  "to be ignored" 
+]
+```
+
+Both files and folders may be ignored using this method, but currently wildcards are **not supported**. 
 
 ## Require `cargo-generate` version from template
 
@@ -416,6 +437,50 @@ cargo_generate_version = ">=0.9.0"
 ```
 
 The format for the version requirement is [documented here](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html).
+
+## Conditional template settings.
+
+Using `cargo-generate.toml`, values and some [`Rhai`](https://rhai.rs/book/) syntax, the template author can make certain conditional decisions before expansion of the template.
+
+`include`, `exclude`, `ignore` and `placeholders` can all be used in sections that are only used based upon the value of one or more values, possibly input by the user using the interactive prompt (if the values in question are defined as placeholders in the non-conditional section).
+
+Example:
+
+```toml
+[template]
+cargo_generate_version = ">=0.10.0"
+# ignore = [ "..." ]
+# include = [ "..." ]
+# exclude = [ "..." ]
+
+[placeholders]
+license = { type = "string", prompt = "What license to use?", choices = ["MIT", "Unrestricted"], default = "MIT" }
+
+[conditional.'crate_type == "lib"']
+ignore = [ "src/main.rs" ]
+# include = [ "..." ]
+# exclude = [ "..." ]
+
+[conditional.'crate_type != "lib"'.placeholders]
+hypervisor = { type = "string", prompt = "What hypervisor to use?", choices = ["uhyve", "qemu"], default = "qemu" }
+network_enabled = { type = "bool", prompt = "Want to enable network?", default = true }
+
+[conditional.'license == "MIT"']
+ignore = [ "LICENSE-UNRESTRICTED.txt" ]
+# include = [ "..." ]
+# exclude = [ "..." ]
+
+[conditional.'license == "Unrestricted"']
+ignore = [ "LICENSE-MIT.txt" ]
+# include = [ "..." ]
+# exclude = [ "..." ]
+```
+
+Using the above example `cargo-generate` will ask for the `license`, and depending on the `--lib` | `--bin` flags it'll as for the `hypervisor` and `network_enabled` values. It will then continue to expand the template, ignoring the `src/main.rs` file (and thus excluding it from the output) in case `--lib` was specified.
+
+> :warning: Note that `include` and `exclude` are still mutually exclusive even if they are in different, but included, conditional sections.
+
+> :warning: `cargo-generate` will ask for values using the placeholders defined in `[placeholders]` before evaluating the conditional sections. Placeholder values defined in conditional sections **cannot** be used to enable/disable further conditional sections, they can however still be used in the actual template!
 
 ## Cargo gen - alias
 
