@@ -38,7 +38,7 @@ sanitize-filename = "0.3"
 semver = "1.0.4"
 
 [dependencies.openssl]
-version = "0.10.35"
+version = "0.10.36"
 optional = true
 
 [dependencies.serde]
