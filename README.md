@@ -391,7 +391,7 @@ Using the supported `cargo-generate.toml` file, the template author may setup ve
 
 ```toml
 [template]
-cargo_generate_version = ">0.8.0"
+cargo_generate_version = ">=0.8.0"
 ```
 
 The format for the version requirement is [documented here](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html).
@@ -399,7 +399,7 @@ The format for the version requirement is [documented here](https://doc.rust-lan
 
 ## Cargo gen - alias
 
-`cargo gen` requires an [cargo alias](https://doc.rust-lang.org/cargo/reference/config.html)
+`cargo gen` requires a [cargo alias](https://doc.rust-lang.org/cargo/reference/config.html)
 to be configured in your `$HOME/.cargo/config` like this:
 
 ```toml
