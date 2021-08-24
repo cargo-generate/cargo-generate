@@ -74,6 +74,15 @@ cargo generate --git https://github.com/githubusername/mytemplate.git <relative-
 
 > NOTE: When using the `subfolder` feature, `cargo-generate` will search for the `cargo-generate.toml` file in the subfolder first, traversing back towards the template root in case it is not found.
 
+#### Using a local folder as a template
+
+You can use a local git repository as a template using the `--path` option, like this:
+
+```sh
+git clone https://github.com/githubusername/mytemplate.git $HOME/myawesometemplate # Clone any template
+cargo-generate --path $HOME/myawesometemplate # Now you can use it as a local template
+```
+
 #### Generating into current dir
 
 If the user wants to generate a template straight into the current folder, without creating a subfolder for the contents and without attempting to initialize a `.git` repo or similar, the `--init` flag can be used.
