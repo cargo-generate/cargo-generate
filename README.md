@@ -92,6 +92,17 @@ cargo generate --init --git https://github.com/githubusername/mytemplate.git
 
 > NOTE: `cargo-generate` will not allow any existing files to be overwritten and will fail to generate any files should there be any conflicts.
 
+#### Generating using a local template
+
+You can generate a project using a local template via the `--path` flag:
+
+```sh
+git clone https://github.com/githubusername/mytemplate.git $HOME/mytemplate # Clone any template
+cargo generate --path $HOME/mytemplate # Use it locally
+```
+
+> NOTE: `cargo-generate` will not allow to use the association `--path` and `--git` flags.
+
 ## git over ssh
 
 New in version [0.7.0] is the support for both public and private and ssh git remote urls.
