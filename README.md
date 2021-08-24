@@ -40,6 +40,14 @@ See the [`openssl-sys` crate readme] on how to obtain the OpenSSL library for yo
 cargo install cargo-generate --features vendored-openssl
 ```
 
+### Using `pacman` (Arch Linux)
+
+`cargo-generate` can be installed from the [community repository](https://archlinux.org/packages/community/x86_64/cargo-generate/) for Arch Linux:
+
+```sh
+pacman -S cargo-generate
+```
+
 ### Manual Install:
 
 1. Download the binary tarball for your platform from our [releases page](https://github.com/cargo-generate/cargo-generate/releases).
