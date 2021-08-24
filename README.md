@@ -83,6 +83,8 @@ git clone https://github.com/githubusername/mytemplate.git $HOME/myawesometempla
 cargo-generate --path $HOME/myawesometemplate # Now you can use it as a local template
 ```
 
+> NOTE: `cargo-generate` will not allow to use this option with the `--git` option.
+
 #### Generating into current dir
 
 If the user wants to generate a template straight into the current folder, without creating a subfolder for the contents and without attempting to initialize a `.git` repo or similar, the `--init` flag can be used.
