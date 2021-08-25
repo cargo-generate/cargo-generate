@@ -134,8 +134,8 @@ impl FromStr for Vcs {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_uppercase().as_str() {
-            "NONE" => Ok(Vcs::None),
-            "GIT" => Ok(Vcs::Git),
+            "NONE" => Ok(Self::None),
+            "GIT" => Ok(Self::Git),
             _ => Err(anyhow!("Must be one of 'git' or 'none'")),
         }
     }
@@ -144,8 +144,8 @@ impl FromStr for Vcs {
 impl Vcs {
     pub fn initialize(&self, project_dir: &Path, branch: String) -> Result<()> {
         match self {
-            Vcs::None => {}
-            Vcs::Git => {
+            Self::None => {}
+            Self::Git => {
                 git::init(project_dir, &branch)?;
             }
         };

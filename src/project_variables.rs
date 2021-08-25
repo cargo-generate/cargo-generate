@@ -8,20 +8,20 @@ use thiserror::Error;
 use crate::config::{Config, TemplateSlotsTable};
 
 #[derive(Debug)]
-pub(crate) struct TemplateSlots {
+pub struct TemplateSlots {
     pub(crate) var_name: String,
     pub(crate) var_info: VarInfo,
     pub(crate) prompt: String,
 }
 
 #[derive(Debug, Clone)]
-pub(crate) enum VarInfo {
+pub enum VarInfo {
     Bool { default: Option<bool> },
     String { entry: Box<StringEntry> },
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct StringEntry {
+pub struct StringEntry {
     pub(crate) default: Option<String>,
     pub(crate) choices: Option<Vec<String>>,
     pub(crate) regex: Option<Regex>,
@@ -85,7 +85,7 @@ const RESERVED_NAMES: [&str; 5] = [
     "crate_type",
 ];
 
-pub(crate) fn fill_project_variables<F>(
+pub fn fill_project_variables<F>(
     mut template_object: Object,
     template_config: &Config,
     silent: bool,

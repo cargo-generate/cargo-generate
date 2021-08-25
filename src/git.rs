@@ -24,7 +24,7 @@ enum RepoKind {
     Invalid,
 }
 
-pub(crate) struct GitConfig<'a> {
+pub struct GitConfig<'a> {
     remote: Cow<'a, str>,
     branch: GitReference,
     kind: RepoKind,
@@ -79,7 +79,7 @@ impl<'a> GitConfig<'a> {
     }
 }
 
-pub(crate) fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
+pub fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
     let branch = git_clone_all(project_dir, args)?;
     remove_history(project_dir, None)?;
 
@@ -255,7 +255,7 @@ fn remove_history(project_dir: &Path, attempt: Option<u8>) -> Result<()> {
                     warn!("cargo-generate was not able to delete the git history after {} retries. Please delete the `.git` sub-folder manually", attempt);
                     return Ok(());
                 }
-                let wait_for = Duration::from_secs(2_u64.pow(attempt.sub(1) as u32));
+                let wait_for = Duration::from_secs(2_u64.pow(attempt.sub(1).into()));
                 warn!("Git history cleanup failed with a windows process blocking error. [Retry in {:?}]", wait_for);
                 sleep(wait_for);
                 remove_history(project_dir, Some(attempt.add(1)))?

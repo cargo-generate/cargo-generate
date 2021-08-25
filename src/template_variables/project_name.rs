@@ -2,13 +2,13 @@ use heck::{KebabCase, SnakeCase};
 
 /// Stores user inputted name and provides convenience methods
 /// for handling casing.
-pub(crate) struct ProjectName {
+pub struct ProjectName {
     pub(crate) user_input: String,
 }
 
 impl ProjectName {
-    pub(crate) fn new(name: impl Into<String>) -> ProjectName {
-        ProjectName {
+    pub(crate) fn new(name: impl Into<String>) -> Self {
+        Self {
             user_input: name.into(),
         }
     }

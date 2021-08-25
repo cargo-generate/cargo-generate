@@ -9,16 +9,16 @@ use std::{
 
 use crate::emoji;
 
-pub(crate) const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
+pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
 #[derive(Deserialize)]
-pub(crate) struct AppConfig {
+pub struct AppConfig {
     pub favorites: Option<HashMap<String, FavoriteConfig>>,
     pub values: Option<HashMap<String, toml::Value>>,
 }
 
 #[derive(Deserialize, Default)]
-pub(crate) struct FavoriteConfig {
+pub struct FavoriteConfig {
     pub description: Option<String>,
     pub git: Option<String>,
     pub branch: Option<String>,
@@ -37,11 +37,11 @@ impl Default for AppConfig {
 }
 
 impl AppConfig {
-    pub(crate) fn from_path(path: &Path) -> Result<AppConfig> {
+    pub(crate) fn from_path(path: &Path) -> Result<Self> {
         if path.exists() {
             let cfg = fs::read_to_string(path)?;
             Ok(if cfg.trim().is_empty() {
-                AppConfig::default()
+                Self::default()
             } else {
                 println!(
                     "{} {} {}",
@@ -61,7 +61,7 @@ impl AppConfig {
     }
 }
 
-pub(crate) fn app_config_path(path: &Option<PathBuf>) -> Result<PathBuf> {
+pub fn app_config_path(path: &Option<PathBuf>) -> Result<PathBuf> {
     path.clone()
         .or_else(|| {
             home::cargo_home().map_or(None, |home| {

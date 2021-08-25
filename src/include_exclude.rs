@@ -4,7 +4,7 @@ use ignore::gitignore::{Gitignore, GitignoreBuilder};
 use std::path::Path;
 
 #[derive(Default)]
-pub(crate) struct Matcher(Option<MatcherKind>);
+pub struct Matcher(Option<MatcherKind>);
 
 enum MatcherKind {
     Include(Gitignore),
@@ -12,7 +12,7 @@ enum MatcherKind {
 }
 
 impl Matcher {
-    pub(crate) fn new(template_config: TemplateConfig, project_dir: &Path) -> Result<Self> {
+    pub fn new(template_config: TemplateConfig, project_dir: &Path) -> Result<Self> {
         let kind = match (&template_config.exclude, &template_config.include) {
             (None, None) => None,
             (None, Some(it)) => Some(MatcherKind::Include(Self::create_matcher(project_dir, it)?)),
@@ -33,7 +33,7 @@ impl Matcher {
         Ok(builder.build()?)
     }
 
-    pub(crate) fn should_include(&self, relative_path: &Path) -> bool {
+    pub fn should_include(&self, relative_path: &Path) -> bool {
         // "Include" and "exclude" options are mutually exclusive.
         // if no include is made, we will default to ignore_exclude
         // which if there is no options, matches everything

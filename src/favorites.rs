@@ -7,7 +7,7 @@ use crate::{
 use anyhow::{anyhow, Result};
 use console::style;
 
-pub(crate) fn list_favorites(app_config: &AppConfig, args: &Args) -> Result<()> {
+pub fn list_favorites(app_config: &AppConfig, args: &Args) -> Result<()> {
     let data = {
         let mut d = app_config
             .favorites
@@ -18,7 +18,7 @@ pub(crate) fn list_favorites(app_config: &AppConfig, args: &Args) -> Result<()> 
                     .collect::<Vec<(&String, &FavoriteConfig)>>()
             })
             .unwrap_or_default();
-        d.sort_by_key(|(key, _)| key.to_string());
+        d.sort_by_key(|(key, _)| (*key).to_string());
         d
     };
 
@@ -48,7 +48,7 @@ pub(crate) fn list_favorites(app_config: &AppConfig, args: &Args) -> Result<()> 
     Ok(())
 }
 
-pub(crate) fn resolve_favorite_args_and_default_values(
+pub fn resolve_favorite_args_and_default_values(
     app_config: &AppConfig,
     args: &mut Args,
 ) -> Result<Option<HashMap<String, toml::Value>>> {
