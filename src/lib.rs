@@ -82,7 +82,28 @@
 //!
 //! `os-arch` and `authors` also can't be overriden and are derived from the environment.
 
-#![warn(clippy::unneeded_field_pattern, clippy::match_bool, clippy::get_unwrap)]
+#![warn(
+    //clippy::cargo_common_metadata,
+    clippy::branches_sharing_code,
+    clippy::cast_lossless,
+    clippy::cognitive_complexity,
+    clippy::get_unwrap,
+    clippy::if_then_some_else_none,
+    clippy::inefficient_to_string,
+    clippy::match_bool,
+    clippy::missing_const_for_fn,
+    clippy::missing_panics_doc,
+    clippy::option_if_let_else,
+    clippy::redundant_closure,
+    clippy::redundant_else,
+    clippy::redundant_pub_crate,
+    clippy::ref_binding_to_reference,
+    clippy::ref_option_ref,
+    clippy::same_functions_in_if_condition,
+    clippy::unneeded_field_pattern,
+    clippy::unnested_or_patterns,
+    clippy::use_self,
+)]
 
 mod app_config;
 mod args;

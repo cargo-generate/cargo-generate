@@ -7,7 +7,7 @@ use std::{
 };
 
 use crate::config::CONFIG_FILE_NAME;
-pub(crate) const IGNORE_FILE_NAME: &str = ".genignore";
+pub const IGNORE_FILE_NAME: &str = ".genignore";
 
 // We ignore the `.cargo-ok` file if one is present. This file is a somewhat
 // obscure marker that cargo leaves around after extracting a tarball to
@@ -22,7 +22,7 @@ const CARGO_OK_FILE_NAME: &str = ".cargo-ok";
 /// Takes the directory path and removes the files/directories specified in the
 /// `.genignore` file
 /// It handles all errors internally
-pub(crate) fn remove_unneeded_files(dir: &Path, verbose: bool) {
+pub fn remove_unneeded_files(dir: &Path, verbose: bool) {
     let items = get_ignored(dir);
     remove_dir_files(items, verbose);
 }

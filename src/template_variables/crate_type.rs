@@ -1,13 +1,13 @@
 use crate::Args;
 
-pub(crate) type CrateType = cargo::core::compiler::CrateType;
+pub type CrateType = cargo::core::compiler::CrateType;
 
 impl From<&Args> for CrateType {
-    fn from(a: &Args) -> CrateType {
+    fn from(a: &Args) -> Self {
         if a.lib {
-            CrateType::Lib
+            Self::Lib
         } else {
-            CrateType::Bin
+            Self::Bin
         }
     }
 }

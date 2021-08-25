@@ -6,34 +6,34 @@ use std::path::Path;
 use std::{collections::HashMap, fs};
 use std::{convert::TryFrom, io::ErrorKind};
 
-pub(crate) const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
+pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
 #[derive(Deserialize, Debug, PartialEq)]
-pub(crate) struct Config {
-    pub(crate) template: Option<TemplateConfig>,
-    pub(crate) placeholders: Option<TemplateSlotsTable>,
+pub struct Config {
+    pub template: Option<TemplateConfig>,
+    pub placeholders: Option<TemplateSlotsTable>,
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
-pub(crate) struct ConfigValues {
-    pub(crate) values: HashMap<String, toml::Value>,
+pub struct ConfigValues {
+    pub values: HashMap<String, toml::Value>,
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
-pub(crate) struct TemplateConfig {
-    pub(crate) cargo_generate_version: Option<VersionReq>,
-    pub(crate) include: Option<Vec<String>>,
-    pub(crate) exclude: Option<Vec<String>>,
+pub struct TemplateConfig {
+    pub cargo_generate_version: Option<VersionReq>,
+    pub include: Option<Vec<String>>,
+    pub exclude: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
-pub(crate) struct TemplateSlotsTable(pub(crate) HashMap<String, toml::Value>);
+pub struct TemplateSlotsTable(pub HashMap<String, toml::Value>);
 
 impl TryFrom<String> for Config {
     type Error = toml::de::Error;
 
     fn try_from(contents: String) -> Result<Self, Self::Error> {
-        let mut config: Config = toml::from_str(&contents)?;
+        let mut config: Self = toml::from_str(&contents)?;
 
         if let Some(ref mut template) = config.template {
             if template.include.is_some() && template.exclude.is_some() {
@@ -59,7 +59,7 @@ impl Config {
     {
         match path {
             Some(path) => match fs::read_to_string(path) {
-                Ok(contents) => Config::try_from(contents)
+                Ok(contents) => Self::try_from(contents)
                     .map(Option::from)
                     .map_err(|e| e.into()),
                 Err(e) => match e.kind() {

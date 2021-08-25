@@ -9,7 +9,7 @@ use dialoguer::Input;
 use liquid_core::Value;
 use std::ops::Index;
 
-pub(crate) fn name() -> Result<String> {
+pub fn name() -> Result<String> {
     let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;
     let project_var = TemplateSlots {
         var_name: "crate_name".into(),
@@ -25,7 +25,7 @@ pub(crate) fn name() -> Result<String> {
     prompt_for_variable(&project_var)
 }
 
-pub(crate) fn user_question(prompt: &str, default: &Option<String>) -> Result<String> {
+pub fn user_question(prompt: &str, default: &Option<String>) -> Result<String> {
     let mut i = Input::<String>::new();
     i.with_prompt(prompt.to_string());
     if let Some(s) = default {
@@ -56,11 +56,10 @@ fn prompt_for_variable(variable: &TemplateSlots) -> Result<String> {
         if let Some(choices) = &entry.choices {
             use dialoguer::Select;
 
-            let default = if let Some(default) = &entry.default {
-                choices.binary_search(default).unwrap_or(0)
-            } else {
-                0
-            };
+            let default = entry
+                .default
+                .as_ref()
+                .map_or(0, |default| choices.binary_search(default).unwrap_or(0));
             let chosen = Select::with_theme(&ColorfulTheme::default())
                 .paged(choices.len() > Term::stdout().size().0 as usize)
                 .items(choices)
@@ -79,17 +78,16 @@ fn prompt_for_variable(variable: &TemplateSlots) -> Result<String> {
 
         if is_valid_variable_value(&user_entry, &variable.var_info) {
             return Ok(user_entry);
-        } else {
-            eprintln!(
-                "{} {} \"{}\" {}",
-                emoji::WARN,
-                style("Sorry,").bold().red(),
-                style(&user_entry).bold().yellow(),
-                style(format!("is not a valid value for {}", variable.var_name))
-                    .bold()
-                    .red()
-            );
         }
+        eprintln!(
+            "{} {} \"{}\" {}",
+            emoji::WARN,
+            style("Sorry,").bold().red(),
+            style(&user_entry).bold().yellow(),
+            style(format!("is not a valid value for {}", variable.var_name))
+                .bold()
+                .red()
+        );
     }
 }
 

@@ -11,12 +11,12 @@ use regex::Regex;
 use std::{collections::HashMap, fmt::Display, fs, path::Path};
 use toml::Value;
 
-pub(crate) use authors::{get_authors, Authors};
-pub(crate) use crate_type::CrateType;
-pub(crate) use os_arch::get_os_arch;
-pub(crate) use project_name::ProjectName;
+pub use authors::{get_authors, Authors};
+pub use crate_type::CrateType;
+pub use os_arch::get_os_arch;
+pub use project_name::ProjectName;
 
-pub(crate) fn resolve_template_values(
+pub fn resolve_template_values(
     favorite_values: Option<HashMap<String, toml::Value>>,
     args: &Args,
 ) -> Result<HashMap<String, Value>> {

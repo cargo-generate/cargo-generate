@@ -33,7 +33,7 @@ fn engine() -> liquid::Parser {
     description = "Change text to kebab-case.",
     parsed(KebabCaseFilter)
 )]
-pub(crate) struct KebabCaseFilterParser;
+pub struct KebabCaseFilterParser;
 
 #[derive(Debug, Default, liquid_derive::Display_filter)]
 #[name = "kebab_case"]
@@ -60,7 +60,7 @@ impl Filter for KebabCaseFilter {
     description = "Change text to PascalCase.",
     parsed(PascalCaseFilter)
 )]
-pub(crate) struct PascalCaseFilterParser;
+pub struct PascalCaseFilterParser;
 
 #[derive(Debug, Default, liquid_derive::Display_filter)]
 #[name = "pascal_case"]
@@ -87,7 +87,7 @@ impl Filter for PascalCaseFilter {
     description = "Change text to snake_case.",
     parsed(SnakeCaseFilter)
 )]
-pub(crate) struct SnakeCaseFilterParser;
+pub struct SnakeCaseFilterParser;
 
 #[derive(Debug, Default, liquid_derive::Display_filter)]
 #[name = "snake_case"]
@@ -108,7 +108,7 @@ impl Filter for SnakeCaseFilter {
     }
 }
 
-pub(crate) fn substitute(
+pub fn substitute(
     name: &ProjectName,
     crate_type: &CrateType,
     template_values: &HashMap<String, toml::Value>,
@@ -147,7 +147,7 @@ pub(crate) fn substitute(
     Ok(liquid_object)
 }
 
-pub(crate) fn walk_dir(
+pub fn walk_dir(
     project_dir: &Path,
     template: Object,
     template_config: Option<TemplateConfig>,
