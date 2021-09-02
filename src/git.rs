@@ -3,7 +3,6 @@ use crate::emoji;
 use crate::warn;
 use anyhow::Context;
 use anyhow::Result;
-use cargo::core::GitReference;
 use console::style;
 use git2::build::RepoBuilder;
 use git2::ErrorCode;
@@ -22,6 +21,15 @@ enum RepoKind {
     RemoteHttps,
     RemoteSsh,
     Invalid,
+}
+
+/// Information to find a specific commit in a Git repository.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum GitReference {
+    /// From a branch.
+    Branch(String),
+    /// The default branch of the repository, the reference named `HEAD`.
+    DefaultBranch,
 }
 
 pub struct GitConfig<'a> {
