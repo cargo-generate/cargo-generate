@@ -130,7 +130,7 @@ dependencies = [
  "indoc",
  "liquid",
  "liquid-core",
- "liquid-derive",
+ "liquid-derive 0.23.0",
  "liquid-lib",
  "openssl",
  "predicates",
@@ -573,7 +573,7 @@ dependencies = [
  "doc-comment",
  "kstring",
  "liquid-core",
- "liquid-derive",
+ "liquid-derive 0.22.0",
  "liquid-lib",
  "serde",
 ]
@@ -588,7 +588,7 @@ dependencies = [
  "chrono",
  "itertools",
  "kstring",
- "liquid-derive",
+ "liquid-derive 0.22.0",
  "num-traits",
  "pest",
  "pest_derive",
@@ -602,7 +602,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88408698b7c2a426811369778ed472e219888aa4934f4de69568cc5bf05c8bc9"
 dependencies = [
  "proc-macro2",
- "proc-quote",
+ "proc-quote 0.3.2",
+ "syn",
+]
+
+[[package]]
+name = "liquid-derive"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "705ae18edfe0d7357a69275ee4442769790e5a40ca7033cb973eff12d15c8f20"
+dependencies = [
+ "proc-macro2",
+ "proc-quote 0.4.0",
  "syn",
 ]
 
@@ -889,6 +900,19 @@ name = "proc-quote"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06ea4226882439d07839be9c7f683e13d6d69d9c2fe960d61f637d1e2fa4c081"
+dependencies = [
+ "proc-macro-hack",
+ "proc-macro2",
+ "proc-quote-impl",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "proc-quote"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e84ab161de78c915302ca325a19bee6df272800e2ae1a43fe3ef430bab2a100"
 dependencies = [
  "proc-macro-hack",
  "proc-macro2",
