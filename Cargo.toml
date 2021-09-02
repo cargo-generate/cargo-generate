@@ -11,8 +11,6 @@ edition = "2018"
 include = ["src/**/*", "LICENSE-*", "*.md"]
 
 [dependencies]
-cargo = "0.55.0"
-cargo-util = "0.1.1"
 console = "0.14.1"
 dialoguer = "0.8.0"
 dirs = "3.0.2"
@@ -35,14 +33,16 @@ toml = "0.5.8"
 thiserror = "1.0.28"
 home = "0.5.3"
 sanitize-filename = "0.3"
-semver = "1.0.4"
 
 [dependencies.openssl]
 version = "0.10.36"
 optional = true
 
+[dependencies.semver]
+version = "1.0.4"
+features = ["serde"]
+
 [dependencies.serde]
-# same version as cargo's version
 version = "1.0.125"
 features = ["derive"]
 
