@@ -33,6 +33,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33954243bd79057c2de7338850b85983a44588021f8a5fee574a8888c6de4344"
 
 [[package]]
+name = "anymap2"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d301b3b94cb4b2f23d7917810addbbaff90738e0ca2be692bd027e70d7e0330c"
+
+[[package]]
 name = "assert_cmd"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -129,7 +135,7 @@ dependencies = [
  "indicatif",
  "indoc",
  "liquid",
- "liquid-core",
+ "liquid-core 0.23.0",
  "liquid-derive",
  "liquid-lib",
  "openssl",
@@ -572,7 +578,7 @@ checksum = "c09860255f7e7ab76fe682f8d46c1b8b0b4c4330d64136056f650d0e2d49c144"
 dependencies = [
  "doc-comment",
  "kstring",
- "liquid-core",
+ "liquid-core 0.22.0",
  "liquid-derive",
  "liquid-lib",
  "serde",
@@ -589,6 +595,22 @@ dependencies = [
  "itertools",
  "kstring",
  "liquid-derive",
+ "num-traits",
+ "pest",
+ "pest_derive",
+ "serde",
+]
+
+[[package]]
+name = "liquid-core"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85f6116d9b0d5b3bac6dc2930120f63bc16046b2fe6df48c29de26a36c2bff63"
+dependencies = [
+ "anymap2",
+ "chrono",
+ "itertools",
+ "kstring",
  "num-traits",
  "pest",
  "pest_derive",
@@ -615,7 +637,7 @@ dependencies = [
  "chrono",
  "itertools",
  "kstring",
- "liquid-core",
+ "liquid-core 0.22.0",
  "once_cell",
  "percent-encoding",
  "regex",
