@@ -7,14 +7,21 @@ use std::{convert::TryFrom, io::ErrorKind};
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
-#[derive(Deserialize, Debug, PartialEq, Default)]
+#[derive(Deserialize, Debug, PartialEq, Default, Clone)]
 pub struct Config {
     pub template: Option<TemplateConfig>,
     pub placeholders: Option<TemplateSlotsTable>,
+    pub hooks: Option<HooksConfig>,
     pub conditional: Option<HashMap<String, ConditionalConfig>>,
 }
 
-#[derive(Deserialize, Debug, PartialEq, Default)]
+#[derive(Deserialize, Debug, PartialEq, Default, Clone)]
+pub struct HooksConfig {
+    pub pre: Option<Vec<String>>,
+    pub post: Option<Vec<String>>,
+}
+
+#[derive(Deserialize, Debug, PartialEq, Default, Clone)]
 pub struct TemplateConfig {
     pub cargo_generate_version: Option<VersionReq>,
     pub include: Option<Vec<String>>,
@@ -22,7 +29,7 @@ pub struct TemplateConfig {
     pub ignore: Option<Vec<String>>,
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug, PartialEq, Clone)]
 pub struct ConditionalConfig {
     pub include: Option<Vec<String>>,
     pub exclude: Option<Vec<String>>,
@@ -30,7 +37,7 @@ pub struct ConditionalConfig {
     pub placeholders: Option<TemplateSlotsTable>,
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug, PartialEq, Clone)]
 pub struct TemplateSlotsTable(pub HashMap<String, toml::Value>);
 
 impl TryFrom<String> for Config {
@@ -59,6 +66,26 @@ impl Config {
             },
             None => Ok(None),
         }
+    }
+
+    pub fn get_pre_hooks(&self) -> Vec<String> {
+        self.hooks
+            .as_ref()
+            .map(|h| h.pre.as_ref().map(Clone::clone).unwrap_or_default())
+            .unwrap_or_default()
+    }
+
+    pub fn get_post_hooks(&self) -> Vec<String> {
+        self.hooks
+            .as_ref()
+            .map(|h| h.post.as_ref().map(Clone::clone).unwrap_or_default())
+            .unwrap_or_default()
+    }
+
+    pub fn get_hook_files(&self) -> Vec<String> {
+        let mut pre = self.get_pre_hooks();
+        pre.append(&mut self.get_post_hooks());
+        pre
     }
 }
 
@@ -112,6 +139,7 @@ mod tests {
             result,
             Config {
                 template: None,
+                hooks: None,
                 placeholders: None,
                 conditional: Default::default(),
             }

@@ -50,8 +50,9 @@ pub fn create_liquid_object(
 
 pub fn walk_dir(
     project_dir: &Path,
-    template: Object,
-    template_config: TemplateConfig,
+    liquid_object: &Object,
+    template_config: &mut TemplateConfig,
+    hook_files: &[String],
     mp: &mut MultiProgress,
 ) -> Result<()> {
     fn is_git_metadata(entry: &DirEntry) -> bool {
@@ -63,7 +64,7 @@ pub fn walk_dir(
 
     let engine = engine();
 
-    let matcher = Matcher::new(template_config, project_dir)?;
+    let matcher = Matcher::new(template_config, project_dir, hook_files)?;
     let spinner_style = spinner();
 
     let mut files_with_errors = Vec::new();
@@ -94,53 +95,60 @@ pub fn walk_dir(
         // todo(refactor): as parameter
         let verbose = false;
 
-        if matcher.should_include(relative_path) {
-            if entry.file_type().is_file() {
-                match template_process_file(&template, &engine, filename) {
-                    Err(e) => {
-                        if verbose {
-                            files_with_errors.push((filename.display().to_string(), e.clone()));
+        match matcher.should_include(relative_path) {
+            ShouldInclude::Include => {
+                if entry.file_type().is_file() {
+                    match template_process_file(liquid_object, &engine, filename) {
+                        Err(e) => {
+                            if verbose {
+                                files_with_errors.push((filename.display().to_string(), e.clone()));
+                            }
                         }
-                    }
-                    Ok(new_contents) => {
-                        let new_filename = substitute_filename(filename, &engine, &template)
-                            .with_context(|| {
+                        Ok(new_contents) => {
+                            let new_filename =
+                                substitute_filename(filename, &engine, liquid_object)
+                                    .with_context(|| {
+                                        format!(
+                                            "{} {} `{}`",
+                                            emoji::ERROR,
+                                            style("Error templating a filename").bold().red(),
+                                            style(filename.display()).bold()
+                                        )
+                                    })?;
+                            pb.inc(25);
+                            let relative_path = new_filename.strip_prefix(project_dir)?;
+                            let f = relative_path.display();
+                            fs::create_dir_all(new_filename.parent().unwrap()).unwrap();
+                            fs::write(new_filename.as_path(), new_contents).with_context(|| {
                                 format!(
                                     "{} {} `{}`",
                                     emoji::ERROR,
-                                    style("Error templating a filename").bold().red(),
-                                    style(filename.display()).bold()
+                                    style("Error writing rendered file.").bold().red(),
+                                    style(new_filename.display()).bold()
                                 )
                             })?;
-                        pb.inc(25);
-                        let relative_path = new_filename.strip_prefix(project_dir)?;
-                        let f = relative_path.display();
-                        fs::create_dir_all(new_filename.parent().unwrap()).unwrap();
-                        fs::write(new_filename.as_path(), new_contents).with_context(|| {
-                            format!(
-                                "{} {} `{}`",
-                                emoji::ERROR,
-                                style("Error writing rendered file.").bold().red(),
-                                style(new_filename.display()).bold()
-                            )
-                        })?;
-                        pb.inc(50);
-                        pb.finish_with_message(format!("Done: {}", f));
+                            pb.inc(50);
+                            pb.finish_with_message(format!("Done: {}", f));
+                        }
                     }
+                } else {
+                    let new_filename = substitute_filename(filename, &engine, liquid_object)?;
+                    let relative_path = new_filename.strip_prefix(project_dir)?;
+                    let f = relative_path.display();
+                    pb.inc(50);
+                    if filename != new_filename {
+                        fs::remove_dir_all(filename)?;
+                    }
+                    pb.inc(50);
+                    pb.finish_with_message(format!("Done: {}", f));
                 }
-            } else {
-                let new_filename = substitute_filename(filename, &engine, &template)?;
-                let relative_path = new_filename.strip_prefix(project_dir)?;
-                let f = relative_path.display();
-                pb.inc(50);
-                if filename != new_filename {
-                    fs::remove_dir_all(filename)?;
-                }
-                pb.inc(50);
-                pb.finish_with_message(format!("Done: {}", f));
             }
-        } else {
-            pb.finish_with_message(format!("Skipped: {}", f));
+            ShouldInclude::Exclude => {
+                pb.finish_with_message(format!("Skipped: {}", f));
+            }
+            ShouldInclude::Ignore => {
+                pb.finish_with_message(format!("Ignored: {}", f));
+            }
         }
     }
 
