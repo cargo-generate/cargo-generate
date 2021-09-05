@@ -49,7 +49,7 @@ fn extract_default(variable: &VarInfo) -> Option<String> {
     }
 }
 
-fn prompt_for_variable(variable: &TemplateSlots) -> Result<String> {
+pub fn prompt_for_variable(variable: &TemplateSlots) -> Result<String> {
     let prompt = format!("{} {}", emoji::SHRUG, style(&variable.prompt).bold(),);
 
     if let VarInfo::String { entry } = &variable.var_info {
