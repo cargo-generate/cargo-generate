@@ -4,6 +4,7 @@ use serde::Deserialize;
 use std::path::Path;
 use std::{collections::HashMap, fs};
 use std::{convert::TryFrom, io::ErrorKind};
+use walkdir::WalkDir;
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
@@ -60,6 +61,27 @@ impl Config {
             None => Ok(None),
         }
     }
+}
+
+pub fn locate_template_configs(dir: &Path) -> Result<Vec<String>> {
+    let mut result = vec![];
+
+    for entry in WalkDir::new(dir) {
+        let entry = entry?;
+        if entry.file_name() == CONFIG_FILE_NAME {
+            let path = entry
+                .path()
+                .parent()
+                .unwrap()
+                .strip_prefix(dir)
+                .unwrap()
+                .to_string_lossy()
+                .to_string();
+            result.push(path)
+        }
+    }
+
+    Ok(result)
 }
 
 #[cfg(test)]

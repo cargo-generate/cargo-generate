@@ -42,10 +42,12 @@ mod template_variables;
 pub use args::*;
 
 use anyhow::{anyhow, bail, Context, Result};
-use config::{Config, CONFIG_FILE_NAME};
+use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
 use favorites::{list_favorites, resolve_favorite_args_and_default_values};
+use interactive::prompt_for_variable;
 use liquid::ValueView;
+use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::{
     borrow::Borrow,
     collections::HashMap,
@@ -132,7 +134,7 @@ fn prepare_local_template(args: &Args) -> Result<(TempDir, PathBuf, String), any
         (None, Some(_)) => {
             let template_base_dir = copy_path_template_into_temp(args)?;
             let branch = args.branch.clone().unwrap_or_else(|| String::from("main"));
-            let template_folder = template_base_dir.path().into();
+            let template_folder = auto_locate_template_dir(template_base_dir.path())?;
             (template_base_dir, template_folder, branch)
         }
         _ => bail!(
@@ -144,6 +146,7 @@ fn prepare_local_template(args: &Args) -> Result<(TempDir, PathBuf, String), any
             style("--path <path>").bold().yellow(),
         ),
     };
+
     Ok((template_base_dir, template_folder, branch))
 }
 
@@ -216,16 +219,32 @@ fn resolve_template_dir(template_base_dir: &TempDir, args: &Args) -> Result<Path
                 ));
             }
 
-            println!(
-                "{} {} `{}`{}",
-                emoji::WRENCH,
-                style("Using template subfolder").bold(),
-                style(subfolder).bold().yellow(),
-                style("...").bold()
-            );
-            Ok(template_dir)
+            Ok(auto_locate_template_dir(&template_dir)?)
         }
-        None => Ok(template_base_dir.path().to_owned()),
+        None => auto_locate_template_dir(template_base_dir.path()),
+    }
+}
+
+fn auto_locate_template_dir(template_base_dir: &Path) -> Result<PathBuf> {
+    let config_paths = locate_template_configs(template_base_dir)?;
+    match config_paths.len() {
+        0 => Ok(template_base_dir.to_owned()),
+        1 => Ok(template_base_dir.join(&config_paths[0])),
+        _ => {
+            let prompt_args = TemplateSlots {
+                prompt: "Which template should be expanded?".into(),
+                var_name: "Template".into(),
+                var_info: VarInfo::String {
+                    entry: Box::new(StringEntry {
+                        default: Some(config_paths[0].clone()),
+                        choices: Some(config_paths),
+                        regex: None,
+                    }),
+                },
+            };
+            let path = prompt_for_variable(&prompt_args)?;
+            Ok(template_base_dir.join(&path))
+        }
     }
 }
 
