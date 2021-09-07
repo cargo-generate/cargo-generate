@@ -1,0 +1,9 @@
+[template]
+cargo_generate_version = "0.9.0"
+
+[hooks]
+pre = [
+    "fix-readme.rhai",
+    "ask-license.rhai"
+]
+post = ["post-script.rhai"]
