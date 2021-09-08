@@ -1,0 +1,11 @@
+[template]
+cargo_generate_version = "0.9.0"
+
+[placeholders]
+description = { type="string", prompt="Description for the crate?" }
+ask_for_string = { type="bool", prompt="Make a choice too?", default=true }
+
+[conditional.'ask_for_string'.placeholders.choice]
+type = "string"
+prompt = "Please select one..."
+choices = ["One", "Two", "Three", "Four"]
