@@ -15,7 +15,7 @@ console = "0.14.1"
 dialoguer = "0.8.0"
 dirs = "3.0.2"
 indicatif = "0.16.2"
-git2 = "0.13.21"
+git2 = "0.13.22"
 tempfile = "3.2.0"
 regex = "1.5.4"
 heck = "0.3.3"
@@ -27,13 +27,13 @@ walkdir = "2.3.2"
 remove_dir_all = "0.7.0"
 ignore = "0.4.18"
 url = "2.2.2"
-structopt = "0.3.22"
-anyhow = "1.0.43"
+structopt = "0.3.23"
+anyhow = "1.0.44"
 toml = "0.5.8"
-thiserror = "1.0.28"
+thiserror = "1.0.29"
 home = "0.5.3"
 sanitize-filename = "0.3"
-rhai = "1.0.2"
+rhai = "1.0.4"
 
 [dependencies.openssl]
 version = "0.10.36"
@@ -44,12 +44,12 @@ version = "1.0.4"
 features = ["serde"]
 
 [dependencies.serde]
-version = "1.0.125"
+version = "1.0.130"
 features = ["derive"]
 
 [dev-dependencies]
 predicates = "2.0.2"
-assert_cmd = "2.0.0"
+assert_cmd = "2.0.1"
 indoc = "1.0.3"
 
 [features]
