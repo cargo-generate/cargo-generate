@@ -58,3 +58,6 @@ vendored-openssl = ['openssl/vendored']
 [[bin]]
 path = "src/main.rs"
 name = "cargo-generate"
+
+[profile.release]
+lto = true
