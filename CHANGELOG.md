@@ -1,13 +1,44 @@
 # Changelog
 
 ## [Unreleased]
-- [enable pre/post hooks](https://github.com/cargo-generate/cargo-generate/issues/18)
-  
-  Support for template hooks written in [rhai](https://rhai.rs/book/about/index.html).
-  
-  Enables the template author to e.g. create/modify/prompt for template variables using complex logic, or to create/delete/rename files within the template.
-  
+
+## [0.10.0] 2021-09-19
+### ✨ Features
+- [feat: prompt for subfolder upon multiple templates](https://github.com/cargo-generate/cargo-generate/pull/446)
+  ![demo](https://user-images.githubusercontent.com/7338549/132187949-befdcaf3-a9ba-426b-b530-e4d6046a8c3d.gif)
+
   by [@taurr](https://github.com/taurr)
+- [feat: Pre/Post hooks](https://github.com/cargo-generate/cargo-generate/pull/445), 
+  [issue/18](https://github.com/cargo-generate/cargo-generate/issues/18)
+
+  Support for template hooks written in [rhai](https://rhai.rs/book/about/index.html).
+
+  Enables the template author to e.g. create/modify/prompt for template variables using complex logic, or to create/delete/rename files within the template.
+
+  by [@taurr](https://github.com/taurr)
+- [feat: include files conditionally](https://github.com/cargo-generate/cargo-generate/pull/431)
+  by [@taurr](https://github.com/taurr)
+
+### 🛠️ Maintenance
+- [fix(docs): closes #447](https://github.com/cargo-generate/cargo-generate/pull/457)
+- [Save 33% in size on release binary, bump dependencies](https://github.com/cargo-generate/cargo-generate/pull/454)
+- [Remove cargo dependency](https://github.com/cargo-generate/cargo-generate/pull/444)
+- [chore(deps): bump thiserror from 1.0.26 to 1.0.28](https://github.com/cargo-generate/cargo-generate/pull/438)
+- [refactor: add more clippy warnings](https://github.com/cargo-generate/cargo-generate/pull/437)
+- [README: improve cargo_generate_version example](https://github.com/cargo-generate/cargo-generate/pull/428)
+- [README: specify minimum version for feature](https://github.com/cargo-generate/cargo-generate/pull/433)
+- [README: Added --path documentation](https://github.com/cargo-generate/cargo-generate/pull/435)
+- [README: add installation instructions for Arch Linux](https://github.com/cargo-generate/cargo-generate/pull/436)
+- [README: add a little starter guide for template ci testing](https://github.com/cargo-generate/cargo-generate/pull/458)
+- 
+### Contributors
+- [MarcoIeni](https://github.com/MarcoIeni)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [k0pernicus](https://github.com/k0pernicus)
+- [messense](https://github.com/messense)
+- [orhun](https://github.com/orhun)
+- [sassman](https://github.com/sassman)
+- [taurr](https://github.com/taurr)
   
 ## [0.9.0] 2021-08-24
 ### ✨ Features
@@ -1084,7 +1115,9 @@ Similar to `cargo init --lib`, a `crate-type` support is now there.
 
 - First release!
 
-[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.10.0...HEAD
+
+[0.10.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.9.0...v0.10.0
 
 [0.9.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.8.0...v0.9.0
 
