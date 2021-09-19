@@ -4,6 +4,7 @@ use serde::Deserialize;
 use std::path::Path;
 use std::{collections::HashMap, fs};
 use std::{convert::TryFrom, io::ErrorKind};
+use walkdir::WalkDir;
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
@@ -89,14 +90,71 @@ impl Config {
     }
 }
 
+pub fn locate_template_configs(dir: &Path) -> Result<Vec<String>> {
+    let mut result = vec![];
+
+    for entry in WalkDir::new(dir) {
+        let entry = entry?;
+        if entry.file_name() == CONFIG_FILE_NAME {
+            let path = entry
+                .path()
+                .parent()
+                .unwrap()
+                .strip_prefix(dir)
+                .unwrap()
+                .to_string_lossy()
+                .to_string();
+            result.push(path)
+        }
+    }
+
+    Ok(result)
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::tests::{create_file, PathString};
+
     use super::*;
     use std::fs::File;
     use std::io::Write;
     use std::str::FromStr;
     use tempfile::tempdir;
     use toml::Value;
+
+    #[test]
+    fn locate_configs_returns_empty_upon_failure() -> anyhow::Result<()> {
+        let tmp = tempdir().unwrap();
+        create_file(&tmp, "dir1/Cargo.toml", "")?;
+        create_file(&tmp, "dir2/dir2_1/Cargo.toml", "")?;
+        create_file(&tmp, "dir3/Cargo.toml", "")?;
+
+        let result = locate_template_configs(tmp.path())?;
+        assert_eq!(Vec::new() as Vec<String>, result);
+        Ok(())
+    }
+
+    #[test]
+    fn locate_configs_can_locate_paths_with_cargo_generate() -> anyhow::Result<()> {
+        let tmp = tempdir().unwrap();
+        create_file(&tmp, "dir1/Cargo.toml", "")?;
+        create_file(&tmp, "dir2/dir2_1/Cargo.toml", "")?;
+        create_file(&tmp, "dir2/dir2_2/cargo-generate.toml", "")?;
+        create_file(&tmp, "dir3/Cargo.toml", "")?;
+        create_file(&tmp, "dir4/cargo-generate.toml", "")?;
+
+        let expected = vec![
+            Path::new("dir2").join("dir2_2").to_string(),
+            "dir4".to_string(),
+        ];
+        let result = {
+            let mut x = locate_template_configs(tmp.path())?;
+            x.sort();
+            x
+        };
+        assert_eq!(expected, result);
+        Ok(())
+    }
 
     #[test]
     fn test_deserializes_config() {

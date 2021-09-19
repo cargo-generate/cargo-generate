@@ -43,12 +43,14 @@ mod template_variables;
 pub use args::*;
 
 use anyhow::{anyhow, bail, Context, Result};
-use config::{Config, CONFIG_FILE_NAME};
+use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
 use favorites::{list_favorites, resolve_favorite_args_and_default_values};
 use hooks::{execute_post_hooks, execute_pre_hooks};
 use ignore_me::remove_dir_files;
+use interactive::prompt_for_variable;
 use liquid::ValueView;
+use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::{
     borrow::Borrow,
     collections::HashMap,
@@ -135,7 +137,8 @@ fn prepare_local_template(args: &Args) -> Result<(TempDir, PathBuf, String), any
         (None, Some(_)) => {
             let template_base_dir = copy_path_template_into_temp(args)?;
             let branch = args.branch.clone().unwrap_or_else(|| String::from("main"));
-            let template_folder = template_base_dir.path().into();
+            let template_folder =
+                auto_locate_template_dir(template_base_dir.path(), prompt_for_variable)?;
             (template_base_dir, template_folder, branch)
         }
         _ => bail!(
@@ -147,6 +150,7 @@ fn prepare_local_template(args: &Args) -> Result<(TempDir, PathBuf, String), any
             style("--path <path>").bold().yellow(),
         ),
     };
+
     Ok((template_base_dir, template_folder, branch))
 }
 
@@ -219,16 +223,38 @@ fn resolve_template_dir(template_base_dir: &TempDir, args: &Args) -> Result<Path
                 ));
             }
 
-            println!(
-                "{} {} `{}`{}",
-                emoji::WRENCH,
-                style("Using template subfolder").bold(),
-                style(subfolder).bold().yellow(),
-                style("...").bold()
-            );
-            Ok(template_dir)
+            Ok(auto_locate_template_dir(
+                &template_dir,
+                prompt_for_variable,
+            )?)
         }
-        None => Ok(template_base_dir.path().to_owned()),
+        None => auto_locate_template_dir(template_base_dir.path(), prompt_for_variable),
+    }
+}
+
+fn auto_locate_template_dir(
+    template_base_dir: &Path,
+    prompt: impl Fn(&TemplateSlots) -> Result<String>,
+) -> Result<PathBuf> {
+    let config_paths = locate_template_configs(template_base_dir)?;
+    match config_paths.len() {
+        0 => Ok(template_base_dir.to_owned()),
+        1 => Ok(template_base_dir.join(&config_paths[0])),
+        _ => {
+            let prompt_args = TemplateSlots {
+                prompt: "Which template should be expanded?".into(),
+                var_name: "Template".into(),
+                var_info: VarInfo::String {
+                    entry: Box::new(StringEntry {
+                        default: Some(config_paths[0].clone()),
+                        choices: Some(config_paths),
+                        regex: None,
+                    }),
+                },
+            };
+            let path = prompt(&prompt_args)?;
+            Ok(template_base_dir.join(&path))
+        }
     }
 }
 
@@ -532,5 +558,99 @@ fn rename_warning(name: &ProjectName) {
             style(&name.kebab_case()).bold().green(),
             style("...").bold()
         );
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{auto_locate_template_dir, project_variables::VarInfo};
+    use anyhow::anyhow;
+    use std::{
+        fs,
+        io::Write,
+        path::{Path, PathBuf},
+    };
+    use tempfile::{tempdir, TempDir};
+
+    #[test]
+    fn auto_locate_template_returns_base_when_no_cargo_generate_is_found() -> anyhow::Result<()> {
+        let tmp = tempdir().unwrap();
+        create_file(&tmp, "dir1/Cargo.toml", "")?;
+        create_file(&tmp, "dir2/dir2_1/Cargo.toml", "")?;
+        create_file(&tmp, "dir3/Cargo.toml", "")?;
+
+        let r = auto_locate_template_dir(tmp.path(), |_slots| Err(anyhow!("test")))?;
+        assert_eq!(tmp.path(), r);
+        Ok(())
+    }
+
+    #[test]
+    fn auto_locate_template_returns_path_when_single_cargo_generate_is_found() -> anyhow::Result<()>
+    {
+        let tmp = tempdir().unwrap();
+        create_file(&tmp, "dir1/Cargo.toml", "")?;
+        create_file(&tmp, "dir2/dir2_1/Cargo.toml", "")?;
+        create_file(&tmp, "dir2/dir2_2/cargo-generate.toml", "")?;
+        create_file(&tmp, "dir3/Cargo.toml", "")?;
+
+        let r = auto_locate_template_dir(tmp.path(), |_slots| Err(anyhow!("test")))?;
+        assert_eq!(tmp.path().join("dir2/dir2_2"), r);
+        Ok(())
+    }
+
+    #[test]
+    fn auto_locate_template_prompts_when_multiple_cargo_generate_is_found() -> anyhow::Result<()> {
+        let tmp = tempdir().unwrap();
+        create_file(&tmp, "dir1/Cargo.toml", "")?;
+        create_file(&tmp, "dir2/dir2_1/Cargo.toml", "")?;
+        create_file(&tmp, "dir2/dir2_2/cargo-generate.toml", "")?;
+        create_file(&tmp, "dir3/Cargo.toml", "")?;
+        create_file(&tmp, "dir4/cargo-generate.toml", "")?;
+
+        let r = auto_locate_template_dir(tmp.path(), |slots| match &slots.var_info {
+            VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
+            VarInfo::String { entry } => {
+                if let Some(mut choices) = entry.choices.clone() {
+                    choices.sort();
+                    let expected = vec![
+                        Path::new("dir2").join("dir2_2").to_string(),
+                        "dir4".to_string(),
+                    ];
+                    assert_eq!(expected, choices);
+                    Ok("my_path".to_string())
+                } else {
+                    anyhow::bail!("Missing choices")
+                }
+            }
+        });
+        assert_eq!(tmp.path().join("my_path"), r?);
+
+        Ok(())
+    }
+
+    pub trait PathString {
+        fn to_string(&self) -> String;
+    }
+
+    impl PathString for PathBuf {
+        fn to_string(&self) -> String {
+            self.as_path().to_string()
+        }
+    }
+
+    impl PathString for Path {
+        fn to_string(&self) -> String {
+            self.display().to_string()
+        }
+    }
+
+    pub fn create_file(base_path: &TempDir, path: &str, contents: &str) -> anyhow::Result<()> {
+        let path = base_path.path().join(path);
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+
+        fs::File::create(&path)?.write_all(contents.as_ref())?;
+        Ok(())
     }
 }
