@@ -440,7 +440,7 @@ The format for the version requirement is [documented here](https://doc.rust-lan
 
 ## Conditional template settings.
 
-Using `cargo-generate.toml`, values and some [`Rhai`](https://rhai.rs/book/) syntax, the template author can make certain conditional decisions before expansion of the template.
+Using `cargo-generate.toml`, values and some [`Rhai`] syntax, the template author can make certain conditional decisions before expansion of the template.
 
 `include`, `exclude`, `ignore` and `placeholders` can all be used in sections that are only used based upon the value of one or more values, possibly input by the user using the interactive prompt (if the values in question are defined as placeholders in the non-conditional section).
 
@@ -520,6 +520,97 @@ This last conditional block is simply to ignore the unneeded license files, base
 
 > :warning: Note that `include` and `exclude` are still mutually exclusive even if they are in different, but included, conditional sections.
 
+## Pre/Post scripts
+
+`cargo-generate` is able to use scripts written in [`Rhai`].
+
+These scripts may be executed as either *pre* or *post*:
+1. **pre**: executed before template expansion
+2. **post**: executed after template expansion, but before copying to the destination.
+
+> :speech_balloon: TIP for [VSCode] users: A [Rhai language extension] is available for download.
+
+### Use of scripts
+
+In `cargo-generate.toml` write a `[hooks]` section, example:
+```toml
+[template]
+cargo_generate_version = "0.10.0"
+
+[hooks]
+pre = ["pre-script.rhai"]
+#post = [...]
+
+[placeholders]
+license = { type = "string", prompt = "What license to use?", choices = ["APACHE", "MIT"], default = "MIT" }
+```
+
+Now, write the script in [`Rhai`], utilizing the `cargo-generate` [provided extensions](#Rhai-extensions):
+```rhai
+// we can see existing variables.
+// note that template and Rhai variables are separate!
+let crate_type = variable::get("crate_type")
+debug(`crate_type: ${crate_type}`);
+
+let license = variable::get("license").to_upper();
+while switch license {
+  "APACHE" => {
+    file::delete("LICENSE-MIT");
+    file::rename("LICENSE-APACHE", "LICENSE");
+    false
+  }
+  "MIT" => {
+    file::delete("LICENSE-APACHE");
+    file::rename("LICENSE-MIT", "LICENSE");
+    false
+  }
+  _ => true,
+} {
+  license = variable::prompt("Select license?", "MIT", [
+    "APACHE",
+    "MIT",
+  ]);
+}
+variable::set("license", license);
+```
+
+### Rhai extensions
+Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
+
+#### Variables
+##### get/set
+* **`variable::is_set(name: &str) -> bool`** <br/>
+  Returns true if the variable/placeholder has been set for the template
+* **`variable::get(name: &str) -> value`**  <br/>
+  Gets any defined variable in the `Liquid` template object
+* **`variable::set(name: &str, value: (&str|bool))`**  <br/>
+  Set new or overwrite existing variables. Do not allow to change types.
+
+##### Prompt
+* **`variable::prompt(text: &str, default_value: bool) -> value`**  <br/>
+  Prompt the user for a boolean value
+* **`variable::prompt(text: &str) -> value`**  <br/>
+  Prompt the user for a string value
+* **`variable::prompt(text: &str, default_value: &str) -> value`**  <br/>
+  Prompt the user for a string value, with a default already in place
+* **`variable::prompt(text: &str, default_value: &str, regex: &str) -> value`**  <br/>
+  Prompt the user for a string value, validated with a regex
+* **`variable::prompt(text: &str, default_value: &str, choices: Array) -> value`**  <br/>
+  Prompt the user for a choice value
+
+#### Files
+* **`file::rename(from: &str, to: &str)`**  <br/>
+  Rename one of the files in the template folder
+* **`file::delete(path: &str)`**  <br/>
+  Delete a file or folder inside the template folder
+* **`file::write(file: &str, content: &str)`**  <br/>
+  Create/overwrite a file inside the template folder
+* **`file::write(file: &str, content: Array)`**  <br/>
+  Create/overwrite a file inside the template folder, each entry in the array on a new line
+
+#### Other
+* **abort(reason: &str)**: Aborts `cargo-generate` with a script error.
+
 ## Cargo gen - alias
 
 `cargo gen` requires a [cargo alias](https://doc.rust-lang.org/cargo/reference/config.html)
@@ -550,3 +641,7 @@ If you want to contribute to `cargo-generate`, please read our [CONTRIBUTING not
 [CONTRIBUTING notes]: CONTRIBUTING.md
 [0.7.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0
 [0.9.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0
+
+[VSCode]: https://code.visualstudio.com
+[`Rhai`]: https://rhai.rs/book/
+[Rhai language extension]: https://marketplace.visualstudio.com/items?itemName=rhaiscript.vscode-rhai

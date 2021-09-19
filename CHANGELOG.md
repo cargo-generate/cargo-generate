@@ -1,7 +1,14 @@
 # Changelog
 
 ## [Unreleased]
-
+- [enable pre/post hooks](https://github.com/cargo-generate/cargo-generate/issues/18)
+  
+  Support for template hooks written in [rhai](https://rhai.rs/book/about/index.html).
+  
+  Enables the template author to e.g. create/modify/prompt for template variables using complex logic, or to create/delete/rename files within the template.
+  
+  by [@taurr](https://github.com/taurr)
+  
 ## [0.9.0] 2021-08-24
 ### ✨ Features
 - [enable paging for long choice lists](https://github.com/cargo-generate/cargo-generate/pull/423)

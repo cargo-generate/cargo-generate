@@ -34,6 +34,7 @@ thiserror = "1.0.29"
 home = "0.5.3"
 sanitize-filename = "0.3"
 rhai = "1.0.4"
+path-absolutize = "3.0.10"
 
 [dependencies.openssl]
 version = "0.10.36"

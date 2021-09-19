@@ -75,8 +75,12 @@ fn unwrap_path(it: Result<ignore::DirEntry, ignore::Error>) -> PathBuf {
     it.expect("Found invalid path: Aborting").into_path()
 }
 
-fn remove_dir_files(files: &[PathBuf], verbose: bool) {
-    for item in files.iter().filter(|file| file.exists()) {
+pub fn remove_dir_files(files: impl IntoIterator<Item = impl Into<PathBuf>>, verbose: bool) {
+    for item in files
+        .into_iter()
+        .map(|i| i.into() as PathBuf)
+        .filter(|file| file.exists())
+    {
         let ignore_message = format!("Ignoring: {}", &item.display());
         if item.is_dir() {
             remove_dir_all(&item).unwrap();

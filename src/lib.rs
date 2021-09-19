@@ -29,6 +29,7 @@ mod emoji;
 mod favorites;
 mod filenames;
 mod git;
+mod hooks;
 mod ignore_me;
 mod include_exclude;
 mod interactive;
@@ -45,6 +46,8 @@ use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
 use favorites::{list_favorites, resolve_favorite_args_and_default_values};
+use hooks::{execute_post_hooks, execute_pre_hooks};
+use ignore_me::remove_dir_files;
 use interactive::prompt_for_variable;
 use liquid::ValueView;
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
@@ -169,9 +172,9 @@ fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::
                 style("Required cargo-generate version not met. Required:")
                     .bold()
                     .red(),
-                style(requirement).bold().yellow(),
+                style(requirement).yellow(),
                 style(" was:").bold().red(),
-                style(version).bold().yellow(),
+                style(version).yellow(),
             );
         }
     }
@@ -403,29 +406,39 @@ fn expand_template(
     name: &ProjectName,
     dir: &Path,
     template_values: &HashMap<String, toml::Value>,
-    template_config: Config,
+    mut template_config: Config,
     args: &Args,
 ) -> Result<()> {
     let crate_type: CrateType = args.into();
-    let template = template::create_liquid_object(name, &crate_type, args.force)?;
-    let template = project_variables::fill_project_variables(template, &template_config, |slot| {
-        let provided_value = template_values.get(&slot.var_name).and_then(|v| v.as_str());
-        if provided_value.is_none() && args.silent {
-            anyhow::bail!(ConversionError::MissingPlaceholderVariable {
-                var_name: slot.var_name.clone()
-            })
-        }
-        interactive::variable(slot, provided_value)
-    })?;
-    let template = add_missing_provided_values(template, template_values)?;
+    let liquid_object = template::create_liquid_object(name, &crate_type, args.force)?;
+    let liquid_object =
+        project_variables::fill_project_variables(liquid_object, &template_config, |slot| {
+            let provided_value = template_values.get(&slot.var_name).and_then(|v| v.as_str());
+            if provided_value.is_none() && args.silent {
+                anyhow::bail!(ConversionError::MissingPlaceholderVariable {
+                    var_name: slot.var_name.clone()
+                })
+            }
+            interactive::variable(slot, provided_value)
+        })?;
+    let liquid_object = add_missing_provided_values(liquid_object, template_values)?;
+    let (mut template_cfg, liquid_object) =
+        merge_conditionals(&template_config, liquid_object, args)?;
 
-    let (template_cfg, template) = merge_conditionals(template_config, template, args)?;
+    let all_hook_files = template_config.get_hook_files();
 
-    let mut pbar = progressbar::new();
-
+    execute_pre_hooks(dir, &liquid_object, &mut template_config)?;
     ignore_me::remove_unneeded_files(dir, &template_cfg.ignore, args.verbose)?;
-
-    template::walk_dir(dir, template, template_cfg, &mut pbar)?;
+    let mut pbar = progressbar::new();
+    template::walk_dir(
+        dir,
+        &liquid_object,
+        &mut template_cfg,
+        &all_hook_files,
+        &mut pbar,
+    )?;
+    execute_post_hooks(dir, &liquid_object, &template_config)?;
+    remove_dir_files(all_hook_files, false);
 
     pbar.join().unwrap();
 
@@ -458,10 +471,11 @@ pub(crate) fn add_missing_provided_values(
 }
 
 fn merge_conditionals(
-    mut template_config: Config,
+    template_config: &Config,
     liquid_object: liquid::Object,
     args: &Args,
 ) -> Result<(config::TemplateConfig, liquid::Object), anyhow::Error> {
+    let mut template_config = (*template_config).clone();
     let mut template_cfg = template_config.template.unwrap_or_default();
     let conditionals = template_config.conditional.take();
     if conditionals.is_none() {

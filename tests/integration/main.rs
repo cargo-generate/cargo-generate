@@ -4,5 +4,6 @@ mod helpers;
 mod basics;
 mod favorites;
 mod filenames;
+mod hooks;
 mod library;
 mod values;
