@@ -551,7 +551,11 @@ fn rename_warning(name: &ProjectName) {
 mod tests {
     use crate::{auto_locate_template_dir, project_variables::VarInfo};
     use anyhow::anyhow;
-    use std::{fs, io::Write};
+    use std::{
+        fs,
+        io::Write,
+        path::{Path, PathBuf},
+    };
     use tempfile::{tempdir, TempDir};
 
     #[test]
@@ -594,8 +598,10 @@ mod tests {
             VarInfo::String { entry } => {
                 if let Some(mut choices) = entry.choices.clone() {
                     choices.sort();
-                    let separator = std::path::MAIN_SEPARATOR.to_string();
-                    let expected = vec!["dir2/dir2_2".replace("/", &separator), "dir4".to_string()];
+                    let expected = vec![
+                        Path::new("dir2").join("dir2_2").to_string(),
+                        "dir4".to_string(),
+                    ];
                     assert_eq!(expected, choices);
                     Ok("my_path".to_string())
                 } else {
@@ -606,6 +612,22 @@ mod tests {
         assert_eq!(tmp.path().join("my_path"), r?);
 
         Ok(())
+    }
+
+    pub trait PathString {
+        fn to_string(&self) -> String;
+    }
+
+    impl PathString for PathBuf {
+        fn to_string(&self) -> String {
+            self.as_path().to_string()
+        }
+    }
+
+    impl PathString for Path {
+        fn to_string(&self) -> String {
+            self.display().to_string()
+        }
     }
 
     pub fn create_file(base_path: &TempDir, path: &str, contents: &str) -> anyhow::Result<()> {
