@@ -86,7 +86,7 @@ pub fn locate_template_configs(dir: &Path) -> Result<Vec<String>> {
 
 #[cfg(test)]
 mod tests {
-    use crate::tests::create_file;
+    use crate::tests::{create_file, PathString};
 
     use super::*;
     use std::fs::File;
@@ -116,8 +116,10 @@ mod tests {
         create_file(&tmp, "dir3/Cargo.toml", "")?;
         create_file(&tmp, "dir4/cargo-generate.toml", "")?;
 
-        let separator = std::path::MAIN_SEPARATOR.to_string();
-        let expected = vec!["dir2/dir2_2".replace("/", &separator), "dir4".to_string()];
+        let expected = vec![
+            Path::new("dir2").join("dir2_2").to_string(),
+            "dir4".to_string(),
+        ];
         let result = {
             let mut x = locate_template_configs(tmp.path())?;
             x.sort();
