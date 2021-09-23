@@ -140,6 +140,46 @@ version = "0.1.0"
 }
 
 #[test]
+fn it_substitutes_authors_and_username() {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+authors = "{{authors}}"
+description = "A wonderful project by {{username}}"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
+        .current_dir(&dir.path())
+        .env("CARGO_EMAIL", "Email")
+        .env("CARGO_NAME", "Author")
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains(r#"authors = "Author <Email>""#));
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains(r#"description = "A wonderful project by Author""#));
+}
+
+#[test]
 fn it_substitutes_date() {
     let template = tmp_dir()
         .file(
