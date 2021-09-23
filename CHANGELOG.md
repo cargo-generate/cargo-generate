@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.10.1] 2021-09-23
+### 🤕 Fixes
+- [revert_to_git2_0.13.21_to_avoid_issues](https://github.com/cargo-generate/cargo-generate/pull/462)
+
 ## [0.10.0] 2021-09-19
 ### ✨ Features
 - [feat: prompt for subfolder upon multiple templates](https://github.com/cargo-generate/cargo-generate/pull/446)

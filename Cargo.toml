@@ -1,7 +1,7 @@
 [package]
 name = "cargo-generate"
 description = "cargo, make me a project"
-version = "0.10.0"
+version = "0.10.1"
 authors = [
     "Ashley Williams <ashley666ashley@gmail.com>"
 ]
@@ -13,7 +13,7 @@ include = ["src/**/*", "LICENSE-*", "*.md"]
 [dependencies]
 console = "0.14.1"
 dialoguer = "0.8.0"
-dirs = "3.0.2"
+dirs = "4.0.0"
 indicatif = "0.16.2"
 git2 = "0.13.22"
 tempfile = "3.2.0"
