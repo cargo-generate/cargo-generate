@@ -13,7 +13,7 @@ include = ["src/**/*", "LICENSE-*", "*.md"]
 [dependencies]
 console = "0.14.1"
 dialoguer = "0.8.0"
-dirs = "3.0.2"
+dirs = "4.0.0"
 indicatif = "0.16.2"
 # git2:0.13.22 pulls libgit2-sys:0.12.23+1.2.0, which causes errors on some systems
 git2 = "0.13.21"
