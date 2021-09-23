@@ -76,9 +76,6 @@ pub fn generate(mut args: Args) -> Result<()> {
 
     let default_values = resolve_favorite_args_and_default_values(&app_config, &mut args)?;
 
-    let project_name = resolve_project_name(&args)?;
-    let project_dir = resolve_project_dir(&project_name, &args)?;
-
     let (template_base_dir, template_folder, branch) = prepare_local_template(&args)?;
 
     let template_config = Config::from_path(
@@ -88,6 +85,9 @@ pub fn generate(mut args: Args) -> Result<()> {
 
     check_cargo_generate_version(&template_config)?;
     let template_values = resolve_template_values(default_values, &args)?;
+
+    let project_name = resolve_project_name(&args)?;
+    let project_dir = resolve_project_dir(&project_name, &args)?;
 
     println!(
         "{} {} {}",

@@ -4,7 +4,10 @@
 
 ## [0.10.1] 2021-09-23
 ### 🤕 Fixes
+- [improve ergonomics when asking for project-name](https://github.com/cargo-generate/cargo-generate/pull/464)
+  by [@taurr](https://github.com/taurr)
 - [revert_to_git2_0.13.21_to_avoid_issues](https://github.com/cargo-generate/cargo-generate/pull/462)
+  by [@taurr](https://github.com/taurr)
 
 ## [0.10.0] 2021-09-19
 ### ✨ Features
