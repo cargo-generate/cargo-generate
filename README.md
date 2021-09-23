@@ -166,7 +166,7 @@ supported placeholders are:
 
 - `{{authors}}`
 
-  this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.
+  this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration. It will either be on the form `username <email>` or just plain `username`.
 - `{{project-name}}`
 
   this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
@@ -179,6 +179,9 @@ supported placeholders are:
 - `{{os-arch}}`
 
   contains the current operating system and architecture ex: `linux-x86_64`
+- `{{username}}`
+
+  this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.
 
 Additionally, **all filters and tags** of the liquid template language are supported.
 For more information, check out the [Liquid Documentation on `Tags` and `Filters`][liquid].

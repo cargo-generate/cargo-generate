@@ -2,7 +2,10 @@ use anyhow::Result;
 use git2::{Config as GitConfig, Repository as GitRepository};
 use std::env;
 
-pub type Authors = String;
+pub struct Authors {
+    pub author: String,
+    pub username: String,
+}
 
 /// Taken from cargo and thus (c) 2020 Cargo Developers
 ///
@@ -75,8 +78,14 @@ pub fn get_authors() -> Result<Authors> {
     }
 
     let author = match discover_author()? {
-        (name, Some(email)) => format!("{} <{}>", name, email),
-        (name, None) => name,
+        (name, Some(email)) => Authors {
+            author: format!("{} <{}>", name, email),
+            username: name,
+        },
+        (name, None) => Authors {
+            author: name.clone(),
+            username: name,
+        },
     };
 
     Ok(author)

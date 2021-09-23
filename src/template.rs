@@ -42,7 +42,8 @@ pub fn create_liquid_object(
         "crate_type".into(),
         Value::Scalar(crate_type.to_string().into()),
     );
-    liquid_object.insert("authors".into(), Value::Scalar(authors.into()));
+    liquid_object.insert("authors".into(), Value::Scalar(authors.author.into()));
+    liquid_object.insert("username".into(), Value::Scalar(authors.username.into()));
     liquid_object.insert("os-arch".into(), Value::Scalar(os_arch.into()));
 
     Ok(liquid_object)
