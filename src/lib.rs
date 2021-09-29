@@ -81,7 +81,7 @@ pub fn generate(mut args: Args) -> Result<()> {
     let (template_base_dir, template_folder, branch) = prepare_local_template(&args)?;
 
     let template_config = Config::from_path(
-        &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &args.subfolder).ok(),
+        &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &template_folder).ok(),
     )?
     .unwrap_or_default();
 
@@ -348,24 +348,23 @@ pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resu
     copy_all(src, dst)
 }
 
-fn locate_template_file<T>(
+fn locate_template_file<T1, T2>(
     name: &str,
-    template_folder: T,
-    subfolder: &Option<String>,
+    template_base_folder: T1,
+    template_folder: T2,
 ) -> Result<PathBuf>
 where
-    T: AsRef<Path>,
+    T1: AsRef<Path>,
+    T2: AsRef<Path>,
 {
-    let template_folder = template_folder.as_ref().to_path_buf();
-    let mut search_folder = subfolder
-        .as_ref()
-        .map_or_else(|| template_folder.to_owned(), |s| template_folder.join(s));
+    let template_base_folder = template_base_folder.as_ref();
+    let mut search_folder = template_folder.as_ref().to_path_buf();
     loop {
         let file_path = search_folder.join(name.borrow());
         if file_path.exists() {
             return Ok(file_path);
         }
-        if search_folder == template_folder {
+        if search_folder == template_base_folder {
             bail!("File not found within template");
         }
         search_folder = search_folder
