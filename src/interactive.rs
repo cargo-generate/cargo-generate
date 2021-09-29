@@ -34,60 +34,68 @@ pub fn user_question(prompt: &str, default: &Option<String>) -> Result<String> {
     i.interact().map_err(Into::<anyhow::Error>::into)
 }
 
-fn extract_default(variable: &VarInfo) -> Option<String> {
-    match variable {
-        VarInfo::Bool {
-            default: Some(d), ..
-        } => Some(if *d { "true".into() } else { "false".into() }),
-        VarInfo::String { entry } => match entry.as_ref() {
-            StringEntry {
-                default: Some(d), ..
-            } => Some(d.into()),
-            _ => None,
-        },
-        _ => None,
-    }
-}
-
 pub fn prompt_for_variable(variable: &TemplateSlots) -> Result<String> {
+    use dialoguer::Select;
+
     let prompt = format!("{} {}", emoji::SHRUG, style(&variable.prompt).bold(),);
 
-    if let VarInfo::String { entry } = &variable.var_info {
-        if let Some(choices) = &entry.choices {
-            use dialoguer::Select;
-
-            let default = entry
-                .default
-                .as_ref()
-                .map_or(0, |default| choices.binary_search(default).unwrap_or(0));
+    match &variable.var_info {
+        VarInfo::Bool { default } => {
+            let choices = [false.to_string(), true.to_string()];
             let chosen = Select::with_theme(&ColorfulTheme::default())
-                .paged(choices.len() > Term::stdout().size().0 as usize)
-                .items(choices)
+                .items(&choices)
                 .with_prompt(&prompt)
-                .default(default)
+                .default(if default.unwrap_or(false) { 1 } else { 0 })
                 .interact()?;
 
-            return Ok(choices.index(chosen).to_string());
+            Ok(choices.index(chosen).to_string())
         }
-    }
+        VarInfo::String { entry } => match &entry.choices {
+            Some(choices) => {
+                let default = entry
+                    .default
+                    .as_ref()
+                    .map_or(0, |default| choices.binary_search(default).unwrap_or(0));
+                let chosen = Select::with_theme(&ColorfulTheme::default())
+                    .paged(choices.len() > Term::stdout().size().0 as usize)
+                    .items(choices)
+                    .with_prompt(&prompt)
+                    .default(default)
+                    .interact()?;
 
-    let prompt = format!("{} {}", prompt, choice_options(&variable.var_info));
-    loop {
-        let default = extract_default(&variable.var_info);
-        let user_entry = user_question(prompt.as_str(), &default)?;
+                Ok(choices.index(chosen).to_string())
+            }
+            None => {
+                let prompt = format!(
+                    "{} {}",
+                    prompt,
+                    match &entry.default {
+                        Some(d) => format!("[default: {}]", style(d).bold()),
+                        None => "".into(),
+                    }
+                );
+                let default = entry.default.as_ref().map(|v| v.into());
 
-        if is_valid_variable_value(&user_entry, &variable.var_info) {
-            return Ok(user_entry);
-        }
-        eprintln!(
-            "{} {} \"{}\" {}",
-            emoji::WARN,
-            style("Sorry,").bold().red(),
-            style(&user_entry).bold().yellow(),
-            style(format!("is not a valid value for {}", variable.var_name))
-                .bold()
-                .red()
-        );
+                match &entry.regex {
+                    Some(regex) => loop {
+                        let user_entry = user_question(prompt.as_str(), &default)?;
+                        if regex.is_match(&user_entry) {
+                            break Ok(user_entry);
+                        }
+                        eprintln!(
+                            "{} {} \"{}\" {}",
+                            emoji::WARN,
+                            style("Sorry,").bold().red(),
+                            style(&user_entry).bold().yellow(),
+                            style(format!("is not a valid value for {}", variable.var_name))
+                                .bold()
+                                .red()
+                        );
+                    },
+                    None => Ok(user_question(prompt.as_str(), &default)?),
+                }
+            }
+        },
     }
 }
 
@@ -98,34 +106,6 @@ pub(super) fn variable(variable: &TemplateSlots, provided_value: Option<&str>) -
     into_value(user_input, &variable.var_info)
 }
 
-fn is_valid_variable_value(user_entry: &str, var_info: &VarInfo) -> bool {
-    match var_info {
-        VarInfo::Bool { .. } => user_entry.parse::<bool>().is_ok(),
-        VarInfo::String { entry } => match entry.as_ref() {
-            StringEntry {
-                choices: Some(options),
-                regex: Some(reg),
-                ..
-            } => options.iter().any(|x| x == user_entry) && reg.is_match(user_entry),
-            StringEntry {
-                choices: Some(options),
-                regex: None,
-                ..
-            } => options.iter().any(|x| x == user_entry),
-            StringEntry {
-                choices: None,
-                regex: Some(reg),
-                ..
-            } => reg.is_match(user_entry),
-            StringEntry {
-                choices: None,
-                regex: None,
-                ..
-            } => true,
-        },
-    }
-}
-
 fn into_value(user_entry: String, var_info: &VarInfo) -> Result<Value> {
     match var_info {
         VarInfo::Bool { .. } => {
@@ -133,36 +113,5 @@ fn into_value(user_entry: String, var_info: &VarInfo) -> Result<Value> {
             Ok(Value::Scalar(as_bool.into()))
         }
         VarInfo::String { .. } => Ok(Value::Scalar(user_entry.into())),
-    }
-}
-
-fn choice_options(var_info: &VarInfo) -> String {
-    match var_info {
-        VarInfo::Bool { default: None } => "[true, false]".to_string(),
-        VarInfo::Bool { default: Some(d) } => {
-            format!("[true, false] [default: {}]", style(d).bold())
-        }
-        VarInfo::String { entry } => match entry.as_ref() {
-            StringEntry {
-                choices: Some(ref cs),
-                default: None,
-                ..
-            } => format!("[{}]", cs.join(", ")),
-            StringEntry {
-                choices: Some(ref cs),
-                default: Some(ref d),
-                ..
-            } => {
-                format!("[{}] [default: {}]", cs.join(", "), style(d).bold())
-            }
-            StringEntry {
-                choices: None,
-                default: Some(ref d),
-                ..
-            } => {
-                format!("[default: {}]", style(d).bold())
-            }
-            _ => "".to_string(),
-        },
     }
 }
