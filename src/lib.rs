@@ -53,9 +53,11 @@ use liquid::ValueView;
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::{
     borrow::Borrow,
+    cell::RefCell,
     collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
+    rc::Rc,
 };
 
 use tempfile::TempDir;
@@ -427,17 +429,25 @@ fn expand_template(
 
     let all_hook_files = template_config.get_hook_files();
 
-    execute_pre_hooks(dir, &liquid_object, &mut template_config)?;
+    let mut liquid_object = Rc::new(RefCell::new(liquid_object));
+
+    execute_pre_hooks(dir, Rc::clone(&liquid_object), &mut template_config)?;
     ignore_me::remove_unneeded_files(dir, &template_cfg.ignore, args.verbose)?;
     let mut pbar = progressbar::new();
+
+    // SAFETY: We gave a clone of the Rc to `execute_pre_hooks` which by now has already been dropped. Therefore, there
+    // is no other pointer into this Rc which makes it safe to `get_mut`.
+    let liquid_object_ref = Rc::get_mut(&mut liquid_object).unwrap().get_mut();
+
     template::walk_dir(
         dir,
-        &liquid_object,
+        liquid_object_ref,
         &mut template_cfg,
         &all_hook_files,
         &mut pbar,
     )?;
-    execute_post_hooks(dir, &liquid_object, &template_config)?;
+
+    execute_post_hooks(dir, Rc::clone(&liquid_object), &template_config)?;
     remove_dir_files(all_hook_files, false);
 
     pbar.join().unwrap();

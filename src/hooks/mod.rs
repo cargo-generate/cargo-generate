@@ -27,7 +27,7 @@ impl<F: FnOnce()> Drop for CleanupJob<F> {
 
 pub fn execute_pre_hooks(
     dir: &Path,
-    liquid_object: &liquid::Object,
+    liquid_object: Rc<RefCell<liquid::Object>>,
     template_cfg: &mut config::Config,
 ) -> Result<()> {
     let engine = create_rhai_engine(dir, liquid_object);
@@ -36,7 +36,7 @@ pub fn execute_pre_hooks(
 
 pub fn execute_post_hooks(
     dir: &Path,
-    liquid_object: &liquid::Object,
+    liquid_object: Rc<RefCell<liquid::Object>>,
     template_cfg: &config::Config,
 ) -> Result<()> {
     let engine = create_rhai_engine(dir, liquid_object);
@@ -65,8 +65,7 @@ fn evaluate_scripts(dir: &Path, scripts: &[String], engine: rhai::Engine) -> Res
     Ok(())
 }
 
-fn create_rhai_engine(dir: &Path, liquid_object: &liquid::Object) -> rhai::Engine {
-    let liquid_object = Rc::new(RefCell::new(liquid_object.clone()));
+fn create_rhai_engine(dir: &Path, liquid_object: Rc<RefCell<liquid::Object>>) -> rhai::Engine {
     let mut engine = rhai::Engine::new();
 
     let module = variable_mod::create_module(liquid_object);
