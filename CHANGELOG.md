@@ -1,8 +1,29 @@
 # Changelog
 
 ## [Unreleased]
+[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.10.2...HEAD
+
+## [0.10.2] 2021-10-09
+
+[0.10.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.10.1...v0.10.2
+
+### 🤕 Fixes
+- [fix(git+libgit2:versions): try to fix deps issue](https://github.com/cargo-generate/cargo-generate/pull/477)
+- [fix: Rhai variable extension not updating Liquid Object](https://github.com/cargo-generate/cargo-generate/pull/472)
+- [fix: `cargo-generate.toml` not picked up on interactive template selection](https://github.com/cargo-generate/cargo-generate/pull/469)
+
+### ✨ Features
+- [improvement: use a choice prompt instead of strings for boolean placeholders](https://github.com/cargo-generate/cargo-generate/pull/467)
+
+### Contributors
+- [GabrielDertoni](https://github.com/GabrielDertoni)
+- [sassman](https://github.com/sassman)
+- [taurr](https://github.com/taurr)
 
 ## [0.10.1] 2021-09-23
+
+[0.10.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.10.0...v0.10.1
+
 ### 🤕 Fixes
 - [improve ergonomics when asking for project-name](https://github.com/cargo-generate/cargo-generate/pull/464)
   by [@taurr](https://github.com/taurr)
@@ -1121,8 +1142,6 @@ Similar to `cargo init --lib`, a `crate-type` support is now there.
 ## 🌌 0.1.0
 
 - First release!
-
-[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.10.0...HEAD
 
 [0.10.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.9.0...v0.10.0
 
