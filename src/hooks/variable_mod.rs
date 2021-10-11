@@ -156,7 +156,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
                         choices: Some(
                             choices
                                 .iter()
-                                .map(|d| d.to_owned().as_string().unwrap())
+                                .map(|d| d.to_owned().into_string().unwrap())
                                 .collect(),
                         ),
                         regex: None,
