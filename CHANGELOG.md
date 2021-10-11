@@ -1,7 +1,13 @@
 # Changelog
 
 ## [Unreleased]
-[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.10.2...HEAD
+[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.10.3...HEAD
+
+## [0.10.3] 2021-10-11
+[0.10.3]: https://github.com/cargo-generate/cargo-generate/compare/v0.10.2...v0.10.3
+
+### 🛠️ Maintenance
+- [update dependencies](https://github.com/cargo-generate/cargo-generate/pull/480)
 
 ## [0.10.2] 2021-10-09
 
