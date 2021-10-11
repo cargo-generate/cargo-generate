@@ -4,9 +4,9 @@ version = 3
 
 [[package]]
 name = "ahash"
-version = "0.7.4"
+version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43bb833f0bf979d8475d38fbf09ed3b8a55e1885fe93ad3f93239fc6a4f17b98"
+checksum = "991984e3fd003e7ba02eb724f87a0f997b78677c46c0e91f8424ad7394c9886a"
 dependencies = [
  "getrandom",
  "once_cell",
@@ -563,9 +563,9 @@ dependencies = [
 
 [[package]]
 name = "libssh2-sys"
-version = "0.2.21"
+version = "0.2.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0186af0d8f171ae6b9c4c90ec51898bad5d08a2d5e470903a50d9ad8959cbee"
+checksum = "b094a36eb4b8b8c8a7b4b8ae43b2944502be3e59cd87687595cf6b0a71b3f4ca"
 dependencies = [
  "cc",
  "libc",
@@ -1089,9 +1089,9 @@ dependencies = [
 
 [[package]]
 name = "rhai"
-version = "1.0.6"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a2bb3d4236f1aac51ab8f1dccbe7e1c32ce2369ba5b3729affa1e65787a72d7"
+checksum = "f0a6abd5b3f1fe29984451102a69c79e65212f6c70015a68245a43a8ecc2a88b"
 dependencies = [
  "ahash",
  "instant",
@@ -1103,9 +1103,9 @@ dependencies = [
 
 [[package]]
 name = "rhai_codegen"
-version = "1.0.0"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a340b02636b22e61d94ee53e6bcc2d01d339958766b2003b860d178ccf5ae5e"
+checksum = "f2a81e59b9782e8b85052aaed305d71dfcdec1bfa53e774c19ac1085307cbf39"
 dependencies = [
  "proc-macro2",
  "quote",
