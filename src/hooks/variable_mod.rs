@@ -225,7 +225,7 @@ fn rhai_to_liquid_value(val: Dynamic) -> Result<Value> {
     val.as_bool()
         .map(Into::into)
         .map(Value::Scalar)
-        .or_else(|_| val.clone().as_string().map(Into::into).map(Value::Scalar))
+        .or_else(|_| val.clone().into_string().map(Into::into).map(Value::Scalar))
         .or_else(|_| {
             val.clone()
                 .try_cast::<Array>()
