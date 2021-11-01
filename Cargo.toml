@@ -38,7 +38,7 @@ rhai = "1.0.4"
 path-absolutize = "3.0.10"
 
 [dependencies.openssl]
-version = "0.10.36"
+version = "0.10.38"
 optional = true
 
 [dependencies.semver]
