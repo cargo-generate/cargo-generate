@@ -326,7 +326,7 @@ until the user entered something that is allowed by this regex.
 An example with a regex that allows only numbers
 ```toml
 [placeholders]
-phone_number = { type = "string", prompt = "What's your phone number?", regex = "[0-9]+" }
+phone_number = { type = "string", prompt = "What's your phone number?", regex = "^[0-9]+$" }
 ```
 
 ## Default values for placeholders
