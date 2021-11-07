@@ -1,7 +1,7 @@
 use liquid::{Object, ValueView};
 use liquid_core::Value;
 use regex::Regex;
-use rhai::{Dynamic, EvalAltResult, Module};
+use rhai::{Array, Dynamic, EvalAltResult, Module};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -52,6 +52,8 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     });
 
     module.set_native_fn("set", {
+        let liquid_object = liquid_object.clone();
+
         move |name: &str, value: bool| -> Result<()> {
             match liquid_object.get_value(name) {
                 NamedValue::NonExistant | NamedValue::Bool(_) => {
@@ -61,6 +63,21 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
                     Ok(())
                 }
                 _ => Err(format!("Variable {} not a bool", name).into()),
+            }
+        }
+    });
+
+    module.set_native_fn("set", {
+        move |name: &str, value: Array| -> Result<()> {
+            match liquid_object.get_value(name) {
+                NamedValue::NonExistant => {
+                    let val = rhai_to_liquid_value(Dynamic::from(value))?;
+                    liquid_object
+                        .borrow_mut()
+                        .insert(name.to_string().into(), val);
+                    Ok(())
+                }
+                _ => Err(format!("Variable {} not an array", name).into()),
             }
         }
     });
@@ -201,5 +218,63 @@ impl GetNamedValue for Rc<RefCell<Object>> {
                 .unwrap_or_else(|| NamedValue::NonExistant),
             None => NamedValue::NonExistant,
         }
+    }
+}
+
+fn rhai_to_liquid_value(val: Dynamic) -> Result<Value> {
+    val.as_bool()
+        .map(Into::into)
+        .map(Value::Scalar)
+        .or_else(|_| val.clone().into_string().map(Into::into).map(Value::Scalar))
+        .or_else(|_| {
+            val.clone()
+                .try_cast::<Array>()
+                .ok_or_else(|| {
+                    format!(
+                        "expecting type to be string, bool or array but found a '{}' instead",
+                        val.type_name()
+                    )
+                    .into()
+                })
+                .and_then(|arr| {
+                    arr.into_iter()
+                        .map(rhai_to_liquid_value)
+                        .collect::<Result<_>>()
+                        .map(Value::Array)
+                })
+        })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rhai_set() {
+        let mut engine = rhai::Engine::new();
+        let liquid_object = Rc::new(RefCell::new(liquid::Object::new()));
+
+        let module = create_module(liquid_object.clone());
+        engine.register_static_module("variable", module.into());
+
+        engine
+            .eval::<()>(
+                r#"
+            let dependencies = ["some_dep", "other_dep"];
+
+            variable::set("dependencies", dependencies);
+        "#,
+            )
+            .unwrap();
+
+        let liquid_object = liquid_object.borrow();
+
+        assert_eq!(
+            liquid_object.get("dependencies"),
+            Some(&Value::Array(vec![
+                Value::Scalar("some_dep".into()),
+                Value::Scalar("other_dep".into())
+            ]))
+        );
     }
 }
