@@ -11,8 +11,8 @@ edition = "2018"
 include = ["src/**/*", "LICENSE-*", "*.md"]
 
 [dependencies]
-console = "0.14.1"
-dialoguer = "0.8.0"
+console = "0.15.0"
+dialoguer = "0.9.0"
 dirs = "4.0.0"
 indicatif = "0.16.2"
 git2 = "0.13"
@@ -28,31 +28,31 @@ walkdir = "2.3.2"
 remove_dir_all = "0.7.0"
 ignore = "0.4.18"
 url = "2.2.2"
-structopt = "0.3.23"
+structopt = "0.3.25"
 anyhow = "1.0.44"
 toml = "0.5.8"
 thiserror = "1.0.29"
 home = "0.5.3"
 sanitize-filename = "0.3"
-rhai = "1.0.4"
-path-absolutize = "3.0.10"
+rhai = "1.1.1"
+path-absolutize = "3.0"
 
 [dependencies.openssl]
-version = "0.10.36"
+version = "0.10"
 optional = true
 
 [dependencies.semver]
-version = "1.0.4"
+version = "1.0"
 features = ["serde"]
 
 [dependencies.serde]
-version = "1.0.130"
+version = "1.0"
 features = ["derive"]
 
 [dev-dependencies]
-predicates = "2.0.2"
-assert_cmd = "2.0.1"
-indoc = "1.0.3"
+predicates = "2.0"
+assert_cmd = "2.0"
+indoc = "1.0"
 
 [features]
 vendored-openssl = ['openssl/vendored']

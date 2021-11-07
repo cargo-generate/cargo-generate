@@ -3,7 +3,7 @@ use crate::{
     project_variables::{StringEntry, TemplateSlots, VarInfo},
 };
 use anyhow::Result;
-use console::{style, Term};
+use console::style;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::Input;
 use liquid_core::Value;
@@ -57,7 +57,6 @@ pub fn prompt_for_variable(variable: &TemplateSlots) -> Result<String> {
                     .as_ref()
                     .map_or(0, |default| choices.binary_search(default).unwrap_or(0));
                 let chosen = Select::with_theme(&ColorfulTheme::default())
-                    .paged(choices.len() > Term::stdout().size().0 as usize)
                     .items(choices)
                     .with_prompt(&prompt)
                     .default(default)
