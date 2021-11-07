@@ -654,7 +654,7 @@ jobs:
       PROJECT_NAME: mytemplate
     steps:
       - uses: actions/checkout@v2
-      - uses: cargo-generate/cargo-generate-action@v0.9.0
+      - uses: cargo-generate/cargo-generate-action@v0.11.0
         with:
           name: ${{ env.PROJECT_NAME }}
       - uses: actions-rs/toolchain@v1
@@ -666,10 +666,11 @@ jobs:
       - run: |
           mv $PROJECT_NAME ${{ runner.temp }}/
           cd ${{ runner.temp }}/$PROJECT_NAME
-          cargo build --release
+          cargo check
 ```
 
-So here you got a very simple little pipeline that builds scheduled (weekly) and on push. It processes your template repo and runs a `cargo build --release` as the final step. That's it, a good start to build on.
+So here you got a very simple little pipeline that builds scheduled (weekly) and on push. 
+It processes your template repo and runs a `cargo check` as the final step. That's it, a good start to build on.
 
 [gh/action]: https://github.com/marketplace/actions/cargo-generate
 
@@ -703,7 +704,6 @@ If you want to contribute to `cargo-generate`, please read our [CONTRIBUTING not
 [CONTRIBUTING notes]: CONTRIBUTING.md
 [0.7.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0
 [0.9.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0
-
 [VSCode]: https://code.visualstudio.com
 [`Rhai`]: https://rhai.rs/book/
 [Rhai language extension]: https://marketplace.visualstudio.com/items?itemName=rhaiscript.vscode-rhai

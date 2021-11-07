@@ -1,7 +1,28 @@
 # Changelog
 
-## [Unreleased]
-[Unreleased]: https://github.com/cargo-generate/cargo-generate/compare/v0.10.3...HEAD
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.11.0...HEAD)
+
+## [0.11.0] 2021-11-07
+[0.11.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.10.3...v0.11.0
+
+### ✨ Features
+- [feature: add support for arrays in the variable::set Rhai script extension](https://github.com/cargo-generate/cargo-generate/pull/474)
+- [feature: add username placeholder](https://github.com/cargo-generate/cargo-generate/pull/463)
+
+### 🤕 Fixes
+- [fix: print regex error](https://github.com/cargo-generate/cargo-generate/pull/488)
+- [fix: README regex example](https://github.com/cargo-generate/cargo-generate/pull/490)
+- [fix: improved choice lists](https://github.com/cargo-generate/cargo-generate/issues/400)
+
+### 🛠️ Maintenance
+- [update dependencies](https://github.com/cargo-generate/cargo-generate/pull/491)
+- [whitelist `time` advisories](https://github.com/cargo-generate/cargo-generate/pull/489)
+
+### Contributors
+- [GabrielDertoni](https://github.com/GabrielDertoni)
+- [MarcoIeni](https://github.com/MarcoIeni)
+- [sassman](https://github.com/sassman)
+- [taurr](https://github.com/taurr)
 
 ## [0.10.3] 2021-10-11
 [0.10.3]: https://github.com/cargo-generate/cargo-generate/compare/v0.10.2...v0.10.3
