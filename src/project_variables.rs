@@ -59,8 +59,12 @@ pub enum ConversionError {
     MissingPlaceholderVariable { var_name: String },
     #[error("field `{field}` of variable `{var_name}` does not match configured regex")]
     RegexDoesntMatchField { var_name: String, field: String },
-    #[error("regex of `{var_name}` is not a valid regex")]
-    InvalidRegex { var_name: String, regex: String },
+    #[error("regex of `{var_name}` is not a valid regex. {error}")]
+    InvalidRegex {
+        var_name: String,
+        regex: String,
+        error: regex::Error,
+    },
     #[error("placeholder `{var_name}` is not valid as you can't override `project-name`, `crate_name`, `crate_type`, `authors` and `os-arch`")]
     InvalidPlaceholderName { var_name: String },
 }
@@ -192,9 +196,10 @@ fn extract_regex(
         }),
         (SupportedVarType::String, Some(toml::Value::String(value))) => match Regex::new(value) {
             Ok(regex) => Ok(Some(regex)),
-            Err(_) => Err(ConversionError::InvalidRegex {
+            Err(e) => Err(ConversionError::InvalidRegex {
                 var_name: var_name.into(),
                 regex: value.clone(),
+                error: e,
             }),
         },
         (SupportedVarType::String, Some(_)) => Err(ConversionError::WrongTypeParameter {
