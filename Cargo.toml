@@ -50,7 +50,7 @@ version = "1.0"
 features = ["derive"]
 
 [dev-dependencies]
-predicates = "2.0"
+predicates = "2.1"
 assert_cmd = "2.0"
 indoc = "1.0"
 
