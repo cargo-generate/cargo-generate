@@ -11,7 +11,7 @@ use crate::emoji;
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 pub struct AppConfig {
     pub favorites: Option<HashMap<String, FavoriteConfig>>,
     pub values: Option<HashMap<String, toml::Value>>,
@@ -25,15 +25,6 @@ pub struct FavoriteConfig {
     pub subfolder: Option<String>,
     pub path: Option<PathBuf>,
     pub values: Option<HashMap<String, toml::Value>>,
-}
-
-impl Default for AppConfig {
-    fn default() -> Self {
-        Self {
-            favorites: None,
-            values: None,
-        }
-    }
 }
 
 impl AppConfig {
