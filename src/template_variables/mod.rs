@@ -39,7 +39,7 @@ pub fn resolve_template_values(
     values.extend(
         args.template_values_file
             .as_ref()
-            .map(|p| Path::new(p))
+            .map(Path::new)
             .map_or(Ok(Default::default()), |path| {
                 read_template_values_file(path)
             })?,

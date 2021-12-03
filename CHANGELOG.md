@@ -1,6 +1,15 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.11.0...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.11.1...HEAD)
+
+## [0.11.1] 2021-12-03
+[0.11.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.11.0...v0.11.1
+
+### 🛠️ Maintenance
+- [update dependencies + upgrade to rust 2021 edition](https://github.com/cargo-generate/cargo-generate/pull/500)
+
+### Contributors
+- [sassman](https://github.com/sassman)
 
 ## [0.11.0] 2021-11-07
 [0.11.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.10.3...v0.11.0

@@ -1,13 +1,13 @@
 [package]
 name = "cargo-generate"
 description = "cargo, make me a project"
-version = "0.11.0"
+version = "0.11.1"
 authors = [
     "Ashley Williams <ashley666ashley@gmail.com>"
 ]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/cargo-generate/cargo-generate"
-edition = "2018"
+edition = "2021"
 include = ["src/**/*", "LICENSE-*", "*.md"]
 
 [dependencies]
@@ -29,12 +29,12 @@ remove_dir_all = "0.7.0"
 ignore = "0.4.18"
 url = "2.2.2"
 structopt = "0.3.25"
-anyhow = "1.0.44"
+anyhow = "1.0.51"
 toml = "0.5.8"
 thiserror = "1.0.29"
 home = "0.5.3"
 sanitize-filename = "0.3"
-rhai = "1.1.1"
+rhai = "1.2.1"
 path-absolutize = "3.0"
 
 [dependencies.openssl]
@@ -50,7 +50,7 @@ version = "1.0"
 features = ["derive"]
 
 [dev-dependencies]
-predicates = "2.0"
+predicates = "2.1"
 assert_cmd = "2.0"
 indoc = "1.0"
 
