@@ -6,7 +6,7 @@
 [0.11.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.11.0...v0.11.1
 
 ### 🛠️ Maintenance
-- [update dependencies](https://github.com/cargo-generate/cargo-generate/pull/500)
+- [update dependencies + upgrade to rust 2021 edition](https://github.com/cargo-generate/cargo-generate/pull/500)
 
 ### Contributors
 - [sassman](https://github.com/sassman)
