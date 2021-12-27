@@ -589,9 +589,9 @@ dependencies = [
 
 [[package]]
 name = "liquid"
-version = "0.23.0"
+version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d7b354744435fa481a73167dc69afe4af3ecd8056607ef05996c83b85003f83"
+checksum = "26e930310cf4334c4936ae18737500a57739c69442b5c42bae114d619af54b82"
 dependencies = [
  "doc-comment",
  "kstring",
