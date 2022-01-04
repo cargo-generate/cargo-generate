@@ -54,10 +54,7 @@ impl<'a> GitConfig<'a> {
                 if !full_path.exists() {
                     anyhow::bail!("The given git remote {:?} does not exist.", git);
                 }
-                (
-                    full_path.display().to_string(),
-                    RepoKind::LocalFolder,
-                )
+                (full_path.display().to_string(), RepoKind::LocalFolder)
             }
             k => (git.to_string(), k),
         };
@@ -95,7 +92,7 @@ fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> String {
         "gl:" => format!("https://gitlab.com/{}.git", &git[3..]),
         "bb:" => format!("https://bitbucket.org/{}.git", &git[3..]),
         "gh:" => format!("https://github.com/{}.git", &git[3..]),
-        _ => git.to_owned()
+        _ => git.to_owned(),
     }
 }
 
@@ -349,10 +346,7 @@ mod tests {
 
     #[test]
     fn should_support_a_local_relative_path() {
-        let remote: String = GitConfig::new("src", None, None)
-            .unwrap()
-            .remote
-            .into();
+        let remote: String = GitConfig::new("src", None, None).unwrap().remote.into();
         #[cfg(unix)]
         assert!(
             remote.ends_with("/src"),
@@ -381,14 +375,11 @@ mod tests {
         // Absolute path.
         // If this fails because you cloned this repository into a non-UTF-8 directory... all
         // I can say is you probably had it comin'.
-        let remote: String = GitConfig::new(
-            current_dir().unwrap().display().to_string(),
-            None,
-            None,
-        )
-        .unwrap()
-        .remote
-        .into();
+        let remote: String =
+            GitConfig::new(current_dir().unwrap().display().to_string(), None, None)
+                .unwrap()
+                .remote
+                .into();
         #[cfg(unix)]
         assert!(remote.starts_with('/'), "remote {} starts with /", &remote);
         #[cfg(windows)]
@@ -432,9 +423,18 @@ mod tests {
 
     #[test]
     fn should_support_bb_gl_gh_abbreviations() {
-        assert_eq!(&abbreviated_git_url_to_full_remote("gh:foo/bar"), "https://github.com/foo/bar.git");
-        assert_eq!(&abbreviated_git_url_to_full_remote("bb:foo/bar"), "https://bitbucket.org/foo/bar.git");
-        assert_eq!(&abbreviated_git_url_to_full_remote("gl:foo/bar"), "https://gitlab.com/foo/bar.git");
+        assert_eq!(
+            &abbreviated_git_url_to_full_remote("gh:foo/bar"),
+            "https://github.com/foo/bar.git"
+        );
+        assert_eq!(
+            &abbreviated_git_url_to_full_remote("bb:foo/bar"),
+            "https://bitbucket.org/foo/bar.git"
+        );
+        assert_eq!(
+            &abbreviated_git_url_to_full_remote("gl:foo/bar"),
+            "https://gitlab.com/foo/bar.git"
+        );
         assert_eq!(&abbreviated_git_url_to_full_remote("foo/bar"), "foo/bar");
     }
 }
