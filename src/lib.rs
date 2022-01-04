@@ -279,11 +279,8 @@ fn clone_git_template_into_temp(args: &Args) -> Result<(TempDir, String)> {
         .clone()
         .with_context(|| "Missing option git, path or a favorite")?;
 
-    let git_config = GitConfig::new_abbr(
-        remote.into(),
-        args.branch.to_owned(),
-        args.ssh_identity.clone(),
-    )?;
+    let git_config =
+        GitConfig::new_abbr(remote, args.branch.to_owned(), args.ssh_identity.clone())?;
 
     let branch = git::create(git_clone_dir.path(), git_config).map_err(|e| {
         anyhow!(

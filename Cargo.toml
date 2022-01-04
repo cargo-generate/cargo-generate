@@ -54,6 +54,11 @@ predicates = "2.1"
 assert_cmd = "2.0"
 indoc = "1.0"
 
+[dev-dependencies.cargo-husky]
+version = "1"
+default-features = false
+features = ["prepush-hook", "run-cargo-test", "run-cargo-clippy", "run-cargo-fmt"]
+
 [features]
 vendored-openssl = ['openssl/vendored']
 
