@@ -121,7 +121,7 @@
 
 - [TEMPLATES.md: link to cargo-generate topic](https://github.com/cargo-generate/cargo-generate/pull/416)
 
-  Template repos should be tagged with the `cargo-generate` GitHub topic, [read more..](https://github.com/cargo-generate/cargo-generate/blob/master/TEMPLATES.md#available-templates)
+  Template repos should be tagged with the `cargo-generate` GitHub topic, [read more..](https://github.com/cargo-generate/cargo-generate/blob/main/TEMPLATES.md#available-templates)
 
   by [@MarcoIeni](https://github.com/MarcoIeni),
   [#407](https://github.com/cargo-generate/cargo-generate/pull/407)
@@ -527,7 +527,7 @@ Similar to `cargo init --lib`, a `crate-type` support is now there.
 - ### 👯 New Templates
 
   - **`generust`: a template that provides a Rust web server and WASM client with
-    some [interesting features](https://github.com/KyleU/generust/blob/master/doc/features.md) - [KyleU], [pull/203]**
+    some [interesting features](https://github.com/KyleU/generust/blob/main/doc/features.md) - [KyleU], [pull/203]**
 
     [KyleU]: https://github.com/KyleU
 
@@ -704,7 +704,7 @@ Similar to `cargo init --lib`, a `crate-type` support is now there.
   - **Add config file for configuring include / exclude of files to template - [xortive], [pull/174]**
 
     Adds support for
-    the [cargo-generate.toml](https://github.com/ashleygwilliams/cargo-generate/blob/master/README.md#include--exclude)
+    the [cargo-generate.toml](https://github.com/ashleygwilliams/cargo-generate/blob/main/README.md#include--exclude)
     file, which allows templates to configure which files should be processed, either using a whitelist
     method (`include`), or a blacklist method (`exclude`). When both `include` and `exclude` are present, `include`
     will be preferred. This
