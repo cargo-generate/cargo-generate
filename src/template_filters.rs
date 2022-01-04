@@ -1,5 +1,5 @@
 use anyhow::Result;
-use heck::{CamelCase, KebabCase, SnakeCase};
+use heck::{ToKebabCase, ToSnakeCase, ToUpperCamelCase};
 use liquid_core::{Filter, ParseFilter, Runtime, ValueView};
 use liquid_derive::FilterReflection;
 
@@ -52,7 +52,7 @@ impl Filter for PascalCaseFilter {
             .as_scalar()
             .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
 
-        let input = input.into_string().to_camel_case();
+        let input = input.into_string().to_string().to_upper_camel_case();
         Ok(liquid::model::Value::scalar(input))
     }
 }
@@ -79,7 +79,7 @@ impl Filter for SnakeCaseFilter {
             .as_scalar()
             .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
 
-        let input = input.into_string().to_snake_case();
+        let input = input.into_string().to_string().to_snake_case();
         Ok(input.to_value())
     }
 }

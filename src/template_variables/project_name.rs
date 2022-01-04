@@ -1,4 +1,4 @@
-use heck::{KebabCase, SnakeCase};
+use heck::{ToKebabCase, ToSnakeCase};
 
 /// Stores user inputted name and provides convenience methods
 /// for handling casing.
