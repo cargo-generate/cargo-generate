@@ -9,7 +9,7 @@ use git2::ErrorCode;
 use git2::{Cred, FetchOptions, ProxyOptions, RemoteCallbacks, Repository, RepositoryInitOptions};
 use remove_dir_all::remove_dir_all;
 use std::borrow::Cow;
-use std::ops::{Add, Deref, Sub};
+use std::ops::{Add, Sub};
 use std::path::{Path, PathBuf};
 use std::thread::sleep;
 use std::time::Duration;
@@ -42,27 +42,28 @@ pub struct GitConfig<'a> {
 impl<'a> GitConfig<'a> {
     /// Creates a new `GitConfig` by parsing `git` as a URL or a local path.
     pub fn new(
-        git: Cow<'a, str>,
+        git: impl AsRef<str>,
         branch: Option<String>,
         identity: Option<PathBuf>,
     ) -> Result<Self> {
-        let (remote, kind) = match determine_repo_kind(git.as_ref()) {
-            RepoKind::Invalid => anyhow::bail!("Invalid git remote '{}'", &git),
+        let git = git.as_ref();
+        let (remote, kind) = match determine_repo_kind(git) {
+            RepoKind::Invalid => anyhow::bail!("Invalid git remote '{}'", git),
             RepoKind::LocalFolder => {
-                let full_path = canonicalize_path(git.deref().as_ref())?;
+                let full_path = canonicalize_path(Path::new(git))?;
                 if !full_path.exists() {
-                    anyhow::bail!("The given git remote {:?} does not exist.", &git,);
+                    anyhow::bail!("The given git remote {:?} does not exist.", git);
                 }
                 (
-                    full_path.display().to_string().into(),
+                    full_path.display().to_string(),
                     RepoKind::LocalFolder,
                 )
             }
-            k => (git, k),
+            k => (git.to_string(), k),
         };
 
         Ok(GitConfig {
-            remote,
+            remote: Cow::from(remote),
             kind,
             identity,
             branch: branch
@@ -76,14 +77,25 @@ impl<'a> GitConfig<'a> {
     ///
     /// [hub]: https://github.com/github/hub
     pub fn new_abbr(
-        git: Cow<'a, str>,
+        git: impl AsRef<str>,
         branch: Option<String>,
         identity: Option<PathBuf>,
     ) -> Result<Self> {
-        Self::new(git.clone(), branch.clone(), identity.clone()).or_else(|_| {
-            let full_remote = format!("https://github.com/{}.git", &git);
-            Self::new(full_remote.into(), branch, identity)
+        let full_remote = abbreviated_git_url_to_full_remote(&git);
+        Self::new(full_remote, branch.clone(), identity.clone()).or_else(|_| {
+            let full_remote = abbreviated_git_url_to_full_remote(format!("gh:{}", git.as_ref()));
+            Self::new(full_remote, branch, identity)
         })
+    }
+}
+
+fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> String {
+    let git = git.as_ref();
+    match &git[..3] {
+        "gl:" => format!("https://gitlab.com/{}.git", &git[3..]),
+        "bb:" => format!("https://bitbucket.org/{}.git", &git[3..]),
+        "gh:" => format!("https://github.com/{}.git", &git[3..]),
+        _ => git.to_owned()
     }
 }
 
@@ -325,19 +337,19 @@ mod tests {
 
     #[test]
     fn should_not_fail_for_ssh_remote_urls() {
-        let config = GitConfig::new(REPO_URL_SSH.into(), None, None).unwrap();
+        let config = GitConfig::new(REPO_URL_SSH, None, None).unwrap();
         assert_eq!(config.kind, RepoKind::RemoteSsh);
     }
 
     #[test]
     #[should_panic(expected = "Invalid git remote 'aslkdgjlaskjdglskj'")]
     fn should_fail_for_non_existing_local_path() {
-        GitConfig::new("aslkdgjlaskjdglskj".into(), None, None).unwrap();
+        GitConfig::new("aslkdgjlaskjdglskj", None, None).unwrap();
     }
 
     #[test]
     fn should_support_a_local_relative_path() {
-        let remote: String = GitConfig::new("src".into(), None, None)
+        let remote: String = GitConfig::new("src", None, None)
             .unwrap()
             .remote
             .into();
@@ -370,7 +382,7 @@ mod tests {
         // If this fails because you cloned this repository into a non-UTF-8 directory... all
         // I can say is you probably had it comin'.
         let remote: String = GitConfig::new(
-            current_dir().unwrap().display().to_string().into(),
+            current_dir().unwrap().display().to_string(),
             None,
             None,
         )
@@ -390,7 +402,7 @@ mod tests {
     #[test]
     fn should_test_happy_path() {
         // Remote HTTPS URL.
-        let cfg = GitConfig::new(REPO_URL.into(), Some("main".to_owned()), None).unwrap();
+        let cfg = GitConfig::new(REPO_URL, Some("main".to_owned()), None).unwrap();
 
         assert_eq!(cfg.remote.as_ref(), Url::parse(REPO_URL).unwrap().as_str());
         assert_eq!(cfg.branch, GitReference::Branch("main".to_owned()));
@@ -399,11 +411,30 @@ mod tests {
     #[test]
     fn should_support_abbreviated_repository_short_urls_like() {
         assert_eq!(
-            GitConfig::new_abbr("cargo-generate/cargo-generate".into(), None, None)
+            GitConfig::new_abbr("cargo-generate/cargo-generate", None, None)
                 .unwrap()
                 .remote
                 .as_ref(),
             Url::parse(REPO_URL).unwrap().as_str()
         );
+    }
+
+    #[test]
+    fn should_support_abbreviated_repository_short_urls_like_for_github() {
+        assert_eq!(
+            GitConfig::new_abbr("gh:cargo-generate/cargo-generate", None, None)
+                .unwrap()
+                .remote
+                .as_ref(),
+            Url::parse(REPO_URL).unwrap().as_str()
+        );
+    }
+
+    #[test]
+    fn should_support_bb_gl_gh_abbreviations() {
+        assert_eq!(&abbreviated_git_url_to_full_remote("gh:foo/bar"), "https://github.com/foo/bar.git");
+        assert_eq!(&abbreviated_git_url_to_full_remote("bb:foo/bar"), "https://bitbucket.org/foo/bar.git");
+        assert_eq!(&abbreviated_git_url_to_full_remote("gl:foo/bar"), "https://gitlab.com/foo/bar.git");
+        assert_eq!(&abbreviated_git_url_to_full_remote("foo/bar"), "foo/bar");
     }
 }
