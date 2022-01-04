@@ -1,6 +1,19 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.11.1...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.12.0...HEAD)
+
+## [0.12.0] 2022-02-04
+[0.12.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.11.1...v0.12.0
+
+### 🛠️ Maintenance
+- [upgrade deps + migrate to the new api of hecks](https://github.com/cargo-generate/cargo-generate/pull/512)
+- [migrate default branch from master to main](https://github.com/cargo-generate/cargo-generate/pull/513)
+
+### ✨ Features
+- [abbreviation support for gitlab and bitbucket users](https://github.com/cargo-generate/cargo-generate/pull/511), fixes #391
+
+### Contributors
+- [sassman](https://github.com/sassman)
 
 ## [0.11.1] 2021-12-03
 [0.11.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.11.0...v0.11.1
