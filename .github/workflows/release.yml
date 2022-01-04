@@ -21,7 +21,7 @@ jobs:
 
   publish:
     name: post / cargo publish
-    needs: [lint, tests]
+    needs: doing-a-build
     runs-on: ubuntu-latest
     environment: release
     steps:
