@@ -268,6 +268,8 @@ fn copy_path_template_into_temp(args: &Args) -> Result<TempDir> {
             .with_context(|| "Missing option git, path or a favorite")?,
         path_clone_dir.path(),
     )?;
+    git::remove_history(path_clone_dir.path(), None)?;
+
     Ok(path_clone_dir)
 }
 
