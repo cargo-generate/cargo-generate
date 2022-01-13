@@ -102,7 +102,7 @@ version = "0.1.0"
 
     let target_path = dir.target_path("foobar-project");
     let repo = git2::Repository::open(&target_path).unwrap();
-    assert!(repo.is_empty().unwrap());
+    assert_eq!(0, repo.references().unwrap().count());
 }
 
 #[test]
@@ -134,7 +134,7 @@ version = "0.1.0"
 
     let target_path = dir.target_path("xyz");
     let repo = git2::Repository::open(&target_path).unwrap();
-    assert!(repo.is_empty().unwrap());
+    assert_eq!(0, repo.references().unwrap().count());
 }
 
 #[test]
