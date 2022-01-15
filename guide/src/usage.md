@@ -1,7 +1,7 @@
 # Usage
 Standard usage is to pass a `--git` flag to `cargo generate` or short `cargo gen`. This will prompt you to enter the name of your project.
 
-> :warning: NOTE: `cargo gen` requires a [cargo alias configuration](#cargo-gen---alias)
+> ⚠️ NOTE: `cargo gen` requires a [cargo alias configuration](#cargo-gen---alias)
 
 ```sh
 cargo generate username-on-github/mytemplate
@@ -37,9 +37,9 @@ If the git repository contains multiple templates, the specific subfolder in the
 cargo generate --git https://github.com/username-on-github/mytemplate.git <relative-template-path>
 ```
 
-> :warning: NOTE: The specified `relative-template-path` will be used as the actual template root, whether or not this is actually true!
+> ⚠️ NOTE: The specified `relative-template-path` will be used as the actual template root, whether or not this is actually true!
 
-> :warning: NOTE: When using the `subfolder` feature, `cargo-generate` will search for the `cargo-generate.toml` file in the subfolder first, traversing back towards the template root in case it is not found.
+> ⚠️ NOTE: When using the `subfolder` feature, `cargo-generate` will search for the `cargo-generate.toml` file in the subfolder first, traversing back towards the template root in case it is not found.
 
 ## Generating into current dir
 
@@ -49,7 +49,7 @@ If the user wants to generate a template straight into the current folder, witho
 cargo generate --init --git https://github.com/username-on-github/mytemplate.git
 ```
 
-> :warning: NOTE: `cargo-generate` will not allow any existing files to be overwritten and will fail to generate any files should there be any conflicts.
+> ⚠️ NOTE: `cargo-generate` will not allow any existing files to be overwritten and will fail to generate any files should there be any conflicts.
 
 ## Generating using a local template
 
@@ -60,7 +60,7 @@ git clone https://github.com/username-on-github/mytemplate.git $HOME/mytemplate 
 cargo generate --path $HOME/mytemplate # Use it locally
 ```
 
-> :warning: NOTE: `cargo-generate` will not allow to use the association `--path` and `--git` flags.
+> ⚠️ NOTE: `cargo-generate` will not allow to use the association `--path` and `--git` flags.
 
 ## git over ssh
 
@@ -78,7 +78,7 @@ as well as:
 cargo generate --git rustwasm/wasm-pack-template --name mywasm
 ```
 
-> :warning: NOTE: you can pass a custom ssh identity file with via `-i | --identity` like `-i ~/.ssh/id_rsa_other`
+> ⚠️ NOTE: you can pass a custom ssh identity file with via `-i | --identity` like `-i ~/.ssh/id_rsa_other`
 
 ## http(s) proxy
 
