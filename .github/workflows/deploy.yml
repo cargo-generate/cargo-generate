@@ -1,7 +1,9 @@
 name: Deploy
 on:
     push:
-        branches: [ '*' ]
+        branches:
+            - main
+    pull_request:
 
 jobs:
     pages:
@@ -11,8 +13,10 @@ jobs:
             -   uses: actions/checkout@master
             -   name: Install Rust (rustup)
                 run: rustup update stable --no-self-update && rustup default stable
+            -   name: Install mdbook
+                run: cargo install mdbook
             -   name: Build book
-                run: cargo run -- build guide
+                run: mdbook build guide
             -   name: Deploy to GitHub
                 env:
                     GITHUB_DEPLOY_KEY: ${{ secrets.GITHUB_DEPLOY_KEY }}
