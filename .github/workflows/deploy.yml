@@ -2,7 +2,7 @@ name: Deploy
 on:
     push:
         branches:
-            - main
+            - cargo_generate_guide
 
 jobs:
     deploy:
