@@ -121,6 +121,10 @@ pub struct Args {
     /// Generate the template directly into the current dir. No subfolder will be created and no vcs is initialized.
     #[structopt(long)]
     pub init: bool,
+
+    /// Will enforce a fresh git init on the generated project
+    #[structopt(long)]
+    pub force_git_init: bool,
 }
 
 #[derive(Debug, StructOpt, Clone, Copy)]
