@@ -243,11 +243,24 @@ fn git_clone_all(project_dir: &Path, args: GitConfig) -> Result<String> {
             Ok(branch)
         }
         Err(e) => {
-            if (e.code() == ErrorCode::Auth || e.raw_code() == 401) && e.class() == ErrorClass::Http
             {
-                return Err(anyhow::Error::msg(
-                    "Please check if the Git user / repository exists.",
-                ));
+                // super wired that the windows libgit2 does behave different for this case,
+                // both things actually mean the same!
+                #[cfg(windows)]
+                if e.class() == ErrorClass::Http
+                    && e.code() == ErrorCode::GenericError
+                    && e.message().contains("request failed with status code: 401")
+                {
+                    return Err(anyhow::Error::msg(
+                        "Please check if the Git user / repository exists.",
+                    ));
+                }
+                #[cfg(not(windows))]
+                if e.code() == ErrorCode::Auth && e.class() == ErrorClass::Http {
+                    return Err(anyhow::Error::msg(
+                        "Please check if the Git user / repository exists.",
+                    ));
+                }
             }
             if e.code() != ErrorCode::NotFound {
                 return Err(e.into());
