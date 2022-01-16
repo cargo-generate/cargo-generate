@@ -24,22 +24,37 @@ pub fn tmp_dir() -> ProjectBuilder {
 }
 
 impl ProjectBuilder {
-    pub fn file(mut self, name: &str, contents: &str) -> ProjectBuilder {
+    /// builds a template with
+    /// - one file `Cargo.toml` in it
+    /// - one placeholder `project-name`
+    pub fn init_default_template(self) -> Self {
+        self.file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+    }
+
+    pub fn file(mut self, name: &str, contents: &str) -> Self {
         self.files.push((name.to_string(), contents.to_string()));
         self
     }
 
-    pub fn init_git(mut self) -> ProjectBuilder {
+    pub fn init_git(mut self) -> Self {
         self.git = true;
         self
     }
 
-    pub fn branch(mut self, branch: &str) -> ProjectBuilder {
+    pub fn branch(mut self, branch: &str) -> Self {
         self.branch = Some(branch.to_owned());
         self
     }
 
-    pub fn add_submodule<I: Into<String>>(mut self, destination: I, path: I) -> ProjectBuilder {
+    pub fn add_submodule<I: Into<String>>(mut self, destination: I, path: I) -> Self {
         self.submodules.push((destination.into(), path.into()));
         self
     }
