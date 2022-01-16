@@ -259,7 +259,7 @@ fn git_clone_all(project_dir: &Path, args: GitConfig) -> Result<String> {
     }
 }
 
-fn remove_history(project_dir: &Path, attempt: Option<u8>) -> Result<()> {
+pub fn remove_history(project_dir: &Path, attempt: Option<u8>) -> Result<()> {
     let git_dir = project_dir.join(".git");
     if git_dir.exists() && git_dir.is_dir() {
         if let Err(e) = remove_dir_all(git_dir) {
