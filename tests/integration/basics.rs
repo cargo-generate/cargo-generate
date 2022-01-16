@@ -1476,6 +1476,27 @@ version = "0.1.0"
         .contains("{{ project-some-other-thing }}"));
 }
 
+#[test]
+fn error_message_for_invalid_repo_or_user() {
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg("sassman/cli-template-rs-xx")
+        .arg("--name")
+        .arg("favorite-project")
+        .current_dir(&dir.path())
+        .assert()
+        .failure()
+        .stderr(
+            predicates::str::contains(
+                r#"Git Error: Please check if the Git user / repository exists."#,
+            )
+            .from_utf8(),
+        );
+}
+
 #[cfg(test)]
 #[cfg(unix)]
 mod ssh_remote {

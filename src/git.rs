@@ -5,8 +5,8 @@ use anyhow::Context;
 use anyhow::Result;
 use console::style;
 use git2::build::RepoBuilder;
-use git2::ErrorCode;
 use git2::{Cred, FetchOptions, ProxyOptions, RemoteCallbacks, Repository, RepositoryInitOptions};
+use git2::{ErrorClass, ErrorCode};
 use remove_dir_all::remove_dir_all;
 use std::borrow::Cow;
 use std::ops::{Add, Sub};
@@ -243,6 +243,11 @@ fn git_clone_all(project_dir: &Path, args: GitConfig) -> Result<String> {
             Ok(branch)
         }
         Err(e) => {
+            if e.code() == ErrorCode::Auth && e.class() == ErrorClass::Http {
+                return Err(anyhow::Error::msg(
+                    "Please check if the Git user / repository exists.",
+                ));
+            }
             if e.code() != ErrorCode::NotFound {
                 return Err(e.into());
             }
