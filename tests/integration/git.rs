@@ -69,3 +69,25 @@ fn it_removes_git_history_also_on_local_templates() {
     let repo = git2::Repository::open(&target_path).unwrap();
     assert_eq!(0, repo.references().unwrap().count());
 }
+
+#[test]
+fn it_should_init_an_empty_git_repo_even_when_starting_from_a_repo_when_forced() {
+    let template = tmp_dir().init_default_template().build();
+    let target_path = template.path();
+
+    binary()
+        .arg("generate")
+        .arg("--force-git-init")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foo")
+        .current_dir(&target_path)
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    let repo = Repository::open(&target_path.join("foo")).unwrap();
+    let references = repo.references().unwrap().count();
+    assert_eq!(0, references);
+}
