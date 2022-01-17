@@ -74,70 +74,6 @@ version = "0.1.0"
 }
 
 #[test]
-fn it_removes_git_history() {
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        )
-        .init_git()
-        .build();
-
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    let target_path = dir.target_path("foobar-project");
-    let repo = git2::Repository::open(&target_path).unwrap();
-    assert_eq!(0, repo.references().unwrap().count());
-}
-
-#[test]
-fn it_removes_git_history_also_on_local_templates() {
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        )
-        .init_git()
-        .build();
-
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("generate")
-        .arg("--path")
-        .arg(template.path())
-        .arg("--name")
-        .arg("xyz")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    let target_path = dir.target_path("xyz");
-    let repo = git2::Repository::open(&target_path).unwrap();
-    assert_eq!(0, repo.references().unwrap().count());
-}
-
-#[test]
 fn it_substitutes_projectname_in_cargo_toml() {
     let template = tmp_dir()
         .file(
@@ -796,42 +732,6 @@ version = "0.1.0"
     )
     .unwrap()
     .is_file());
-}
-
-#[test]
-fn it_allows_a_git_branch_to_be_specified() {
-    // Build and commit on branch named 'main'
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        )
-        .init_git()
-        .branch("baz")
-        .build();
-
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("generate")
-        .arg("--branch")
-        .arg("baz")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    assert!(dir
-        .read("foobar-project/Cargo.toml")
-        .contains("foobar-project"));
 }
 
 #[test]

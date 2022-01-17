@@ -121,6 +121,10 @@ pub struct Args {
     /// Generate the template directly into the current dir. No subfolder will be created and no vcs is initialized.
     #[structopt(long)]
     pub init: bool,
+
+    /// Will enforce a fresh git init on the generated project
+    #[structopt(long)]
+    pub force_git_init: bool,
 }
 
 #[derive(Debug, StructOpt, Clone, Copy)]
@@ -142,13 +146,10 @@ impl FromStr for Vcs {
 }
 
 impl Vcs {
-    pub fn initialize(&self, project_dir: &Path, branch: String) -> Result<()> {
+    pub fn initialize(&self, project_dir: &Path, branch: String, force: bool) -> Result<()> {
         match self {
-            Self::None => {}
-            Self::Git => {
-                git::init(project_dir, &branch)?;
-            }
-        };
-        Ok(())
+            Self::None => Ok(()),
+            Self::Git => git::init(project_dir, &branch, force).map(|_| ()),
+        }
     }
 }
