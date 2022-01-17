@@ -7,3 +7,13 @@ macro_rules! warn {
         );
     })
 }
+
+#[macro_export]
+macro_rules! info {
+    ($($arg:tt)*) => ({
+        println!("{} {}",
+            $crate::emoji::INFO,
+            format!($($arg)*)
+        );
+    })
+}
