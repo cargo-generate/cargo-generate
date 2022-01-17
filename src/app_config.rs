@@ -7,7 +7,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::emoji;
+use crate::info;
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
@@ -34,9 +34,8 @@ impl AppConfig {
             Ok(if cfg.trim().is_empty() {
                 Self::default()
             } else {
-                println!(
-                    "{} {} {}",
-                    emoji::INFO,
+                info!(
+                    "{} {}",
                     style("Using application config:").bold(),
                     style(path.display()).underlined()
                 );

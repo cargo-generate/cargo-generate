@@ -305,13 +305,24 @@ pub fn remove_history(project_dir: &Path, attempt: Option<u8>) -> Result<()> {
     Ok(())
 }
 
-pub fn init(project_dir: &Path, branch: &str) -> Result<Repository> {
-    Repository::discover(project_dir).or_else(|_| {
+pub fn init(project_dir: &Path, branch: &str, force: bool) -> Result<Repository> {
+    fn just_init(project_dir: &Path, branch: &str) -> Result<Repository> {
         let mut opts = RepositoryInitOptions::new();
         opts.bare(false);
         opts.initial_head(branch);
         Repository::init_opts(project_dir, &opts).context("Couldn't init new repository")
-    })
+    }
+
+    match Repository::discover(project_dir) {
+        Ok(repo) => {
+            if force {
+                Repository::open(project_dir).or_else(|_| just_init(project_dir, branch))
+            } else {
+                Ok(repo)
+            }
+        }
+        Err(_) => just_init(project_dir, branch),
+    }
 }
 
 /// determines what kind of repository we got
