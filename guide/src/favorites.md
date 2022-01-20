@@ -1,7 +1,7 @@
 # Favorites
 
 Favorite templates can be defined in a config file, that by default is placed at `$CARGO_HOME/cargo-generate.toml` or `$CARGO_HOME/cargo-generate`.
-To specify an alternative configuration file, use the `--config <config-file>` option.
+To specify an alternate configuration file, use the `--config <config-file>` option.
 
 > ⚠️ NOTE: A relative `--config` option, will be relative to the template root during expansion.
 
@@ -29,4 +29,4 @@ or slightly more involved:
 cargo generate demo --branch mybranch --name expanded_demo --subfolder myfolder
 ```
 
-> ⚠️ NOTE: when `<favorite>` is not defined in the config file, it is interpreted as a git repo like as if `--git <favorite>`:w
+> ⚠️ NOTE: when `<favorite>` is not defined in the config file, it is interpreted as a git repo like as if `--git <favorite>`
