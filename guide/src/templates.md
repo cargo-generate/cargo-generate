@@ -3,22 +3,22 @@
 Templates are git repositories whose files contain placeholders. The current
 supported placeholders are:
 
-- `{{authors}}`
+* `{{authors}}`
 
   this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration. It will either be on the form `username <email>` or just plain `username`.
-- `{{project-name}}`
+* `{{project-name}}`
 
   this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
-- `{{crate_name}}`
+* `{{crate_name}}`
 
   the snake_case_version of `project-name`
-- `{{crate_type}}`
+* `{{crate_type}}`
 
   this is supplied by either passing the `--bin` or `--lib` flag to the command line, contains either `bin` or `lib`, `--bin` is the default
-- `{{os-arch}}`
+* `{{os-arch}}`
 
   contains the current operating system and architecture ex: `linux-x86_64`
-- `{{username}}`
+* `{{username}}`
 
   this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.
 
@@ -39,7 +39,7 @@ Only files that are **not** listed in the exclude settings will be templated.
 > will be removed from the local machine when `cargo-generate` is run on the end user's machine.
 > The `.genignore` file is always ignored, so there is no need to list it in the `.genignore` file.
 
-### Templates by the community
+## Templates by the community
 
 It's encouraged to classify your template repository [with a GitHub topic](https://docs.github.com/en/github/administering-a-repository/managing-repository-settings/classifying-your-repository-with-topics) labeled `cargo-generate`.
 
@@ -118,7 +118,8 @@ fn main() {
 {% endif %}
 ```
 
-> :bulb: Tip: similar to `dependencies` in the `Cargo.toml` file you can also list them as one liners:
+> 💡 Tip: similar to `dependencies` in the `Cargo.toml` file you can also list them as one liners:
+
 ```toml
 [placeholders]
 hypervisor = { type = "string", prompt = "What hypervisor to use?", choices = ["uhyve", "qemu"], default = "qemu" }
@@ -149,7 +150,7 @@ choices = ["uhyve", "qemu"]
 ### `default` property (optional)
 
 A `default` property must mach the type (`string` | `bool`) and is optional. A default should be provided, to ease the interactive process.
-As usual the user could press <enter> and the default value would simply be taken, it safes time and mental load.
+As usual the user could press `enter` and the default value would simply be taken, it safes time and mental load.
 
 ```toml
 default = 'qemu'
@@ -163,6 +164,7 @@ until the user entered something that is allowed by this regex.
 ### Placeholder Examples
 
 An example with a regex that allows only numbers
+
 ```toml
 [placeholders]
 phone_number = { type = "string", prompt = "What's your phone number?", regex = "^[0-9]+$" }
@@ -174,7 +176,7 @@ For automation purposes the user of the template may provide the values for the 
 
 The methods are listed by falling priority.
 
-#### `--define` or `-d` flag
+### `--define` or `-d` flag
 
 The user may specify variables individually using the `--define` flag.
 
@@ -182,7 +184,7 @@ The user may specify variables individually using the `--define` flag.
 cargo generate template-above -n project-name -d hypervisor=qemu -d network_enabled=true
 ```
 
-#### <a name="valuesfile"></a> `--template_values_file` flag
+### `--template_values_file` flag
 
 The user of the template may provide a file containing the values for the keys in the template by using the `--template-values-file` flag.
 
@@ -212,7 +214,7 @@ cargo generate template-above
 
 The user may use the environment variable `CARGO_GENERATE_TEMPLATE_VALUES` to specify a file with default values.
 
-For the file format, see [above](#valuesfile)
+For the file format, see above.
 
 #### Default values
 
@@ -265,7 +267,7 @@ ignore = [
 ]
 ```
 
-Both files and folders may be ignored using this method, but currently wildcards are **not supported**. 
+Both files and folders may be ignored using this method, but currently wildcards are **not supported**.
 
 ## Require `cargo-generate` version from template
 
@@ -280,7 +282,7 @@ cargo_generate_version = ">=0.9.0"
 
 The format for the version requirement is [documented here](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html).
 
-## Conditional template settings.
+## Conditional template settings
 
 Using `cargo-generate.toml`, values and some [`Rhai`] syntax, the template author can make certain conditional decisions before expansion of the template.
 
@@ -367,6 +369,7 @@ This last conditional block is simply to ignore the unneeded license files, base
 `cargo-generate` is able to use scripts written in [`Rhai`].
 
 These scripts may be executed as either *pre* or *post*:
+
 1. **pre**: executed before template expansion
 2. **post**: executed after template expansion, but before copying to the destination.
 
@@ -375,6 +378,7 @@ These scripts may be executed as either *pre* or *post*:
 ### Use of scripts
 
 In `cargo-generate.toml` write a `[hooks]` section, example:
+
 ```toml
 [template]
 cargo_generate_version = "0.10.0"
@@ -388,6 +392,7 @@ license = { type = "string", prompt = "What license to use?", choices = ["APACHE
 ```
 
 Now, write the script in [`Rhai`], utilizing the `cargo-generate` [provided extensions](#Rhai-extensions):
+
 ```rhai
 // we can see existing variables.
 // note that template and Rhai variables are separate!
@@ -417,40 +422,67 @@ variable::set("license", license);
 ```
 
 ### Rhai extensions
+
 Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
 
 #### Variables
+
 ##### get/set
-* **`variable::is_set(name: &str) -> bool`** <br/>
+
+* **`variable::is_set(name: &str) -> bool`**
+
   Returns true if the variable/placeholder has been set for the template
-* **`variable::get(name: &str) -> value`**  <br/>
+
+* **`variable::get(name: &str) -> value`**
+
   Gets any defined variable in the `Liquid` template object
-* **`variable::set(name: &str, value: (&str|bool))`**  <br/>
+
+* **`variable::set(name: &str, value: (&str|bool))`**
+
   Set new or overwrite existing variables. Do not allow to change types.
 
 ##### Prompt
-* **`variable::prompt(text: &str, default_value: bool) -> value`**  <br/>
+
+* **`variable::prompt(text: &str, default_value: bool) -> value`**
+
   Prompt the user for a boolean value
-* **`variable::prompt(text: &str) -> value`**  <br/>
+
+* **`variable::prompt(text: &str) -> value`**
+
   Prompt the user for a string value
-* **`variable::prompt(text: &str, default_value: &str) -> value`**  <br/>
+
+* **`variable::prompt(text: &str, default_value: &str) -> value`**
+
   Prompt the user for a string value, with a default already in place
-* **`variable::prompt(text: &str, default_value: &str, regex: &str) -> value`**  <br/>
+
+* **`variable::prompt(text: &str, default_value: &str, regex: &str) -> value`**
+
   Prompt the user for a string value, validated with a regex
-* **`variable::prompt(text: &str, default_value: &str, choices: Array) -> value`**  <br/>
+
+* **`variable::prompt(text: &str, default_value: &str, choices: Array) -> value`**
+
   Prompt the user for a choice value
 
 #### Files
-* **`file::rename(from: &str, to: &str)`**  <br/>
+
+* **`file::rename(from: &str, to: &str)`**
+
   Rename one of the files in the template folder
-* **`file::delete(path: &str)`**  <br/>
+
+* **`file::delete(path: &str)`**
+
   Delete a file or folder inside the template folder
-* **`file::write(file: &str, content: &str)`**  <br/>
+
+* **`file::write(file: &str, content: &str)`**
+
   Create/overwrite a file inside the template folder
-* **`file::write(file: &str, content: Array)`**  <br/>
+
+* **`file::write(file: &str, content: Array)`*
+
   Create/overwrite a file inside the template folder, each entry in the array on a new line
 
 #### Other
+
 * **abort(reason: &str)**: Aborts `cargo-generate` with a script error.
 
 ## Useful for template authors
@@ -473,6 +505,7 @@ tree .github
 ```
 
 The content of `build.yml` as a paste template:
+
 ```yaml
 name: Build Template
 on:
@@ -508,10 +541,8 @@ jobs:
           cargo check
 ```
 
-So here you got a very simple little pipeline that builds scheduled (weekly) and on push. 
+This is a very simple pipeline that builds weekly and on push.
 It processes your template repo and runs a `cargo check` as the final step. That's it, a good start to build on.
-
-[gh/action]: https://github.com/marketplace/actions/cargo-generate
 
 ## Cargo gen - alias
 
@@ -528,3 +559,4 @@ gen = "generate"
 [VSCode]: https://code.visualstudio.com
 [`Rhai`]: https://rhai.rs/book/
 [Rhai language extension]: https://marketplace.visualstudio.com/items?itemName=rhaiscript.vscode-rhai
+[gh/action]: https://github.com/marketplace/actions/cargo-generate

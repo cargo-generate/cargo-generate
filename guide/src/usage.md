@@ -1,4 +1,5 @@
 # Usage
+
 Standard usage is to pass a `--git` flag to `cargo generate` or short `cargo gen`. This will prompt you to enter the name of your project.
 
 > ⚠️ NOTE: `cargo gen` requires a [cargo alias configuration](#cargo-gen---alias)
@@ -12,6 +13,7 @@ cargo generate --git https://github.com/username-on-github/mytemplate.git
 ```
 
 If you have your templates not GitHub then you can leverage the lazy abbreviation prefixes:
+
 ```sh
 # for gitlab.com
 cargo generate gl:username-on-gitlab/mytemplate
@@ -66,14 +68,19 @@ cargo generate --path $HOME/mytemplate # Use it locally
 
 New in version [0.7.0] is the support for both public and private and ssh git remote urls.
 For example:
+
 ```sh
 cargo generate --git git@github.com:rustwasm/wasm-pack-template.git --name mywasm
 ```
+
 leads to the same result as:
+
 ```sh
 cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name mywasm
 ```
+
 as well as:
+
 ```sh
 cargo generate --git rustwasm/wasm-pack-template --name mywasm
 ```
@@ -84,7 +91,6 @@ cargo generate --git rustwasm/wasm-pack-template --name mywasm
 
 New in version [0.7.0] is automatic proxy usage. So, if http(s)\_PROXY env variables are provided, they
 will be used for cloning a http(s) template repository.
-
 
 [0.7.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0
 [0.9.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0
