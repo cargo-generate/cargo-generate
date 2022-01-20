@@ -74,38 +74,6 @@ version = "0.1.0"
 }
 
 #[test]
-fn it_removes_git_history() {
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        )
-        .init_git()
-        .build();
-
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    let repo = git2::Repository::open(&dir.path().join("foobar-project")).unwrap();
-    let references = repo.references().unwrap().count();
-    assert_eq!(0, references);
-}
-
-#[test]
 fn it_substitutes_projectname_in_cargo_toml() {
     let template = tmp_dir()
         .file(
@@ -767,42 +735,6 @@ version = "0.1.0"
 }
 
 #[test]
-fn it_allows_a_git_branch_to_be_specified() {
-    // Build and commit on branch named 'main'
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        )
-        .init_git()
-        .branch("baz")
-        .build();
-
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("generate")
-        .arg("--branch")
-        .arg("baz")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    assert!(dir
-        .read("foobar-project/Cargo.toml")
-        .contains("foobar-project"));
-}
-
-#[test]
 fn it_loads_a_submodule() {
     let submodule = tmp_dir()
         .file("README.md", "*JUST A SUBMODULE*")
@@ -1442,6 +1374,27 @@ version = "0.1.0"
     assert!(!dir
         .read("foobar-project/Cargo.toml")
         .contains("{{ project-some-other-thing }}"));
+}
+
+#[test]
+fn error_message_for_invalid_repo_or_user() {
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg("sassman/cli-template-rs-xx")
+        .arg("--name")
+        .arg("favorite-project")
+        .current_dir(&dir.path())
+        .assert()
+        .failure()
+        .stderr(
+            predicates::str::contains(
+                r#"Git Error: Please check if the Git user / repository exists."#,
+            )
+            .from_utf8(),
+        );
 }
 
 #[cfg(test)]

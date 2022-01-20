@@ -5,8 +5,8 @@ use anyhow::Context;
 use anyhow::Result;
 use console::style;
 use git2::build::RepoBuilder;
-use git2::ErrorCode;
 use git2::{Cred, FetchOptions, ProxyOptions, RemoteCallbacks, Repository, RepositoryInitOptions};
+use git2::{ErrorClass, ErrorCode};
 use remove_dir_all::remove_dir_all;
 use std::borrow::Cow;
 use std::ops::{Add, Sub};
@@ -88,11 +88,15 @@ impl<'a> GitConfig<'a> {
 
 fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> String {
     let git = git.as_ref();
-    match &git[..3] {
-        "gl:" => format!("https://gitlab.com/{}.git", &git[3..]),
-        "bb:" => format!("https://bitbucket.org/{}.git", &git[3..]),
-        "gh:" => format!("https://github.com/{}.git", &git[3..]),
-        _ => git.to_owned(),
+    if git.len() >= 3 {
+        match &git[..3] {
+            "gl:" => format!("https://gitlab.com/{}.git", &git[3..]),
+            "bb:" => format!("https://bitbucket.org/{}.git", &git[3..]),
+            "gh:" => format!("https://github.com/{}.git", &git[3..]),
+            _ => git.to_owned(),
+        }
+    } else {
+        git.to_owned()
     }
 }
 
@@ -243,6 +247,25 @@ fn git_clone_all(project_dir: &Path, args: GitConfig) -> Result<String> {
             Ok(branch)
         }
         Err(e) => {
+            {
+                // super wired that the windows libgit2 does behave different for this case,
+                // both things actually mean the same!
+                #[cfg(windows)]
+                if e.class() == ErrorClass::Http
+                    && e.code() == ErrorCode::GenericError
+                    && e.message().contains("request failed with status code: 401")
+                {
+                    return Err(anyhow::Error::msg(
+                        "Please check if the Git user / repository exists.",
+                    ));
+                }
+                #[cfg(not(windows))]
+                if e.code() == ErrorCode::Auth && e.class() == ErrorClass::Http {
+                    return Err(anyhow::Error::msg(
+                        "Please check if the Git user / repository exists.",
+                    ));
+                }
+            }
             if e.code() != ErrorCode::NotFound {
                 return Err(e.into());
             }
@@ -259,7 +282,7 @@ fn git_clone_all(project_dir: &Path, args: GitConfig) -> Result<String> {
     }
 }
 
-fn remove_history(project_dir: &Path, attempt: Option<u8>) -> Result<()> {
+pub fn remove_history(project_dir: &Path, attempt: Option<u8>) -> Result<()> {
     let git_dir = project_dir.join(".git");
     if git_dir.exists() && git_dir.is_dir() {
         if let Err(e) = remove_dir_all(git_dir) {
@@ -282,13 +305,24 @@ fn remove_history(project_dir: &Path, attempt: Option<u8>) -> Result<()> {
     Ok(())
 }
 
-pub fn init(project_dir: &Path, branch: &str) -> Result<Repository> {
-    Repository::discover(project_dir).or_else(|_| {
+pub fn init(project_dir: &Path, branch: &str, force: bool) -> Result<Repository> {
+    fn just_init(project_dir: &Path, branch: &str) -> Result<Repository> {
         let mut opts = RepositoryInitOptions::new();
         opts.bare(false);
         opts.initial_head(branch);
         Repository::init_opts(project_dir, &opts).context("Couldn't init new repository")
-    })
+    }
+
+    match Repository::discover(project_dir) {
+        Ok(repo) => {
+            if force {
+                Repository::open(project_dir).or_else(|_| just_init(project_dir, branch))
+            } else {
+                Ok(repo)
+            }
+        }
+        Err(_) => just_init(project_dir, branch),
+    }
 }
 
 /// determines what kind of repository we got

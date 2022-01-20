@@ -115,8 +115,10 @@ pub fn generate(mut args: Args) -> Result<()> {
     );
     copy_dir_all(&template_folder, &project_dir)?;
 
-    if !args.init {
-        args.vcs.initialize(&project_dir, branch)?;
+    if !args.init || args.force_git_init {
+        info!("{}", style("Initializing a fresh Git repository").bold());
+        args.vcs
+            .initialize(&project_dir, branch, args.force_git_init)?;
     }
 
     println!(
@@ -268,6 +270,8 @@ fn copy_path_template_into_temp(args: &Args) -> Result<TempDir> {
             .with_context(|| "Missing option git, path or a favorite")?,
         path_clone_dir.path(),
     )?;
+    git::remove_history(path_clone_dir.path(), None)?;
+
     Ok(path_clone_dir)
 }
 

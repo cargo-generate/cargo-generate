@@ -1,7 +1,7 @@
 use assert_cmd::prelude::*;
 use std::fs::File;
 use std::io::Read;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str;
 
@@ -30,6 +30,11 @@ impl Project {
 
     pub fn path(&self) -> &Path {
         self.root.path()
+    }
+
+    /// returns the path of the generated project aka target path
+    pub fn target_path(&self, name: impl AsRef<str>) -> PathBuf {
+        self.path().join(name.as_ref())
     }
 
     pub fn exists(&self, path: &str) -> bool {
