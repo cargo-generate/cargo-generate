@@ -204,7 +204,17 @@ fn resolve_template_dir(template_base_dir: &TempDir, args: &Args) -> Result<Path
     match &args.subfolder {
         Some(subfolder) => {
             let template_base_dir = fs::canonicalize(template_base_dir.path())?;
-            let template_dir = fs::canonicalize(template_base_dir.join(subfolder))?;
+            let template_dir =
+                fs::canonicalize(template_base_dir.join(subfolder)).with_context(|| {
+                    format!(
+                        "not able to find subfolder '{}' in repository {}",
+                        subfolder,
+                        args.git
+                            .as_ref()
+                            .map(|v| v.to_owned())
+                            .unwrap_or_else(|| args.path.as_ref().unwrap().display().to_string()),
+                    )
+                })?;
 
             if !template_dir.starts_with(&template_base_dir) {
                 return Err(anyhow!(
