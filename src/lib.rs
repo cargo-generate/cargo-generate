@@ -359,15 +359,11 @@ pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resu
     copy_all(src, dst)
 }
 
-fn locate_template_file<T1, T2>(
+fn locate_template_file(
     name: &str,
-    template_base_folder: T1,
-    template_folder: T2,
-) -> Result<PathBuf>
-where
-    T1: AsRef<Path>,
-    T2: AsRef<Path>,
-{
+    template_base_folder: impl AsRef<Path>,
+    template_folder: impl AsRef<Path>,
+) -> Result<PathBuf> {
     let template_base_folder = template_base_folder.as_ref();
     let mut search_folder = template_folder.as_ref().to_path_buf();
     loop {
