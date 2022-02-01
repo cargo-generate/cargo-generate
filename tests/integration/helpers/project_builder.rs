@@ -39,8 +39,9 @@ version = "0.1.0"
         .init_git()
     }
 
-    pub fn file(mut self, name: &str, contents: &str) -> Self {
-        self.files.push((name.to_string(), contents.to_string()));
+    pub fn file(mut self, name: &str, contents: impl AsRef<str>) -> Self {
+        self.files
+            .push((name.to_string(), contents.as_ref().to_string()));
         self
     }
 

@@ -13,6 +13,7 @@ pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
 #[derive(Deserialize, Default)]
 pub struct AppConfig {
+    pub defaults: Option<DefaultsConfig>,
     pub favorites: Option<HashMap<String, FavoriteConfig>>,
     pub values: Option<HashMap<String, toml::Value>>,
 }
@@ -27,18 +28,22 @@ pub struct FavoriteConfig {
     pub values: Option<HashMap<String, toml::Value>>,
 }
 
-impl AppConfig {
-    pub(crate) fn from_path(path: &Path) -> Result<Self> {
+#[derive(Deserialize, Default)]
+pub struct DefaultsConfig {
+    /// relates to `crate::Args::ssh_identity`
+    pub ssh_identity: Option<PathBuf>,
+}
+
+impl TryFrom<&Path> for AppConfig {
+    type Error = anyhow::Error;
+
+    fn try_from(path: &Path) -> Result<Self, Self::Error> {
         if path.exists() {
             let cfg = fs::read_to_string(path)?;
             Ok(if cfg.trim().is_empty() {
                 Self::default()
             } else {
-                info!(
-                    "{} {}",
-                    style("Using application config:").bold(),
-                    style(path.display()).underlined()
-                );
+                info!("Using application config: {}", style(path.display()).bold());
                 toml::from_str(&cfg)?
             })
         } else {

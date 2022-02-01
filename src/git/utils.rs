@@ -2,6 +2,7 @@ use crate::git::remote::{GitRemote, GitUrlAndConfig};
 use crate::warn;
 use crate::{copy_dir_all, info};
 
+use crate::git::identity_path::IdentityPath;
 use anyhow::Context;
 use anyhow::Result;
 use console::style;
@@ -104,10 +105,13 @@ pub fn create(project_dir: &Path, args: GitConfig) -> Result<String> {
     Ok(branch)
 }
 
+/// deals with `~/` and `$HOME/` prefixes
 pub fn canonicalize_path(p: impl AsRef<Path>) -> Result<PathBuf> {
     let p = p.as_ref();
     let p = if p.starts_with("~/") {
-        home()?.join(p.strip_prefix("~/").unwrap())
+        home()?.join(p.strip_prefix("~/")?)
+    } else if p.starts_with("$HOME/") {
+        home()?.join(p.strip_prefix("$HOME/")?)
     } else {
         p.to_path_buf()
     };
@@ -118,9 +122,15 @@ pub fn canonicalize_path(p: impl AsRef<Path>) -> Result<PathBuf> {
 #[test]
 fn should_canonicalize() {
     #[cfg(target_os = "macos")]
-    assert!(canonicalize_path(&PathBuf::from("../"))
-        .unwrap()
-        .starts_with("/Users/"));
+    {
+        assert!(canonicalize_path(&PathBuf::from("../"))
+            .unwrap()
+            .starts_with("/Users/"));
+
+        assert!(canonicalize_path(&PathBuf::from("$HOME/"))
+            .unwrap()
+            .starts_with("/Users/"));
+    }
     #[cfg(target_os = "linux")]
     assert_eq!(
         canonicalize_path(&PathBuf::from("../")).ok(),
@@ -140,10 +150,9 @@ fn should_canonicalize() {
 }
 
 /// takes care of `~/` paths, defaults to `$HOME/.ssh/id_rsa` and resolves symlinks.
-fn get_private_key_path(identity: Option<PathBuf>) -> Result<PathBuf> {
+fn get_private_key_path(identity: Option<PathBuf>) -> Result<IdentityPath> {
     let private_key = identity.unwrap_or(home()?.join(".ssh/id_rsa"));
-
-    canonicalize_path(&private_key).context("private key path was incorrect")
+    private_key.try_into()
 }
 
 fn git_ssh_credentials_callback<'a>(identity: Option<PathBuf>) -> Result<RemoteCallbacks<'a>> {
@@ -151,41 +160,26 @@ fn git_ssh_credentials_callback<'a>(identity: Option<PathBuf>) -> Result<RemoteC
     info!(
         "{} `{}` {}",
         style("Using private key:").bold(),
-        style(pretty_path(&private_key)?).bold().yellow(),
+        style(format!("{}", &private_key)).bold().yellow(),
         style("for git-ssh checkout").bold()
     );
     let mut cb = RemoteCallbacks::new();
     cb.credentials(
         move |_url, username_from_url: Option<&str>, _allowed_types| {
-            Cred::ssh_key(username_from_url.unwrap_or("git"), None, &private_key, None)
+            Cred::ssh_key(
+                username_from_url.unwrap_or("git"),
+                None,
+                private_key.as_ref(),
+                None,
+            )
         },
     );
     Ok(cb)
 }
 
 /// home path wrapper
-fn home() -> Result<PathBuf> {
+pub fn home() -> Result<PathBuf> {
     canonicalize_path(&dirs::home_dir().context("$HOME was not set")?)
-}
-
-#[test]
-fn should_pretty_path() {
-    let p = pretty_path(home().unwrap().as_path().join(".cargo").as_path()).unwrap();
-    #[cfg(unix)]
-    assert_eq!(p, "$HOME/.cargo");
-    #[cfg(windows)]
-    assert_eq!(p, "%userprofile%\\.cargo");
-}
-
-/// prevents from long stupid paths, and replace the home path by the literal `$HOME`
-fn pretty_path(a: &Path) -> Result<String> {
-    #[cfg(not(windows))]
-    let home_var = "$HOME";
-    #[cfg(windows)]
-    let home_var = "%userprofile%";
-    Ok(a.display()
-        .to_string()
-        .replace(&home()?.display().to_string(), home_var))
 }
 
 /// thanks to @extrawurst for pointing this out
