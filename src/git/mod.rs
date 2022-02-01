@@ -1,3 +1,4 @@
+mod identity_path;
 mod remote;
 mod utils;
 

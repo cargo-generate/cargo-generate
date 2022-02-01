@@ -69,11 +69,31 @@ use crate::{
 };
 use crate::{git::GitConfig, template_variables::resolve_template_values};
 
+/// # Panics
 pub fn generate(mut args: Args) -> Result<()> {
-    let app_config = AppConfig::from_path(&app_config_path(&args.config)?)?;
+    let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
 
     if args.list_favorites {
         return list_favorites(&app_config, &args);
+    }
+
+    if args.ssh_identity.is_none()
+        && app_config.defaults.is_some()
+        && app_config.defaults.as_ref().unwrap().ssh_identity.is_some()
+    {
+        args.ssh_identity = app_config
+            .defaults
+            .as_ref()
+            .unwrap()
+            .ssh_identity
+            .as_ref()
+            .cloned();
+        if let Some(id) = args.ssh_identity.as_ref() {
+            info!(
+                "Using ssh-identity from application config: {}",
+                style(id.as_path().display()).bold()
+            )
+        }
     }
 
     let default_values = resolve_favorite_args_and_default_values(&app_config, &mut args)?;

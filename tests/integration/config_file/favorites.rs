@@ -1,30 +1,11 @@
 use predicates::prelude::*;
 
 use crate::helpers::project::binary;
-use crate::helpers::{project::Project, project_builder::tmp_dir};
+use crate::helpers::{create_template, project::Project, project_builder::tmp_dir};
 
 use assert_cmd::prelude::*;
 use indoc::indoc;
 use std::path::PathBuf;
-
-fn create_template(description: &str) -> Project {
-    tmp_dir()
-        .file(
-            "Cargo.toml",
-            format!(
-                indoc! {r#"
-                    [package]
-                    name = "{{project-name}}"
-                    description = "{}"
-                    version = "0.1.0"
-                    "#},
-                description
-            )
-            .as_str(),
-        )
-        .init_git()
-        .build()
-}
 
 fn create_favorite_config(name: &str, template_path: &Project) -> (Project, PathBuf) {
     let project = tmp_dir()

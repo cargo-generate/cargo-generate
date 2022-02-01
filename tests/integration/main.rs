@@ -2,9 +2,8 @@ mod helpers;
 
 // test modules go here
 mod basics;
-mod favorites;
+mod config_file;
 mod filenames;
 mod git;
 mod hooks;
 mod library;
-mod values;
