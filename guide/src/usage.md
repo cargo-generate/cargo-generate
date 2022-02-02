@@ -85,7 +85,26 @@ as well as:
 cargo generate --git rustwasm/wasm-pack-template --name mywasm
 ```
 
-> ⚠️ NOTE: you can pass a custom ssh identity file with via `-i | --identity` like `-i ~/.ssh/id_rsa_other`
+## ssh identity file (private key)
+
+ the default ssh identity is that is used is the good old RSA one. `~/.ssh/id_rsa`.
+
+ However, if you use a different file, you can pass a custom ssh identity with via `-i | --identity` like `-i ~/.ssh/id_rsa_other` as argument.
+
+ If you permanently want to use a custom identity file, you can configure it in the cargo-generate config file like this:
+
+ ```toml
+ # an extract of ~/.cargo/cargo-generate.toml
+ [defaults]
+ # note that `~/` and `$HOME/` are going to be expanded to the full path seamlessly
+ ssh_identity = "~/.ssh/id_rsa_other"
+ # that is equivalent to 
+ ssh_identity = "$HOME/.ssh/id_rsa_other"
+ # that is equivalent to 
+ ssh_identity = "/home/john/.ssh/id_rsa_other"
+ ```
+
+ > ⚠️ NOTE: that the cli argument `-i` always overrules the `ssh_identity` from the config file.
 
 ## http(s) proxy
 
