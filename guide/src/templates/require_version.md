@@ -1,6 +1,6 @@
 # Require `cargo-generate` version from template
 
-> Available since version [0.9.0]
+> Available since version [0.9.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0)
 
 Using the supported `cargo-generate.toml` file, the template author may setup version requirements towards `cargo-generate`.
 

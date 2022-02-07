@@ -1,6 +1,6 @@
 # Template Authoring
 
-> Available since version [0.9.0]
+> Available since version [0.9.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0)
 
 As a template author you're probably concerned about successful builds of your template?
 
