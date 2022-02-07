@@ -1,0 +1,254 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Usage - Cargo Generate Documentation</title>
+        <!-- Custom HTML head -->
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="cargo, make me a project">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="usage.html" class="active"><strong aria-hidden="true">3.</strong> Usage</a></li><li class="chapter-item expanded "><a href="favorites.html"><strong aria-hidden="true">4.</strong> Favorites</a></li><li class="chapter-item expanded "><a href="templates/index.html"><strong aria-hidden="true">5.</strong> Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="templates/placeholders.html"><strong aria-hidden="true">5.1.</strong> Placeholders</a></li><li class="chapter-item expanded "><a href="templates/ignoring.html"><strong aria-hidden="true">5.2.</strong> Ignoring Files</a></li><li class="chapter-item expanded "><a href="templates/include_exclude.html"><strong aria-hidden="true">5.3.</strong> Include/Exclude</a></li><li class="chapter-item expanded "><a href="templates/require_version.html"><strong aria-hidden="true">5.4.</strong> Require Version</a></li><li class="chapter-item expanded "><a href="templates/conditional.html"><strong aria-hidden="true">5.5.</strong> Conditionals</a></li><li class="chapter-item expanded "><a href="templates/scripting.html"><strong aria-hidden="true">5.6.</strong> Pre/Post Scripts</a></li><li class="chapter-item expanded "><a href="templates/authoring.html"><strong aria-hidden="true">5.7.</strong> Authoring</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="license.html"><strong aria-hidden="true">7.</strong> License</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Cargo Generate Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="usage"><a class="header" href="#usage">Usage</a></h1>
+<p>Standard usage is to pass a <code>--git</code> flag to <code>cargo generate</code> or short <code>cargo gen</code>. This will prompt you to enter the name of your project.</p>
+<blockquote>
+<p>⚠️ NOTE: <code>cargo gen</code> requires a <a href="#cargo-gen---alias">cargo alias configuration</a></p>
+</blockquote>
+<pre><code class="language-sh">cargo generate username-on-github/mytemplate
+# is the same as 
+cargo generate gh:username-on-github/mytemplate
+# is the same as 
+cargo generate --git https://github.com/username-on-github/mytemplate.git
+</code></pre>
+<p>If you have your templates not GitHub then you can leverage the lazy abbreviation prefixes:</p>
+<pre><code class="language-sh"># for gitlab.com
+cargo generate gl:username-on-gitlab/mytemplate
+# or for bitbucket.org
+cargo generate bb:username-on-bitbucket/mytemplate
+# or for github.com 
+cargo generate gh:username-on-github/mytemplate
+</code></pre>
+<p>Both will expand to the <code>https</code> urls of the repo with the suffix <code>.git</code> in the URL.</p>
+<p>You can also pass the name of your project to the tool using the <code>--name</code> or <code>-n</code> flag:</p>
+<pre><code class="language-sh">cargo generate --git https://github.com/username-on-github/mytemplate.git --name myproject
+</code></pre>
+<h2 id="templates-in-subfolders"><a class="header" href="#templates-in-subfolders">Templates in subfolders</a></h2>
+<p>If the git repository contains multiple templates, the specific subfolder in the git repository may be specified like this:</p>
+<pre><code class="language-sh">cargo generate --git https://github.com/username-on-github/mytemplate.git &lt;relative-template-path&gt;
+</code></pre>
+<blockquote>
+<p>⚠️ NOTE: The specified <code>relative-template-path</code> will be used as the actual template root, whether or not this is actually true!</p>
+</blockquote>
+<blockquote>
+<p>⚠️ NOTE: When using the <code>subfolder</code> feature, <code>cargo-generate</code> will search for the <code>cargo-generate.toml</code> file in the subfolder first, traversing back towards the template root in case it is not found.</p>
+</blockquote>
+<h2 id="generating-into-current-dir"><a class="header" href="#generating-into-current-dir">Generating into current dir</a></h2>
+<p>If the user wants to generate a template straight into the current folder, without creating a subfolder for the contents and without attempting to initialize a <code>.git</code> repo or similar, the <code>--init</code> flag can be used.</p>
+<pre><code class="language-sh">cargo generate --init --git https://github.com/username-on-github/mytemplate.git
+</code></pre>
+<blockquote>
+<p>⚠️ NOTE: <code>cargo-generate</code> will not allow any existing files to be overwritten and will fail to generate any files should there be any conflicts.</p>
+</blockquote>
+<h2 id="generating-using-a-local-template"><a class="header" href="#generating-using-a-local-template">Generating using a local template</a></h2>
+<p>You can generate a project using a local template via the <code>--path</code> flag:</p>
+<pre><code class="language-sh">git clone https://github.com/username-on-github/mytemplate.git $HOME/mytemplate # Clone any template
+cargo generate --path $HOME/mytemplate # Use it locally
+</code></pre>
+<blockquote>
+<p>⚠️ NOTE: <code>cargo-generate</code> will not allow to use the association <code>--path</code> and <code>--git</code> flags.</p>
+</blockquote>
+<h2 id="git-over-ssh"><a class="header" href="#git-over-ssh">git over ssh</a></h2>
+<p>New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0">0.7.0</a> is the support for both public and private and ssh git remote urls.
+For example:</p>
+<pre><code class="language-sh">cargo generate --git git@github.com:rustwasm/wasm-pack-template.git --name mywasm
+</code></pre>
+<p>leads to the same result as:</p>
+<pre><code class="language-sh">cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name mywasm
+</code></pre>
+<p>as well as:</p>
+<pre><code class="language-sh">cargo generate --git rustwasm/wasm-pack-template --name mywasm
+</code></pre>
+<h2 id="ssh-identity-file-private-key"><a class="header" href="#ssh-identity-file-private-key">ssh identity file (private key)</a></h2>
+<p>the default ssh identity is that is used is the good old RSA one. <code>~/.ssh/id_rsa</code>.</p>
+<p>However, if you use a different file, you can pass a custom ssh identity with via <code>-i | --identity</code> like <code>-i ~/.ssh/id_rsa_other</code> as argument.</p>
+<p>If you permanently want to use a custom identity file, you can configure it in the cargo-generate config file like this:</p>
+<pre><code class="language-toml"># an extract of ~/.cargo/cargo-generate.toml
+[defaults]
+# note that `~/` and `$HOME/` are going to be expanded to the full path seamlessly
+ssh_identity = &quot;~/.ssh/id_rsa_other&quot;
+# that is equivalent to 
+ssh_identity = &quot;$HOME/.ssh/id_rsa_other&quot;
+# that is equivalent to 
+ssh_identity = &quot;/home/john/.ssh/id_rsa_other&quot;
+</code></pre>
+<blockquote>
+<p>⚠️ NOTE: that the cli argument <code>-i</code> always overrules the <code>ssh_identity</code> from the config file.</p>
+</blockquote>
+<h2 id="https-proxy"><a class="header" href="#https-proxy">http(s) proxy</a></h2>
+<p>New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0">0.7.0</a> is automatic proxy usage. So, if http(s)_PROXY env variables are provided, they
+will be used for cloning a http(s) template repository.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="installation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                            <a rel="next" href="favorites.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="installation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a rel="next" href="favorites.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+    </body>
+</html>

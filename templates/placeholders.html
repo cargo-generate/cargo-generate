@@ -1,0 +1,285 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Placeholders - Cargo Generate Documentation</title>
+        <!-- Custom HTML head -->
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="cargo, make me a project">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../usage.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li class="chapter-item expanded "><a href="../favorites.html"><strong aria-hidden="true">4.</strong> Favorites</a></li><li class="chapter-item expanded "><a href="../templates/index.html"><strong aria-hidden="true">5.</strong> Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/placeholders.html" class="active"><strong aria-hidden="true">5.1.</strong> Placeholders</a></li><li class="chapter-item expanded "><a href="../templates/ignoring.html"><strong aria-hidden="true">5.2.</strong> Ignoring Files</a></li><li class="chapter-item expanded "><a href="../templates/include_exclude.html"><strong aria-hidden="true">5.3.</strong> Include/Exclude</a></li><li class="chapter-item expanded "><a href="../templates/require_version.html"><strong aria-hidden="true">5.4.</strong> Require Version</a></li><li class="chapter-item expanded "><a href="../templates/conditional.html"><strong aria-hidden="true">5.5.</strong> Conditionals</a></li><li class="chapter-item expanded "><a href="../templates/scripting.html"><strong aria-hidden="true">5.6.</strong> Pre/Post Scripts</a></li><li class="chapter-item expanded "><a href="../templates/authoring.html"><strong aria-hidden="true">5.7.</strong> Authoring</a></li></ol></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../license.html"><strong aria-hidden="true">7.</strong> License</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Cargo Generate Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="template-defined-placeholders"><a class="header" href="#template-defined-placeholders">Template defined placeholders</a></h1>
+<p>Sometimes templates need to make decisions. For example one might want to conditionally include some code or not.
+Another use case might be that the user of a template should be able to choose out of provided options in an interactive way.
+Also, it might be helpful to offer a reasonable default value that the user just simply can use.</p>
+<p>Since version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.6.0">0.6.0</a> it is possible to use placeholders in a <code>cargo-generate.toml</code> that is in the root folder of a template.
+Here <a href="https://github.com/sassman/hermit-template-rs">an example</a>:</p>
+<pre><code class="language-toml">[placeholders.hypervisor]
+type = &quot;string&quot;
+prompt = &quot;What hypervisor to use?&quot;
+choices = [&quot;uhyve&quot;, &quot;qemu&quot;]
+default = &quot;qemu&quot;
+
+[placeholders.network_enabled]
+type = &quot;bool&quot;
+prompt = &quot;Want to enable network?&quot;
+default = true
+</code></pre>
+<p>As you can see the <code>placeholders</code> configuration section accepts a table of keywords that will become the placeholder name.</p>
+<p>In this example the placeholder <code>hypervisor</code> and <code>network_enabled</code> will become template variables and can be used like this:</p>
+<pre><code class="language-rs">{% if network_enabled %}
+use std::net::TcpListener;
+
+fn main() {
+    let listener = TcpListener::bind(&quot;0.0.0.0:8080&quot;).unwrap();
+    loop {
+        let (conn, addr) = listener.accept().unwrap();
+        println!(&quot;Incoming Connection from {}&quot;, addr);
+        std::io::copy(&amp;mut &amp;conn, &amp;mut &amp;conn).unwrap();
+    }
+}
+{% else %}
+fn main() {
+    println!(&quot;Hello Rusty Hermit 🦀&quot;);
+}
+{% endif %}
+</code></pre>
+<blockquote>
+<p>💡 Tip: similar to <code>dependencies</code> in the <code>Cargo.toml</code> file you can also list them as one liners:</p>
+</blockquote>
+<pre><code class="language-toml">[placeholders]
+hypervisor = { type = &quot;string&quot;, prompt = &quot;What hypervisor to use?&quot;, choices = [&quot;uhyve&quot;, &quot;qemu&quot;], default = &quot;qemu&quot; }
+network_enabled = { type = &quot;bool&quot;, prompt = &quot;Want to enable network?&quot;, default = true }
+</code></pre>
+<h3 id="prompt-property"><a class="header" href="#prompt-property"><code>prompt</code> property</a></h3>
+<p>The <code>prompt</code> will be used to display a question / message for this very placeholder on the interactive dialog when using the template.</p>
+<pre><code class="language-plain">🤷  What hypervisor to use? [uhyve, qemu] [default: qemu]:
+</code></pre>
+<h3 id="type-property"><a class="header" href="#type-property"><code>type</code> property</a></h3>
+<p>A placeholder can be of type <code>string</code> or <code>bool</code>. Boolean types are usually helpful for conditionally behaviour in templates.</p>
+<h3 id="choices-property-optional"><a class="header" href="#choices-property-optional"><code>choices</code> property (optional)</a></h3>
+<p>A placeholder can come with a list of choices that the user can choose from.
+It's further also validated at the time when a user generates a project from a template.</p>
+<pre><code class="language-toml">choices = [&quot;uhyve&quot;, &quot;qemu&quot;]
+</code></pre>
+<h3 id="default-property-optional"><a class="header" href="#default-property-optional"><code>default</code> property (optional)</a></h3>
+<p>A <code>default</code> property must mach the type (<code>string</code> | <code>bool</code>) and is optional. A default should be provided, to ease the interactive process.
+As usual the user could press <code>enter</code> and the default value would simply be taken, it safes time and mental load.</p>
+<pre><code class="language-toml">default = 'qemu'
+</code></pre>
+<h3 id="regex-property-optional"><a class="header" href="#regex-property-optional"><code>regex</code> property (optional)</a></h3>
+<p>A <code>regex</code> property is a string, that can be used to enforce a certain validation rule. The input dialog will keep repeating
+until the user entered something that is allowed by this regex.</p>
+<h3 id="placeholder-examples"><a class="header" href="#placeholder-examples">Placeholder Examples</a></h3>
+<p>An example with a regex that allows only numbers</p>
+<pre><code class="language-toml">[placeholders]
+phone_number = { type = &quot;string&quot;, prompt = &quot;What's your phone number?&quot;, regex = &quot;^[0-9]+$&quot; }
+</code></pre>
+<h2 id="default-values-for-placeholders"><a class="header" href="#default-values-for-placeholders">Default values for placeholders</a></h2>
+<p>For automation purposes the user of the template may provide the values for the keys in the template using one or more of the following methods.</p>
+<p>The methods are listed by falling priority.</p>
+<h3 id="--define-or--d-flag"><a class="header" href="#--define-or--d-flag"><code>--define</code> or <code>-d</code> flag</a></h3>
+<p>The user may specify variables individually using the <code>--define</code> flag.</p>
+<pre><code class="language-sh">cargo generate template-above -n project-name -d hypervisor=qemu -d network_enabled=true
+</code></pre>
+<h3 id="--template_values_file-flag"><a class="header" href="#--template_values_file-flag"><code>--template_values_file</code> flag</a></h3>
+<p>The user of the template may provide a file containing the values for the keys in the template by using the <code>--template-values-file</code> flag.</p>
+<blockquote>
+<p>⚠️ NOTE: A relative path will be relative to current working dir, which is <em>not</em> inside the expanding template!</p>
+</blockquote>
+<p>The file should be a toml file containing the following (for the example template provided above):</p>
+<pre><code class="language-toml">[values]
+hypervisor = &quot;qemu&quot;
+network_enabled = true
+</code></pre>
+<h4 id="individual-values-via-environment-variables"><a class="header" href="#individual-values-via-environment-variables">Individual values via environment variables</a></h4>
+<p>Variables may be specified using environment variables. To do so, set the env var <code>CARGO_GENERATE_VALUE_&lt;variable key&gt;</code> to the desired value.</p>
+<pre><code class="language-sh">set CARGO_GENERATE_VALUE_HYPERVISOR=qemu
+set CARGO_GENERATE_VALUE_NETWORK_ENABLED=true
+cargo generate template-above
+</code></pre>
+<blockquote>
+<p>⚠️ Windows does not support mixed case environment variables. Internally, <code>cargo-generate</code> will ensure the variable name is all lowercase. For that reason, it is strongly recommended that template authors only use lowercase variable/placeholder names.</p>
+</blockquote>
+<h4 id="template-values-file-via-environment-variable"><a class="header" href="#template-values-file-via-environment-variable">Template values file via environment variable</a></h4>
+<p>The user may use the environment variable <code>CARGO_GENERATE_TEMPLATE_VALUES</code> to specify a file with default values.</p>
+<p>For the file format, see above.</p>
+<h4 id="default-values"><a class="header" href="#default-values">Default values</a></h4>
+<p>Default values may be specified in the config file (specified with the <code>--config</code> flag, or in the default config file <code>$CARGO_HOME/cargo-generate</code>)</p>
+<p><strong>Example config file:</strong></p>
+<pre><code class="language-toml">[values]
+placeholder1 = &quot;default value&quot;
+
+[favorites.my_favorite]
+git = &quot;https://github.com/username-on-github/mytemplate.git&quot;
+
+[favorites.my_favorite.values]
+placeholder1 = &quot;default value overriding the default&quot;
+placeholder2 = &quot;default value for favorite&quot;
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../templates/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                            <a rel="next" href="../templates/ignoring.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../templates/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a rel="next" href="../templates/ignoring.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+    </body>
+</html>
