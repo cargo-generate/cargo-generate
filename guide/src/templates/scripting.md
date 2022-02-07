@@ -107,3 +107,6 @@ Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
 #### Other
 
 * **abort(reason: &str)**: Aborts `cargo-generate` with a script error.
+  
+
+[`Rhai`]: https://rhai.rs/book/
