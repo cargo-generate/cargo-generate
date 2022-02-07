@@ -480,7 +480,7 @@ exclude = [&quot;*.c&quot;]
 <p>The <code>cargo-generate.toml</code> file should be placed in the root of the template. If using the <code>subfolder</code> feature, the root is the <code>subfolder</code> inside the repository, though <code>cargo-generate</code> will look for the file in all parent folders until it reaches the repository root.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="require-cargo-generate-version-from-template"><a class="header" href="#require-cargo-generate-version-from-template">Require <code>cargo-generate</code> version from template</a></h1>
 <blockquote>
-<p>Available since version [0.9.0]</p>
+<p>Available since version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0">0.9.0</a></p>
 </blockquote>
 <p>Using the supported <code>cargo-generate.toml</code> file, the template author may setup version requirements towards <code>cargo-generate</code>.</p>
 <pre><code class="language-toml">[template]
@@ -560,7 +560,7 @@ pre = [&quot;pre-script.rhai&quot;]
 [placeholders]
 license = { type = &quot;string&quot;, prompt = &quot;What license to use?&quot;, choices = [&quot;APACHE&quot;, &quot;MIT&quot;], default = &quot;MIT&quot; }
 </code></pre>
-<p>Now, write the script in [<code>Rhai</code>], utilizing the <code>cargo-generate</code> <a href="templates/scripting.html#Rhai-extensions">provided extensions</a>:</p>
+<p>Now, write the script in <a href="https://rhai.rs/book/"><code>Rhai</code></a>, utilizing the <code>cargo-generate</code> <a href="templates/scripting.html#Rhai-extensions">provided extensions</a>:</p>
 <pre><code class="language-rhai">// we can see existing variables.
 // note that template and Rhai variables are separate!
 let crate_type = variable::get(&quot;crate_type&quot;)
@@ -588,7 +588,7 @@ while switch license {
 variable::set(&quot;license&quot;, license);
 </code></pre>
 <h3 id="rhai-extensions"><a class="header" href="#rhai-extensions">Rhai extensions</a></h3>
-<p>Besides the basic [<code>Rhai</code>] features, these are the modules/behaviors defined:</p>
+<p>Besides the basic <a href="https://rhai.rs/book/"><code>Rhai</code></a> features, these are the modules/behaviors defined:</p>
 <h4 id="variables"><a class="header" href="#variables">Variables</a></h4>
 <h5 id="getset"><a class="header" href="#getset">get/set</a></h5>
 <ul>
@@ -653,7 +653,7 @@ variable::set(&quot;license&quot;, license);
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="template-authoring"><a class="header" href="#template-authoring">Template Authoring</a></h1>
 <blockquote>
-<p>Available since version [0.9.0]</p>
+<p>Available since version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0">0.9.0</a></p>
 </blockquote>
 <p>As a template author you're probably concerned about successful builds of your template?</p>
 <p>Imagine a couple of months after your first template release, some new versions of any dependencies would break your template, and you would not even be aware of it?</p>

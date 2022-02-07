@@ -146,7 +146,7 @@ pre = [&quot;pre-script.rhai&quot;]
 [placeholders]
 license = { type = &quot;string&quot;, prompt = &quot;What license to use?&quot;, choices = [&quot;APACHE&quot;, &quot;MIT&quot;], default = &quot;MIT&quot; }
 </code></pre>
-<p>Now, write the script in [<code>Rhai</code>], utilizing the <code>cargo-generate</code> <a href="#Rhai-extensions">provided extensions</a>:</p>
+<p>Now, write the script in <a href="https://rhai.rs/book/"><code>Rhai</code></a>, utilizing the <code>cargo-generate</code> <a href="#Rhai-extensions">provided extensions</a>:</p>
 <pre><code class="language-rhai">// we can see existing variables.
 // note that template and Rhai variables are separate!
 let crate_type = variable::get(&quot;crate_type&quot;)
@@ -174,7 +174,7 @@ while switch license {
 variable::set(&quot;license&quot;, license);
 </code></pre>
 <h3 id="rhai-extensions"><a class="header" href="#rhai-extensions">Rhai extensions</a></h3>
-<p>Besides the basic [<code>Rhai</code>] features, these are the modules/behaviors defined:</p>
+<p>Besides the basic <a href="https://rhai.rs/book/"><code>Rhai</code></a> features, these are the modules/behaviors defined:</p>
 <h4 id="variables"><a class="header" href="#variables">Variables</a></h4>
 <h5 id="getset"><a class="header" href="#getset">get/set</a></h5>
 <ul>
