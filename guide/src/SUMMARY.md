@@ -1,0 +1,16 @@
+# Summary
+
+- [Introduction](README.md)
+- [Installation](installation.md)
+- [Usage](usage.md)
+- [Favorites](favorites.md)
+- [Templates](templates/README.md)
+  - [Placeholders](templates/placeholders.md)
+  - [Ignoring Files](templates/ignoring.md)
+  - [Include/Exclude](templates/include_exclude.md)
+  - [Require Version](templates/require_version.md)
+  - [Conditionals](templates/conditional.md)
+  - [Pre/Post Scripts](templates/scripting.md)
+  - [Authoring](templates/authoring.md)
+- [Contributing](contributing.md)
+- [License](license.md)
