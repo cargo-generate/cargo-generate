@@ -13,9 +13,9 @@ jobs:
                   fetch-depth: 0
 
             - name: Setup mdBook
-                  uses: peaceiris/actions-mdbook@v1
-                  with:
-                    mdobook-version: 'latest'
+              uses: peaceiris/actions-mdbook@v1
+                with:
+                  mdobook-version: 'latest'
             - run: cd guide && mdbook build
               
             - name: Deploy
