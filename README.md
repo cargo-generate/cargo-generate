@@ -1,11 +1,20 @@
+
+
+<div align="center">
+
 # cargo-generate
 
-> cargo, make me a project
+  <img src="https://github.com/cargo-generate/cargo-generate/raw/52be603bab5329b0ba90a19cafd58973f8781fa7/resources/logo.png" width="256"></a>
+
 
 [![Build status](https://github.com/cargo-generate/cargo-generate/workflows/Build/badge.svg)](https://github.com/cargo-generate/cargo-generate/actions?query=workflow%3ABuild+branch%3Amain+)
 [![crates.io](https://img.shields.io/crates/v/cargo-generate.svg)](https://crates.io/crates/cargo-generate)
 [![dependency status](https://deps.rs/repo/github/cargo-generate/cargo-generate/status.svg)](https://deps.rs/repo/github/cargo-generate/cargo-generate)
 [![Chat on Matrix](https://img.shields.io/matrix/cargo-generate:matrix.org?server_fqdn=matrix.org)](https://matrix.to/#/#cargo-generate:matrix.org)
+
+</div>
+
+> cargo, make me a project
 
 `cargo-generate` is a developer tool to help you get up and running quickly with a new Rust
 project by leveraging a pre-existing git repository as a template.
