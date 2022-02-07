@@ -1,27 +1,32 @@
-name: Deploy
+name: GitHub Pages
+
 on:
-    push:
-        branches:
-            - cargo_generate_guide
+  push:
+    branches:
+      - main
+      - cargo_generate_guide
+  pull_request:
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v2
-              with:
-                  fetch-depth: 0
+  deploy:
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v2
 
-            - name: Setup mdBook
-              uses: peaceiris/actions-mdbook@v1
-                with:
-                  mdobook-version: 'latest'
-            - run: cd guide && mdbook build
-              
-            - name: Deploy
-              uses: peaceiris/actions-gh-pages@v3
-              #              if: ${{ github.ref == 'refs/heads/main' }}
-              with:
-                github_token: ${{ secrets.GITHUB_TOKEN }}
-                publish_dir: ./guide/book
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1
+        with:
+          # mdbook-version: '0.4.15'
+           mdbook-version: 'latest'
+
+      - run: cd guide && mdbook build
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./guide/book
 
