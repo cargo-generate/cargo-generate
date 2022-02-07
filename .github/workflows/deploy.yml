@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - cargo_generate_guide
   pull_request:
 
 jobs:
