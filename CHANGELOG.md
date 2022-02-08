@@ -1,6 +1,36 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.12.0...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.13.0...HEAD)
+
+## [0.13.0] 2022-02-08
+[0.13.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.12.0...v0.13.0
+
+### ✨ Features
+- [feat(#299): cargo generate book](https://github.com/cargo-generate/cargo-generate/pull/519)
+- [feat(chat): add matrix chat and logo draft](https://github.com/cargo-generate/cargo-generate/pull/537)
+- [feat(#418) Make `--identity` configurable in cargo-generate.toml and verbose error message](https://github.com/cargo-generate/cargo-generate/pull/534)
+- [feat(#520): Support Git's https to ssh rewriting configuration](https://github.com/cargo-generate/cargo-generate/pull/533)
+- [feat(#526): template sub directory error lacks context](https://github.com/cargo-generate/cargo-generate/pull/529)
+- [feat(#516): new `--force-git-init` flag](https://github.com/cargo-generate/cargo-generate/pull/525)
+
+### 🤕 Fixes
+- [fix(abbrev): fix index out of range for git abbrev](https://github.com/cargo-generate/cargo-generate/pull/524)
+- [fix(#79): improve the error message in case the repo or user does not exists](https://github.com/cargo-generate/cargo-generate/pull/521)
+- [fix(#510): Using `--path` bring the `.git` folder from the source with it](https://github.com/cargo-generate/cargo-generate/pull/518)
+
+### 🛠️ Maintenance
+- [chore(book): minor fixes of broken links](https://github.com/cargo-generate/cargo-generate/pull/538)
+- [chore(deps): bump semver from 1.0.4 to 1.0.5](https://github.com/cargo-generate/cargo-generate/pull/536)
+- [chore(deps): bump tempfile from 3.2.0 to 3.3.0](https://github.com/cargo-generate/cargo-generate/pull/515)
+- [ci: remove reference to unused action](https://github.com/cargo-generate/cargo-generate/pull/503)
+
+## Contributors
+
+- [MarcoIeni](https://github.com/MarcoIeni)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [joshrotenberg](https://github.com/joshrotenberg)
+- [sassman](https://github.com/sassman)
+
 
 ## [0.12.0] 2022-02-04
 [0.12.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.11.1...v0.12.0
