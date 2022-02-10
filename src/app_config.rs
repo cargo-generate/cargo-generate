@@ -57,7 +57,8 @@ impl TryFrom<&Path> for AppConfig {
 }
 
 pub fn app_config_path(path: &Option<PathBuf>) -> Result<PathBuf> {
-    path.clone()
+    path.as_ref()
+        .map(|p| p.canonicalize().unwrap())
         .or_else(|| {
             home::cargo_home().map_or(None, |home| {
                 let preferred_path = home.join(CONFIG_FILE_NAME);
