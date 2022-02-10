@@ -72,4 +72,11 @@ license, shall be dual licensed as above, without any additional terms or
 conditions.
 If you want to contribute to `cargo-generate`, please read our [CONTRIBUTING notes].
 
+cargo-generate would not be what it is today without the wonderful contributions from the community. Thank
+you!
+
+<a href="https://github.com/cargo-generate/cargo-generate/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=cargo-generate/cargo-generate" />
+</a>
+
 [CONTRIBUTING notes]: CONTRIBUTING.md
