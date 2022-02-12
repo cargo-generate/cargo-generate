@@ -3,28 +3,40 @@ use liquid::Object;
 use liquid_core::model::map::Entry;
 use liquid_core::Value;
 use regex::Regex;
+use serde::Deserialize;
 use thiserror::Error;
 
 use crate::config::{Config, TemplateSlotsTable};
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Clone, PartialEq)]
 pub struct TemplateSlots {
     pub(crate) var_name: String,
     pub(crate) var_info: VarInfo,
     pub(crate) prompt: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Deserialize, Clone, PartialEq)]
 pub enum VarInfo {
     Bool { default: Option<bool> },
     String { entry: Box<StringEntry> },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Deserialize, Clone, PartialEq)]
 pub struct StringEntry {
     pub(crate) default: Option<String>,
     pub(crate) choices: Option<Vec<String>>,
-    pub(crate) regex: Option<Regex>,
+    pub(crate) regex: Option<String>,
+}
+
+impl StringEntry {
+    pub fn is_valid(&self, value: &str) -> Result<bool> {
+        if let Some(s) = &self.regex {
+            if !Regex::new(&s)?.is_match(value) {
+                return Ok(true);
+            }
+        }
+        return Ok(false);
+    }
 }
 
 #[derive(Error, Debug, PartialEq)]
@@ -123,8 +135,8 @@ fn try_into_template_slots(
     TemplateSlotsTable(table): &TemplateSlotsTable,
 ) -> Result<Vec<TemplateSlots>, ConversionError> {
     let mut slots = Vec::with_capacity(table.len());
-    for (key, values) in table.iter() {
-        slots.push(try_key_value_into_slot(key, values)?);
+    for (_, values) in table.iter() {
+        slots.push(values.clone());
     }
     Ok(slots)
 }
@@ -146,6 +158,8 @@ fn try_key_value_into_slot(
         })?;
 
     let var_type = extract_type(key, table.get("type"))?;
+    // we extract a Regex here, but only for the sake of validating the regex itself -- we store it
+    // as a String in StringEntry
     let regex = extract_regex(key, var_type, table.get("regex"))?;
     let prompt = extract_prompt(key, table.get("prompt"))?;
     let choices = extract_choices(key, var_type, regex.as_ref(), table.get("choices"))?;
@@ -165,7 +179,7 @@ fn try_key_value_into_slot(
             entry: Box::new(StringEntry {
                 default: Some(value),
                 choices,
-                regex,
+                regex: regex.map(|v| v.as_str().to_string()),
             }),
         },
         (SupportedVarType::Bool, None) => VarInfo::Bool { default: None },
@@ -173,7 +187,7 @@ fn try_key_value_into_slot(
             entry: Box::new(StringEntry {
                 default: None,
                 choices,
-                regex,
+                regex: regex.map(|v| v.as_str().to_string()),
             }),
         },
         _ => unreachable!("It should not have come to this..."),

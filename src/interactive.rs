@@ -10,7 +10,7 @@ use liquid_core::Value;
 use std::ops::Index;
 
 pub fn name() -> Result<String> {
-    let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;
+    let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?.to_string();
     let project_var = TemplateSlots {
         var_name: "crate_name".into(),
         prompt: "Project Name".into(),
@@ -76,8 +76,9 @@ pub fn prompt_for_variable(variable: &TemplateSlots) -> Result<String> {
                 let default = entry.default.as_ref().map(|v| v.into());
 
                 match &entry.regex {
-                    Some(regex) => loop {
+                    Some(s) => loop {
                         let user_entry = user_question(prompt.as_str(), &default)?;
+                        let regex = regex::Regex::new(s)?;
                         if regex.is_match(&user_entry) {
                             break Ok(user_entry);
                         }

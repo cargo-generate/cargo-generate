@@ -6,6 +6,8 @@ use std::{collections::HashMap, fs};
 use std::{convert::TryFrom, io::ErrorKind};
 use walkdir::WalkDir;
 
+use crate::project_variables::{VarInfo, TemplateSlots};
+
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
 #[derive(Deserialize, Debug, PartialEq, Default, Clone)]
@@ -39,7 +41,24 @@ pub struct ConditionalConfig {
 }
 
 #[derive(Deserialize, Debug, PartialEq, Clone)]
-pub struct TemplateSlotsTable(pub HashMap<String, toml::Value>);
+pub struct TemplateSlotsTable(pub HashMap<String, TemplateSlots>);
+
+impl TemplateSlotsTable {
+    pub fn is_valid(&self, key: &str, value: &str) -> Result<bool> {
+        if let Some(slot) = self.0.get(key) {
+            match &slot.var_info {
+                VarInfo::String { entry } => {
+                    if (*entry).is_valid(value)? {
+                        return Ok(true);
+                    }
+                },
+                _ => return Ok(true),
+            }
+            return Ok(false);
+        }
+        return Ok(false);
+    }
+}
 
 impl TryFrom<String> for Config {
     type Error = toml::de::Error;

@@ -142,7 +142,8 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     });
 
     module.set_native_fn("prompt", {
-        move |prompt: &str, default_value: &str, regex: &str| -> Result<String> {
+        move |prompt: &str, default_value: &str, s: &str| -> Result<String> {
+            Regex::new(s).map_err(|_| "Invalid regex")?; // validate the regex
             let value = prompt_for_variable(&TemplateSlots {
                 prompt: prompt.into(),
                 var_name: "".into(),
@@ -150,7 +151,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
                     entry: Box::new(StringEntry {
                         default: Some(default_value.into()),
                         choices: None,
-                        regex: Some(Regex::new(regex).map_err(|_| "Invalid regex")?),
+                        regex: Some(s.to_string()),
                     }),
                 },
             });
