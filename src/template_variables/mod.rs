@@ -17,9 +17,12 @@ pub use crate_type::CrateType;
 pub use os_arch::get_os_arch;
 pub use project_name::ProjectName;
 
+use crate::config::Config;
+
 pub fn resolve_template_values(
     favorite_values: Option<HashMap<String, toml::Value>>,
     args: &Args,
+    config: &Config,
 ) -> Result<HashMap<String, Value>> {
     let mut values = favorite_values.unwrap_or_default();
 
@@ -46,6 +49,22 @@ pub fn resolve_template_values(
     );
 
     add_cli_defined_values(&mut values, &args.define)?;
+
+    if let Some(placeholders) = &config.placeholders {
+        for (key, value) in values.iter() {
+            match value {
+                toml::Value::String(s) => {
+                    if !placeholders.is_valid(key, s)? {
+                        anyhow::bail!(
+                            style(format!("placeholder '{}' value '{}' doesn't match regex", key, value))
+                            .bold()
+                            .red());
+                    }
+                }
+                _ => (),
+            }
+        }
+    }
 
     Ok(values)
 }

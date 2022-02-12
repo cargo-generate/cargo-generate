@@ -106,7 +106,7 @@ pub fn generate(mut args: Args) -> Result<()> {
     .unwrap_or_default();
 
     check_cargo_generate_version(&template_config)?;
-    let template_values = resolve_template_values(default_values, &args)?;
+    let template_values = resolve_template_values(default_values, &args, &template_config)?;
 
     let project_name = resolve_project_name(&args)?;
     let project_dir = resolve_project_dir(&project_name, &args)?;
