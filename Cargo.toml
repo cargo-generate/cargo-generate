@@ -12,7 +12,7 @@ include = ["src/**/*", "LICENSE-*", "*.md"]
 
 [dependencies]
 console = "0.15"
-dialoguer = "0.9"
+dialoguer = "0.10"
 dirs = "4.0"
 indicatif = "0.16"
 git2 = "0.13"
