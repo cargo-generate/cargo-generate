@@ -1,7 +1,7 @@
 [package]
 name = "cargo-generate"
 description = "cargo, make me a project"
-version = "0.13.0"
+version = "0.14.0-alpha.1"
 authors = [
     "Ashley Williams <ashley666ashley@gmail.com>"
 ]
@@ -37,7 +37,6 @@ sanitize-filename = "0.3"
 rhai = "1.3"
 path-absolutize = "3.0"
 git-config = "0.1.11"
-http = "0.2"
 
 [dependencies.openssl]
 version = "0.10"
