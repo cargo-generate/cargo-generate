@@ -15,12 +15,13 @@ use assert_cmd::prelude::*;
 
 #[test]
 #[ignore]
-fn schema_can_be_skiped_with_git() { 
+fn schema_can_be_skiped_with_git() {
+    // with --git
     let dir = tmp_dir().build();
     binary()
         .arg("generate")
         .arg("--git")
-        .arg("github.com/ashleygwilliams/wasm-pack-template")
+        .arg("git://github.com/ashleygwilliams/wasm-pack-template")
         .arg("--name")
         .arg("my-proj")
         .arg("--init")
@@ -32,12 +33,12 @@ fn schema_can_be_skiped_with_git() {
 
 #[test]
 #[ignore]
-fn schema_can_be_skiped_with_favorite() { 
+fn schema_can_be_skiped_with_favorite() {
     let dir = tmp_dir().build();
     binary()
         .arg("generate")
         .arg("--name")
-        .arg("my-proj")
+        .arg("my-proj2")
         .arg("--init")
         .arg("github.com/ashleygwilliams/wasm-pack-template")
         .current_dir(&dir.path())
@@ -48,7 +49,7 @@ fn schema_can_be_skiped_with_favorite() {
 
 #[test]
 #[ignore]
-fn abbreviation_for_github_works() { 
+fn abbreviation_for_github_works() {
     let dir = tmp_dir().build();
     binary()
         .arg("generate")
@@ -60,7 +61,6 @@ fn abbreviation_for_github_works() {
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 }
-
 
 #[cfg(test)]
 #[cfg(unix)]

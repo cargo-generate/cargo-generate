@@ -1389,7 +1389,7 @@ fn error_message_for_invalid_repo_or_user() {
         .failure()
         .stderr(
             predicates::str::contains(
-                r#"Git Error: Please check if the Git user / repository exists."#,
+                r#"Error: Please check if the Git user / repository exists"#,
             )
             .from_utf8(),
         );

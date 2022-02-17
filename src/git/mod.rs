@@ -9,7 +9,7 @@ mod utils;
 use std::path::Path;
 
 use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository, RepositoryInitOptions};
-pub use temp::clone_git_template_into_temp;
+pub use temp::{clone_git_template_into_temp, clone_git_using_cmd};
 pub use utils::{create, GitConfig};
 
 // cargo-generate (as application) whant from git module:

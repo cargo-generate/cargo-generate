@@ -7,9 +7,9 @@ use std::{
 
 use crate::{
     app_config::{AppConfig, FavoriteConfig},
-    emoji, warn, Args,
+    emoji, Args,
 };
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use console::style;
 
 pub fn list_favorites(app_config: &AppConfig, args: &Args) -> Result<()> {
@@ -57,32 +57,40 @@ pub fn list_favorites(app_config: &AppConfig, args: &Args) -> Result<()> {
 pub struct SourceTemplate {
     template_location: TemplateLocation,
     subfolder: Option<String>,
+    template_values: HashMap<String, toml::Value>,
 }
 
 impl SourceTemplate {
-    fn new(template_location: impl Into<TemplateLocation>, subfolder: Option<String>) -> Self {
+    fn new(
+        template_location: impl Into<TemplateLocation>,
+        subfolder: Option<String>,
+        default_values: HashMap<String, toml::Value>,
+    ) -> Self {
         Self {
             template_location: template_location.into(),
             subfolder,
+            template_values: default_values,
         }
     }
 
     pub fn try_from_args_and_config(app_config: &AppConfig, args: &Args) -> Self {
         // --git and --path can not be set at the same time
         assert!(args.git.is_none() || args.path.is_none());
+        let mut default_values = app_config.values.clone().unwrap_or_default();
 
         // --git
-        if let Some(git_user_in) = GitUserInput::try_from_args(args) {
+        if let Some(git_url) = &args.git {
             assert!(args.subfolder.is_none());
 
-            return Self::new(git_user_in, args.favorite.clone());
+            let git_user_in = GitUserInput::with_git_url_and_args(git_url, args);
+            return Self::new(git_user_in, args.favorite.clone(), default_values);
         }
 
         // --path
         if let Some(path) = &args.path {
             assert!(args.subfolder.is_none());
 
-            return Self::new(path, args.favorite.clone());
+            return Self::new(path, args.favorite.clone(), default_values);
         }
 
         // check if favorite is favorite configuration
@@ -93,12 +101,13 @@ impl SourceTemplate {
             assert!(fav_cfg.git.is_none() || fav_cfg.path.is_none());
 
             let temp_location = if let Some(git_url) = &fav_cfg.git {
-                let git_user_input = GitUserInput {
-                    url: git_url.clone(),
-                    branch: args.branch.clone().or_else(|| fav_cfg.branch.clone()),
-                    identity: args.ssh_identity.clone(),
-                    force_init: args.force_git_init,
-                };
+                let branch = args.branch.clone().or_else(|| fav_cfg.branch.clone());
+                let git_user_input = GitUserInput::new(
+                    git_url,
+                    branch,
+                    args.ssh_identity.clone(),
+                    args.force_git_init,
+                );
 
                 TemplateLocation::from(git_user_input)
             } else if let Some(path) = &fav_cfg.path {
@@ -107,9 +116,14 @@ impl SourceTemplate {
                 unreachable!();
             };
 
+            if let Some(fav_default_values) = &fav_cfg.values {
+                default_values.extend(fav_default_values.clone());
+            }
+
             return Self::new(
                 temp_location,
                 args.subfolder.clone().or_else(|| fav_cfg.subfolder.clone()),
+                default_values,
             );
         }
 
@@ -130,7 +144,7 @@ impl SourceTemplate {
             TemplateLocation::from(GitUserInput::with_git_url_and_args(fav_name, args))
         };
 
-        Self::new(tl, args.subfolder.clone())
+        Self::new(tl, args.subfolder.clone(), default_values)
     }
 
     pub fn location(&self) -> &TemplateLocation {
@@ -139,6 +153,14 @@ impl SourceTemplate {
 
     pub fn subfolder(&self) -> Option<&str> {
         self.subfolder.as_deref()
+    }
+
+    pub fn template_values(&self) -> &HashMap<String, toml::Value> {
+        &self.template_values
+    }
+
+    pub fn template_values_mut(&mut self) -> &mut HashMap<String, toml::Value> {
+        &mut self.template_values
     }
 }
 
@@ -160,8 +182,7 @@ pub fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> Option<String
 // favorite can be in form of org/repo what should be parsed as github.com
 pub fn abbreviated_github(fav: &str) -> Option<String> {
     let count_slash = fav.chars().filter(|c| *c == '/').count();
-    (count_slash == 1).then(||
-        format!("https://github.com/{fav}"))
+    (count_slash == 1).then(|| format!("https://github.com/{fav}"))
 }
 
 pub fn local_path(fav: &str) -> Option<PathBuf> {
@@ -178,18 +199,23 @@ pub struct GitUserInput {
 }
 
 impl GitUserInput {
-    // when git was used as abbreviation but other flags still could be passed
-    fn with_git_url_and_args(url: &str, args: &Args) -> Self {
+    fn new(url: &str, branch: Option<String>, identity: Option<PathBuf>, force_init: bool) -> Self {
         Self {
             url: url.to_owned(),
-            branch: args.branch.clone(),
-            identity: args.ssh_identity.clone(),
-            force_init: args.force_git_init,
+            branch,
+            identity,
+            force_init,
         }
     }
 
-    fn try_from_args(args: &Args) -> Option<Self> {
-        Some(Self::with_git_url_and_args(args.git.as_deref()?, args))
+    // when git was used as abbreviation but other flags still could be passed
+    fn with_git_url_and_args(url: &str, args: &Args) -> Self {
+        Self::new(
+            url,
+            args.branch.clone(),
+            args.ssh_identity.clone(),
+            args.force_git_init,
+        )
     }
 
     pub fn url(&self) -> &str {
@@ -222,116 +248,5 @@ where
 {
     fn from(source: T) -> Self {
         Self::Path(PathBuf::from(source.as_ref()))
-    }
-}
-
-pub fn resolve_favorite_args_and_default_values(
-    app_config: &AppConfig,
-    args: &mut Args,
-) -> Result<Option<HashMap<String, toml::Value>>> {
-    if args.git.is_some() {
-        args.subfolder = args.favorite.take();
-        return Ok(app_config.values.clone());
-    }
-
-    if args.path.is_some() {
-        return Ok(app_config.values.clone());
-    }
-
-    let favorite_name = args
-        .favorite
-        .as_ref()
-        .ok_or_else(|| anyhow!("Please specify either --git option, or a predefined favorite"))?;
-
-    let (values, git, branch, subfolder, path) = app_config
-        .favorites
-        .as_ref()
-        .and_then(|f| f.get(favorite_name.as_str()))
-        .map_or_else(
-            || {
-                warn!(
-                    "Favorite {} not found in config, using it as path or git repo url",
-                    style(&favorite_name).bold()
-                );
-
-                let what_is_fav = GitOrPath::from_favorite_name(favorite_name);
-                (
-                    None,
-                    what_is_fav.git(),
-                    args.branch.as_ref().cloned(),
-                    args.subfolder.clone(),
-                    what_is_fav.path_with_subfolder(args.subfolder.as_ref()),
-                )
-            },
-            |f| {
-                let values = match app_config.values.clone() {
-                    Some(mut values) => {
-                        values.extend(f.values.clone().unwrap_or_default());
-                        Some(values)
-                    }
-                    None => f.values.clone(),
-                };
-
-                (
-                    values,
-                    f.git.clone(),
-                    args.branch.as_ref().or_else(|| f.branch.as_ref()).cloned(),
-                    args.subfolder
-                        .as_ref()
-                        .or_else(|| f.subfolder.as_ref())
-                        .cloned(),
-                    f.path.clone(),
-                )
-            },
-        );
-
-    args.git = git;
-    args.branch = branch;
-    args.subfolder = subfolder;
-    args.path = path;
-
-    Ok(values)
-}
-
-/// Distinguish for favorite to be remote git or local path
-enum GitOrPath {
-    Git(String),
-    Path(PathBuf),
-}
-
-impl GitOrPath {
-    fn from_favorite_name(favorite: &str) -> Self {
-        let maybe_path = Path::new(favorite);
-        if maybe_path.exists() && maybe_path.is_dir() {
-            println!("exist path and dir {:?}", maybe_path);
-            Self::Path(maybe_path.into())
-        } else {
-            println!("git: {:?}", favorite);
-            Self::Git(favorite.into())
-        }
-    }
-
-    fn git(&self) -> Option<String> {
-        match self {
-            Self::Git(v) => Some(v.clone()),
-            Self::Path(_) => None,
-        }
-    }
-
-    fn path(&self) -> Option<PathBuf> {
-        match self {
-            Self::Git(_) => None,
-            Self::Path(path) => Some(path.clone()),
-        }
-    }
-
-    fn path_with_subfolder(&self, subfolder: Option<&String>) -> Option<PathBuf> {
-        self.path().map(|path| {
-            if let Some(subfolder) = subfolder {
-                path.join(subfolder)
-            } else {
-                path
-            }
-        })
     }
 }

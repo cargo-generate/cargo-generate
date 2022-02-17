@@ -170,7 +170,10 @@ fn favorites_default_to_git_if_not_defined() {
         .current_dir(&working_dir.path())
         .assert()
         .failure()
-        .stderr(predicates::str::contains(r#"status code: 404"#).from_utf8());
+        .stderr(
+            predicates::str::contains(r#"Please check if the Git user / repository exists"#)
+                .from_utf8(),
+        );
 }
 
 #[test]

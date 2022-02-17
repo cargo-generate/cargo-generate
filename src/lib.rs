@@ -63,7 +63,7 @@ use std::{
 
 use tempfile::TempDir;
 
-use crate::template_variables::resolve_template_values;
+use crate::template_variables::load_env_and_args_template_values;
 use crate::{
     app_config::{app_config_path, AppConfig},
     project_variables::ConversionError,
@@ -97,9 +97,11 @@ pub fn generate(mut args: Args) -> Result<()> {
         }
     }
 
-    let default_values = app_config.values.clone();
-
-    let source_template = favorites::SourceTemplate::try_from_args_and_config(&app_config, &args);
+    let mut source_template =
+        favorites::SourceTemplate::try_from_args_and_config(&app_config, &args);
+    source_template
+        .template_values_mut()
+        .extend(load_env_and_args_template_values(&args)?);
 
     let (template_base_dir, template_folder, branch) = prepare_local_template(&source_template)?;
 
@@ -109,7 +111,6 @@ pub fn generate(mut args: Args) -> Result<()> {
     .unwrap_or_default();
 
     check_cargo_generate_version(&template_config)?;
-    let template_values = resolve_template_values(default_values, &args)?;
 
     let project_name = resolve_project_name(&args)?;
     let project_dir = resolve_project_dir(&project_name, &args)?;
@@ -124,7 +125,7 @@ pub fn generate(mut args: Args) -> Result<()> {
     expand_template(
         &project_name,
         &template_folder,
-        &template_values,
+        source_template.template_values(),
         template_config,
         &args,
     )?;
@@ -171,7 +172,7 @@ fn get_source_template_into_temp(
     match template_location {
         TemplateLocation::Git(git) => {
             let (temp_dir2, branch2) =
-                git::clone_git_template_into_temp(git.url(), git.branch(), git.identity())?;
+                git::clone_git_using_cmd(git.url(), git.branch(), git.identity())?;
             temp_dir = temp_dir2;
             branch = branch2;
         }
@@ -237,10 +238,9 @@ fn resolve_template_dir(template_base_dir: &TempDir, subfolder: Option<&str>) ->
                 )
             })?;
 
-        //TODO: I think this is unreachable
-        #[allow(unreachable_code)]
+        //TODO: Add comments to understand this check
+        // is this preventing when subfolder contains for example `../../name`?
         if !template_dir.starts_with(&template_base_dir) {
-            unreachable!();
             return Err(anyhow!(
                 "{} {} {}",
                 emoji::ERROR,
