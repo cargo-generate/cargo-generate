@@ -49,8 +49,7 @@ pub fn clone_git_template_into_temp(
     Ok((git_clone_dir, branch))
 }
 
-// `cargo` itself has a probel with dealing with git and it allow
-// fallback to cli
+// `cargo` itself has a problem with implementing git and it fallback to git cli
 // 1. https://doc.rust-lang.org/cargo/reference/config.html#netgit-fetch-with-cli
 // 2. https://github.com/rust-lang/cargo/blob/03e24bcf67696ba35d3aa2b0dd01f97bcfdf91a7/src/cargo/sources/git/utils.rs#L875
 // 3. https://github.com/rust-lang/cargo/issues/8172

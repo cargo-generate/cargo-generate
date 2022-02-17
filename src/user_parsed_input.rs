@@ -162,7 +162,7 @@ pub fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> Option<String
 // favorite can be in form of org/repo what should be parsed as github.com
 pub fn abbreviated_github(fav: &str) -> Option<String> {
     let count_slash = fav.chars().filter(|c| *c == '/').count();
-    (count_slash == 1).then(|| format!("https://github.com/{fav}"))
+    (count_slash == 1).then(|| format!("https://github.com/{fav}.git"))
 }
 
 pub fn local_path(fav: &str) -> Option<PathBuf> {
@@ -233,5 +233,33 @@ where
 {
     fn from(source: T) -> Self {
         Self::Path(PathBuf::from(source.as_ref()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn should_support_bb_gl_gh_abbreviations() {
+        assert_eq!(
+            &abbreviated_git_url_to_full_remote("gh:foo/bar").unwrap(),
+            "https://github.com/foo/bar.git"
+        );
+        assert_eq!(
+            &abbreviated_git_url_to_full_remote("bb:foo/bar").unwrap(),
+            "https://bitbucket.org/foo/bar.git"
+        );
+        assert_eq!(
+            &abbreviated_git_url_to_full_remote("gl:foo/bar").unwrap(),
+            "https://gitlab.com/foo/bar.git"
+        );
+        assert!(&abbreviated_git_url_to_full_remote("foo/bar").is_none());
+    }
+
+    #[test]
+    fn should_appreviation_org_repo_to_github() {
+        assert_eq!(&abbreviated_github("org/repo").unwrap(), "https://github.com/org/repo.git");
+        assert!(&abbreviated_github("path/to/a/sth").is_none());
     }
 }
