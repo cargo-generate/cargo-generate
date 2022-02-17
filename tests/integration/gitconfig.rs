@@ -7,19 +7,19 @@ use assert_cmd::prelude::*;
 
 #[test]
 fn read_configuration_from_gitconfig() {
-
     let template = tmp_dir()
-        .file(".gitconfig",
-r#"
+        .file(
+            ".gitconfig",
+            r#"
 [url "https://github.com/"]
     insteadOf = ssh://git@github.com:
-"#)
+"#,
+        )
         .build();
 
     let git_config = template.path().join(".gitconfig");
     let remote = "ssh://git@github.com:ashleygwilliams/wasm-pack-template";
 
-    
     let dir = tmp_dir().build();
 
     binary()
@@ -32,6 +32,4 @@ r#"
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
-
-
 }

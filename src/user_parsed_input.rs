@@ -259,7 +259,10 @@ mod tests {
 
     #[test]
     fn should_appreviation_org_repo_to_github() {
-        assert_eq!(&abbreviated_github("org/repo").unwrap(), "https://github.com/org/repo.git");
+        assert_eq!(
+            &abbreviated_github("org/repo").unwrap(),
+            "https://github.com/org/repo.git"
+        );
         assert!(&abbreviated_github("path/to/a/sth").is_none());
     }
 }

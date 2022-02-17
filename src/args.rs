@@ -149,7 +149,9 @@ impl Vcs {
     pub fn initialize(&self, project_dir: &Path, branch: String, force: bool) -> Result<()> {
         match self {
             Self::None => Ok(()),
-            Self::Git => git::init(project_dir, &branch, force).map(|_| ()).map_err(anyhow::Error::from)
+            Self::Git => git::init(project_dir, &branch, force)
+                .map(|_| ())
+                .map_err(anyhow::Error::from),
         }
     }
 }
