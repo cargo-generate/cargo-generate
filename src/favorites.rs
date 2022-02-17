@@ -77,12 +77,13 @@ impl SourceTemplate {
         // --git and --path can not be set at the same time
         assert!(args.git.is_none() || args.path.is_none());
         let mut default_values = app_config.values.clone().unwrap_or_default();
+        let ssh_identity = app_config.defaults.as_ref().and_then(|dcfg| dcfg.ssh_identity.clone()).or_else(|| args.ssh_identity.clone());
 
         // --git
         if let Some(git_url) = &args.git {
             assert!(args.subfolder.is_none());
 
-            let git_user_in = GitUserInput::with_git_url_and_args(git_url, args);
+            let git_user_in = GitUserInput::new(git_url, args.branch.clone(), ssh_identity, args.force_git_init);
             return Self::new(git_user_in, args.favorite.clone(), default_values);
         }
 
@@ -105,7 +106,7 @@ impl SourceTemplate {
                 let git_user_input = GitUserInput::new(
                     git_url,
                     branch,
-                    args.ssh_identity.clone(),
+                    ssh_identity,
                     args.force_git_init,
                 );
 
@@ -141,7 +142,7 @@ impl SourceTemplate {
         } else if let Some(git_url) = abbreviated_github(fav_name) {
             TemplateLocation::from(GitUserInput::with_git_url_and_args(&git_url, args))
         } else {
-            TemplateLocation::from(GitUserInput::with_git_url_and_args(fav_name, args))
+            TemplateLocation::from(GitUserInput::new(fav_name, args.branch.clone(), ssh_identity, args.force_git_init))
         };
 
         Self::new(tl, args.subfolder.clone(), default_values)
