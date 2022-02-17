@@ -3,13 +3,12 @@
 mod creds;
 mod gitconfig;
 mod identity_path;
-mod temp;
 mod utils;
 
 use std::path::{Path, PathBuf};
 
 use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository, RepositoryInitOptions};
-pub use temp::{clone_git_template_into_temp, clone_git_using_cmd};
+pub use utils::{clone_git_template_into_temp, clone_git_using_cmd};
 
 // cargo-generate (as application) whant from git module:
 // 1. cloning remote
@@ -31,7 +30,7 @@ pub const DEFAULT_BRANCH: &str = "main";
 
 type Git2Result<T> = Result<T, git2::Error>;
 
-pub struct RepoCloneBuilder<'cb> {
+struct RepoCloneBuilder<'cb> {
     builder: RepoBuilder<'cb>,
     fetch_options: FetchOptions<'cb>,
     identity: Option<PathBuf>,

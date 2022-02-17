@@ -185,33 +185,6 @@ fn get_source_template_into_temp(
     Ok((temp_dir, branch))
 }
 
-fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::Error> {
-    if let Config {
-        template:
-            Some(config::TemplateConfig {
-                cargo_generate_version: Some(requirement),
-                ..
-            }),
-        ..
-    } = template_config
-    {
-        let version = semver::Version::parse(env!("CARGO_PKG_VERSION"))?;
-        if !requirement.matches(&version) {
-            bail!(
-                "{} {} {} {} {}",
-                emoji::ERROR,
-                style("Required cargo-generate version not met. Required:")
-                    .bold()
-                    .red(),
-                style(requirement).yellow(),
-                style(" was:").bold().red(),
-                style(version).yellow(),
-            );
-        }
-    }
-    Ok(())
-}
-
 fn resolve_project_name(args: &Args) -> Result<ProjectName> {
     match args.name {
         Some(ref n) => Ok(ProjectName::new(n)),
@@ -572,6 +545,33 @@ fn rename_warning(name: &ProjectName) {
             style("...").bold()
         );
     }
+}
+
+fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::Error> {
+    if let Config {
+        template:
+            Some(config::TemplateConfig {
+                cargo_generate_version: Some(requirement),
+                ..
+            }),
+        ..
+    } = template_config
+    {
+        let version = semver::Version::parse(env!("CARGO_PKG_VERSION"))?;
+        if !requirement.matches(&version) {
+            bail!(
+                "{} {} {} {} {}",
+                emoji::ERROR,
+                style("Required cargo-generate version not met. Required:")
+                    .bold()
+                    .red(),
+                style(requirement).yellow(),
+                style(" was:").bold().red(),
+                style(version).yellow(),
+            );
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
