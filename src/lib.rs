@@ -39,13 +39,14 @@ mod project_variables;
 mod template;
 mod template_filters;
 mod template_variables;
+mod user_parsed_input;
 
 pub use args::*;
 
 use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
-use favorites::{list_favorites, SourceTemplate, TemplateLocation};
+use favorites::list_favorites;
 use git::DEFAULT_BRANCH;
 use hooks::{execute_post_hooks, execute_pre_hooks};
 use ignore_me::remove_dir_files;
@@ -60,6 +61,7 @@ use std::{
     path::{Path, PathBuf},
     rc::Rc,
 };
+use user_parsed_input::{TemplateLocation, UserParsedInput};
 
 use tempfile::TempDir;
 
@@ -97,8 +99,7 @@ pub fn generate(mut args: Args) -> Result<()> {
         }
     }
 
-    let mut source_template =
-        favorites::SourceTemplate::try_from_args_and_config(&app_config, &args);
+    let mut source_template = UserParsedInput::try_from_args_and_config(&app_config, &args);
     source_template
         .template_values_mut()
         .extend(load_env_and_args_template_values(&args)?);
@@ -156,7 +157,7 @@ pub fn generate(mut args: Args) -> Result<()> {
 }
 
 fn prepare_local_template(
-    source_template: &SourceTemplate,
+    source_template: &UserParsedInput,
 ) -> Result<(TempDir, PathBuf, String), anyhow::Error> {
     let (temp_dir, branch) = get_source_template_into_temp(source_template.location())?;
     let template_folder = resolve_template_dir(&temp_dir, source_template.subfolder())?;
