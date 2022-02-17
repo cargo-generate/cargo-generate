@@ -5,7 +5,8 @@ use core::result::Result::Ok;
 use std::borrow::Cow;
 use std::path::PathBuf;
 
-use crate::git::utils::{canonicalize_path, determine_repo_kind, resolve_instead_url, RepoKind};
+use crate::git::gitconfig::resolve_instead_url;
+use crate::git::utils::{canonicalize_path, determine_repo_kind, RepoKind};
 use crate::info;
 
 /// url and gitconfig content
@@ -86,27 +87,5 @@ impl<'a> TryFrom<&'a str> for GitRemote<'a> {
 impl<'a> AsRef<RepoKind> for GitRemote<'a> {
     fn as_ref(&self) -> &RepoKind {
         &self.kind
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn should_provide_a_remove() {
-        let sample_config = r#"
-[url "ssh://git@github.com:"]
-    insteadOf = https://github.com/
-"#;
-        let where_gitconfig_lives = tempfile::tempdir().unwrap();
-        let gitconfig = where_gitconfig_lives.path().join(".gitconfig");
-        std::fs::write(&gitconfig, sample_config).unwrap();
-
-        let remote = GitUrlAndConfig(Cow::from("https://github.com/sassman/t-rec-rs"), gitconfig);
-        let remote: GitRemote = remote.try_into().unwrap();
-        let remote: &str = remote.as_ref();
-
-        assert_eq!(remote, "ssh://git@github.com:sassman/t-rec-rs");
     }
 }

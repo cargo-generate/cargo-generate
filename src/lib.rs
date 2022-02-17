@@ -172,7 +172,7 @@ fn get_source_template_into_temp(
     match template_location {
         TemplateLocation::Git(git) => {
             let (temp_dir2, branch2) =
-                git::clone_git_using_cmd(git.url(), git.branch(), git.identity())?;
+                git::clone_git_template_into_temp(git.url(), git.branch(), git.identity())?;
             temp_dir = temp_dir2;
             branch = branch2;
         }

@@ -51,7 +51,7 @@ impl<'a> GitConfig<'a> {
         identity: Option<PathBuf>,
     ) -> Result<Self> {
         let git = Cow::from(git.as_ref().to_string());
-        let gitconfig = find_gitconfig()?;
+        let gitconfig = crate::git::gitconfig::find_gitconfig()?;
         let remote = if let Some(gitconfig) = gitconfig {
             GitRemote::try_from(GitUrlAndConfig(git, gitconfig))?
         } else {
@@ -149,34 +149,6 @@ fn should_canonicalize() {
         .starts_with("\\\\?\\"));
 }
 
-/// takes care of `~/` paths, defaults to `$HOME/.ssh/id_rsa` and resolves symlinks.
-fn get_private_key_path(identity: Option<PathBuf>) -> Result<IdentityPath> {
-    let private_key = identity.unwrap_or(home()?.join(".ssh/id_rsa"));
-    private_key.try_into()
-}
-
-fn git_ssh_credentials_callback<'a>(identity: Option<PathBuf>) -> Result<RemoteCallbacks<'a>> {
-    let private_key = get_private_key_path(identity)?;
-    info!(
-        "{} `{}` {}",
-        style("Using private key:").bold(),
-        style(format!("{}", &private_key)).bold().yellow(),
-        style("for git-ssh checkout").bold()
-    );
-    let mut cb = RemoteCallbacks::new();
-    cb.credentials(
-        move |_url, username_from_url: Option<&str>, _allowed_types| {
-            Cred::ssh_key(
-                username_from_url.unwrap_or("git"),
-                None,
-                private_key.as_ref(),
-                None,
-            )
-        },
-    );
-    Ok(cb)
-}
-
 /// home path wrapper
 pub fn home() -> Result<PathBuf> {
     canonicalize_path(&dirs::home_dir().context("$HOME was not set")?)
@@ -222,7 +194,7 @@ fn git_clone_all(project_dir: &Path, args: GitConfig) -> Result<String> {
             fo.proxy_options(proxy);
         }
         RepoKind::RemoteSsh => {
-            let callbacks = git_ssh_credentials_callback(args.identity)?;
+            let callbacks = crate::git::creds::git_ssh_credentials_callback(args.identity)?;
             fo.remote_callbacks(callbacks);
         }
         RepoKind::RemoteGit => {
@@ -335,46 +307,6 @@ pub fn determine_repo_kind(remote_url: &str) -> RepoKind {
     } else {
         RepoKind::Invalid
     }
-}
-
-pub fn find_gitconfig() -> Result<Option<PathBuf>> {
-    let gitconfig = home().map(|home| home.join(".gitconfig"))?;
-    if gitconfig.exists() {
-        return Ok(Some(gitconfig));
-    }
-
-    Ok(None)
-}
-
-/// trades urls, to replace a given repo remote url with the right on based
-/// on the `[url]` section in the `~/.gitconfig`
-pub fn resolve_instead_url(
-    remote: impl AsRef<str>,
-    gitconfig: impl AsRef<Path>,
-) -> Result<Option<String>> {
-    let gitconfig = gitconfig.as_ref();
-    let remote = remote.as_ref().to_string();
-    let config = GitConfigParser::open(gitconfig).context("Cannot read or parse .gitconfig")?;
-    Ok(config
-        .sections_by_name_with_header("url")
-        .iter()
-        .map(|(head, body)| {
-            let url = head.subsection_name.as_ref();
-            let instead_of = body
-                .value(&Key::from("insteadOf"))
-                .map(|x| std::str::from_utf8(&x[..]).unwrap().to_owned());
-            (instead_of, url)
-        })
-        .filter(|(old, new)| new.is_some() && old.is_some())
-        .map(|(old, new)| {
-            let old = old.unwrap();
-            let new = new.unwrap().to_string();
-            remote
-                .starts_with(old.as_str())
-                .then(|| remote.replace(old.as_str(), new.as_str()))
-        })
-        .flatten()
-        .next())
 }
 
 #[cfg(test)]
@@ -500,20 +432,5 @@ mod tests {
             "https://gitlab.com/foo/bar.git"
         );
         assert_eq!(&abbreviated_git_url_to_full_remote("foo/bar"), "foo/bar");
-    }
-
-    #[test]
-    fn should_resolve_instead_url() {
-        let sample_config = r#"
-[url "ssh://git@github.com:"]
-    insteadOf = https://github.com/
-"#;
-        let where_gitconfig_lives = tempfile::tempdir().unwrap();
-        let gitconfig = where_gitconfig_lives.path().join(".gitconfig");
-        std::fs::write(&gitconfig, sample_config).unwrap();
-
-        // SSH, aka git@github.com: or ssh://git@github.com/
-        let x = resolve_instead_url("https://github.com/foo/bar.git", &gitconfig).unwrap();
-        assert_eq!(x.unwrap().as_str(), "ssh://git@github.com:foo/bar.git")
     }
 }

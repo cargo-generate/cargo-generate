@@ -1,12 +1,14 @@
 //! Handle `--git` and related flags
 
+mod creds;
+mod gitconfig;
 mod identity_path;
 mod remote;
 mod remote2;
 mod temp;
 mod utils;
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository, RepositoryInitOptions};
 pub use temp::{clone_git_template_into_temp, clone_git_using_cmd};
@@ -35,6 +37,7 @@ type Git2Result<T> = Result<T, git2::Error>;
 pub struct RepoCloneBuilder<'cb> {
     builder: RepoBuilder<'cb>,
     fetch_options: FetchOptions<'cb>,
+    identity: Option<PathBuf>,
     url: String,
 }
 
@@ -45,10 +48,23 @@ impl<'cb> RepoCloneBuilder<'cb> {
         let mut fo = FetchOptions::new();
         fo.proxy_options(po);
 
+        let url = if let Some(gitcfg) =
+            gitconfig::find_gitconfig().expect("able to dedect optional configuration")
+        {
+            // FIXME this should return error
+            // NOTE: optional here means that instead of was not handled
+            gitconfig::resolve_instead_url(url, gitcfg)
+                .expect("correct configuration")
+                .unwrap_or(url.to_owned())
+        } else {
+            url.to_owned()
+        };
+
         Self {
             builder: RepoBuilder::new(),
             fetch_options: fo,
-            url: url.to_owned(),
+            identity: None,
+            url,
         }
     }
 
@@ -65,15 +81,17 @@ impl<'cb> RepoCloneBuilder<'cb> {
         builer
     }
 
-    pub fn set_identity(&mut self, identity_path: &Path) {
-        todo!();
-    }
+    pub fn set_identity(&mut self, identity_path: &Path) {}
 
     pub fn set_branch(&mut self, branch: &str) {
         self.builder.branch(branch);
     }
 
     fn clone(mut self, dest_path: &Path) -> Git2Result<Repository> {
+        // FIXME handle error here
+        let callbacks = crate::git::creds::git_ssh_credentials_callback(self.identity)
+            .expect("correct identity");
+        self.fetch_options.remote_callbacks(callbacks);
         self.builder.fetch_options(self.fetch_options);
         self.builder.clone(&self.url, dest_path)
     }
