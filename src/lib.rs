@@ -172,8 +172,16 @@ fn get_source_template_into_temp(
     let branch: String;
     match template_location {
         TemplateLocation::Git(git) => {
-            let (temp_dir2, branch2) =
-                git::clone_git_template_into_temp(git.url(), git.branch(), git.identity())?;
+            let clone_fn = if std::env::var("CARGO_GENERATE_GIT_WITH_CLI")
+                .map(|v| v.to_lowercase() == "true")
+                .unwrap_or(false)
+            {
+                git::clone_git_using_cmd
+            } else {
+                git::clone_git_template_into_temp
+            };
+
+            let (temp_dir2, branch2) = clone_fn(git.url(), git.branch(), git.identity())?;
             temp_dir = temp_dir2;
             branch = branch2;
         }
