@@ -3,8 +3,6 @@
 mod creds;
 mod gitconfig;
 mod identity_path;
-mod remote;
-mod remote2;
 mod temp;
 mod utils;
 
@@ -12,7 +10,6 @@ use std::path::{Path, PathBuf};
 
 use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository, RepositoryInitOptions};
 pub use temp::{clone_git_template_into_temp, clone_git_using_cmd};
-pub use utils::{create, GitConfig};
 
 // cargo-generate (as application) whant from git module:
 // 1. cloning remote
@@ -48,17 +45,16 @@ impl<'cb> RepoCloneBuilder<'cb> {
         let mut fo = FetchOptions::new();
         fo.proxy_options(po);
 
-        let url = if let Some(gitcfg) =
-            gitconfig::find_gitconfig().expect("able to dedect optional configuration")
-        {
-            // FIXME this should return error
-            // NOTE: optional here means that instead of was not handled
-            gitconfig::resolve_instead_url(url, gitcfg)
-                .expect("correct configuration")
-                .unwrap_or(url.to_owned())
-        } else {
-            url.to_owned()
-        };
+        let url = gitconfig::find_gitconfig()
+            .expect("able to dedect optional configuration") //FIXME: handle error
+            .map_or_else(
+                || url.to_owned(),
+                |gitcfg| {
+                    gitconfig::resolve_instead_url(url, gitcfg)
+                        .expect("correct configuration")
+                        .unwrap_or_else(|| url.to_owned())
+                },
+            );
 
         Self {
             builder: RepoBuilder::new(),
@@ -81,7 +77,9 @@ impl<'cb> RepoCloneBuilder<'cb> {
         builer
     }
 
-    pub fn set_identity(&mut self, identity_path: &Path) {}
+    pub fn set_identity(&mut self, identity_path: &Path) {
+        self.identity = Some(PathBuf::from(identity_path));
+    }
 
     pub fn set_branch(&mut self, branch: &str) {
         self.builder.branch(branch);
