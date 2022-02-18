@@ -90,6 +90,8 @@ jobs:
 #          if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
       - name: cargo test
         run: cargo test --all --locked -- -Z unstable-options
+      - name: cargo test with git as CLI
+        run: CARGO_GENERATE_GIT_WITH_CLI=true cargo test --all --locked -- -Z unstable-options
 
   audit:
     name: security audit

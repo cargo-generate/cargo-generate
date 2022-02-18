@@ -6,7 +6,7 @@ use crate::helpers::project_builder::tmp_dir;
 use assert_cmd::prelude::*;
 
 #[test]
-fn read_configuration_from_gitconfig() {
+fn read_configuration_from_gitconfig_works_with_env_flag() {
     let template = tmp_dir()
         .file(
             ".gitconfig",
@@ -28,6 +28,7 @@ fn read_configuration_from_gitconfig() {
         .arg("foobar-project")
         .arg(remote)
         .env("GIT_CONFIG_GLOBAL", git_config)
+        .env("CARGO_GENERATE_GIT_WITH_CLI", "true")
         .current_dir(&dir.path())
         .assert()
         .success()
