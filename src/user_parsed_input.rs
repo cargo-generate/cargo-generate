@@ -5,7 +5,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::{app_config::AppConfig, Args};
+use console::style;
+
+use crate::{app_config::AppConfig, warn, Args};
 
 // Contains parsed information from user.
 pub struct UserParsedInput {
@@ -109,7 +111,7 @@ impl UserParsedInput {
         // 3. check if the input is in form org/repo<> (map to github)
         // 4. assume user wanted use --git
 
-        let tl = if let Some(git_url) = abbreviated_git_url_to_full_remote(fav_name) {
+        let temp_location = if let Some(git_url) = abbreviated_git_url_to_full_remote(fav_name) {
             TemplateLocation::from(GitUserInput::with_git_url_and_args(&git_url, args))
         } else if let Some(path) = local_path(fav_name) {
             TemplateLocation::Path(path)
@@ -124,7 +126,22 @@ impl UserParsedInput {
             ))
         };
 
-        Self::new(tl, args.subfolder.clone(), default_values)
+        // Print information what happend to user
+        let location_msg = match &temp_location {
+            TemplateLocation::Git(git_user_input) => {
+                format!("git repo: {}", style(git_user_input.url()).bold())
+            }
+            TemplateLocation::Path(path) => {
+                format!("local path: {}", style(path.display()).bold())
+            }
+        };
+        warn!(
+            "Favorite {} not found in config, using it as a {}",
+            style(&fav_name).bold(),
+            location_msg
+        );
+
+        Self::new(temp_location, args.subfolder.clone(), default_values)
     }
 
     pub const fn location(&self) -> &TemplateLocation {
@@ -175,7 +192,7 @@ pub struct GitUserInput {
     url: String,
     branch: Option<String>,
     identity: Option<PathBuf>,
-    force_init: bool,
+    _force_init: bool,
 }
 
 impl GitUserInput {
@@ -184,7 +201,7 @@ impl GitUserInput {
             url: url.to_owned(),
             branch,
             identity,
-            force_init,
+            _force_init: force_init,
         }
     }
 
@@ -208,10 +225,6 @@ impl GitUserInput {
 
     pub fn identity(&self) -> Option<&Path> {
         self.identity.as_deref()
-    }
-
-    pub const fn force_init(&self) -> bool {
-        self.force_init
     }
 }
 
