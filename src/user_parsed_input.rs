@@ -6,6 +6,7 @@ use std::{
 };
 
 use console::style;
+use regex::Regex;
 
 use crate::{app_config::AppConfig, warn, Args};
 
@@ -178,8 +179,10 @@ pub fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> Option<String
 
 // favorite can be in form of org/repo what should be parsed as github.com
 pub fn abbreviated_github(fav: &str) -> Option<String> {
-    let count_slash = fav.chars().filter(|c| *c == '/').count();
-    (count_slash == 1).then(|| format!("https://github.com/{fav}.git"))
+    let org_repo_regex = Regex::new(r"^[a-zA-Z0-9_]+/[a-zA-Z0-9_%-]+$").unwrap();
+    org_repo_regex
+        .is_match(fav)
+        .then(|| format!("https://github.com/{fav}.git"))
 }
 
 pub fn local_path(fav: &str) -> Option<PathBuf> {
