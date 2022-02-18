@@ -2,9 +2,7 @@
 name = "cargo-generate"
 description = "cargo, make me a project"
 version = "0.14.0-alpha.1"
-authors = [
-    "Ashley Williams <ashley666ashley@gmail.com>"
-]
+authors = ["Ashley Williams <ashley666ashley@gmail.com>"]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/cargo-generate/cargo-generate"
 edition = "2021"
@@ -27,7 +25,6 @@ liquid-derive = "0.23"
 walkdir = "2.3"
 remove_dir_all = "0.7"
 ignore = "0.4"
-url = "2.2"
 structopt = "0.3"
 anyhow = "1.0"
 toml = "0.5"
@@ -54,11 +51,17 @@ features = ["derive"]
 predicates = "2.1"
 assert_cmd = "2.0"
 indoc = "1.0"
+url = "2.2"
 
 [dev-dependencies.cargo-husky]
 version = "1"
 default-features = false
-features = ["prepush-hook", "run-cargo-test", "run-cargo-clippy", "run-cargo-fmt"]
+features = [
+  "prepush-hook",
+  "run-cargo-test",
+  "run-cargo-clippy",
+  "run-cargo-fmt",
+]
 
 [features]
 vendored-openssl = ['openssl/vendored']
