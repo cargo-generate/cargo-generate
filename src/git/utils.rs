@@ -25,7 +25,7 @@ pub fn canonicalize_path(p: impl AsRef<Path>) -> Result<PathBuf> {
 
 /// home path wrapper
 pub fn home() -> Result<PathBuf> {
-    canonicalize_path(&dirs::home_dir().context("$HOME was not set")?)
+    dirs::home_dir().context("$HOME was not set")
 }
 
 // clone git reposiotry into temp using libgit2

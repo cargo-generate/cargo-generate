@@ -1,19 +1,27 @@
-use crate::git::identity_path::IdentityPath;
 use crate::git::utils::home;
+use crate::git::{identity_path::IdentityPath, utils::canonicalize_path};
 use crate::info;
 use anyhow::Result;
 use console::style;
 use git2::{Cred, RemoteCallbacks};
 use std::path::PathBuf;
 
-/// takes care of `~/` paths, defaults to `$HOME/.ssh/id_rsa` and resolves symlinks.
-fn get_private_key_path(identity: Option<PathBuf>) -> Result<IdentityPath> {
-    let private_key = identity.unwrap_or(home()?.join(".ssh/id_rsa"));
-    private_key.try_into()
-}
+// Ok(None) is returned when identity was None and .ssh/id_rsa was not present
+pub fn git_ssh_credentials_callback<'a>(
+    identity: Option<PathBuf>,
+) -> Result<Option<RemoteCallbacks<'a>>> {
+    let private_key = if let Some(identity) = identity {
+        let identity = canonicalize_path(identity)?;
+        IdentityPath::try_from(identity)?
+    } else {
+        // if .ssh/id_rsa not exist its not error
+        let default_ssh_key = home()?.join(".ssh/id_rsa");
+        match IdentityPath::try_from(default_ssh_key) {
+            Ok(v) => v,
+            Err(_e) => return Ok(None),
+        }
+    };
 
-pub fn git_ssh_credentials_callback<'a>(identity: Option<PathBuf>) -> Result<RemoteCallbacks<'a>> {
-    let private_key = get_private_key_path(identity)?;
     info!(
         "{} `{}` {}",
         style("Using private key:").bold(),
@@ -31,5 +39,5 @@ pub fn git_ssh_credentials_callback<'a>(identity: Option<PathBuf>) -> Result<Rem
             )
         },
     );
-    Ok(cb)
+    Ok(Some(cb))
 }

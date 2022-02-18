@@ -5,6 +5,7 @@ mod gitconfig;
 mod identity_path;
 mod utils;
 
+use anyhow::Result;
 use std::path::{Path, PathBuf};
 
 use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository, RepositoryInitOptions};
@@ -84,16 +85,17 @@ impl<'cb> RepoCloneBuilder<'cb> {
         self.builder.branch(branch);
     }
 
-    fn clone(mut self, dest_path: &Path) -> Git2Result<Repository> {
-        // FIXME handle error here
-        let callbacks = crate::git::creds::git_ssh_credentials_callback(self.identity)
-            .expect("correct identity");
-        self.fetch_options.remote_callbacks(callbacks);
+    fn clone(mut self, dest_path: &Path) -> Result<Repository> {
+        if let Some(callbacks) = crate::git::creds::git_ssh_credentials_callback(self.identity)? {
+            self.fetch_options.remote_callbacks(callbacks);
+        }
         self.builder.fetch_options(self.fetch_options);
-        self.builder.clone(&self.url, dest_path)
+        self.builder
+            .clone(&self.url, dest_path)
+            .map_err(anyhow::Error::from)
     }
 
-    pub fn clone_with_submodules(self, dest_path: &Path) -> Git2Result<Repository> {
+    pub fn clone_with_submodules(self, dest_path: &Path) -> Result<Repository> {
         self.clone(dest_path).and_then(|repo| {
             for mut sub in repo.submodules().unwrap() {
                 sub.update(true, None)?;
