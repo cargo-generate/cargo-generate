@@ -15,16 +15,15 @@ use assert_cmd::prelude::*;
 
 #[test]
 #[ignore]
-fn schema_can_be_skiped_with_git() {
+fn git_flag_can_be_skipped_and_cargo_will_use_correct_implementation() {
     // with --git
     let dir = tmp_dir().build();
     binary()
         .arg("generate")
-        .arg("--git")
-        .arg("git://github.com/ashleygwilliams/wasm-pack-template")
         .arg("--name")
         .arg("my-proj")
         .arg("--init")
+        .arg("git://github.com/ashleygwilliams/wasm-pack-template")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -33,18 +32,31 @@ fn schema_can_be_skiped_with_git() {
 
 #[test]
 #[ignore]
-fn schema_can_be_skiped_with_favorite() {
-    let dir = tmp_dir().build();
-    binary()
-        .arg("generate")
-        .arg("--name")
-        .arg("my-proj2")
-        .arg("--init")
-        .arg("github.com/ashleygwilliams/wasm-pack-template")
-        .current_dir(&dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+fn plain_git_repo_works() {
+    let possible_urls = vec![
+        "git://github.com/ashleygwilliams/wasm-pack-template",
+        "git://github.com/ashleygwilliams/wasm-pack-template.git",
+        "https://github.com/ashleygwilliams/wasm-pack-template.git",
+        "https://github.com/ashleygwilliams/wasm-pack-template",
+        "http://github.com/ashleygwilliams/wasm-pack-template.git",
+        "http://github.com/ashleygwilliams/wasm-pack-template",
+    ];
+
+    // with --git
+    for remote in possible_urls {
+        let dir = tmp_dir().build();
+        binary()
+            .arg("generate")
+            .arg("--git")
+            .arg(remote)
+            .arg("--name")
+            .arg("my-proj")
+            .arg("--init")
+            .current_dir(&dir.path())
+            .assert()
+            .success()
+            .stdout(predicates::str::contains("Done!").from_utf8());
+    }
 }
 
 #[test]
@@ -59,7 +71,10 @@ fn abbreviation_for_github_works() {
         .current_dir(&dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stdout(predicates::str::contains("Done!").and(
+            predicates::str::contains(
+                "Favorite `ashleygwilliams/wasm-pack-template` not found in config, using it as a git repository: https://github.com/ashleygwilliams/wasm-pack-template.git"
+            )).from_utf8());
 }
 
 #[cfg(test)]

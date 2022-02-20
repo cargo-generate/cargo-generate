@@ -21,12 +21,12 @@ pub use utils::{clone_git_template_into_temp, clone_git_using_cmd};
 // * submodules should be clone by default
 // * `.git` should be removed to make clear repository
 // * if `<url>` is the local path on system the clone should also be done the same way as `git clone` there is `--path`
-//    for different behaviour
+//    for different behavior
 
 // basicly we want to call:
 // git clone --recurse-submodules --depth 1 --branch <branch> <url> <tmp_dir>
 
-// Defines default branch to use if not specified but required
+/// Default branch to use if not specified but required
 pub const DEFAULT_BRANCH: &str = "main";
 
 type Git2Result<T> = Result<T, git2::Error>;
@@ -39,33 +39,31 @@ struct RepoCloneBuilder<'cb> {
 }
 
 impl<'cb> RepoCloneBuilder<'cb> {
-    pub fn new(url: &str) -> Self {
+    pub fn new(url: &str) -> Result<Self> {
         let mut po = ProxyOptions::new();
         po.auto();
         let mut fo = FetchOptions::new();
         fo.proxy_options(po);
 
-        let url = gitconfig::find_gitconfig()
-            .expect("able to dedect optional configuration") //FIXME: handle error
-            .map_or_else(
-                || url.to_owned(),
-                |gitcfg| {
-                    gitconfig::resolve_instead_url(url, gitcfg)
-                        .expect("correct configuration")
-                        .unwrap_or_else(|| url.to_owned())
-                },
-            );
+        let url = gitconfig::find_gitconfig()?.map_or_else(
+            || url.to_owned(),
+            |gitcfg| {
+                gitconfig::resolve_instead_url(url, gitcfg)
+                    .expect("correct configuration")
+                    .unwrap_or_else(|| url.to_owned())
+            },
+        );
 
-        Self {
+        Ok(Self {
             builder: RepoBuilder::new(),
             fetch_options: fo,
             identity: None,
             url,
-        }
+        })
     }
 
-    pub fn new_with(url: &str, branch: Option<&str>, identity_path: Option<&Path>) -> Self {
-        let mut builer = Self::new(url);
+    pub fn new_with(url: &str, branch: Option<&str>, identity_path: Option<&Path>) -> Result<Self> {
+        let mut builer = Self::new(url)?;
         if let Some(branch) = branch {
             builer.set_branch(branch);
         }
@@ -74,7 +72,7 @@ impl<'cb> RepoCloneBuilder<'cb> {
             builer.set_identity(identity_path);
         }
 
-        builer
+        Ok(builer)
     }
 
     pub fn set_identity(&mut self, identity_path: &Path) {

@@ -130,14 +130,14 @@ impl UserParsedInput {
         // Print information what happend to user
         let location_msg = match &temp_location {
             TemplateLocation::Git(git_user_input) => {
-                format!("git repo: {}", style(git_user_input.url()).bold())
+                format!("git repository: {}", style(git_user_input.url()).bold())
             }
             TemplateLocation::Path(path) => {
                 format!("local path: {}", style(path.display()).bold())
             }
         };
         warn!(
-            "Favorite {} not found in config, using it as a {}",
+            "Favorite `{}` not found in config, using it as a {}",
             style(&fav_name).bold(),
             location_msg
         );

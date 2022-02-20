@@ -33,7 +33,14 @@ version = "0.1.0"
         .current_dir(&dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stdout(
+            predicates::str::contains("Done!")
+                .and(predicates::str::contains(format!(
+                    "Favorite `{}` not found in config, using it as a local path",
+                    template.path().display()
+                )))
+                .from_utf8(),
+        );
 
     let repo = git2::Repository::open(&dir.path().join("foobar-project")).unwrap();
     let references = repo.references().unwrap().count();

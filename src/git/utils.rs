@@ -36,7 +36,7 @@ pub fn clone_git_template_into_temp(
 ) -> anyhow::Result<(TempDir, String)> {
     let git_clone_dir = tempfile::tempdir()?;
 
-    let builder = RepoCloneBuilder::new_with(git, branch, identity);
+    let builder = RepoCloneBuilder::new_with(git, branch, identity)?;
 
     let repo = builder
         .clone_with_submodules(git_clone_dir.path())
