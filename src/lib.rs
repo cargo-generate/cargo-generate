@@ -220,8 +220,7 @@ fn resolve_template_dir(template_base_dir: &TempDir, subfolder: Option<&str>) ->
                 )
             })?;
 
-        //TODO: Add comments to understand this check
-        // is this preventing when subfolder contains for example `../../name`?
+        // make sure subfolder is not `../../subfolder`
         if !template_dir.starts_with(&template_base_dir) {
             return Err(anyhow!(
                 "{} {} {}",
