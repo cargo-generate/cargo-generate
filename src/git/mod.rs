@@ -9,7 +9,7 @@ use anyhow::Result;
 use std::path::{Path, PathBuf};
 
 use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository, RepositoryInitOptions};
-pub use utils::{clone_git_template_into_temp, clone_git_using_cmd};
+pub use utils::clone_git_template_into_temp;
 
 // cargo-generate (as application) whant from git module:
 // 1. cloning remote
