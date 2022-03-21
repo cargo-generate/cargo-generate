@@ -366,14 +366,13 @@ pub fn resolve_instead_url(
             (instead_of, url)
         })
         .filter(|(old, new)| new.is_some() && old.is_some())
-        .map(|(old, new)| {
+        .filter_map(|(old, new)| {
             let old = old.unwrap();
             let new = new.unwrap().to_string();
             remote
                 .starts_with(old.as_str())
                 .then(|| remote.replace(old.as_str(), new.as_str()))
         })
-        .flatten()
         .next())
 }
 
