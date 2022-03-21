@@ -794,15 +794,7 @@ version = "0.1.0"
     let relative_path = {
         let mut relative_path = std::path::PathBuf::new();
         relative_path.push("../");
-        relative_path.push(
-            &template
-                .path()
-                .file_name()
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .to_string(),
-        );
+        relative_path.push(&template.path().file_name().unwrap().to_str().unwrap());
         relative_path
     };
 

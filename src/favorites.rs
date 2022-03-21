@@ -96,11 +96,8 @@ pub fn resolve_favorite_args_and_default_values(
                 (
                     values,
                     f.git.clone(),
-                    args.branch.as_ref().or_else(|| f.branch.as_ref()).cloned(),
-                    args.subfolder
-                        .as_ref()
-                        .or_else(|| f.subfolder.as_ref())
-                        .cloned(),
+                    args.branch.as_ref().or(f.branch.as_ref()).cloned(),
+                    args.subfolder.as_ref().or(f.subfolder.as_ref()).cloned(),
                     f.path.clone(),
                 )
             },
