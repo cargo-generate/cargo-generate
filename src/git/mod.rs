@@ -95,7 +95,7 @@ impl<'cb> RepoCloneBuilder<'cb> {
 
     pub fn clone_with_submodules(self, dest_path: &Path) -> Result<Repository> {
         self.clone(dest_path).and_then(|repo| {
-            for mut sub in repo.submodules().unwrap() {
+            for mut sub in repo.submodules()? {
                 sub.update(true, None)?;
             }
 
