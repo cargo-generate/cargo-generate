@@ -82,17 +82,16 @@ impl UserParsedInput {
         if let Some(fav_cfg) = app_config.get_favorite_cfg(fav_name) {
             assert!(fav_cfg.git.is_none() || fav_cfg.path.is_none());
 
-            let temp_location = if let Some(git_url) = &fav_cfg.git {
-                let branch = args.branch.clone().or_else(|| fav_cfg.branch.clone());
-                let git_user_input =
-                    GitUserInput::new(git_url, branch, ssh_identity, args.force_git_init);
+            let temp_location = fav_cfg.git.as_ref().map_or_else(
+                || fav_cfg.path.as_ref().map(TemplateLocation::from).unwrap(),
+                |git_url| {
+                    let branch = args.branch.clone().or_else(|| fav_cfg.branch.clone());
+                    let git_user_input =
+                        GitUserInput::new(git_url, branch, ssh_identity, args.force_git_init);
 
-                TemplateLocation::from(git_user_input)
-            } else if let Some(path) = &fav_cfg.path {
-                TemplateLocation::from(path)
-            } else {
-                unreachable!();
-            };
+                    TemplateLocation::from(git_user_input)
+                },
+            );
 
             if let Some(fav_default_values) = &fav_cfg.values {
                 default_values.extend(fav_default_values.clone());
@@ -107,25 +106,35 @@ impl UserParsedInput {
 
         // there is no specified favorite in configuration
         // this part try to guess what user wanted in order:
-        // 1. look for abbrevations like gh:, gl: etc.
-        // 2. check if template directory exist
-        // 3. check if the input is in form org/repo<> (map to github)
-        // 4. assume user wanted use --git
 
-        let temp_location = if let Some(git_url) = abbreviated_git_url_to_full_remote(fav_name) {
-            TemplateLocation::from(GitUserInput::with_git_url_and_args(&git_url, args))
-        } else if let Some(path) = local_path(fav_name) {
-            TemplateLocation::Path(path)
-        } else if let Some(git_url) = abbreviated_github(fav_name) {
-            TemplateLocation::from(GitUserInput::with_git_url_and_args(&git_url, args))
-        } else {
-            TemplateLocation::from(GitUserInput::new(
+        // 1. look for abbrevations like gh:, gl: etc.
+        let temp_location = abbreviated_git_url_to_full_remote(fav_name).map(|git_url| {
+            let git_user_in = GitUserInput::with_git_url_and_args(&git_url, args);
+            TemplateLocation::from(git_user_in)
+        });
+
+        // 2. check if template directory exist
+        let temp_location =
+            temp_location.or_else(|| local_path(fav_name).map(TemplateLocation::from));
+
+        // 3. check if the input is in form org/repo<> (map to github)
+        let temp_location = temp_location.or_else(|| {
+            abbreviated_github(fav_name).map(|git_url| {
+                let git_user_in = GitUserInput::with_git_url_and_args(&git_url, args);
+                TemplateLocation::from(git_user_in)
+            })
+        });
+
+        // 4. assume user wanted use --git
+        let temp_location = temp_location.unwrap_or_else(|| {
+            let git_user_in = GitUserInput::new(
                 fav_name,
                 args.branch.clone(),
                 ssh_identity,
                 args.force_git_init,
-            ))
-        };
+            );
+            TemplateLocation::from(git_user_in)
+        });
 
         // Print information what happend to user
         let location_msg = match &temp_location {
