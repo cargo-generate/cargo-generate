@@ -128,12 +128,9 @@ pub fn init(project_dir: &Path, branch: &str, force: bool) -> Git2Result<Reposit
     }
 }
 
-use std::ops::Sub;
-use std::thread::sleep;
-use std::time::Duration;
-use std::{fs, io};
-
 use crate::warn;
+use remove_dir_all::remove_dir_all;
+use std::{io, ops::Sub, thread::sleep, time::Duration};
 
 /// remove context of repository by removing `.git` from filesystem
 pub fn remove_history(project_dir: &Path) -> io::Result<()> {
@@ -143,7 +140,7 @@ pub fn remove_history(project_dir: &Path) -> io::Result<()> {
 
         loop {
             attempt += 1;
-            if let Err(e) = fs::remove_dir_all(&git_dir) {
+            if let Err(e) = remove_dir_all(&git_dir) {
                 if attempt == 5 {
                     return Err(e);
                 }
