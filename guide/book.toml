@@ -8,6 +8,10 @@ multilingual = false
 [rust]
 edition = "2018"
 
+[output.html]
+git-repository-url = "https://github.com/cargo-generate/cargo-generate/tree/main/guide"
+edit-url-template = "https://github.com/cargo-generate/cargo-generate/edit/main/guide/{path}"
+
 [output.html.search]
 limit-results = 20
 use-boolean-and = true
