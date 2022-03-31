@@ -38,7 +38,7 @@ cargo install cargo-generate
 ### Usage
 
 ```sh
-# templates on github
+#  templates on github
 cargo generate --git https://github.com/username-on-github/mytemplate.git
 
 # or just

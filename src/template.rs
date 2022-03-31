@@ -17,7 +17,7 @@ use crate::template_filters::{
 };
 use crate::template_variables::{get_authors, get_os_arch, Authors, CrateType, ProjectName};
 
-fn engine() -> liquid::Parser {
+fn engine() -> Parser {
     liquid::ParserBuilder::with_stdlib()
         .filter(KebabCaseFilterParser)
         .filter(PascalCaseFilterParser)
