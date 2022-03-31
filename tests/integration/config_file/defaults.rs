@@ -39,7 +39,7 @@ fn it_uses_ssh_identity_from_defaults_config() {
         .success()
         .stdout(
             predicates::str::contains("Done!").from_utf8().and(
-                predicates::str::contains("Using ssh-identity from application config: ")
+                predicates::str::contains("Using private key: ")
                     .from_utf8()
                     .and(predicates::str::contains("fake_ssh_identity").from_utf8()),
             ),
