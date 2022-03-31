@@ -91,12 +91,6 @@ pub fn generate(mut args: Args) -> Result<()> {
             .ssh_identity
             .as_ref()
             .cloned();
-        if let Some(id) = args.ssh_identity.as_ref() {
-            info!(
-                "Using ssh-identity from application config: {}",
-                style(id.as_path().display()).bold()
-            )
-        }
     }
 
     let mut source_template = UserParsedInput::try_from_args_and_config(&app_config, &args);
