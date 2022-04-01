@@ -1,21 +1,33 @@
-use crate::git::utils::{canonicalize_path, home};
+use crate::git::utils::home;
 use std::fmt::{Display, Formatter};
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 use std::path::{Path, PathBuf};
+use thiserror::Error;
+
+//FIXME: this could be io::Error
+#[derive(Debug, Clone, Error)]
+pub enum IdentityPathErr {
+    #[error("identity file do not exist")]
+    FileNoExist,
+    #[error("path is not a file")]
+    NotFile,
+}
 
 pub struct IdentityPath(PathBuf);
 
 impl TryFrom<PathBuf> for IdentityPath {
-    type Error = anyhow::Error;
+    type Error = IdentityPathErr;
 
     fn try_from(path: PathBuf) -> Result<Self, Self::Error> {
-        let path_can = canonicalize_path(&path)?;
-
-        if path_can.exists() {
-            Ok(Self(path_can))
+        if path.exists() {
+            if path.is_file() {
+                Ok(Self(path))
+            } else {
+                Err(IdentityPathErr::NotFile)
+            }
         } else {
-            bail!("Invalid ssh identity path: {}", path.as_path().display())
+            Err(IdentityPathErr::FileNoExist)
         }
     }
 }

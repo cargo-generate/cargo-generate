@@ -9,7 +9,7 @@ use indoc::indoc;
 
 #[test]
 fn it_uses_ssh_identity_from_defaults_config() {
-    let working_dir = tmp_dir().file("fake_ssh", "fake stuff").build();
+    let working_dir = tmp_dir().file("fake_ssh_identity", "fake stuff").build();
     let fake_ssh_id = working_dir.path().join("fake_ssh_identity");
     let config_dir = tmp_dir()
         .file(
@@ -22,7 +22,7 @@ fn it_uses_ssh_identity_from_defaults_config() {
                 id = fake_ssh_id.display().to_string().escape_default()
             ),
         )
-        .file("fake_ssh_identity", "random foo")
+        .file("fake_ssh", "random foo") // FIXME: what is for?
         .build();
     let some_template = create_template("some-template");
 
