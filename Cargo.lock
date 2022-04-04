@@ -143,7 +143,7 @@ dependencies = [
  "indoc",
  "libgit2-sys",
  "liquid",
- "liquid-core",
+ "liquid-core 0.26.0",
  "liquid-derive",
  "liquid-lib",
  "openssl",
@@ -563,6 +563,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kstring"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec3066350882a1cd6d950d055997f379ac37fd39f81cd4d8ed186032eb3c5747"
+dependencies = [
+ "serde",
+ "static_assertions",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -621,8 +631,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb6e6551b4c8a2045351f0853b54807b21080176a055b754dc0ad29428edf293"
 dependencies = [
  "doc-comment",
- "kstring",
- "liquid-core",
+ "kstring 1.0.6",
+ "liquid-core 0.24.1",
  "liquid-derive",
  "liquid-lib",
  "serde",
@@ -636,11 +646,28 @@ checksum = "8ea8f6c13e8ae36bce67fc1eaacf32c13b26d16576b7ee2ec9de33a3980cefd6"
 dependencies = [
  "anymap2",
  "itertools",
- "kstring",
+ "kstring 1.0.6",
  "liquid-derive",
  "num-traits",
  "pest",
  "pest_derive",
+ "serde",
+ "time",
+]
+
+[[package]]
+name = "liquid-core"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a93764837aeac37f14b74708cd88a44d82edfa9ad2b1bcd9a3b4d8802fdd9f98"
+dependencies = [
+ "anymap2",
+ "itertools",
+ "kstring 2.0.0",
+ "num-traits",
+ "pest",
+ "pest_derive",
+ "regex",
  "serde",
  "time",
 ]
@@ -663,8 +690,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8256326835eae262affdc6df8743d9e1b917354ba3c8c380e6238426a8097564"
 dependencies = [
  "itertools",
- "kstring",
- "liquid-core",
+ "kstring 1.0.6",
+ "liquid-core 0.24.1",
  "once_cell",
  "percent-encoding",
  "regex",
