@@ -36,7 +36,7 @@ home = "0.5"
 sanitize-filename = "0.3"
 rhai = "1.6"
 path-absolutize = "3.0"
-git-config = "0.1.11"
+git-config = "0.2.0"
 
 [dependencies.openssl]
 version = "0.10"
