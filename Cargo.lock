@@ -144,7 +144,7 @@ dependencies = [
  "libgit2-sys",
  "liquid",
  "liquid-core",
- "liquid-derive",
+ "liquid-derive 0.26.0",
  "liquid-lib",
  "openssl",
  "path-absolutize",
@@ -623,7 +623,7 @@ dependencies = [
  "doc-comment",
  "kstring",
  "liquid-core",
- "liquid-derive",
+ "liquid-derive 0.24.0",
  "liquid-lib",
  "serde",
 ]
@@ -637,7 +637,7 @@ dependencies = [
  "anymap2",
  "itertools",
  "kstring",
- "liquid-derive",
+ "liquid-derive 0.24.0",
  "num-traits",
  "pest",
  "pest_derive",
@@ -650,6 +650,17 @@ name = "liquid-derive"
 version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d82d81028aba7e869d0aa423ae926a7f15fd55ca576baac279ed38020b180a56"
+dependencies = [
+ "proc-macro2",
+ "proc-quote",
+ "syn",
+]
+
+[[package]]
+name = "liquid-derive"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "926454345f103e8433833077acdbfaa7c3e4b90788d585a8358f02f0b8f5a469"
 dependencies = [
  "proc-macro2",
  "proc-quote",
