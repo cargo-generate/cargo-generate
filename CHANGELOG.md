@@ -1,6 +1,36 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.13.0...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.13.1...HEAD)
+
+## [0.13.1] 2022-04-11 
+[0.13.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.13.0...v0.13.1
+
+### 🛠️ Maintenance
+- [chore(deps): bump git-config from 0.1.11 to 0.2.1](https://github.com/cargo-generate/cargo-generate/pull/581)
+- [chore(deps): bump liquid* from 0.24 to 0.26](https://github.com/cargo-generate/cargo-generate/pull/579)
+- [chore(deps): bump rhai from 1.5.0 to 1.6.0](https://github.com/cargo-generate/cargo-generate/pull/570)
+- [chore(deps): bump versions](https://github.com/cargo-generate/cargo-generate/pull/566)
+- [chore(deps): bump path-absolutize from 3.0.11 to 3.0.12](https://github.com/cargo-generate/cargo-generate/pull/565)
+- [chore(deps): bump git2 version to 0.14](https://github.com/cargo-generate/cargo-generate/pull/563)
+- [chore(deps): bump regex from 1.5.4 to 1.5.5](https://github.com/cargo-generate/cargo-generate/pull/561)
+- [chore(deps): bump liquid-derive from 0.23.1 to 0.24.0](https://github.com/cargo-generate/cargo-generate/pull/560)
+- [chore(deps): bump anyhow from 1.0.53 to 1.0.56](https://github.com/cargo-generate/cargo-generate/pull/556)
+- [chore(deps): bump semver from 1.0.5 to 1.0.6](https://github.com/cargo-generate/cargo-generate/pull/552)
+- [chore(deps): bump rhai from 1.4.1 to 1.5.0](https://github.com/cargo-generate/cargo-generate/pull/551)
+- [chore(deps): bump dialoguer from 0.9.0 to 0.10.0](https://github.com/cargo-generate/cargo-generate/pull/548)
+- [chore(clippy): make clippy happy](https://github.com/cargo-generate/cargo-generate/pull/564)
+- [chore(docs): added git url to book.toml](https://github.com/cargo-generate/cargo-generate/pull/562)
+
+### 🤕 Fixes
+- [`--config` should behave relative to `CWD`](https://github.com/cargo-generate/cargo-generate/pull/544)
+
+### Contributors
+- [TonalidadeHidrica](https://github.com/TonalidadeHidrica)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [saikiran1043](https://github.com/saikiran1043)
+- [sassman](https://github.com/sassman)
+- [taurr](https://github.com/taurr)
+- [xoac](https://github.com/xoac)
 
 ## [0.13.0] 2022-02-08
 [0.13.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.12.0...v0.13.0
