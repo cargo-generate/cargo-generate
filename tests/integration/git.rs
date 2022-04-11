@@ -2,8 +2,8 @@ use assert_cmd::prelude::*;
 use git2::Repository;
 use git_config::file::GitConfig;
 use git_config::parser::Key;
-use git_config::values::Value;
 use predicates::prelude::*;
+use std::borrow::Cow;
 use std::ops::Deref;
 
 use crate::helpers::project::binary;
@@ -104,9 +104,10 @@ fn should_retrieve_an_instead_of_url() {
 "#;
     let mut config = GitConfig::try_from(input).unwrap();
     let url = config
-        .value::<Value>("url", Some("ssh://git@github.com:"), "insteadOf")
+        .value::<Cow<[u8]>>("url", Some("ssh://git@github.com:"), "insteadOf")
+        .map(|v| String::from_utf8_lossy(v.as_ref()).to_string())
         .unwrap();
-    assert_eq!(url.to_string(), "https://github.com/");
+    assert_eq!(url, "https://github.com/");
     config
         .set_raw_value(
             "url",
