@@ -32,7 +32,7 @@ home = "0.5"
 sanitize-filename = "0.3"
 rhai = "1.6"
 path-absolutize = "3.0"
-git-config = "0.1.11"
+git-config = "0.2.1"
 
 # liquid
 liquid = "0.26"
