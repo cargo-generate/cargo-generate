@@ -30,7 +30,7 @@ toml = "0.5"
 thiserror = "1.0"
 home = "0.5"
 sanitize-filename = "0.3"
-rhai = "1.6"
+rhai = "1.7"
 path-absolutize = "3.0"
 git-config = "0.2.1"
 
