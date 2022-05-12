@@ -116,7 +116,8 @@ pub fn canonicalize_path(p: impl AsRef<Path>) -> Result<PathBuf> {
         p.to_path_buf()
     };
 
-    p.canonicalize().context("path does not exist")
+    p.canonicalize()
+        .with_context(|| format!("path does not exist: {}", p.display()))
 }
 
 #[test]

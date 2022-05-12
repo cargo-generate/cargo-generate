@@ -1,7 +1,7 @@
 use crate::git::utils::{canonicalize_path, home};
 use std::fmt::{Display, Formatter};
 
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 use std::path::{Path, PathBuf};
 
 pub struct IdentityPath(PathBuf);
@@ -10,7 +10,8 @@ impl TryFrom<PathBuf> for IdentityPath {
     type Error = anyhow::Error;
 
     fn try_from(path: PathBuf) -> Result<Self, Self::Error> {
-        let path_can = canonicalize_path(&path)?;
+        let path_can = canonicalize_path(&path)
+            .map_err(|e| anyhow!("{}\nhelp: try using the '--identity' flag", e))?;
 
         if path_can.exists() {
             Ok(Self(path_can))
