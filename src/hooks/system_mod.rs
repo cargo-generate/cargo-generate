@@ -26,33 +26,32 @@ fn run_command(name: &str, args: rhai::Array, allow_commands: bool) -> Result<Dy
     let args: Vec<String> = args.into_iter().map(|arg| arg.to_string()).collect();
 
     // If the user specified the --allow-commands flag, don't prompt.
-    let should_run = allow_commands
-        || {
-            let prompt = format!(
-            "The template is requesting to run the following command. Do you agree? (yes/no)\n{} {}",
+    let should_run = allow_commands || {
+        let prompt = format!(
+            "The template is requesting to run the following command. Do you agree?\n{} {}\n",
             name,
             args.join(" ")
         );
 
-            // Prompt the user for whether they actually want to run the command.
-            let value = prompt_for_variable(&TemplateSlots {
-                prompt,
-                var_name: "".into(),
-                var_info: VarInfo::String {
-                    entry: Box::new(StringEntry {
-                        default: Some("no".into()),
-                        choices: None,
-                        regex: None,
-                    }),
-                },
-            });
+        // Prompt the user for whether they actually want to run the command.
+        let value = prompt_for_variable(&TemplateSlots {
+            prompt,
+            var_name: "".into(),
+            var_info: VarInfo::String {
+                entry: Box::new(StringEntry {
+                    default: Some("no".into()),
+                    choices: Some(vec!["yes".into(), "no".into()]),
+                    regex: None,
+                }),
+            },
+        });
 
-            // Only accept clearly positive affirmations.
-            matches!(
-                value.map(|s| s.trim().to_ascii_lowercase()).as_deref(),
-                Ok("yes" | "y")
-            )
-        };
+        // Only accept clearly positive affirmations.
+        matches!(
+            value.map(|s| s.trim().to_ascii_lowercase()).as_deref(),
+            Ok("yes" | "y")
+        )
+    };
 
     if !should_run {
         return Ok(Dynamic::UNIT);
