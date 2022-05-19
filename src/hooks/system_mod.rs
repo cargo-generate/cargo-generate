@@ -28,7 +28,7 @@ fn run_command(name: &str, args: rhai::Array, allow_commands: bool) -> Result<Dy
     // If the user specified the --allow-commands flag, don't prompt.
     let should_run = allow_commands || {
         let prompt = format!(
-            "The template is requesting to run the following command. Do you agree?\n{} {}\n",
+            "The template is requesting to run the following command. Do you agree?\n{} {}",
             name,
             args.join(" ")
         );
