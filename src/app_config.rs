@@ -38,21 +38,17 @@ impl TryFrom<&Path> for AppConfig {
     type Error = anyhow::Error;
 
     fn try_from(path: &Path) -> Result<Self, Self::Error> {
-        if path.exists() {
-            let cfg = fs::read_to_string(path)?;
-            Ok(if cfg.trim().is_empty() {
-                Self::default()
-            } else {
-                info!("Using application config: {}", style(path.display()).bold());
-                toml::from_str(&cfg)?
-            })
-        } else {
-            crate::warn!(
-                "Unable to load config file: {}",
-                style(path.display()).bold().yellow()
-            );
-            Ok(Default::default())
+        if !path.exists() {
+            return Ok(Default::default());
         }
+
+        let cfg = fs::read_to_string(path)?;
+        Ok(if cfg.trim().is_empty() {
+            Self::default()
+        } else {
+            info!("Using application config: {}", style(path.display()).bold());
+            toml::from_str(&cfg)?
+        })
     }
 }
 
