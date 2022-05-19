@@ -21,6 +21,12 @@ fn it_runs_scripts() {
         "#},
         )
         .file(
+            "system-script.rhai",
+            indoc! {r#"
+                let output = system::command("touch", ["touched_file"]);
+            "#},
+        )
+        .file(
             "PRE-TEST",
             indoc! {r#"
             {{pre}};
@@ -40,7 +46,7 @@ fn it_runs_scripts() {
 
             [hooks]
             pre = ["pre-script.rhai"]
-            post = ["post-script.rhai"]
+            post = ["post-script.rhai", "system-script.rhai"]
             "#},
         )
         .init_git()
@@ -58,6 +64,7 @@ fn it_runs_scripts() {
         .arg("pre=hello")
         .arg("-d")
         .arg("post=world")
+        .arg("--allow-commands")
         .current_dir(&dir.path())
         .assert()
         .success()
@@ -65,6 +72,8 @@ fn it_runs_scripts() {
 
     assert!(dir.exists("script-project/PRE"));
     assert!(dir.exists("script-project/POST"));
+
+    assert!(dir.exists("script-project/touched_file"));
 
     assert!(dir.read("script-project/PRE").contains("hello"));
     assert!(dir.read("script-project/POST").contains("world"));

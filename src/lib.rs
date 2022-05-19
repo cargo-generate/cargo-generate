@@ -457,7 +457,7 @@ fn expand_template(
 
     let mut liquid_object = Rc::new(RefCell::new(liquid_object));
 
-    execute_pre_hooks(dir, Rc::clone(&liquid_object), &mut template_config)?;
+    execute_pre_hooks(args, dir, Rc::clone(&liquid_object), &mut template_config)?;
     ignore_me::remove_unneeded_files(dir, &template_cfg.ignore, args.verbose)?;
     let mut pbar = progressbar::new();
 
@@ -473,7 +473,7 @@ fn expand_template(
         &mut pbar,
     )?;
 
-    execute_post_hooks(dir, Rc::clone(&liquid_object), &template_config)?;
+    execute_post_hooks(args, dir, Rc::clone(&liquid_object), &template_config)?;
     remove_dir_files(all_hook_files, false);
 
     pbar.join().unwrap();
