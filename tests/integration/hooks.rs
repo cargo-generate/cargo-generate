@@ -6,7 +6,7 @@ use predicates::str::PredicateStrExt;
 use crate::helpers::{project::binary, project_builder::tmp_dir};
 
 #[test]
-fn it_runs_scripts() {
+fn it_runs_all_hook_types() {
     let template = tmp_dir()
         .file(
             "pre-script.rhai",
@@ -77,4 +77,109 @@ fn it_runs_scripts() {
 
     assert!(dir.read("script-project/PRE").contains("hello"));
     assert!(dir.read("script-project/POST").contains("world"));
+}
+
+#[test]
+fn it_runs_system_commands() {
+    let template = tmp_dir()
+        .file(
+            "system-script.rhai",
+            indoc! {r#"
+                let output = system::command("touch", ["touched_file"]);
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+            [hooks]
+            post = ["system-script.rhai"]
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("script-project")
+        .arg("--allow-commands")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.exists("script-project/touched_file"));
+}
+
+#[test]
+fn it_fails_to_prompt_for_system_commands_in_silent_mode() {
+    let template = tmp_dir()
+        .file(
+            "system-script.rhai",
+            indoc! {r#"
+                let output = system::command("touch", ["touched_file"]);
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+            [hooks]
+            post = ["system-script.rhai"]
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("script-project")
+        .arg("--silent")
+        .current_dir(&dir.path())
+        .assert()
+        .failure()
+        // The error message should instruct the user on how to proceed with silent mode (i.e. by setting the allow flag).
+        .stderr(predicates::str::contains("--allow-commands").from_utf8());
+}
+
+#[test]
+fn it_fails_on_failing_system_command() {
+    let template = tmp_dir()
+        .file(
+            "system-script.rhai",
+            indoc! {r#"
+                let output = system::command("dummy_command_that_doesn't_exist", ["dummy_arg"]);
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+            [hooks]
+            post = ["system-script.rhai"]
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("script-project")
+        .arg("--allow-commands")
+        .current_dir(&dir.path())
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("System command failed to execute").from_utf8());
 }

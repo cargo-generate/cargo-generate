@@ -127,8 +127,8 @@ pub struct Args {
     pub force_git_init: bool,
 
     /// Allows running system commands without being prompted.
-    /// If this flag is not set, you will be prompted before running any
-    /// system commands in templates, as a security precaution.
+    /// Warning: Setting this flag will enable the template to run arbitrary system commands without user confirmation.
+    /// Use at your own risk and be sure to review the template code beforehand.
     #[structopt(short, long)]
     pub allow_commands: bool,
 }
