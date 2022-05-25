@@ -1,21 +1,21 @@
 use liquid::{Object, ValueView};
 use liquid_core::Value;
 use regex::Regex;
-use rhai::{Array, Dynamic, EvalAltResult, Module};
+use rhai::{Array, Dynamic, Module};
 use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::interactive::prompt_for_variable;
 use crate::project_variables::{StringEntry, TemplateSlots, VarInfo};
 
-type Result<T> = std::result::Result<T, Box<EvalAltResult>>;
+use super::HookResult;
 
 pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     let mut module = Module::new();
 
     module.set_native_fn("is_set", {
         let liquid_object = liquid_object.clone();
-        move |name: &str| -> Result<bool> {
+        move |name: &str| -> HookResult<bool> {
             match liquid_object.get_value(name) {
                 NamedValue::NonExistant => Ok(false),
                 _ => Ok(true),
@@ -25,7 +25,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
 
     module.set_native_fn("get", {
         let liquid_object = liquid_object.clone();
-        move |name: &str| -> Result<Dynamic> {
+        move |name: &str| -> HookResult<Dynamic> {
             match liquid_object.get_value(name) {
                 NamedValue::NonExistant => Ok(Dynamic::from(String::from(""))),
                 NamedValue::Bool(v) => Ok(Dynamic::from(v)),
@@ -37,7 +37,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     module.set_native_fn("set", {
         let liquid_object = liquid_object.clone();
 
-        move |name: &str, value: &str| -> Result<()> {
+        move |name: &str, value: &str| -> HookResult<()> {
             match liquid_object.get_value(name) {
                 NamedValue::NonExistant | NamedValue::String(_) => {
                     liquid_object.borrow_mut().insert(
@@ -54,7 +54,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     module.set_native_fn("set", {
         let liquid_object = liquid_object.clone();
 
-        move |name: &str, value: bool| -> Result<()> {
+        move |name: &str, value: bool| -> HookResult<()> {
             match liquid_object.get_value(name) {
                 NamedValue::NonExistant | NamedValue::Bool(_) => {
                     liquid_object
@@ -68,7 +68,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     });
 
     module.set_native_fn("set", {
-        move |name: &str, value: Array| -> Result<()> {
+        move |name: &str, value: Array| -> HookResult<()> {
             match liquid_object.get_value(name) {
                 NamedValue::NonExistant => {
                     let val = rhai_to_liquid_value(Dynamic::from(value))?;
@@ -83,7 +83,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     });
 
     module.set_native_fn("prompt", {
-        move |prompt: &str, default_value: bool| -> Result<bool> {
+        move |prompt: &str, default_value: bool| -> HookResult<bool> {
             let value = prompt_for_variable(&TemplateSlots {
                 prompt: prompt.into(),
                 var_name: "".into(),
@@ -100,7 +100,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     });
 
     module.set_native_fn("prompt", {
-        move |prompt: &str| -> Result<String> {
+        move |prompt: &str| -> HookResult<String> {
             let value = prompt_for_variable(&TemplateSlots {
                 prompt: prompt.into(),
                 var_name: "".into(),
@@ -121,7 +121,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     });
 
     module.set_native_fn("prompt", {
-        move |prompt: &str, default_value: &str| -> Result<String> {
+        move |prompt: &str, default_value: &str| -> HookResult<String> {
             let value = prompt_for_variable(&TemplateSlots {
                 prompt: prompt.into(),
                 var_name: "".into(),
@@ -142,7 +142,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     });
 
     module.set_native_fn("prompt", {
-        move |prompt: &str, default_value: &str, regex: &str| -> Result<String> {
+        move |prompt: &str, default_value: &str, regex: &str| -> HookResult<String> {
             let value = prompt_for_variable(&TemplateSlots {
                 prompt: prompt.into(),
                 var_name: "".into(),
@@ -163,7 +163,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     });
 
     module.set_native_fn("prompt", {
-        move |prompt: &str, default_value: &str, choices: rhai::Array| -> Result<String> {
+        move |prompt: &str, default_value: &str, choices: rhai::Array| -> HookResult<String> {
             let value = prompt_for_variable(&TemplateSlots {
                 prompt: prompt.into(),
                 var_name: "".into(),
@@ -221,7 +221,7 @@ impl GetNamedValue for Rc<RefCell<Object>> {
     }
 }
 
-fn rhai_to_liquid_value(val: Dynamic) -> Result<Value> {
+fn rhai_to_liquid_value(val: Dynamic) -> HookResult<Value> {
     val.as_bool()
         .map(Into::into)
         .map(Value::Scalar)
@@ -239,7 +239,7 @@ fn rhai_to_liquid_value(val: Dynamic) -> Result<Value> {
                 .and_then(|arr| {
                     arr.into_iter()
                         .map(rhai_to_liquid_value)
-                        .collect::<Result<_>>()
+                        .collect::<HookResult<_>>()
                         .map(Value::Array)
                 })
         })

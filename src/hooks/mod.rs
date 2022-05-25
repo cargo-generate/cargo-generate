@@ -12,6 +12,8 @@ mod file_mod;
 mod system_mod;
 mod variable_mod;
 
+type HookResult<T> = std::result::Result<T, Box<EvalAltResult>>;
+
 struct CleanupJob<F: FnOnce()>(Option<F>);
 
 impl<F: FnOnce()> CleanupJob<F> {
@@ -87,10 +89,9 @@ fn create_rhai_engine(
     let module = system_mod::create_module(allow_commands, silent);
     engine.register_static_module("system", module.into());
 
-    engine.register_result_fn(
-        "abort",
-        |error: &str| -> Result<String, Box<EvalAltResult>> { Err(error.into()) },
-    );
+    engine.register_result_fn("abort", |error: &str| -> HookResult<String> {
+        Err(error.into())
+    });
 
     engine
 }

@@ -1,4 +1,4 @@
-use rhai::{Dynamic, EvalAltResult, Module};
+use rhai::{Dynamic, Module};
 use std::process::Command;
 
 use crate::{
@@ -6,7 +6,7 @@ use crate::{
     project_variables::{StringEntry, TemplateSlots, VarInfo},
 };
 
-type Result<T> = std::result::Result<T, Box<EvalAltResult>>;
+use super::HookResult;
 
 /// Creates the system module, containing the `command` function,
 /// which allows you to run system command.
@@ -25,7 +25,7 @@ fn run_command(
     args: rhai::Array,
     allow_commands: bool,
     silent: bool,
-) -> Result<Dynamic> {
+) -> HookResult<Dynamic> {
     let args: Vec<String> = args.into_iter().map(|arg| arg.to_string()).collect();
 
     // If --allow-commands is false, we need to prompt. But we shouldn't if we're in silent mode.

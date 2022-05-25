@@ -1,10 +1,10 @@
 use console::style;
 use path_absolutize::Absolutize;
-use rhai::{Array, EvalAltResult, Module};
+use rhai::{Array, Module};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-type Result<T> = std::result::Result<T, Box<EvalAltResult>>;
+use super::HookResult;
 
 pub fn create_module(dir: &Path) -> Module {
     let dir = dir.to_owned();
@@ -13,7 +13,7 @@ pub fn create_module(dir: &Path) -> Module {
     module.set_native_fn("rename", {
         let dir = dir.clone();
 
-        move |from: &str, to: &str| -> Result<()> {
+        move |from: &str, to: &str| -> HookResult<()> {
             let from = to_absolute_path(&dir, from)?;
             let to = to_absolute_path(&dir, to)?;
             std::fs::rename(from, to).map_err(|e| e.to_string())?;
@@ -24,7 +24,7 @@ pub fn create_module(dir: &Path) -> Module {
     module.set_native_fn("delete", {
         let dir = dir.clone();
 
-        move |file: &str| -> Result<()> {
+        move |file: &str| -> HookResult<()> {
             let file = to_absolute_path(&dir, file)?;
             if file.is_file() {
                 std::fs::remove_file(file).map_err(|e| e.to_string())?;
@@ -38,7 +38,7 @@ pub fn create_module(dir: &Path) -> Module {
     module.set_native_fn("write", {
         let dir = dir.clone();
 
-        move |file: &str, content: &str| -> Result<()> {
+        move |file: &str, content: &str| -> HookResult<()> {
             let file = to_absolute_path(&dir, file)?;
             std::fs::write(file, content).map_err(|e| e.to_string())?;
             Ok(())
@@ -46,7 +46,7 @@ pub fn create_module(dir: &Path) -> Module {
     });
 
     module.set_native_fn("write", {
-        move |file: &str, content: Array| -> Result<()> {
+        move |file: &str, content: Array| -> HookResult<()> {
             let file = to_absolute_path(&dir, file)?;
             let mut file = std::fs::File::create(file).map_err(|e| e.to_string())?;
             for v in content.iter() {
@@ -60,7 +60,7 @@ pub fn create_module(dir: &Path) -> Module {
     module
 }
 
-fn to_absolute_path(base_dir: &Path, relative_path: &str) -> Result<PathBuf> {
+fn to_absolute_path(base_dir: &Path, relative_path: &str) -> HookResult<PathBuf> {
     let joined = base_dir.join(relative_path);
     Ok(joined
         .absolutize_virtually(base_dir)
