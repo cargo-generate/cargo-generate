@@ -6,7 +6,7 @@ use crate::{
     project_variables::{StringEntry, TemplateSlots, VarInfo},
 };
 
-type Result<T> = anyhow::Result<T, Box<EvalAltResult>>;
+type Result<T> = std::result::Result<T, Box<EvalAltResult>>;
 
 /// Creates the system module, containing the `command` function,
 /// which allows you to run system command.

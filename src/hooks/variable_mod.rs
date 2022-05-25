@@ -8,7 +8,7 @@ use std::rc::Rc;
 use crate::interactive::prompt_for_variable;
 use crate::project_variables::{StringEntry, TemplateSlots, VarInfo};
 
-type Result<T> = anyhow::Result<T, Box<EvalAltResult>>;
+type Result<T> = std::result::Result<T, Box<EvalAltResult>>;
 
 pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     let mut module = Module::new();

@@ -4,7 +4,7 @@ use rhai::{Array, EvalAltResult, Module};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-type Result<T> = anyhow::Result<T, Box<EvalAltResult>>;
+type Result<T> = std::result::Result<T, Box<EvalAltResult>>;
 
 pub fn create_module(dir: &Path) -> Module {
     let dir = dir.to_owned();
