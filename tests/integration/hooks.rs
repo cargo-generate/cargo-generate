@@ -156,7 +156,7 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
         .file(
             "system-script.rhai",
             indoc! {r#"
-                let output = system::command("false", []);
+                let output = system::command("mkdir", ["invalid_/.dir_name"]);
             "#},
         )
         .file(
@@ -183,7 +183,7 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
         .failure()
         .stderr(
             predicates::str::contains(
-                "System command `false` returned non-zero status: exit status: 1",
+                "System command `mkdir invalid_/.dir_name` returned non-zero status: exit status: 1",
             )
             .from_utf8(),
         );
