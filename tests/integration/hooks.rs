@@ -151,7 +151,46 @@ fn it_fails_to_prompt_for_system_commands_in_silent_mode() {
 }
 
 #[test]
-fn it_fails_on_failing_system_command() {
+fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
+    let template = tmp_dir()
+        .file(
+            "system-script.rhai",
+            indoc! {r#"
+                let output = system::command("false", []);
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+            [hooks]
+            post = ["system-script.rhai"]
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("script-project")
+        .arg("--allow-commands")
+        .current_dir(&dir.path())
+        .assert()
+        .failure()
+        .stderr(
+            predicates::str::contains(
+                "System command `false` returned non-zero status: exit status: 1",
+            )
+            .from_utf8(),
+        );
+}
+
+#[test]
+fn it_fails_when_it_cant_execute_system_command() {
     let template = tmp_dir()
         .file(
             "system-script.rhai",
@@ -181,5 +220,10 @@ fn it_fails_on_failing_system_command() {
         .current_dir(&dir.path())
         .assert()
         .failure()
-        .stderr(predicates::str::contains("System command failed to execute").from_utf8());
+        .stderr(
+            predicates::str::contains(
+                "System command `dummy_command_that_doesn't_exist dummy_arg` failed to execute",
+            )
+            .from_utf8(),
+        );
 }

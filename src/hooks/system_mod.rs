@@ -33,11 +33,16 @@ fn run_command(
         return Err("Cannot prompt for system command confirmation in silent mode. Use --allow-commands if you want to allow the template to run system commands in silent mode.".into());
     }
 
+    let full_command = if args.is_empty() {
+        name.into()
+    } else {
+        format!("{name} {}", args.join(" "))
+    };
+
     // If the user specified the --allow-commands flag, don't prompt.
     let should_run = allow_commands
         || {
-            let joined_args = args.join(" ");
-            let prompt = format!("The template is requesting to run the following command. Do you agree?\n{name} {joined_args}");
+            let prompt = format!("The template is requesting to run the following command. Do you agree?\n{full_command}");
 
             // Prompt the user for whether they actually want to run the command.
             let value = prompt_for_variable(&TemplateSlots {
@@ -60,13 +65,23 @@ fn run_command(
         };
 
     if !should_run {
-        return Err("User denied execution of system command.".into());
+        return Err(format!("User denied execution of system command `{full_command}`.").into());
     }
 
     let output = Command::new(name).args(args).output();
 
     match output {
-        Ok(_) => Ok(Dynamic::UNIT),
-        Err(e) => Err(format!("System command failed to execute: {e}").into()),
+        Ok(output) => {
+            if output.status.success() {
+                Ok(Dynamic::UNIT)
+            } else {
+                Err(format!(
+                    "System command `{full_command}` returned non-zero status: {}",
+                    output.status
+                )
+                .into())
+            }
+        }
+        Err(e) => Err(format!("System command `{full_command}` failed to execute: {e}").into()),
     }
 }
