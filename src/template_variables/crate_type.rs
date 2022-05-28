@@ -11,8 +11,8 @@ pub enum CrateType {
 impl fmt::Display for CrateType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            CrateType::Bin => write!(f, "bin"),
-            CrateType::Lib => write!(f, "lib"),
+            Self::Bin => write!(f, "bin"),
+            Self::Lib => write!(f, "lib"),
         }
     }
 }
