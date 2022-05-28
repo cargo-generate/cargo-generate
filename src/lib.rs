@@ -135,7 +135,7 @@ pub fn generate(mut args: Args) -> Result<()> {
     );
     copy_dir_all(&template_folder, &project_dir)?;
 
-    if !args.init || args.force_git_init {
+    if !args.vcs.is_none() && (!args.init || args.force_git_init) {
         info!("{}", style("Initializing a fresh Git repository").bold());
         args.vcs
             .initialize(&project_dir, branch, args.force_git_init)?;
