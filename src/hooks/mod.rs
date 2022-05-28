@@ -14,7 +14,7 @@ mod variable_mod;
 struct CleanupJob<F: FnOnce()>(Option<F>);
 
 impl<F: FnOnce()> CleanupJob<F> {
-    pub fn new(f: F) -> Self {
+    pub const fn new(f: F) -> Self {
         Self(Some(f))
     }
 }
