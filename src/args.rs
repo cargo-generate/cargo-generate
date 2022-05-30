@@ -152,4 +152,8 @@ impl Vcs {
             Self::Git => git::init(project_dir, &branch, force).map(|_| ()),
         }
     }
+
+    pub const fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
 }
