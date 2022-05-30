@@ -1,4 +1,4 @@
-use crate::git::utils::home;
+use crate::git::utils::{canonicalize_path, home};
 use std::fmt::{Display, Formatter};
 
 use anyhow::{anyhow, bail, Result};
