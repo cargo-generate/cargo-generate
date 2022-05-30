@@ -183,7 +183,7 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
         .failure()
         .stderr(
             predicates::str::contains(
-                "System command `mkdir invalid_/.dir_name` returned non-zero status: exit status: 1",
+                "System command `mkdir invalid_/.dir_name` returned non-zero status",
             )
             .from_utf8(),
         );
