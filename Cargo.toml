@@ -1,6 +1,6 @@
 [package]
 name = "cargo-generate"
-description = "cargo, make me a project"
+description = "cargo generate /me/a-project"
 version = "0.13.1"
 authors = [
     "Ashley Williams <ashley666ashley@gmail.com>"
