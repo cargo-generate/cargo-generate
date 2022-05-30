@@ -37,6 +37,7 @@ version = "0.1.0"
         define: vec![],
         init: false,
         force_git_init: false,
+        allow_commands: false,
     };
     // need to cd to the dir as we aren't running in the cargo shell.
     assert!(std::env::set_current_dir(&dir.root).is_ok());

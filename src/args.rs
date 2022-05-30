@@ -125,6 +125,12 @@ pub struct Args {
     /// Will enforce a fresh git init on the generated project
     #[structopt(long)]
     pub force_git_init: bool,
+
+    /// Allows running system commands without being prompted.
+    /// Warning: Setting this flag will enable the template to run arbitrary system commands without user confirmation.
+    /// Use at your own risk and be sure to review the template code beforehand.
+    #[structopt(short, long)]
+    pub allow_commands: bool,
 }
 
 #[derive(Debug, StructOpt, Clone, Copy)]
