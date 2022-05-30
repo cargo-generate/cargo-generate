@@ -22,7 +22,8 @@ cargo generate /me/a-project
 by automating repetitive or intricate tasks.
 
 Project templates are ***any*** files.  Alternatively, files can leverage
-[Shopify's Liquid](http://liquidmarkup.org/) templates and Rust's 
+[Shopify's Liquid](http://liquidmarkup.org/) templates,
+[Rhai](https://docs.rs/rhai/latest/rhai/) scripts and Rust's
 [regex crate](https://docs.rs/regex/latest/regex/) to add crates,
 features, initializers, etc. to your freshly created Rust project or an 
 existing Rust project.
