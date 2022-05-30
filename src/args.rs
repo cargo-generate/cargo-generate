@@ -154,4 +154,8 @@ impl Vcs {
                 .map_err(anyhow::Error::from),
         }
     }
+
+    pub const fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
 }
