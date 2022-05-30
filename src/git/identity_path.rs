@@ -1,8 +1,9 @@
-use crate::git::utils::{canonicalize_path, home};
+use crate::git::utils::home;
 use std::fmt::{Display, Formatter};
 
 use anyhow::{anyhow, bail, Result};
 use std::path::{Path, PathBuf};
+use thiserror::Error;
 
 pub struct IdentityPath(PathBuf);
 

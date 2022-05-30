@@ -18,6 +18,12 @@ pub struct AppConfig {
     pub values: Option<HashMap<String, toml::Value>>,
 }
 
+impl AppConfig {
+    pub fn get_favorite_cfg(&self, favorite_name: &str) -> Option<&FavoriteConfig> {
+        self.favorites.as_ref().and_then(|f| f.get(favorite_name))
+    }
+}
+
 #[derive(Deserialize, Default)]
 pub struct FavoriteConfig {
     pub description: Option<String>,
