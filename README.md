@@ -14,10 +14,18 @@
 
 </div>
 
-> cargo, make me a project
+```rust
+cargo generate /me/a-project
+```
 
-`cargo-generate` is a developer tool to help you get up and running quickly with a new Rust
-project by leveraging a pre-existing git repository as a template.
+`cargo-generate` is a Rust developer tool to quickly setup any Rust project,
+by automating repetitive or intricate tasks.
+
+Project templates are ***any*** files.  Alternatively, files can leverage
+[Shopify's Liquid](http://liquidmarkup.org/) templates and Rust's 
+[regex crate](https://docs.rs/regex/latest/regex/) to add crates,
+features, initializers, etc. to your freshly created Rust project or an 
+existing Rust project.
 
 Here's an example of using `cargo-generate` with [this template]:
 ![demo.gif](./demo.gif)
