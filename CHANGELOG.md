@@ -1,6 +1,31 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.13.1...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.14.0...HEAD)
+
+# [0.14.0] 2022-05-31
+[0.14.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.13.1...v0.14.0
+
+### ✨ Features
+- [Suppress misleading git initialization message](https://github.com/cargo-generate/cargo-generate/pull/606)
+- [Generate release packages for `x86_64-unknown-linux-gnu`](https://github.com/cargo-generate/cargo-generate/pull/602)
+- [Allow system commands](https://github.com/cargo-generate/cargo-generate/pull/598)
+- [Less noise](https://github.com/cargo-generate/cargo-generate/pull/597)
+- [Enhance canonicalize_path and git errors](https://github.com/cargo-generate/cargo-generate/pull/595)
+- [Refactor of handling favorites, git and path](https://github.com/cargo-generate/cargo-generate/pull/572)
+
+### 🛠️ Maintenance
+- [chore(deps): bump sanitize-filename from 0.3.0 to 0.4.0](https://github.com/cargo-generate/cargo-generate/pull/591)
+- [chore(deps): bump anyhow from 1.0.56 to 1.0.57](https://github.com/cargo-generate/cargo-generate/pull/587)
+- [chore(deps): bump toml from 0.5.8 to 0.5.9](https://github.com/cargo-generate/cargo-generate/pull/585)
+
+## Contributors
+- [SergioGasquez](https://github.com/SergioGasquez)
+- [andrewjstone](https://github.com/andrewjstone)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [remlse](https://github.com/remlse)
+- [sassman](https://github.com/sassman)
+- [v-n-suadicani-issuu](https://github.com/v-n-suadicani-issuu)
+
 
 ## [0.13.1] 2022-04-11 
 [0.13.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.13.0...v0.13.1
