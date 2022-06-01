@@ -8,3 +8,4 @@ mod git;
 mod hooks;
 mod library;
 mod online;
+mod placeholders;
