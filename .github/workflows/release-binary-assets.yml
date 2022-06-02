@@ -22,6 +22,10 @@ jobs:
             os: ubuntu-latest
             cross: true
             binName: cargo-generate
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            cross: true
+            binName: cargo-generate
           - target: x86_64-apple-darwin
             os: macos-latest
             cross: false
