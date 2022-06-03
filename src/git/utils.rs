@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use git2::Repository;
 use tempfile::TempDir;
 
-use super::{remove_history, RepoCloneBuilder};
+use super::RepoCloneBuilder;
 
 /// deals with `~/` and `$HOME/` prefixes
 pub fn canonicalize_path(p: impl AsRef<Path>) -> Result<PathBuf> {
@@ -43,7 +43,7 @@ pub fn clone_git_template_into_temp(
     let branch = get_branch_name_repo(&repo)?;
 
     // change from git repository into normal folder.
-    remove_history(git_clone_dir.path())?;
+    // remove_history(git_clone_dir.path())?;
 
     Ok((git_clone_dir, branch))
 }
