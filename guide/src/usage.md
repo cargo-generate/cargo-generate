@@ -82,7 +82,7 @@ cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name m
 as well as:
 
 ```sh
-cargo generate --git rustwasm/wasm-pack-template --name mywasm
+cargo generate  rustwasm/wasm-pack-template --name mywasm
 ```
 
 ## ssh identity file (private key)

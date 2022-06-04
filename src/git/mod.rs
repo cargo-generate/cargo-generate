@@ -1,15 +1,20 @@
 //! Handle `--git` and related flags
 
+use std::path::{Path, PathBuf};
+use std::{io, ops::Sub, thread::sleep, time::Duration};
+
+use anyhow::Result;
+use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository, RepositoryInitOptions};
+use remove_dir_all::remove_dir_all;
+
+pub use utils::clone_git_template_into_temp;
+
+use crate::warn;
+
 mod creds;
 mod gitconfig;
 mod identity_path;
 mod utils;
-
-use anyhow::Result;
-use std::path::{Path, PathBuf};
-
-use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository, RepositoryInitOptions};
-pub use utils::clone_git_template_into_temp;
 
 // cargo-generate (as application) whant from git module:
 // 1. cloning remote
@@ -127,10 +132,6 @@ pub fn init(project_dir: &Path, branch: &str, force: bool) -> Git2Result<Reposit
         Err(_) => just_init(project_dir, branch),
     }
 }
-
-use crate::warn;
-use remove_dir_all::remove_dir_all;
-use std::{io, ops::Sub, thread::sleep, time::Duration};
 
 /// remove context of repository by removing `.git` from filesystem
 pub fn remove_history(project_dir: &Path) -> io::Result<()> {

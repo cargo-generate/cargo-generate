@@ -20,7 +20,7 @@ jobs:
           default: true
           profile: minimal
       - run: cargo install -f cargo-generate
-      - run: cargo generate --git rustwasm/wasm-pack-template --name demo
+      - run: cargo generate rustwasm/wasm-pack-template --name demo
       - name: verify demo works
         run: |
           cd demo
