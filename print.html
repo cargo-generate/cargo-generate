@@ -147,6 +147,8 @@
 <a href="https://deps.rs/repo/github/cargo-generate/cargo-generate"><img src="https://deps.rs/repo/github/cargo-generate/cargo-generate/status.svg" alt="dependency status" /></a></p>
 <p><code>cargo-generate</code> is a developer tool to help you get up and running quickly with a new Rust
 project by leveraging a pre-existing git repository as a template.</p>
+<p>cargo-generate uses <a href="http://liquidmarkup.org/">Shopify's Liquid</a> template language,
+<a href="https://docs.rs/rhai/latest/rhai/">Rhai</a> for hook scripts and <a href="https://docs.rs/regex/latest/regex/">regex</a> for placeholders.</p>
 <p>Here's an example of using <code>cargo-generate</code> with <a href="https://github.com/ashleygwilliams/wasm-pack-template">this template</a>:
 <img src="./demo.gif" alt="demo.gif" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
@@ -234,7 +236,7 @@ For example:</p>
 <pre><code class="language-sh">cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name mywasm
 </code></pre>
 <p>as well as:</p>
-<pre><code class="language-sh">cargo generate --git rustwasm/wasm-pack-template --name mywasm
+<pre><code class="language-sh">cargo generate  rustwasm/wasm-pack-template --name mywasm
 </code></pre>
 <h2 id="ssh-identity-file-private-key"><a class="header" href="#ssh-identity-file-private-key">ssh identity file (private key)</a></h2>
 <p>the default ssh identity is that is used is the good old RSA one. <code>~/.ssh/id_rsa</code>.</p>
