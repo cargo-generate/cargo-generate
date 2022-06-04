@@ -42,9 +42,6 @@ pub fn clone_git_template_into_temp(
         .context("Please check if the Git user / repository exists.")?;
     let branch = get_branch_name_repo(&repo)?;
 
-    // change from git repository into normal folder.
-    // remove_history(git_clone_dir.path())?;
-
     Ok((git_clone_dir, branch))
 }
 
