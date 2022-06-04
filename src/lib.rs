@@ -53,6 +53,7 @@ use ignore_me::remove_dir_files;
 use interactive::prompt_for_variable;
 use liquid::ValueView;
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
+use std::ffi::OsString;
 use std::{
     borrow::Borrow,
     cell::RefCell,
@@ -306,11 +307,15 @@ pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resu
     }
     fn copy_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
         fs::create_dir_all(&dst)?;
+        let git_file_name: OsString = ".git".into();
         for src_entry in fs::read_dir(src)? {
             let src_entry = src_entry?;
             let dst_path = dst.as_ref().join(src_entry.file_name());
             let entry_type = src_entry.file_type()?;
             if entry_type.is_dir() {
+                if git_file_name == src_entry.file_name() {
+                    continue;
+                }
                 copy_dir_all(src_entry.path(), dst_path)?;
             } else if entry_type.is_file() {
                 fs::copy(src_entry.path(), dst_path)?;
