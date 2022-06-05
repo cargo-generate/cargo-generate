@@ -74,7 +74,7 @@ use crate::{
 };
 
 /// # Panics
-pub fn generate(mut args: Args) -> Result<()> {
+pub fn generate(mut args: Args, dest: Option<&Path>) -> Result<()> {
     let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
 
     if args.list_favorites {
@@ -109,7 +109,7 @@ pub fn generate(mut args: Args) -> Result<()> {
     check_cargo_generate_version(&template_config)?;
 
     let project_name = resolve_project_name(&args)?;
-    let project_dir = resolve_project_dir(&project_name, &args)?;
+    let project_dir = resolve_project_dir(&project_name, &args, dest)?;
 
     println!(
         "{} {} {}",
@@ -350,32 +350,36 @@ fn locate_template_file(
     }
 }
 
-fn resolve_project_dir(name: &ProjectName, args: &Args) -> Result<PathBuf> {
-    if args.init {
-        let cwd = env::current_dir()?;
-        return Ok(cwd);
-    }
-
-    let dir_name = if args.force {
-        name.raw()
+fn resolve_project_dir(name: &ProjectName, args: &Args, dest: Option<&Path>) -> Result<PathBuf> {
+    if let Some(path) = dest {
+        Ok(path.to_path_buf())
     } else {
-        rename_warning(name);
-        name.kebab_case()
-    };
-    let project_dir = env::current_dir()
-        .unwrap_or_else(|_e| ".".into())
-        .join(&dir_name);
+        if args.init {
+            let cwd = env::current_dir()?;
+            return Ok(cwd);
+        }
 
-    if project_dir.exists() {
-        Err(anyhow!(
-            "{} {}",
-            emoji::ERROR,
-            style("Target directory already exists, aborting!")
-                .bold()
-                .red()
-        ))
-    } else {
-        Ok(project_dir)
+        let dir_name = if args.force {
+            name.raw()
+        } else {
+            rename_warning(name);
+            name.kebab_case()
+        };
+        let project_dir = env::current_dir()
+            .unwrap_or_else(|_e| ".".into())
+            .join(&dir_name);
+
+        if project_dir.exists() {
+            Err(anyhow!(
+                "{} {}",
+                emoji::ERROR,
+                style("Target directory already exists, aborting!")
+                    .bold()
+                    .red()
+            ))
+        } else {
+            Ok(project_dir)
+        }
     }
 }
 

@@ -4,7 +4,7 @@ use structopt::StructOpt;
 
 fn main() -> Result<()> {
     let Cli::Generate(args) = Cli::from_args();
-    generate(args)?;
+    generate(args, None)?;
 
     Ok(())
 }
