@@ -8,6 +8,13 @@ use clap::Parser;
 
 use crate::git;
 
+#[derive(Parser)]
+#[clap(bin_name = "cargo")]
+pub enum Cli {
+    #[clap(name = "generate", visible_alias = "gen")]
+    Generate(Args),
+}
+
 #[derive(Debug, Parser)]
 pub struct Args {
     /// List defined favorite templates from the config
