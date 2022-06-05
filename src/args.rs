@@ -8,7 +8,7 @@ use clap::Parser;
 
 use crate::git;
 
-#[derive(Clone, Debug, Parser)]
+#[derive(Parser)]
 #[clap(bin_name = "cargo")]
 pub enum Cli {
     #[clap(name = "generate", visible_alias = "gen")]
