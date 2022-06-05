@@ -9,6 +9,7 @@ edition = "2021"
 include = ["src/**/*", "LICENSE-*", "*.md"]
 
 [dependencies]
+clap = { version = "3.1", features = ["derive"] }
 console = "0.15"
 dialoguer = "0.10"
 dirs = "4.0"
@@ -21,7 +22,6 @@ heck = "0.4"
 walkdir = "2.3"
 remove_dir_all = "0.7"
 ignore = "0.4"
-structopt = "0.3"
 anyhow = "1.0"
 toml = "0.5"
 thiserror = "1.0"
