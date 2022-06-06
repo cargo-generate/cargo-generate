@@ -46,9 +46,9 @@ impl UserParsedInput {
     /// This function assume that Args and AppConfig are verfied eariler and are logicly correct
     /// For example if both `--git` and `--path` are set this function will panic
     pub fn try_from_args_and_config(app_config: &AppConfig, args: &Args) -> Self {
-        // --git and --path can not be set at the same time
-        assert!(args.git.is_none() || args.path.is_none());
-        let mut default_values = app_config.values.clone().unwrap_or_default();
+        // --git and --path can not be set at the same time, Validated by Clap attributes and unit
+        // tests
+        let default_values = app_config.values.clone().unwrap_or_default();
         let ssh_identity = app_config
             .defaults
             .as_ref()
@@ -56,70 +56,82 @@ impl UserParsedInput {
             .or_else(|| args.ssh_identity.clone());
 
         // --git
-        if let Some(git_url) = &args.git {
-            assert!(args.subfolder.is_none());
-
+        if let Some(git_url) = &args.template_path.git() {
             let git_user_in = GitUserInput::new(
                 git_url,
-                args.branch.clone(),
+                args.template_path.branch(),
                 ssh_identity,
                 args.force_git_init,
             );
-            return Self::new(git_user_in, args.favorite.clone(), default_values);
+            return Self::new(git_user_in, args.template_path.subfolder(), default_values);
         }
 
         // --path
-        if let Some(path) = &args.path {
-            assert!(args.subfolder.is_none());
-
-            return Self::new(path, args.favorite.clone(), default_values);
+        if let Some(path) = &args.template_path.local_path() {
+            return Self::new(path, args.template_path.subfolder(), default_values);
         }
 
         // check if favorite is favorite configuration
-        assert!(args.favorite.is_some());
-        let fav_name = args.favorite.as_ref().unwrap();
+        if let Some(result) = args
+            .template_path
+            .favorite()
+            .or_else(|| args.template_path.auto_path())
+            .and_then(|fav_name| app_config.get_favorite_cfg(&fav_name))
+            .map(|fav_cfg| {
+                assert!(fav_cfg.git.is_none() || fav_cfg.path.is_none());
 
-        if let Some(fav_cfg) = app_config.get_favorite_cfg(fav_name) {
-            assert!(fav_cfg.git.is_none() || fav_cfg.path.is_none());
+                let temp_location = fav_cfg.git.as_ref().map_or_else(
+                    || fav_cfg.path.as_ref().map(TemplateLocation::from).unwrap(),
+                    |git_url| {
+                        let branch = args
+                            .template_path
+                            .branch()
+                            .or_else(|| fav_cfg.branch.clone());
+                        let git_user_input = GitUserInput::new(
+                            git_url,
+                            branch,
+                            ssh_identity.clone(),
+                            args.force_git_init,
+                        );
 
-            let temp_location = fav_cfg.git.as_ref().map_or_else(
-                || fav_cfg.path.as_ref().map(TemplateLocation::from).unwrap(),
-                |git_url| {
-                    let branch = args.branch.clone().or_else(|| fav_cfg.branch.clone());
-                    let git_user_input =
-                        GitUserInput::new(git_url, branch, ssh_identity, args.force_git_init);
+                        TemplateLocation::from(git_user_input)
+                    },
+                );
 
-                    TemplateLocation::from(git_user_input)
-                },
-            );
+                let mut default_values = default_values.clone();
+                if let Some(fav_default_values) = &fav_cfg.values {
+                    default_values.extend(fav_default_values.clone());
+                }
 
-            if let Some(fav_default_values) = &fav_cfg.values {
-                default_values.extend(fav_default_values.clone());
-            }
-
-            return Self::new(
-                temp_location,
-                args.subfolder.clone().or_else(|| fav_cfg.subfolder.clone()),
-                default_values,
-            );
+                Self::new(
+                    temp_location,
+                    args.template_path
+                        .subfolder()
+                        .or_else(|| fav_cfg.subfolder.clone()),
+                    default_values,
+                )
+            })
+        {
+            return result;
         }
 
         // there is no specified favorite in configuration
         // this part try to guess what user wanted in order:
+        let auto_path = args.template_path.auto_path().unwrap();
 
         // 1. look for abbrevations like gh:, gl: etc.
-        let temp_location = abbreviated_git_url_to_full_remote(fav_name).map(|git_url| {
+        let temp_location = abbreviated_git_url_to_full_remote(&auto_path).map(|git_url| {
             let git_user_in = GitUserInput::with_git_url_and_args(&git_url, args);
             TemplateLocation::from(git_user_in)
         });
 
         // 2. check if template directory exist
         let temp_location =
-            temp_location.or_else(|| local_path(fav_name).map(TemplateLocation::from));
+            temp_location.or_else(|| local_path(&auto_path).map(TemplateLocation::from));
 
         // 3. check if the input is in form org/repo<> (map to github)
         let temp_location = temp_location.or_else(|| {
-            abbreviated_github(fav_name).map(|git_url| {
+            abbreviated_github(&auto_path).map(|git_url| {
                 let git_user_in = GitUserInput::with_git_url_and_args(&git_url, args);
                 TemplateLocation::from(git_user_in)
             })
@@ -128,8 +140,8 @@ impl UserParsedInput {
         // 4. assume user wanted use --git
         let temp_location = temp_location.unwrap_or_else(|| {
             let git_user_in = GitUserInput::new(
-                fav_name,
-                args.branch.clone(),
+                &auto_path,
+                args.template_path.branch(),
                 ssh_identity,
                 args.force_git_init,
             );
@@ -147,11 +159,15 @@ impl UserParsedInput {
         };
         warn!(
             "Favorite `{}` not found in config, using it as a {}",
-            style(&fav_name).bold(),
+            style(auto_path).bold(),
             location_msg
         );
 
-        Self::new(temp_location, args.subfolder.clone(), default_values)
+        Self::new(
+            temp_location,
+            args.template_path.subfolder(),
+            default_values,
+        )
     }
 
     pub const fn location(&self) -> &TemplateLocation {
@@ -200,6 +216,7 @@ pub fn local_path(fav: &str) -> Option<PathBuf> {
 }
 
 // Template should be cloned with git
+#[derive(Debug)]
 pub struct GitUserInput {
     url: String,
     branch: Option<String>,
@@ -221,7 +238,7 @@ impl GitUserInput {
     fn with_git_url_and_args(url: &str, args: &Args) -> Self {
         Self::new(
             url,
-            args.branch.clone(),
+            args.template_path.branch(),
             args.ssh_identity.clone(),
             args.force_git_init,
         )
@@ -241,6 +258,7 @@ impl GitUserInput {
 }
 
 // Distinguish between plain copy and clone
+#[derive(Debug)]
 pub enum TemplateLocation {
     Git(GitUserInput),
     Path(PathBuf),

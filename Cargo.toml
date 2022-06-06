@@ -21,7 +21,7 @@ heck = "0.4"
 walkdir = "2.3"
 remove_dir_all = "0.7"
 ignore = "0.4"
-structopt = "0.3"
+clap = { version = "3.1.18", features = ["derive"] }
 anyhow = "1.0"
 toml = "0.5"
 thiserror = "1.0"

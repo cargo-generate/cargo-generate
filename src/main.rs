@@ -1,9 +1,9 @@
 use anyhow::Result;
 use cargo_generate::{generate, Cli};
-use structopt::StructOpt;
+use clap::Parser;
 
 fn main() -> Result<()> {
-    let Cli::Generate(args) = Cli::from_args();
+    let Cli::Generate(args) = Cli::parse();
     generate(args)?;
 
     Ok(())

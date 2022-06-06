@@ -14,7 +14,13 @@ pub fn list_favorites(app_config: &AppConfig, args: &Args) -> Result<()> {
             .as_ref()
             .map(|h| {
                 h.iter()
-                    .filter(|(key, _)| args.favorite.as_ref().map_or(true, |f| key.starts_with(f)))
+                    .filter(|(key, _)| {
+                        // when using `--list-favorites`, its impossible to specify a path, thus
+                        // the first unnamed parameter (auto_path) becomes a filter value!
+                        args.template_path
+                            .auto_path()
+                            .map_or(true, |f| key.starts_with(&f))
+                    })
                     .collect::<Vec<(&String, &FavoriteConfig)>>()
             })
             .unwrap_or_default();
