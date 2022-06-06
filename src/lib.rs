@@ -350,37 +350,32 @@ fn locate_template_file(
     }
 }
 
+/// resolves the project dir
+/// if `args.init == true` it either returns `dest` or the path for `$CWD`
 fn resolve_project_dir(name: &ProjectName, args: &Args, dest: Option<&Path>) -> Result<PathBuf> {
-    if let Some(path) = dest {
-        Ok(path.to_path_buf())
-    } else {
-        if args.init {
-            let cwd = env::current_dir()?;
-            return Ok(cwd);
-        }
-
-        let dir_name = if args.force {
-            name.raw()
-        } else {
-            rename_warning(name);
-            name.kebab_case()
-        };
-        let project_dir = env::current_dir()
-            .unwrap_or_else(|_e| ".".into())
-            .join(&dir_name);
-
-        if project_dir.exists() {
-            Err(anyhow!(
-                "{} {}",
-                emoji::ERROR,
-                style("Target directory already exists, aborting!")
-                    .bold()
-                    .red()
-            ))
-        } else {
-            Ok(project_dir)
-        }
+    let base_path = dest
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
+    if args.init {
+        return Ok(base_path);
     }
+
+    let dir_name = args.force.then(|| name.raw()).unwrap_or_else(|| {
+        rename_warning(name);
+        name.kebab_case()
+    });
+    let project_dir = base_path.join(&dir_name);
+    if project_dir.exists() {
+        bail!(
+            "{} {}",
+            emoji::ERROR,
+            style("Target directory already exists, aborting!")
+                .bold()
+                .red()
+        );
+    }
+
+    Ok(project_dir)
 }
 
 fn expand_template(
