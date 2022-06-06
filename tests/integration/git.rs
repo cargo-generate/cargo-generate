@@ -1,7 +1,7 @@
 use assert_cmd::prelude::*;
 use git2::Repository;
-use git_config::file::GitConfig;
 use git_config::parser::Key;
+use git_config::File as GitConfig;
 use predicates::prelude::*;
 use std::borrow::Cow;
 use std::ops::Deref;
