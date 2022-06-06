@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.14.0...HEAD)
 
+### ✨ Features
+- Add placeholder `{{cargo_embedded}}`. Enables templates to adust if they are expanded inside a `cargo` project.
+
 # [0.14.0] 2022-05-31
 [0.14.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.13.1...v0.14.0
 

@@ -108,8 +108,16 @@ pub fn generate(mut args: Args) -> Result<()> {
 
     check_cargo_generate_version(&template_config)?;
 
+    let base_dir = env::current_dir()?;
     let project_name = resolve_project_name(&args)?;
-    let project_dir = resolve_project_dir(&project_name, &args)?;
+    let project_dir = resolve_project_dir(&base_dir, &project_name, &args)?;
+
+    println!(
+        "{} {} {}",
+        emoji::WRENCH,
+        style(format!("Basedir: {}", base_dir.display())).bold(),
+        style("...").bold()
+    );
 
     println!(
         "{} {} {}",
@@ -119,6 +127,7 @@ pub fn generate(mut args: Args) -> Result<()> {
     );
 
     expand_template(
+        &base_dir,
         &project_name,
         &template_folder,
         source_template.template_values(),
@@ -360,10 +369,9 @@ fn locate_template_file(
 ///
 /// if `args.init == true` it returns the path of `$CWD` and if let some `args.destination`,
 /// it returns the given path.
-fn resolve_project_dir(name: &ProjectName, args: &Args) -> Result<PathBuf> {
+fn resolve_project_dir(base_dir: &Path, name: &ProjectName, args: &Args) -> Result<PathBuf> {
     if args.init {
-        let cwd = env::current_dir()?;
-        return Ok(cwd);
+        return Ok(base_dir.into());
     }
 
     let base_path = args
@@ -393,6 +401,7 @@ fn resolve_project_dir(name: &ProjectName, args: &Args) -> Result<PathBuf> {
 }
 
 fn expand_template(
+    base_dir: &Path,
     name: &ProjectName,
     dir: &Path,
     template_values: &HashMap<String, toml::Value>,
@@ -400,7 +409,7 @@ fn expand_template(
     args: &Args,
 ) -> Result<()> {
     let crate_type: CrateType = args.into();
-    let liquid_object = template::create_liquid_object(name, &crate_type, args.force)?;
+    let liquid_object = template::create_liquid_object(base_dir, name, &crate_type, args.force)?;
     let liquid_object =
         project_variables::fill_project_variables(liquid_object, &template_config, |slot| {
             let provided_value = template_values.get(&slot.var_name).and_then(|v| v.as_str());

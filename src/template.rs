@@ -4,7 +4,7 @@ use indicatif::{MultiProgress, ProgressBar};
 use liquid::Parser;
 use liquid_core::{Object, Value};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
 use crate::config::TemplateConfig;
@@ -27,6 +27,7 @@ fn engine() -> liquid::Parser {
 }
 
 pub fn create_liquid_object(
+    base_dir: &Path,
     name: &ProjectName,
     crate_type: &CrateType,
     force: bool,
@@ -46,7 +47,25 @@ pub fn create_liquid_object(
     liquid_object.insert("username".into(), Value::Scalar(authors.username.into()));
     liquid_object.insert("os-arch".into(), Value::Scalar(os_arch.into()));
 
+    liquid_object.insert(
+        "cargo_embedded".into(),
+        Value::Scalar(is_inside_cargo_project(base_dir).into()),
+    );
+
     Ok(liquid_object)
+}
+
+fn is_inside_cargo_project(base_dir: &Path) -> bool {
+    let mut cwd = PathBuf::from(base_dir);
+    cwd.push("dummy");
+    loop {
+        if cwd.with_file_name("Cargo.toml").exists() {
+            break true;
+        }
+        if !cwd.pop() || !cwd.exists() {
+            break false;
+        }
+    }
 }
 
 pub fn walk_dir(
