@@ -36,12 +36,13 @@ version = "0.1.0"
         ssh_identity: None,
         define: vec![],
         init: false,
+        destination: None,
         force_git_init: false,
         allow_commands: false,
     };
     // need to cd to the dir as we aren't running in the cargo shell.
     assert!(std::env::set_current_dir(&dir.root).is_ok());
-    assert!(generate(args_exposed, None).is_ok());
+    assert!(generate(args_exposed).is_ok());
 
     assert!(dir
         .read("foobar_project/Cargo.toml")
