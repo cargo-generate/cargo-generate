@@ -4,21 +4,21 @@ use std::{
 };
 
 use anyhow::{anyhow, Result};
-use structopt::StructOpt;
+use clap::Parser;
 
 use crate::git;
 
-#[derive(StructOpt)]
-#[structopt(bin_name = "cargo")]
+#[derive(Parser)]
+#[clap(bin_name = "cargo")]
 pub enum Cli {
-    #[structopt(name = "generate", visible_alias = "gen")]
+    #[clap(name = "generate", visible_alias = "gen")]
     Generate(Args),
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Clone, Debug, Parser)]
 pub struct Args {
     /// List defined favorite templates from the config
-    #[structopt(
+    #[clap(
         long,
         conflicts_with = "git",
         conflicts_with = "subfolder",
@@ -26,12 +26,12 @@ pub struct Args {
         conflicts_with = "branch",
         conflicts_with = "name",
         conflicts_with = "force",
-        conflicts_with = "template_values_file",
+        conflicts_with = "template-values-file",
         conflicts_with = "silent",
         conflicts_with = "vcs",
         conflicts_with = "lib",
         conflicts_with = "bin",
-        conflicts_with = "ssh_identity",
+        conflicts_with = "ssh-identity",
         conflicts_with = "define",
         conflicts_with = "init"
     )]
@@ -39,11 +39,11 @@ pub struct Args {
 
     /// Generate a favorite template as defined in the config. In case the favorite is undefined,
     /// use in place of the `--git` option, otherwise specifies the subfolder
-    #[structopt(name = "favorite|git|subfolder")]
+    #[clap(name = "favorite")]
     pub favorite: Option<String>,
 
     /// Specifies a subfolder within the template repository to be used as the actual template.
-    #[structopt()]
+    #[clap(name = "subfolder")]
     pub subfolder: Option<String>,
 
     /// Git repository to clone template from. Can be a URL (like
@@ -52,11 +52,11 @@ pub struct Args {
     ///
     /// Note that cargo generate will first attempt to interpret the `owner/repo` form as a
     /// relative path and only try a GitHub URL if the local path doesn't exist.
-    #[structopt(short, long, conflicts_with = "subfolder")]
+    #[clap(name = "git", short, long, conflicts_with = "subfolder")]
     pub git: Option<String>,
 
     /// Local path to copy the template from. Can not be specified together with --git.
-    #[structopt(
+    #[clap(
         short,
         long,
         conflicts_with = "git",
@@ -66,74 +66,74 @@ pub struct Args {
     pub path: Option<PathBuf>,
 
     /// Branch to use when installing from git
-    #[structopt(short, long)]
+    #[clap(short, long)]
     pub branch: Option<String>,
 
     /// Directory to create / project name; if the name isn't in kebab-case, it will be converted
     /// to kebab-case unless `--force` is given.
-    #[structopt(long, short)]
+    #[clap(long, short)]
     pub name: Option<String>,
 
     /// Don't convert the project name to kebab-case before creating the directory.
     /// Note that cargo generate won't overwrite an existing directory, even if `--force` is given.
-    #[structopt(long, short)]
+    #[clap(long, short)]
     pub force: bool,
 
     /// Enables more verbose output.
-    #[structopt(long, short)]
+    #[clap(long, short)]
     pub verbose: bool,
 
     /// Pass template values through a file
     /// Values should be in the format `key=value`, one per line
-    #[structopt(long)]
+    #[clap(long)]
     pub template_values_file: Option<String>,
 
     /// If silent mode is set all variables will be
     /// extracted from the template_values_file.
     /// If a value is missing the project generation will fail
-    #[structopt(long, short, requires("name"))]
+    #[clap(long, short, requires("name"))]
     pub silent: bool,
 
     /// Use specific configuration file. Defaults to $CARGO_HOME/cargo-generate or $HOME/.cargo/cargo-generate
-    #[structopt(short, long, parse(from_os_str))]
+    #[clap(short, long, parse(from_os_str))]
     pub config: Option<PathBuf>,
 
     /// Specify the VCS used to initialize the generated template.
-    #[structopt(long, default_value = "git")]
+    #[clap(long, default_value = "git")]
     pub vcs: Vcs,
 
     /// Populates a template variable `crate_type` with value `"lib"`
-    #[structopt(long, conflicts_with = "bin")]
+    #[clap(long, conflicts_with = "bin")]
     pub lib: bool,
 
     /// Populates a template variable `crate_type` with value `"bin"`
-    #[structopt(long, conflicts_with = "lib")]
+    #[clap(long, conflicts_with = "lib")]
     pub bin: bool,
 
     /// Use a different ssh identity
-    #[structopt(short = "i", long = "identity", parse(from_os_str))]
+    #[clap(short = 'i', long = "identity", parse(from_os_str))]
     pub ssh_identity: Option<PathBuf>,
 
     /// Define a value for use during template expansion
-    #[structopt(long, short, number_of_values = 1)]
+    #[clap(long, short, number_of_values = 1)]
     pub define: Vec<String>,
 
     /// Generate the template directly into the current dir. No subfolder will be created and no vcs is initialized.
-    #[structopt(long)]
+    #[clap(long)]
     pub init: bool,
 
     /// Will enforce a fresh git init on the generated project
-    #[structopt(long)]
+    #[clap(long)]
     pub force_git_init: bool,
 
     /// Allows running system commands without being prompted.
     /// Warning: Setting this flag will enable the template to run arbitrary system commands without user confirmation.
     /// Use at your own risk and be sure to review the template code beforehand.
-    #[structopt(short, long)]
+    #[clap(short, long)]
     pub allow_commands: bool,
 }
 
-#[derive(Debug, StructOpt, Clone, Copy)]
+#[derive(Debug, Parser, Clone, Copy)]
 pub enum Vcs {
     None,
     Git,
