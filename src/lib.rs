@@ -74,7 +74,7 @@ use crate::{
 };
 
 /// # Panics
-pub fn generate(mut args: Args, dest: Option<&Path>) -> Result<()> {
+pub fn generate(mut args: Args) -> Result<()> {
     let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
 
     if args.list_favorites {
@@ -109,7 +109,7 @@ pub fn generate(mut args: Args, dest: Option<&Path>) -> Result<()> {
     check_cargo_generate_version(&template_config)?;
 
     let project_name = resolve_project_name(&args)?;
-    let project_dir = resolve_project_dir(&project_name, &args, dest)?;
+    let project_dir = resolve_project_dir(&project_name, &args)?;
 
     println!(
         "{} {} {}",
@@ -350,17 +350,21 @@ fn locate_template_file(
     }
 }
 
-/// Resolves the project dir
-/// if `args.init == true` it either `dest` or the path of `$CWD`
-fn resolve_project_dir(name: &ProjectName, args: &Args, dest: Option<&Path>) -> Result<PathBuf> {
-    let base_path = dest
-        .map(|p| p.to_path_buf())
-        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
-
+/// Resolves the project dir.
+///
+/// if `args.init == true` it returns the path of `$CWD` and if let some `args.destination`,
+/// it returns the given path.
+fn resolve_project_dir(name: &ProjectName, args: &Args) -> Result<PathBuf> {
     if args.init {
         let cwd = env::current_dir()?;
         return Ok(cwd);
     }
+
+    let base_path = args
+        .destination
+        .as_ref()
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
 
     let dir_name = args.force.then(|| name.raw()).unwrap_or_else(|| {
         rename_warning(name);

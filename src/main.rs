@@ -4,7 +4,7 @@ use clap::Parser;
 
 fn main() -> Result<()> {
     let Cli::Generate(args) = Cli::parse();
-    generate(args, None)?;
+    generate(args)?;
 
     Ok(())
 }
