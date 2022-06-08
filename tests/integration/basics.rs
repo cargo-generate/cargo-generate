@@ -391,6 +391,40 @@ version = "0.1.0"
 }
 
 #[test]
+fn it_can_generate_at_given_path() -> anyhow::Result<()> {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+    let dir = tmp_dir().build();
+    let dest = dir.path().join("destination");
+    fs::create_dir(&dest).expect("can create directory");
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("my-proj")
+        .arg("--destination")
+        .arg(&dest)
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+    assert!(dir
+        .read("destination/my-proj/Cargo.toml")
+        .contains("my-proj"));
+    Ok(())
+}
+
+#[test]
 fn it_refuses_to_overwrite_files() -> anyhow::Result<()> {
     let template = tmp_dir()
         .file(
