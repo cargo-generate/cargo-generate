@@ -350,33 +350,40 @@ fn locate_template_file(
     }
 }
 
+/// Resolves the project dir.
+///
+/// if `args.init == true` it returns the path of `$CWD` and if let some `args.destination`,
+/// it returns the given path.
 fn resolve_project_dir(name: &ProjectName, args: &Args) -> Result<PathBuf> {
     if args.init {
         let cwd = env::current_dir()?;
         return Ok(cwd);
     }
 
-    let dir_name = if args.force {
-        name.raw()
-    } else {
+    let base_path = args
+        .destination
+        .as_ref()
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
+
+    let dir_name = args.force.then(|| name.raw()).unwrap_or_else(|| {
         rename_warning(name);
         name.kebab_case()
-    };
-    let project_dir = env::current_dir()
-        .unwrap_or_else(|_e| ".".into())
-        .join(&dir_name);
+    });
+
+    let project_dir = base_path.join(&dir_name);
 
     if project_dir.exists() {
-        Err(anyhow!(
+        bail!(
             "{} {}",
             emoji::ERROR,
             style("Target directory already exists, aborting!")
                 .bold()
                 .red()
-        ))
-    } else {
-        Ok(project_dir)
+        );
     }
+
+    Ok(project_dir)
 }
 
 fn expand_template(

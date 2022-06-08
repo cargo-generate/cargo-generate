@@ -36,6 +36,7 @@ version = "0.1.0"
         ssh_identity: None,
         define: vec![],
         init: false,
+        destination: None,
         force_git_init: false,
         allow_commands: false,
     };
