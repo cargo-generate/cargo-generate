@@ -26,7 +26,7 @@ The current supported builtin placeholders are:
 
   this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.
 
-* `{{cargo_embedded}}`
+* `{{within_cargo_project}}`
 
   A boolean with the value `true` if the template is being expanded inside a `Cargo` project. It's 
   a simple matter of whether `Cargo.toml` is present in any parent folder.

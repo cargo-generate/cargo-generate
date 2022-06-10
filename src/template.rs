@@ -27,7 +27,7 @@ fn engine() -> liquid::Parser {
 }
 
 pub fn create_liquid_object(
-    base_dir: &Path,
+    project_dir: &Path,
     name: &ProjectName,
     crate_type: &CrateType,
     force: bool,
@@ -48,15 +48,15 @@ pub fn create_liquid_object(
     liquid_object.insert("os-arch".into(), Value::Scalar(os_arch.into()));
 
     liquid_object.insert(
-        "cargo_embedded".into(),
-        Value::Scalar(is_inside_cargo_project(base_dir).into()),
+        "within_cargo_project".into(),
+        Value::Scalar(is_within_cargo_project(project_dir).into()),
     );
 
     Ok(liquid_object)
 }
 
-fn is_inside_cargo_project(base_dir: &Path) -> bool {
-    let mut cwd = PathBuf::from(base_dir);
+fn is_within_cargo_project(project_dir: &Path) -> bool {
+    let mut cwd = PathBuf::from(project_dir);
     cwd.push("dummy");
     loop {
         if cwd.with_file_name("Cargo.toml").exists() {

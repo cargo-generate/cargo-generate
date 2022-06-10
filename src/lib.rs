@@ -127,7 +127,7 @@ pub fn generate(mut args: Args) -> Result<()> {
     );
 
     expand_template(
-        &base_dir,
+        &project_dir,
         &project_name,
         &template_folder,
         source_template.template_values(),
@@ -401,7 +401,7 @@ fn resolve_project_dir(base_dir: &Path, name: &ProjectName, args: &Args) -> Resu
 }
 
 fn expand_template(
-    base_dir: &Path,
+    project_dir: &Path,
     name: &ProjectName,
     dir: &Path,
     template_values: &HashMap<String, toml::Value>,
@@ -409,7 +409,7 @@ fn expand_template(
     args: &Args,
 ) -> Result<()> {
     let crate_type: CrateType = args.into();
-    let liquid_object = template::create_liquid_object(base_dir, name, &crate_type, args.force)?;
+    let liquid_object = template::create_liquid_object(project_dir, name, &crate_type, args.force)?;
     let liquid_object =
         project_variables::fill_project_variables(liquid_object, &template_config, |slot| {
             let provided_value = template_values.get(&slot.var_name).and_then(|v| v.as_str());
