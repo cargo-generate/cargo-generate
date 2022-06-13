@@ -151,8 +151,12 @@
 project by leveraging a pre-existing git repository as a template.</p>
 <p>cargo-generate uses <a href="http://liquidmarkup.org/">Shopify's Liquid</a> template language,
 <a href="https://docs.rs/rhai/latest/rhai/">Rhai</a> for hook scripts and <a href="https://docs.rs/regex/latest/regex/">regex</a> for placeholders.</p>
-<p>Here's an example of using <code>cargo-generate</code> with <a href="https://github.com/ashleygwilliams/wasm-pack-template">this template</a>:
-<img src="./demo.gif" alt="demo.gif" /></p>
+<p>Due to the use of <a href="http://liquidmarkup.org/">Shopify's Liquid</a>, <code>cargo-generate</code> special cases files with the file-ending
+<code>.liquid</code>, by simply removing the file-ending when processing the files. If you, as a template 
+author, truly wants the <code>.liquid</code> file-ending, you need to repeat it twice!</p>
+<p>An Example: the file <code>main.rs.liquid</code> will be renamed after templating to <code>main.rs</code></p>
+<p>Here's an example of using <code>cargo-generate</code> with <a href="https://github.com/ashleygwilliams/wasm-pack-template">this template</a>:</p>
+<p><img src="./demo.gif" alt="demo.gif" /></p>
 
                     </main>
 
