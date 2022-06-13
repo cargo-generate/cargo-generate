@@ -56,16 +56,8 @@ pub fn create_liquid_object(
 }
 
 fn is_within_cargo_project(project_dir: &Path) -> bool {
-    let mut cwd = PathBuf::from(project_dir);
-    cwd.push("dummy");
-    loop {
-        if cwd.with_file_name("Cargo.toml").exists() {
-            break true;
-        }
-        if !cwd.pop() || !cwd.exists() {
-            break false;
-        }
-    }
+    let cwd = PathBuf::from(project_dir);
+    cwd.ancestors().any(|folder| folder.join("Cargo.toml").exists())
 }
 
 pub fn walk_dir(
