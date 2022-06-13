@@ -281,12 +281,15 @@ pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resu
 
         for src_entry in fs::read_dir(src)? {
             let src_entry = src_entry?;
-            let dst_path = dst.as_ref().join(src_entry.file_name());
+            let filename = src_entry.file_name().to_string_lossy().to_string();
             let entry_type = src_entry.file_type()?;
 
             if entry_type.is_dir() {
+                let dst_path = dst.as_ref().join(filename);
                 check_dir_all(src_entry.path(), dst_path)?;
             } else if entry_type.is_file() {
+                let filename = filename.strip_suffix(".liquid").unwrap_or(&filename);
+                let dst_path = dst.as_ref().join(filename);
                 if dst_path.exists() {
                     bail!(
                         "{} {} {}",
@@ -310,14 +313,17 @@ pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resu
         let git_file_name: OsString = ".git".into();
         for src_entry in fs::read_dir(src)? {
             let src_entry = src_entry?;
-            let dst_path = dst.as_ref().join(src_entry.file_name());
+            let filename = src_entry.file_name().to_string_lossy().to_string();
             let entry_type = src_entry.file_type()?;
             if entry_type.is_dir() {
+                let dst_path = dst.as_ref().join(filename);
                 if git_file_name == src_entry.file_name() {
                     continue;
                 }
                 copy_dir_all(src_entry.path(), dst_path)?;
             } else if entry_type.is_file() {
+                let filename = filename.strip_suffix(".liquid").unwrap_or(&filename);
+                let dst_path = dst.as_ref().join(filename);
                 fs::copy(src_entry.path(), dst_path)?;
             }
         }
