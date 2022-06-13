@@ -434,6 +434,7 @@ fn expand_template(
         &all_hook_files,
         &mut pbar,
     )?;
+    pbar.join().unwrap();
 
     execute_post_hooks(
         dir,
@@ -443,8 +444,6 @@ fn expand_template(
         args.silent,
     )?;
     remove_dir_files(all_hook_files, false);
-
-    pbar.join().unwrap();
 
     Ok(())
 }
