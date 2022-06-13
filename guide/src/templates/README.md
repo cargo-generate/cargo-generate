@@ -1,26 +1,11 @@
 # Templates
 
-Templates are git repositories whose files contain placeholders. The current
-supported placeholders are:
+## Placeholders
 
-* `{{authors}}`
+Templates are git repositories whose files can contain placeholders. A placeholder can be seen as
+a variable that is substituted by another value upon expansion of the template.
 
-  this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration. It will either be on the form `username <email>` or just plain `username`.
-* `{{project-name}}`
-
-  this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply a name.
-* `{{crate_name}}`
-
-  the snake_case_version of `project-name`
-* `{{crate_type}}`
-
-  this is supplied by either passing the `--bin` or `--lib` flag to the command line, contains either `bin` or `lib`, `--bin` is the default
-* `{{os-arch}}`
-
-  contains the current operating system and architecture ex: `linux-x86_64`
-* `{{username}}`
-
-  this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.
+`cargo-generate` supports both builtin variables/placeholders and custom defined ones. 
 
 Additionally, **all filters and tags** of the liquid template language are supported.
 For more information, check out the [Liquid Documentation on `Tags` and `Filters`][liquid].

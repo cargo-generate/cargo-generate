@@ -27,6 +27,7 @@ fn engine() -> liquid::Parser {
 }
 
 pub fn create_liquid_object(
+    project_dir: &Path,
     name: &ProjectName,
     crate_type: &CrateType,
     force: bool,
@@ -46,7 +47,18 @@ pub fn create_liquid_object(
     liquid_object.insert("username".into(), Value::Scalar(authors.username.into()));
     liquid_object.insert("os-arch".into(), Value::Scalar(os_arch.into()));
 
+    liquid_object.insert(
+        "within_cargo_project".into(),
+        Value::Scalar(is_within_cargo_project(project_dir).into()),
+    );
+
     Ok(liquid_object)
+}
+
+fn is_within_cargo_project(project_dir: &Path) -> bool {
+    Path::new(project_dir)
+        .ancestors()
+        .any(|folder| folder.join("Cargo.toml").exists())
 }
 
 pub fn walk_dir(
