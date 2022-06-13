@@ -3,7 +3,7 @@
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.14.0...HEAD)
 
 ### ✨ Features
-- Add placeholder `{{within_cargo_project}}`. Enables templates to adust if they are expanded inside a `cargo` project.
+- [Add placeholder `{{within_cargo_project}}`. Enables templates to adust if they are expanded inside a `cargo` project](https://github.com/cargo-generate/cargo-generate/pull/628)
 
 # [0.14.0] 2022-05-31
 [0.14.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.13.1...v0.14.0
