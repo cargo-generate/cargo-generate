@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="usage.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li class="chapter-item expanded "><a href="favorites.html"><strong aria-hidden="true">4.</strong> Favorites</a></li><li class="chapter-item expanded "><a href="templates/index.html"><strong aria-hidden="true">5.</strong> Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="templates/placeholders.html"><strong aria-hidden="true">5.1.</strong> Placeholders</a></li><li class="chapter-item expanded "><a href="templates/ignoring.html"><strong aria-hidden="true">5.2.</strong> Ignoring Files</a></li><li class="chapter-item expanded "><a href="templates/include_exclude.html"><strong aria-hidden="true">5.3.</strong> Include/Exclude</a></li><li class="chapter-item expanded "><a href="templates/require_version.html"><strong aria-hidden="true">5.4.</strong> Require Version</a></li><li class="chapter-item expanded "><a href="templates/conditional.html"><strong aria-hidden="true">5.5.</strong> Conditionals</a></li><li class="chapter-item expanded "><a href="templates/scripting.html"><strong aria-hidden="true">5.6.</strong> Pre/Post Scripts</a></li><li class="chapter-item expanded "><a href="templates/authoring.html"><strong aria-hidden="true">5.7.</strong> Authoring</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="license.html"><strong aria-hidden="true">7.</strong> License</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="usage.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li class="chapter-item expanded "><a href="favorites.html"><strong aria-hidden="true">4.</strong> Favorites</a></li><li class="chapter-item expanded "><a href="templates/index.html"><strong aria-hidden="true">5.</strong> Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="templates/builtin_placeholders.html"><strong aria-hidden="true">5.1.</strong> Builtin Placeholders</a></li><li class="chapter-item expanded "><a href="templates/custom_placeholders.html"><strong aria-hidden="true">5.2.</strong> Custom Placeholders</a></li><li class="chapter-item expanded "><a href="templates/ignoring.html"><strong aria-hidden="true">5.3.</strong> Ignoring Files</a></li><li class="chapter-item expanded "><a href="templates/include_exclude.html"><strong aria-hidden="true">5.4.</strong> Include/Exclude</a></li><li class="chapter-item expanded "><a href="templates/require_version.html"><strong aria-hidden="true">5.5.</strong> Require Version</a></li><li class="chapter-item expanded "><a href="templates/conditional.html"><strong aria-hidden="true">5.6.</strong> Conditionals</a></li><li class="chapter-item expanded "><a href="templates/scripting.html"><strong aria-hidden="true">5.7.</strong> Pre/Post Scripts</a></li><li class="chapter-item expanded "><a href="templates/authoring.html"><strong aria-hidden="true">5.8.</strong> Authoring</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="license.html"><strong aria-hidden="true">7.</strong> License</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -285,34 +285,10 @@ subfolder = &quot;&lt;optional-subfolder&gt;&quot;
 <p>⚠️ NOTE: when <code>&lt;favorite&gt;</code> is not defined in the config file, it is interpreted as a git repo like as if <code>--git &lt;favorite&gt;</code></p>
 </blockquote>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="templates"><a class="header" href="#templates">Templates</a></h1>
-<p>Templates are git repositories whose files contain placeholders. The current
-supported placeholders are:</p>
-<ul>
-<li>
-<p><code>{{authors}}</code></p>
-<p>this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration. It will either be on the form <code>username &lt;email&gt;</code> or just plain <code>username</code>.</p>
-</li>
-<li>
-<p><code>{{project-name}}</code></p>
-<p>this is supplied by either passing the <code>--name</code> flag to the command or working with the interactive CLI to supply a name.</p>
-</li>
-<li>
-<p><code>{{crate_name}}</code></p>
-<p>the snake_case_version of <code>project-name</code></p>
-</li>
-<li>
-<p><code>{{crate_type}}</code></p>
-<p>this is supplied by either passing the <code>--bin</code> or <code>--lib</code> flag to the command line, contains either <code>bin</code> or <code>lib</code>, <code>--bin</code> is the default</p>
-</li>
-<li>
-<p><code>{{os-arch}}</code></p>
-<p>contains the current operating system and architecture ex: <code>linux-x86_64</code></p>
-</li>
-<li>
-<p><code>{{username}}</code></p>
-<p>this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.</p>
-</li>
-</ul>
+<h2 id="placeholders"><a class="header" href="#placeholders">Placeholders</a></h2>
+<p>Templates are git repositories whose files can contain placeholders. A placeholder can be seen as
+a variable that is substituted by another value upon expansion of the template.</p>
+<p><code>cargo-generate</code> supports both builtin variables/placeholders and custom defined ones. </p>
 <p>Additionally, <strong>all filters and tags</strong> of the liquid template language are supported.
 For more information, check out the <a href="https://shopify.github.io/liquid">Liquid Documentation on <code>Tags</code> and <code>Filters</code></a>.</p>
 <p>You can use those placeholders in the file and directory names of the generated project.
@@ -353,6 +329,42 @@ name = &quot;{{crate_name}}-cli&quot;
 </code></pre>
 <p>Now a user of this template could decide weather they want the binary version by passing <code>--bin</code>
 or use only the library version by passing <code>--lib</code> as a command line argument.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="builtin-placeholders"><a class="header" href="#builtin-placeholders">Builtin placeholders</a></h1>
+<p><code>cargo-generate</code> supports a number of builtin placeholders for use in templates.</p>
+<p>These placeholders can be used directly in files using the <a href="https://shopify.github.io/liquid">Liquid language</a>, or from
+<a href="https://rhai.rs/book/">Rhai scripts</a> using the syntax: <code>variable::get(&quot;placeholder name&quot;)</code>.</p>
+<p>The current supported builtin placeholders are:</p>
+<ul>
+<li>
+<p><code>{{authors}}</code></p>
+<p>this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration. It will either be on the form <code>username &lt;email&gt;</code> or just plain <code>username</code>.</p>
+</li>
+<li>
+<p><code>{{project-name}}</code></p>
+<p>this is supplied by either passing the <code>--name</code> flag to the command or working with the interactive CLI to supply a name.</p>
+</li>
+<li>
+<p><code>{{crate_name}}</code></p>
+<p>the snake_case_version of <code>project-name</code></p>
+</li>
+<li>
+<p><code>{{crate_type}}</code></p>
+<p>this is supplied by either passing the <code>--bin</code> or <code>--lib</code> flag to the command line, contains either <code>bin</code> or <code>lib</code>, <code>--bin</code> is the default</p>
+</li>
+<li>
+<p><code>{{os-arch}}</code></p>
+<p>contains the current operating system and architecture ex: <code>linux-x86_64</code></p>
+</li>
+<li>
+<p><code>{{username}}</code></p>
+<p>this will be filled in by a function borrowed from Cargo's source code, that determines your information from Cargo's configuration.</p>
+</li>
+<li>
+<p><code>{{within_cargo_project}}</code></p>
+<p>A boolean with the value <code>true</code> if the template is being expanded inside a <code>Cargo</code> project. It's 
+a simple matter of whether <code>Cargo.toml</code> is present in any parent folder.</p>
+</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="template-defined-placeholders"><a class="header" href="#template-defined-placeholders">Template defined placeholders</a></h1>
 <p>Sometimes templates need to make decisions. For example one might want to conditionally include some code or not.
 Another use case might be that the user of a template should be able to choose out of provided options in an interactive way.
