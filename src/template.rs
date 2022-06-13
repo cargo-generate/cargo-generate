@@ -4,7 +4,7 @@ use indicatif::{MultiProgress, ProgressBar};
 use liquid::Parser;
 use liquid_core::{Object, Value};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
 
 use crate::config::TemplateConfig;
@@ -56,8 +56,9 @@ pub fn create_liquid_object(
 }
 
 fn is_within_cargo_project(project_dir: &Path) -> bool {
-    let cwd = PathBuf::from(project_dir);
-    cwd.ancestors().any(|folder| folder.join("Cargo.toml").exists())
+    Path::new(project_dir)
+        .ancestors()
+        .any(|folder| folder.join("Cargo.toml").exists())
 }
 
 pub fn walk_dir(
