@@ -31,6 +31,8 @@ If applicable, add screenshots to help explain your problem.
  - Version: [e.g. 22]
  - Build tools: [e.g. msvc | gnu | gcc]
  - Shell: [e.g. powerShell | zsh | bash]
+ - `rustc --version`: x
+ - `cargo generate --version`: x
 
 **Additional context**
 Add any other context about the problem here.
