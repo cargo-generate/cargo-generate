@@ -54,7 +54,7 @@ jobs:
         with:
           command: run
           use-cross: ${{ matrix.cross }}
-          args: --features vendored-openssl --release --target=${{ matrix.target }} -- -V
+          args: --features vendored-openssl --release --target=${{ matrix.target }} -- --version
       - name: Create Archive
         id: archive
         shell: bash
