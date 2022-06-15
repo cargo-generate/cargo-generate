@@ -10,6 +10,7 @@ use crate::git;
 
 #[derive(Parser)]
 #[clap(name = "cargo")]
+#[clap(version)]
 #[clap(bin_name = "cargo")]
 pub enum Cli {
     #[clap(name = "generate", visible_alias = "gen")]
