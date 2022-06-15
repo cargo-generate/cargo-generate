@@ -1,5 +1,5 @@
 use crate::helpers::project_builder::tmp_dir;
-use cargo_generate::{generate, GenerateArgs, Vcs};
+use cargo_generate::{generate, GenerateArgs, Vcs, TemplatePath};
 
 #[test]
 fn it_allows_generate_call_with_public_args() {
@@ -18,10 +18,14 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     let args_exposed: GenerateArgs = GenerateArgs {
-        git: Some(format!("{}", template.path().display())),
-        path: None,
-        branch: Some(String::from("main")),
-        subfolder: None,
+        template_path: TemplatePath {
+            auto_path: None,
+            git: Some(format!("{}", template.path().display())),
+            branch: Some(String::from("main")),
+            path: None,
+            favorite: None,
+            subfolder: None,
+        },
         name: Some(String::from("foobar_project")),
         force: true,
         vcs: Vcs::Git,
@@ -30,7 +34,6 @@ version = "0.1.0"
         silent: false,
         list_favorites: false,
         config: None,
-        favorite: None,
         bin: true,
         lib: false,
         ssh_identity: None,

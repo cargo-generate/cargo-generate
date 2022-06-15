@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Result};
-use clap::{ArgGroup, Args, Parser};
+use clap::{Args, Parser};
 
 use crate::git;
 
@@ -17,65 +17,29 @@ pub enum Cli {
 }
 
 #[derive(Clone, Debug, Args)]
-#[clap(group(
-    ArgGroup::new("template")
-        .required(true)
-        .args(&["favorite", "git", "path", "list-favorites"]),
-))]
 pub struct GenerateArgs {
+    #[clap(flatten)]
+    pub template_path: TemplatePath,
+
     /// List defined favorite templates from the config
     #[clap(
         long,
         action,
-        conflicts_with = "git",
-        conflicts_with = "subfolder",
-        conflicts_with = "path",
-        conflicts_with = "branch",
-        conflicts_with = "name",
-        conflicts_with = "force",
-        conflicts_with = "template-values-file",
-        conflicts_with = "silent",
-        conflicts_with = "vcs",
-        conflicts_with = "lib",
-        conflicts_with = "bin",
-        conflicts_with = "ssh-identity",
-        conflicts_with = "define",
-        conflicts_with = "init"
+        conflicts_with_all(&[
+            "git", "path", "subfolder", "branch",
+            "name",
+            "force",
+            "silent",
+            "vcs",
+            "lib",
+            "bin",
+            "define",
+            "init",
+            "template-values-file",
+            "ssh-identity"
+        ])
     )]
     pub list_favorites: bool,
-
-    /// Generate a favorite template as defined in the config. In case the favorite is undefined,
-    /// use in place of the `--git` option, otherwise specifies the subfolder
-    #[clap(name = "favorite", value_parser)]
-    pub favorite: Option<String>,
-
-    /// Specifies a subfolder within the template repository to be used as the actual template.
-    #[clap(name = "subfolder", value_parser)]
-    pub subfolder: Option<String>,
-
-    /// Git repository to clone template from. Can be a URL (like
-    /// `https://github.com/rust-cli/cli-template`), a path (relative or absolute), or an
-    /// `owner/repo` abbreviated GitHub URL (like `rust-cli/cli-template`).
-    ///
-    /// Note that cargo generate will first attempt to interpret the `owner/repo` form as a
-    /// relative path and only try a GitHub URL if the local path doesn't exist.
-    #[clap(name = "git", short, long, value_parser, conflicts_with = "subfolder")]
-    pub git: Option<String>,
-
-    /// Local path to copy the template from. Can not be specified together with --git.
-    #[clap(
-        short,
-        long,
-        value_parser,
-        conflicts_with = "git",
-        conflicts_with = "favorite",
-        conflicts_with = "subfolder"
-    )]
-    pub path: Option<PathBuf>,
-
-    /// Branch to use when installing from git
-    #[clap(short, long, value_parser)]
-    pub branch: Option<String>,
 
     /// Directory to create / project name; if the name isn't in kebab-case, it will be converted
     /// to kebab-case unless `--force` is given.
@@ -143,6 +107,83 @@ pub struct GenerateArgs {
     /// Use at your own risk and be sure to review the template code beforehand.
     #[clap(short, long, action)]
     pub allow_commands: bool,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct TemplatePath {
+    /// Auto attempt to use as either `--git` or `--favorite`.
+    /// If either is specified explicitly, use as subfolder.
+    #[clap(required_unless_present_any(&["SpecificPath"]))]
+    pub auto_path: Option<String>,
+
+    /// Specifies a subfolder within the template repository to be used as the actual template.
+    #[clap()]
+    pub subfolder: Option<String>,
+
+    /// Git repository to clone template from. Can be a URL (like
+    /// `https://github.com/rust-cli/cli-template`), a path (relative or absolute), or an
+    /// `owner/repo` abbreviated GitHub URL (like `rust-cli/cli-template`).
+    ///
+    /// Note that cargo generate will first attempt to interpret the `owner/repo` form as a
+    /// relative path and only try a GitHub URL if the local path doesn't exist.
+    #[clap(short, long, group("SpecificPath"))]
+    pub git: Option<String>,
+
+    /// Branch to use when installing from git
+    #[clap(short, long)]
+    pub branch: Option<String>,
+
+    /// Local path to copy the template from. Can not be specified together with --git.
+    #[clap(short, long, group("SpecificPath"))]
+    pub path: Option<String>,
+
+    /// Generate a favorite template as defined in the config. In case the favorite is undefined,
+    /// use in place of the `--git` option, otherwise specifies the subfolder
+    #[clap(long, group("SpecificPath"))]
+    pub favorite: Option<String>,
+}
+
+impl TemplatePath {
+    /// # Panics
+    /// Will panic if no path to a template has been set at all,
+    /// which is never if Clap is initialized properly.
+    pub fn any_path(&self) -> String {
+        self.git
+            .as_ref()
+            .or(self.path.as_ref())
+            .or(self.favorite.as_ref())
+            .or(self.auto_path.as_ref())
+            .cloned()
+            .unwrap()
+    }
+
+    pub fn git(&self) -> Option<String> {
+        self.git.clone()
+    }
+
+    pub fn branch(&self) -> Option<String> {
+        self.branch.clone()
+    }
+
+    pub fn path(&self) -> Option<String> {
+        self.path.clone()
+    }
+
+    pub fn favorite(&self) -> Option<String> {
+        self.favorite.clone()
+    }
+
+    pub fn auto_path(&self) -> Option<String> {
+        self.auto_path.clone()
+    }
+
+    pub fn subfolder(&self) -> Option<String> {
+        if self.git.is_some() || self.path.is_some() || self.favorite.is_some() {
+            self.auto_path.clone()
+        } else {
+            self.subfolder.clone()
+        }
+    }
 }
 
 #[derive(Debug, Parser, Clone, Copy)]
