@@ -3,7 +3,7 @@ mod crate_type;
 mod os_arch;
 mod project_name;
 
-use crate::{emoji, Args};
+use crate::{emoji, GenerateArgs};
 
 use anyhow::Result;
 use console::style;
@@ -33,7 +33,7 @@ fn load_env_template_values() -> Result<HashMap<String, toml::Value>> {
     Ok(values)
 }
 
-fn load_args_template_values(args: &Args) -> Result<HashMap<String, toml::Value>> {
+fn load_args_template_values(args: &GenerateArgs) -> Result<HashMap<String, toml::Value>> {
     let mut values = args
         .template_values_file
         .as_ref()
@@ -46,7 +46,9 @@ fn load_args_template_values(args: &Args) -> Result<HashMap<String, toml::Value>
     Ok(values)
 }
 
-pub fn load_env_and_args_template_values(args: &Args) -> Result<HashMap<String, toml::Value>> {
+pub fn load_env_and_args_template_values(
+    args: &GenerateArgs,
+) -> Result<HashMap<String, toml::Value>> {
     let mut template_variables = load_env_template_values()?;
     template_variables.extend(load_args_template_values(args)?);
     Ok(template_variables)

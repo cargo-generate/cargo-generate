@@ -4,19 +4,25 @@ use std::{
 };
 
 use anyhow::{anyhow, Result};
-use clap::Parser;
+use clap::{ArgGroup, Args, Parser};
 
 use crate::git;
 
 #[derive(Parser)]
+#[clap(name = "cargo")]
 #[clap(bin_name = "cargo")]
 pub enum Cli {
     #[clap(name = "generate", visible_alias = "gen")]
-    Generate(Args),
+    Generate(GenerateArgs),
 }
 
-#[derive(Clone, Debug, Parser)]
-pub struct Args {
+#[derive(Clone, Debug, Args)]
+#[clap(group(
+    ArgGroup::new("template")
+        .required(true)
+        .args(&["favorite", "git", "path", "list-favorites"]),
+))]
+pub struct GenerateArgs {
     /// List defined favorite templates from the config
     #[clap(
         long,

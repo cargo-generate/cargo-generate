@@ -74,7 +74,7 @@ use crate::{
 };
 
 /// # Panics
-pub fn generate(mut args: Args) -> Result<()> {
+pub fn generate(mut args: GenerateArgs) -> Result<()> {
     let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
 
     if args.list_favorites {
@@ -190,7 +190,7 @@ fn get_source_template_into_temp(
     Ok((temp_dir, branch))
 }
 
-fn resolve_project_name(args: &Args) -> Result<ProjectName> {
+fn resolve_project_name(args: &GenerateArgs) -> Result<ProjectName> {
     match args.name {
         Some(ref n) => Ok(ProjectName::new(n)),
         None if !args.silent => Ok(ProjectName::new(interactive::name()?)),
@@ -369,7 +369,11 @@ fn locate_template_file(
 ///
 /// if `args.init == true` it returns the path of `$CWD` and if let some `args.destination`,
 /// it returns the given path.
-fn resolve_project_dir(base_dir: &Path, name: &ProjectName, args: &Args) -> Result<PathBuf> {
+fn resolve_project_dir(
+    base_dir: &Path,
+    name: &ProjectName,
+    args: &GenerateArgs,
+) -> Result<PathBuf> {
     if args.init {
         return Ok(base_dir.into());
     }
@@ -406,7 +410,7 @@ fn expand_template(
     dir: &Path,
     template_values: &HashMap<String, toml::Value>,
     mut template_config: Config,
-    args: &Args,
+    args: &GenerateArgs,
 ) -> Result<()> {
     let crate_type: CrateType = args.into();
     let liquid_object = template::create_liquid_object(project_dir, name, &crate_type, args.force)?;
@@ -491,7 +495,7 @@ pub(crate) fn add_missing_provided_values(
 fn merge_conditionals(
     template_config: &Config,
     liquid_object: liquid::Object,
-    args: &Args,
+    args: &GenerateArgs,
 ) -> Result<(config::TemplateConfig, liquid::Object), anyhow::Error> {
     let mut template_config = (*template_config).clone();
     let mut template_cfg = template_config.template.unwrap_or_default();

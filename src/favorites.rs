@@ -2,12 +2,12 @@
 
 use crate::{
     app_config::{AppConfig, FavoriteConfig},
-    emoji, Args,
+    emoji, GenerateArgs,
 };
 use anyhow::Result;
 use console::style;
 
-pub fn list_favorites(app_config: &AppConfig, args: &Args) -> Result<()> {
+pub fn list_favorites(app_config: &AppConfig, args: &GenerateArgs) -> Result<()> {
     let data = {
         let mut d = app_config
             .favorites

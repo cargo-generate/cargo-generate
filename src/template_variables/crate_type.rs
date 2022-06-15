@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::Args;
+use crate::GenerateArgs;
 
 #[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum CrateType {
@@ -17,8 +17,8 @@ impl fmt::Display for CrateType {
     }
 }
 
-impl From<&Args> for CrateType {
-    fn from(a: &Args) -> Self {
+impl From<&GenerateArgs> for CrateType {
+    fn from(a: &GenerateArgs) -> Self {
         if a.lib {
             Self::Lib
         } else {

@@ -8,7 +8,7 @@ use std::{
 use console::style;
 use regex::Regex;
 
-use crate::{app_config::AppConfig, warn, Args};
+use crate::{app_config::AppConfig, warn, GenerateArgs};
 
 // Contains parsed information from user.
 pub struct UserParsedInput {
@@ -45,7 +45,7 @@ impl UserParsedInput {
     /// # Panics
     /// This function assume that Args and AppConfig are verfied eariler and are logicly correct
     /// For example if both `--git` and `--path` are set this function will panic
-    pub fn try_from_args_and_config(app_config: &AppConfig, args: &Args) -> Self {
+    pub fn try_from_args_and_config(app_config: &AppConfig, args: &GenerateArgs) -> Self {
         // --git and --path can not be set at the same time
         assert!(args.git.is_none() || args.path.is_none());
         let mut default_values = app_config.values.clone().unwrap_or_default();
@@ -218,7 +218,7 @@ impl GitUserInput {
     }
 
     // when git was used as abbreviation but other flags still could be passed
-    fn with_git_url_and_args(url: &str, args: &Args) -> Self {
+    fn with_git_url_and_args(url: &str, args: &GenerateArgs) -> Self {
         Self::new(
             url,
             args.branch.clone(),
