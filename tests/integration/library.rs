@@ -1,5 +1,5 @@
 use crate::helpers::project_builder::tmp_dir;
-use cargo_generate::{generate, GenerateArgs, Vcs, TemplatePath};
+use cargo_generate::{generate, GenerateArgs, TemplatePath, Vcs};
 
 #[test]
 fn it_allows_generate_call_with_public_args() {

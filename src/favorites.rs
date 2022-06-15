@@ -14,7 +14,11 @@ pub fn list_favorites(app_config: &AppConfig, args: &GenerateArgs) -> Result<()>
             .as_ref()
             .map(|h| {
                 h.iter()
-                    .filter(|(key, _)| args.template_path.auto_path().map_or(true, |f| key.starts_with(&f)))
+                    .filter(|(key, _)| {
+                        args.template_path
+                            .auto_path()
+                            .map_or(true, |f| key.starts_with(&f))
+                    })
                     .collect::<Vec<(&String, &FavoriteConfig)>>()
             })
             .unwrap_or_default();

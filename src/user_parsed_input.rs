@@ -78,7 +78,10 @@ impl UserParsedInput {
             let temp_location = fav_cfg.git.as_ref().map_or_else(
                 || fav_cfg.path.as_ref().map(TemplateLocation::from).unwrap(),
                 |git_url| {
-                    let branch = args.template_path.branch().or_else(|| fav_cfg.branch.clone());
+                    let branch = args
+                        .template_path
+                        .branch()
+                        .or_else(|| fav_cfg.branch.clone());
                     let git_user_input =
                         GitUserInput::new(git_url, branch, ssh_identity, args.force_git_init);
 
@@ -92,7 +95,9 @@ impl UserParsedInput {
 
             return Self::new(
                 temp_location,
-                args.template_path.subfolder().or_else(|| fav_cfg.subfolder.clone()),
+                args.template_path
+                    .subfolder()
+                    .or_else(|| fav_cfg.subfolder.clone()),
                 default_values,
             );
         }
@@ -144,7 +149,11 @@ impl UserParsedInput {
             location_msg
         );
 
-        Self::new(temp_location, args.template_path.subfolder(), default_values)
+        Self::new(
+            temp_location,
+            args.template_path.subfolder(),
+            default_values,
+        )
     }
 
     pub const fn location(&self) -> &TemplateLocation {
