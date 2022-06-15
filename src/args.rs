@@ -149,41 +149,40 @@ impl TemplatePath {
     /// # Panics
     /// Will panic if no path to a template has been set at all,
     /// which is never if Clap is initialized properly.
-    pub fn any_path(&self) -> String {
+    pub fn any_path(&self) -> &String {
         self.git
             .as_ref()
             .or(self.path.as_ref())
             .or(self.favorite.as_ref())
             .or(self.auto_path.as_ref())
-            .cloned()
             .unwrap()
     }
 
-    pub fn git(&self) -> Option<String> {
-        self.git.clone()
+    pub const fn git(&self) -> Option<&String> {
+        self.git.as_ref()
     }
 
-    pub fn branch(&self) -> Option<String> {
-        self.branch.clone()
+    pub const fn branch(&self) -> Option<&String> {
+        self.branch.as_ref()
     }
 
-    pub fn path(&self) -> Option<String> {
-        self.path.clone()
+    pub const fn path(&self) -> Option<&String> {
+        self.path.as_ref()
     }
 
-    pub fn favorite(&self) -> Option<String> {
-        self.favorite.clone()
+    pub const fn favorite(&self) -> Option<&String> {
+        self.favorite.as_ref()
     }
 
-    pub fn auto_path(&self) -> Option<String> {
-        self.auto_path.clone()
+    pub const fn auto_path(&self) -> Option<&String> {
+        self.auto_path.as_ref()
     }
 
-    pub fn subfolder(&self) -> Option<String> {
+    pub const fn subfolder(&self) -> Option<&String> {
         if self.git.is_some() || self.path.is_some() || self.favorite.is_some() {
-            self.auto_path.clone()
+            self.auto_path.as_ref()
         } else {
-            self.subfolder.clone()
+            self.subfolder.as_ref()
         }
     }
 }

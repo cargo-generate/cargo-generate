@@ -17,7 +17,7 @@ pub fn list_favorites(app_config: &AppConfig, args: &GenerateArgs) -> Result<()>
                     .filter(|(key, _)| {
                         args.template_path
                             .auto_path()
-                            .map_or(true, |f| key.starts_with(&f))
+                            .map_or(true, |f| key.starts_with(f))
                     })
                     .collect::<Vec<(&String, &FavoriteConfig)>>()
             })
