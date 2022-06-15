@@ -9,7 +9,7 @@ use clap::{ArgGroup, Args, Parser};
 use crate::git;
 
 #[derive(Parser)]
-#[clap(name = "cargo")]
+#[clap(name = "cargo generate", arg_required_else_help(true))]
 #[clap(version)]
 #[clap(bin_name = "cargo")]
 pub enum Cli {
