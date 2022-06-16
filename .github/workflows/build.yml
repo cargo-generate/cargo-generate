@@ -94,7 +94,6 @@ jobs:
         run: |
           cargo run -- --version
           cargo run -- --help
-          cargo run || 1 
 
   audit:
     name: security audit
