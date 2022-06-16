@@ -52,9 +52,9 @@ mod tests {
     #[test]
     fn should_pretty_path() {
         let p = pretty_path(home().unwrap().as_path().join(".cargo").as_path()).unwrap();
-        #[cfg(unix)]
+        #[cfg(not(windows))]
         assert_eq!(p, "$HOME/.cargo");
         #[cfg(windows)]
-        assert_eq!(p, "%userprofile%\\.cargo");
+        assert_eq!(p, "$home\\.cargo");
     }
 }
