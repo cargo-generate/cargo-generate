@@ -87,12 +87,14 @@ cargo generate rustwasm/wasm-pack-template --name mywasm
 
 ### authentication using `ssh-agent`
 
+New in version [0.15.1] is the `ssh-agent` usage for password protected keys. It's also the default mechanism on Windows.
+
 #### On Windows
 
-`ssh-agent` is the default and also the only possibility.
+`ssh-agent` is the default and also **the only** possibility to get git+ssh working.
 Please follow [this guide](https://github.com/cargo-generate/cargo-generate/discussions/653) to get `ssh-agent` configured on windows.
 
-#### On *Nix | MacOS
+#### On *Nix and macOS
 
 If you omit the identity file (read the next paragraph) **OR** a provided identity file does not exist, then the default is to use `ssh-agent`.
 
@@ -124,6 +126,7 @@ will be used for cloning a http(s) template repository.
 
 [0.7.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0
 [0.9.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0
+[0.15.1]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.15.1
 [VSCode]: https://code.visualstudio.com
 [`Rhai`]: https://rhai.rs/book/
 [Rhai language extension]: https://marketplace.visualstudio.com/items?itemName=rhaiscript.vscode-rhai
