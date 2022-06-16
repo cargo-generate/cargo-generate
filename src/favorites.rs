@@ -2,19 +2,23 @@
 
 use crate::{
     app_config::{AppConfig, FavoriteConfig},
-    emoji, Args,
+    emoji, GenerateArgs,
 };
 use anyhow::Result;
 use console::style;
 
-pub fn list_favorites(app_config: &AppConfig, args: &Args) -> Result<()> {
+pub fn list_favorites(app_config: &AppConfig, args: &GenerateArgs) -> Result<()> {
     let data = {
         let mut d = app_config
             .favorites
             .as_ref()
             .map(|h| {
                 h.iter()
-                    .filter(|(key, _)| args.favorite.as_ref().map_or(true, |f| key.starts_with(f)))
+                    .filter(|(key, _)| {
+                        args.template_path
+                            .auto_path()
+                            .map_or(true, |f| key.starts_with(f.as_ref()))
+                    })
                     .collect::<Vec<(&String, &FavoriteConfig)>>()
             })
             .unwrap_or_default();
