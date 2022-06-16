@@ -10,8 +10,6 @@ use crate::git;
 
 #[derive(Parser)]
 #[clap(name = "cargo generate", arg_required_else_help(true))]
-#[clap(version)]
-#[clap(about)]
 #[clap(bin_name = "cargo")]
 pub enum Cli {
     #[clap(name = "generate", visible_alias = "gen")]
@@ -19,6 +17,9 @@ pub enum Cli {
 }
 
 #[derive(Clone, Debug, Args)]
+#[clap(arg_required_else_help(true))]
+#[clap(version)]
+#[clap(about)]
 pub struct GenerateArgs {
     #[clap(flatten)]
     pub template_path: TemplatePath,
