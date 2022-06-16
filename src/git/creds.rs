@@ -7,6 +7,7 @@ use git2::{Cred, RemoteCallbacks};
 use std::path::PathBuf;
 
 // Ok(None) is returned when identity was None and .ssh/id_rsa was not present
+#[allow(dead_code)]
 pub fn git_ssh_credentials_callback<'a>(
     identity: Option<PathBuf>,
 ) -> Result<Option<RemoteCallbacks<'a>>> {
