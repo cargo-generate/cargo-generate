@@ -39,9 +39,12 @@ fn it_uses_ssh_identity_from_defaults_config() {
         .success()
         .stdout(
             predicates::str::contains("Done!").from_utf8().and(
+                #[cfg(not(windows))]
                 predicates::str::contains("Using private key: ")
                     .from_utf8()
                     .and(predicates::str::contains("fake_ssh_identity").from_utf8()),
+                    #[cfg(windows)]
+                    predicates::str::contains("HEADS UP! The `--identity` argument is not supported on windows, trying to use ssh-agent instead.").from_utf8()
             ),
         );
 

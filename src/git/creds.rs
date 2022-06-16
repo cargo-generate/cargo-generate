@@ -18,16 +18,16 @@ pub fn git_ssh_credentials_callback<'a>(
     }
 
     let private_key = IdentityPath::try_from(private_key.unwrap())?;
+    info!(
+        "{} `{}` {}",
+        style("Using private key:").bold(),
+        style(format!("{}", &private_key)).bold().yellow(),
+        style("for git-ssh checkout").bold()
+    );
 
     let mut cb = RemoteCallbacks::new();
     cb.credentials(
         move |_url, username_from_url: Option<&str>, _allowed_types| {
-            info!(
-                "{} `{}` {}",
-                style("Using private key:").bold(),
-                style(format!("{}", &private_key)).bold().yellow(),
-                style("for git-ssh checkout").bold()
-            );
             let username = username_from_url.unwrap_or("git");
             Cred::ssh_key(username, None, private_key.as_ref(), None)
         },
