@@ -231,7 +231,7 @@ cargo generate --path $HOME/mytemplate # Use it locally
 <blockquote>
 <p>⚠️ NOTE: <code>cargo-generate</code> will not allow to use the association <code>--path</code> and <code>--git</code> flags.</p>
 </blockquote>
-<h2 id="git-over-ssh"><a class="header" href="#git-over-ssh">git over ssh</a></h2>
+<h3 id="git-over-ssh"><a class="header" href="#git-over-ssh">git over ssh</a></h3>
 <p>New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0">0.7.0</a> is the support for both public and private and ssh git remote urls.
 For example:</p>
 <pre><code class="language-sh">cargo generate --git git@github.com:rustwasm/wasm-pack-template.git --name mywasm
@@ -240,11 +240,20 @@ For example:</p>
 <pre><code class="language-sh">cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name mywasm
 </code></pre>
 <p>as well as:</p>
-<pre><code class="language-sh">cargo generate  rustwasm/wasm-pack-template --name mywasm
+<pre><code class="language-sh">cargo generate rustwasm/wasm-pack-template --name mywasm
 </code></pre>
-<h2 id="ssh-identity-file-private-key"><a class="header" href="#ssh-identity-file-private-key">ssh identity file (private key)</a></h2>
-<p>the default ssh identity is that is used is the good old RSA one. <code>~/.ssh/id_rsa</code>.</p>
+<h3 id="authentication-using-ssh-agent"><a class="header" href="#authentication-using-ssh-agent">authentication using <code>ssh-agent</code></a></h3>
+<p>New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.15.1">0.15.1</a> is the <code>ssh-agent</code> usage for password protected keys. It's also the default mechanism on Windows.</p>
+<h4 id="on-windows"><a class="header" href="#on-windows">On Windows</a></h4>
+<p><code>ssh-agent</code> is the default and also <strong>the only</strong> possibility to get git+ssh working.
+Please follow <a href="https://github.com/cargo-generate/cargo-generate/discussions/653">this guide</a> to get <code>ssh-agent</code> configured on windows.</p>
+<h4 id="on-nix-and-macos"><a class="header" href="#on-nix-and-macos">On *Nix and macOS</a></h4>
+<p>If you omit the identity file (read the next paragraph) <strong>OR</strong> a provided identity file does not exist, then the default is to use <code>ssh-agent</code>.</p>
+<h3 id="ssh-identity-file-private-key"><a class="header" href="#ssh-identity-file-private-key">ssh identity file (private key)</a></h3>
 <p>However, if you use a different file, you can pass a custom ssh identity with via <code>-i | --identity</code> like <code>-i ~/.ssh/id_rsa_other</code> as argument.</p>
+<blockquote>
+<p>⚠️ NOTE: password protected private keys are <strong>NOT</strong> supported, you have to use <code>ssh-agent</code> and omit the <code>-i</code> argument (see above). </p>
+</blockquote>
 <p>If you permanently want to use a custom identity file, you can configure it in the cargo-generate config file like this:</p>
 <pre><code class="language-toml"># an extract of ~/.cargo/cargo-generate.toml
 [defaults]
