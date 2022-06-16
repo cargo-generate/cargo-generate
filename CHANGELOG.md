@@ -1,6 +1,18 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.15.0...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.15.1...HEAD)
+
+## [0.15.1] 2022-06-16
+[0.15.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.15.0...v0.15.1
+
+### 🤕 Fixes
+- [Add `ssh-agent` support and fix windows git+ssh issues](https://github.com/cargo-generate/cargo-generate/pull/655)
+- [`cargo-generate` without options panics and fix `--help`](https://github.com/cargo-generate/cargo-generate/pull/651)
+
+### Contributors
+- [sassman](https://github.com/sassman)
+- [taurr](https://github.com/taurr)
+
 
 ## [0.15.0] 2022-06-15
 [0.15.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.14.0...v0.15.0
