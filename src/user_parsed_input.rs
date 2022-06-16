@@ -28,14 +28,14 @@ pub struct UserParsedInput {
 }
 
 impl UserParsedInput {
-    fn new(
+    fn new<T: AsRef<str>>(
         template_location: impl Into<TemplateLocation>,
-        subfolder: Option<String>,
+        subfolder: Option<T>,
         default_values: HashMap<String, toml::Value>,
     ) -> Self {
         Self {
             template_location: template_location.into(),
-            subfolder,
+            subfolder: subfolder.map(|s| s.as_ref().to_owned()),
             template_values: default_values,
         }
     }
@@ -57,22 +57,18 @@ impl UserParsedInput {
         if let Some(git_url) = args.template_path.git() {
             let git_user_in = GitUserInput::new(
                 git_url,
-                args.template_path.branch().cloned(),
+                args.template_path.branch(),
                 ssh_identity,
                 args.force_git_init,
             );
-            return Self::new(
-                git_user_in,
-                args.template_path.subfolder().cloned(),
-                default_values,
-            );
+            return Self::new(git_user_in, args.template_path.subfolder(), default_values);
         }
 
         // --path
-        if let Some(path) = &args.template_path.path() {
+        if let Some(path) = args.template_path.path() {
             return Self::new(
-                path,
-                args.template_path.subfolder().cloned(),
+                path.as_ref(),
+                args.template_path.subfolder(),
                 default_values,
             );
         }
@@ -89,10 +85,14 @@ impl UserParsedInput {
                     let branch = args
                         .template_path
                         .branch()
-                        .cloned()
+                        .map(|s| s.as_ref().to_owned())
                         .or_else(|| fav_cfg.branch.clone());
-                    let git_user_input =
-                        GitUserInput::new(git_url, branch, ssh_identity, args.force_git_init);
+                    let git_user_input = GitUserInput::new(
+                        git_url,
+                        branch.as_ref(),
+                        ssh_identity,
+                        args.force_git_init,
+                    );
 
                     TemplateLocation::from(git_user_input)
                 },
@@ -106,7 +106,7 @@ impl UserParsedInput {
                 temp_location,
                 args.template_path
                     .subfolder()
-                    .cloned()
+                    .map(|s| s.as_ref().to_owned())
                     .or_else(|| fav_cfg.subfolder.clone()),
                 default_values,
             );
@@ -136,8 +136,8 @@ impl UserParsedInput {
         // 4. assume user wanted use --git
         let temp_location = temp_location.unwrap_or_else(|| {
             let git_user_in = GitUserInput::new(
-                fav_name,
-                args.template_path.branch().cloned(),
+                &fav_name,
+                args.template_path.branch(),
                 ssh_identity,
                 args.force_git_init,
             );
@@ -161,7 +161,9 @@ impl UserParsedInput {
 
         Self::new(
             temp_location,
-            args.template_path.subfolder().cloned(),
+            args.template_path
+                .subfolder()
+                .map(|s| s.as_ref().to_owned()),
             default_values,
         )
     }
@@ -220,20 +222,32 @@ pub struct GitUserInput {
 }
 
 impl GitUserInput {
-    fn new(url: &str, branch: Option<String>, identity: Option<PathBuf>, force_init: bool) -> Self {
+    fn new<T1, T2>(
+        url: &T1,
+        branch: Option<&T2>,
+        identity: Option<PathBuf>,
+        force_init: bool,
+    ) -> Self
+    where
+        T1: AsRef<str>,
+        T2: AsRef<str>,
+    {
         Self {
-            url: url.to_owned(),
-            branch,
+            url: url.as_ref().to_owned(),
+            branch: branch.map(|s| s.as_ref().to_owned()),
             identity,
             _force_init: force_init,
         }
     }
 
     // when git was used as abbreviation but other flags still could be passed
-    fn with_git_url_and_args(url: &str, args: &GenerateArgs) -> Self {
+    fn with_git_url_and_args<T1>(url: &T1, args: &GenerateArgs) -> Self
+    where
+        T1: AsRef<str>,
+    {
         Self::new(
             url,
-            args.template_path.branch().cloned(),
+            args.template_path.branch(),
             args.ssh_identity.clone(),
             args.force_git_init,
         )

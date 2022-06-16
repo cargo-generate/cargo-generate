@@ -149,7 +149,7 @@ impl TemplatePath {
     /// # Panics
     /// Will panic if no path to a template has been set at all,
     /// which is never if Clap is initialized properly.
-    pub fn any_path(&self) -> &String {
+    pub fn any_path(&self) -> &str {
         self.git
             .as_ref()
             .or(self.path.as_ref())
@@ -158,27 +158,27 @@ impl TemplatePath {
             .unwrap()
     }
 
-    pub const fn git(&self) -> Option<&String> {
+    pub const fn git(&self) -> Option<&(impl AsRef<str> + '_)> {
         self.git.as_ref()
     }
 
-    pub const fn branch(&self) -> Option<&String> {
+    pub const fn branch(&self) -> Option<&(impl AsRef<str> + '_)> {
         self.branch.as_ref()
     }
 
-    pub const fn path(&self) -> Option<&String> {
+    pub const fn path(&self) -> Option<&(impl AsRef<str> + '_)> {
         self.path.as_ref()
     }
 
-    pub const fn favorite(&self) -> Option<&String> {
+    pub const fn favorite(&self) -> Option<&(impl AsRef<str> + '_)> {
         self.favorite.as_ref()
     }
 
-    pub const fn auto_path(&self) -> Option<&String> {
+    pub const fn auto_path(&self) -> Option<&(impl AsRef<str> + '_)> {
         self.auto_path.as_ref()
     }
 
-    pub const fn subfolder(&self) -> Option<&String> {
+    pub const fn subfolder(&self) -> Option<&(impl AsRef<str> + '_)> {
         if self.git.is_some() || self.path.is_some() || self.favorite.is_some() {
             self.auto_path.as_ref()
         } else {
