@@ -100,6 +100,8 @@ If you omit the identity file (read the next paragraph) **OR** a provided identi
 
 However, if you use a different file, you can pass a custom ssh identity with via `-i | --identity` like `-i ~/.ssh/id_rsa_other` as argument.
 
+> ⚠️ NOTE: password protected private keys are **NOT** supported, you have to use `ssh-agent` and omit the `-i` argument (see above). 
+
 If you permanently want to use a custom identity file, you can configure it in the cargo-generate config file like this:
 
 ```toml
