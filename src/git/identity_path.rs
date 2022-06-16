@@ -4,6 +4,7 @@ use std::fmt::{Display, Formatter};
 use anyhow::{anyhow, bail, Result};
 use std::path::{Path, PathBuf};
 
+#[derive(Debug)]
 pub struct IdentityPath(PathBuf);
 
 impl TryFrom<PathBuf> for IdentityPath {
@@ -38,7 +39,7 @@ pub fn pretty_path(a: &Path) -> Result<String> {
     #[cfg(not(windows))]
     let home_var = "$HOME";
     #[cfg(windows)]
-    let home_var = "%userprofile%";
+    let home_var = "$home";
     Ok(a.display()
         .to_string()
         .replace(&home()?.display().to_string(), home_var))
