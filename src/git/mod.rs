@@ -28,7 +28,7 @@ mod utils;
 // * if `<url>` is the local path on system the clone should also be done the same way as `git clone` there is `--path`
 //    for different behavior
 
-// basicly we want to call:
+// basically we want to call:
 // git clone --recurse-submodules --depth 1 --branch <branch> <url> <tmp_dir>
 
 /// Default branch to use if not specified but required
@@ -89,8 +89,34 @@ impl<'cb> RepoCloneBuilder<'cb> {
     }
 
     fn clone(mut self, dest_path: &Path) -> Result<Repository> {
-        if let Some(callbacks) = crate::git::creds::git_ssh_credentials_callback(self.identity)? {
-            self.fetch_options.remote_callbacks(callbacks);
+        #[cfg(not(windows))]
+        {
+            if self.identity.is_some() {
+                if let Some(callbacks) = creds::git_ssh_credentials_callback(self.identity)? {
+                    self.fetch_options.remote_callbacks(callbacks);
+                } else {
+                    self.fetch_options
+                        .remote_callbacks(creds::git_ssh_agent_callback());
+                }
+            } else {
+                self.fetch_options
+                    .remote_callbacks(creds::git_ssh_agent_callback());
+            }
+        }
+        #[cfg(windows)]
+        {
+            use crate::info;
+            use console::style;
+
+            if self.identity.is_some() {
+                info!(
+                    "{} {}",
+                    style("HEADS UP!").bold(),
+                    style("The `--identity` argument is not supported on windows, trying to use ssh-agent instead.").bold().yellow(),
+                );
+            }
+            self.fetch_options
+                .remote_callbacks(creds::git_ssh_agent_callback());
         }
         self.builder.fetch_options(self.fetch_options);
         self.builder
