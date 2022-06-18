@@ -7,16 +7,3 @@ updates:
   open-pull-requests-limit: 10
   reviewers:
   - sassman
-  ignore:
-  - dependency-name: liquid-derive
-    versions:
-    - 0.22.0
-  - dependency-name: liquid-core
-    versions:
-    - 0.22.0
-  - dependency-name: liquid-lib
-    versions:
-    - 0.22.0
-  - dependency-name: serde
-    versions:
-    - 1.0.122

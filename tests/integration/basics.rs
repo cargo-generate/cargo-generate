@@ -33,9 +33,14 @@ version = "0.1.0"
         .current_dir(&dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8().and(
-            predicates::str::contains("Template does not seem to be a git repository").from_utf8(),
-        ));
+        .stdout(
+            predicates::str::contains("Done!")
+                .and(predicates::str::contains(format!(
+                    "Favorite `{}` not found in config, using it as a local path",
+                    template.path().display()
+                )))
+                .from_utf8(),
+        );
 
     let repo = git2::Repository::open(&dir.path().join("foobar-project")).unwrap();
     let references = repo.references().unwrap().count();
@@ -382,6 +387,40 @@ version = "0.1.0"
         .stdout(predicates::str::contains("Done!").from_utf8());
     assert!(dir.read("Cargo.toml").contains("my-proj"));
     assert!(!dir.path().join(".git").exists());
+    Ok(())
+}
+
+#[test]
+fn it_can_generate_at_given_path() -> anyhow::Result<()> {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+    let dir = tmp_dir().build();
+    let dest = dir.path().join("destination");
+    fs::create_dir(&dest).expect("can create directory");
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("my-proj")
+        .arg("--destination")
+        .arg(&dest)
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+    assert!(dir
+        .read("destination/my-proj/Cargo.toml")
+        .contains("my-proj"));
     Ok(())
 }
 
@@ -1382,86 +1421,7 @@ fn error_message_for_invalid_repo_or_user() {
         .assert()
         .failure()
         .stderr(
-            predicates::str::contains(
-                r#"Git Error: Please check if the Git user / repository exists."#,
-            )
-            .from_utf8(),
+            predicates::str::contains(r#"Error: Please check if the Git user / repository exists"#)
+                .from_utf8(),
         );
-}
-
-#[cfg(test)]
-#[cfg(unix)]
-mod ssh_remote {
-    use super::*;
-
-    #[test]
-    #[ignore]
-    // for now only locally working
-    fn it_should_support_a_public_repo() {
-        let dir = tmp_dir().build();
-
-        binary()
-            .arg("generate")
-            .arg("--git")
-            .arg("git@github.com:ashleygwilliams/wasm-pack-template.git")
-            .arg("--name")
-            .arg("foobar-project")
-            .current_dir(&dir.path())
-            .assert()
-            .success()
-            .stdout(predicates::str::contains("Done!").from_utf8());
-
-        let cargo_toml = dir.read("foobar-project/Cargo.toml");
-        assert!(cargo_toml.contains("foobar-project"));
-    }
-
-    #[test]
-    #[ignore]
-    // for now only locally working
-    fn it_should_support_a_private_repo() {
-        let dir = tmp_dir().build();
-
-        binary()
-            .arg("generate")
-            .arg("--git")
-            .arg("git@github.com:cargo-generate/wasm-pack-template.git")
-            .arg("--name")
-            .arg("foobar-project")
-            .current_dir(&dir.path())
-            .assert()
-            .success()
-            .stdout(predicates::str::contains("Done!").from_utf8());
-
-        let cargo_toml = dir.read("foobar-project/Cargo.toml");
-        assert!(cargo_toml.contains("foobar-project"));
-    }
-
-    #[test]
-    #[ignore]
-    // for now only locally working
-    fn it_should_support_a_custom_ssh_key() {
-        let dir = tmp_dir().build();
-
-        binary()
-            .arg("generate")
-            .arg("-i")
-            .arg("~/workspaces/rust/cargo-generate-org/.env/id_rsa_ci")
-            .arg("--git")
-            .arg("git@github.com:cargo-generate/wasm-pack-template.git")
-            .arg("--name")
-            .arg("foobar-project")
-            .current_dir(&dir.path())
-            .assert()
-            .success()
-            .stdout(
-                predicates::str::contains("Using private key:")
-                    .and(predicates::str::contains(
-                        "cargo-generate-org/.env/id_rsa_ci",
-                    ))
-                    .from_utf8(),
-            );
-
-        let cargo_toml = dir.read("foobar-project/Cargo.toml");
-        assert!(cargo_toml.contains("foobar-project"));
-    }
 }

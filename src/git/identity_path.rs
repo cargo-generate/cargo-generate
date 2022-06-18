@@ -1,16 +1,18 @@
 use crate::git::utils::{canonicalize_path, home};
 use std::fmt::{Display, Formatter};
 
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 use std::path::{Path, PathBuf};
 
+#[derive(Debug)]
 pub struct IdentityPath(PathBuf);
 
 impl TryFrom<PathBuf> for IdentityPath {
     type Error = anyhow::Error;
 
     fn try_from(path: PathBuf) -> Result<Self, Self::Error> {
-        let path_can = canonicalize_path(&path)?;
+        let path_can = canonicalize_path(&path)
+            .map_err(|e| anyhow!("{}\nhelp: try using the '--identity' flag", e))?;
 
         if path_can.exists() {
             Ok(Self(path_can))
@@ -37,7 +39,7 @@ pub fn pretty_path(a: &Path) -> Result<String> {
     #[cfg(not(windows))]
     let home_var = "$HOME";
     #[cfg(windows)]
-    let home_var = "%userprofile%";
+    let home_var = "$home";
     Ok(a.display()
         .to_string()
         .replace(&home()?.display().to_string(), home_var))
@@ -50,9 +52,9 @@ mod tests {
     #[test]
     fn should_pretty_path() {
         let p = pretty_path(home().unwrap().as_path().join(".cargo").as_path()).unwrap();
-        #[cfg(unix)]
+        #[cfg(not(windows))]
         assert_eq!(p, "$HOME/.cargo");
         #[cfg(windows)]
-        assert_eq!(p, "%userprofile%\\.cargo");
+        assert_eq!(p, "$home\\.cargo");
     }
 }

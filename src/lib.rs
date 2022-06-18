@@ -39,18 +39,21 @@ mod project_variables;
 mod template;
 mod template_filters;
 mod template_variables;
+mod user_parsed_input;
 
 pub use args::*;
 
 use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
-use favorites::{list_favorites, resolve_favorite_args_and_default_values};
+use favorites::list_favorites;
+use git::DEFAULT_BRANCH;
 use hooks::{execute_post_hooks, execute_pre_hooks};
 use ignore_me::remove_dir_files;
 use interactive::prompt_for_variable;
 use liquid::ValueView;
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
+use std::ffi::OsString;
 use std::{
     borrow::Borrow,
     cell::RefCell,
@@ -59,18 +62,19 @@ use std::{
     path::{Path, PathBuf},
     rc::Rc,
 };
+use user_parsed_input::{TemplateLocation, UserParsedInput};
 
 use tempfile::TempDir;
 
+use crate::template_variables::load_env_and_args_template_values;
 use crate::{
     app_config::{app_config_path, AppConfig},
     project_variables::ConversionError,
     template_variables::{CrateType, ProjectName},
 };
-use crate::{git::GitConfig, template_variables::resolve_template_values};
 
 /// # Panics
-pub fn generate(mut args: Args) -> Result<()> {
+pub fn generate(mut args: GenerateArgs) -> Result<()> {
     let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
 
     if args.list_favorites {
@@ -88,17 +92,14 @@ pub fn generate(mut args: Args) -> Result<()> {
             .ssh_identity
             .as_ref()
             .cloned();
-        if let Some(id) = args.ssh_identity.as_ref() {
-            info!(
-                "Using ssh-identity from application config: {}",
-                style(id.as_path().display()).bold()
-            )
-        }
     }
 
-    let default_values = resolve_favorite_args_and_default_values(&app_config, &mut args)?;
+    let mut source_template = UserParsedInput::try_from_args_and_config(&app_config, &args);
+    source_template
+        .template_values_mut()
+        .extend(load_env_and_args_template_values(&args)?);
 
-    let (template_base_dir, template_folder, branch) = prepare_local_template(&args)?;
+    let (template_base_dir, template_folder, branch) = prepare_local_template(&source_template)?;
 
     let template_config = Config::from_path(
         &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &template_folder).ok(),
@@ -106,10 +107,17 @@ pub fn generate(mut args: Args) -> Result<()> {
     .unwrap_or_default();
 
     check_cargo_generate_version(&template_config)?;
-    let template_values = resolve_template_values(default_values, &args)?;
 
+    let base_dir = env::current_dir()?;
     let project_name = resolve_project_name(&args)?;
-    let project_dir = resolve_project_dir(&project_name, &args)?;
+    let project_dir = resolve_project_dir(&base_dir, &project_name, &args)?;
+
+    println!(
+        "{} {} {}",
+        emoji::WRENCH,
+        style(format!("Basedir: {}", base_dir.display())).bold(),
+        style("...").bold()
+    );
 
     println!(
         "{} {} {}",
@@ -119,9 +127,10 @@ pub fn generate(mut args: Args) -> Result<()> {
     );
 
     expand_template(
+        &project_dir,
         &project_name,
         &template_folder,
-        &template_values,
+        source_template.template_values(),
         template_config,
         &args,
     )?;
@@ -135,7 +144,7 @@ pub fn generate(mut args: Args) -> Result<()> {
     );
     copy_dir_all(&template_folder, &project_dir)?;
 
-    if !args.init || args.force_git_init {
+    if !args.vcs.is_none() && (!args.init || args.force_git_init) {
         info!("{}", style("Initializing a fresh Git repository").bold());
         args.vcs
             .initialize(&project_dir, branch, args.force_git_init)?;
@@ -151,61 +160,37 @@ pub fn generate(mut args: Args) -> Result<()> {
     Ok(())
 }
 
-fn prepare_local_template(args: &Args) -> Result<(TempDir, PathBuf, String), anyhow::Error> {
-    let (template_base_dir, template_folder, branch) = match (&args.git, &args.path) {
-        (Some(_), None) => {
-            let (template_base_dir, branch) = clone_git_template_into_temp(args)?;
-            let template_folder = resolve_template_dir(&template_base_dir, args)?;
-            (template_base_dir, template_folder, branch)
+fn prepare_local_template(
+    source_template: &UserParsedInput,
+) -> Result<(TempDir, PathBuf, String), anyhow::Error> {
+    let (temp_dir, branch) = get_source_template_into_temp(source_template.location())?;
+    let template_folder = resolve_template_dir(&temp_dir, source_template.subfolder())?;
+
+    Ok((temp_dir, template_folder, branch))
+}
+
+fn get_source_template_into_temp(
+    template_location: &TemplateLocation,
+) -> Result<(TempDir, String)> {
+    let temp_dir: TempDir;
+    let branch: String;
+    match template_location {
+        TemplateLocation::Git(git) => {
+            let (temp_dir2, branch2) =
+                git::clone_git_template_into_temp(git.url(), git.branch(), git.identity())?;
+            temp_dir = temp_dir2;
+            branch = branch2;
         }
-        (None, Some(_)) => {
-            let template_base_dir = copy_path_template_into_temp(args)?;
-            let branch = args.branch.clone().unwrap_or_else(|| String::from("main"));
-            let template_folder =
-                auto_locate_template_dir(template_base_dir.path(), prompt_for_variable)?;
-            (template_base_dir, template_folder, branch)
+        TemplateLocation::Path(path) => {
+            temp_dir = copy_path_template_into_temp(path)?;
+            branch = String::from(DEFAULT_BRANCH); // FIXME is here any reason to set branch when path is used?
         }
-        _ => bail!(
-            "{} {} {} {} {}",
-            emoji::ERROR,
-            style("Please specify either").bold(),
-            style("--git <repo>").bold().yellow(),
-            style("or").bold(),
-            style("--path <path>").bold().yellow(),
-        ),
     };
 
-    Ok((template_base_dir, template_folder, branch))
+    Ok((temp_dir, branch))
 }
 
-fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::Error> {
-    if let Config {
-        template:
-            Some(config::TemplateConfig {
-                cargo_generate_version: Some(requirement),
-                ..
-            }),
-        ..
-    } = template_config
-    {
-        let version = semver::Version::parse(env!("CARGO_PKG_VERSION"))?;
-        if !requirement.matches(&version) {
-            bail!(
-                "{} {} {} {} {}",
-                emoji::ERROR,
-                style("Required cargo-generate version not met. Required:")
-                    .bold()
-                    .red(),
-                style(requirement).yellow(),
-                style(" was:").bold().red(),
-                style(version).yellow(),
-            );
-        }
-    }
-    Ok(())
-}
-
-fn resolve_project_name(args: &Args) -> Result<ProjectName> {
+fn resolve_project_name(args: &GenerateArgs) -> Result<ProjectName> {
     match args.name {
         Some(ref n) => Ok(ProjectName::new(n)),
         None if !args.silent => Ok(ProjectName::new(interactive::name()?)),
@@ -220,49 +205,46 @@ fn resolve_project_name(args: &Args) -> Result<ProjectName> {
     }
 }
 
-fn resolve_template_dir(template_base_dir: &TempDir, args: &Args) -> Result<PathBuf> {
-    match &args.subfolder {
-        Some(subfolder) => {
-            let template_base_dir = fs::canonicalize(template_base_dir.path())?;
-            let template_dir =
-                fs::canonicalize(template_base_dir.join(subfolder)).with_context(|| {
-                    format!(
-                        "not able to find subfolder '{}' in repository {}",
-                        subfolder,
-                        args.git
-                            .as_ref()
-                            .map(|v| v.to_owned())
-                            .unwrap_or_else(|| args.path.as_ref().unwrap().display().to_string()),
-                    )
-                })?;
+fn resolve_template_dir(template_base_dir: &TempDir, subfolder: Option<&str>) -> Result<PathBuf> {
+    if let Some(subfolder) = subfolder {
+        let template_base_dir = fs::canonicalize(template_base_dir.path())?;
+        let template_dir =
+            fs::canonicalize(template_base_dir.join(subfolder)).with_context(|| {
+                format!(
+                    "not able to find subfolder '{}' in source template",
+                    subfolder
+                )
+            })?;
 
-            if !template_dir.starts_with(&template_base_dir) {
-                return Err(anyhow!(
-                    "{} {} {}",
-                    emoji::ERROR,
-                    style("Subfolder Error:").bold().red(),
-                    style("Invalid subfolder. Must be part of the template folder structure.")
-                        .bold()
-                        .red(),
-                ));
-            }
-            if !template_dir.is_dir() {
-                return Err(anyhow!(
-                    "{} {} {}",
-                    emoji::ERROR,
-                    style("Subfolder Error:").bold().red(),
-                    style("The specified subfolder must be a valid folder.")
-                        .bold()
-                        .red(),
-                ));
-            }
-
-            Ok(auto_locate_template_dir(
-                &template_dir,
-                prompt_for_variable,
-            )?)
+        // make sure subfolder is not `../../subfolder`
+        if !template_dir.starts_with(&template_base_dir) {
+            return Err(anyhow!(
+                "{} {} {}",
+                emoji::ERROR,
+                style("Subfolder Error:").bold().red(),
+                style("Invalid subfolder. Must be part of the template folder structure.")
+                    .bold()
+                    .red(),
+            ));
         }
-        None => auto_locate_template_dir(template_base_dir.path(), prompt_for_variable),
+
+        if !template_dir.is_dir() {
+            return Err(anyhow!(
+                "{} {} {}",
+                emoji::ERROR,
+                style("Subfolder Error:").bold().red(),
+                style("The specified subfolder must be a valid folder.")
+                    .bold()
+                    .red(),
+            ));
+        }
+
+        Ok(auto_locate_template_dir(
+            &template_dir,
+            prompt_for_variable,
+        )?)
+    } else {
+        auto_locate_template_dir(template_base_dir.path(), prompt_for_variable)
     }
 }
 
@@ -292,40 +274,12 @@ fn auto_locate_template_dir(
     }
 }
 
-fn copy_path_template_into_temp(args: &Args) -> Result<TempDir> {
+fn copy_path_template_into_temp(src_path: &Path) -> Result<TempDir> {
     let path_clone_dir = tempfile::tempdir()?;
-    copy_dir_all(
-        args.path
-            .as_ref()
-            .with_context(|| "Missing option git, path or a favorite")?,
-        path_clone_dir.path(),
-    )?;
-    git::remove_history(path_clone_dir.path(), None)?;
+    copy_dir_all(src_path, path_clone_dir.path())?;
+    git::remove_history(path_clone_dir.path())?;
 
     Ok(path_clone_dir)
-}
-
-fn clone_git_template_into_temp(args: &Args) -> Result<(TempDir, String)> {
-    let git_clone_dir = tempfile::tempdir()?;
-
-    let remote = args
-        .git
-        .clone()
-        .with_context(|| "Missing option git, path or a favorite")?;
-
-    let git_config =
-        GitConfig::new_abbr(remote, args.branch.to_owned(), args.ssh_identity.clone())?;
-
-    let branch = git::create(git_clone_dir.path(), git_config).map_err(|e| {
-        anyhow!(
-            "{} {} {}",
-            emoji::ERROR,
-            style("Git Error:").bold().red(),
-            style(e).bold().red(),
-        )
-    })?;
-
-    Ok((git_clone_dir, branch))
 }
 
 pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
@@ -336,12 +290,15 @@ pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resu
 
         for src_entry in fs::read_dir(src)? {
             let src_entry = src_entry?;
-            let dst_path = dst.as_ref().join(src_entry.file_name());
+            let filename = src_entry.file_name().to_string_lossy().to_string();
             let entry_type = src_entry.file_type()?;
 
             if entry_type.is_dir() {
+                let dst_path = dst.as_ref().join(filename);
                 check_dir_all(src_entry.path(), dst_path)?;
             } else if entry_type.is_file() {
+                let filename = filename.strip_suffix(".liquid").unwrap_or(&filename);
+                let dst_path = dst.as_ref().join(filename);
                 if dst_path.exists() {
                     bail!(
                         "{} {} {}",
@@ -362,13 +319,20 @@ pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resu
     }
     fn copy_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
         fs::create_dir_all(&dst)?;
+        let git_file_name: OsString = ".git".into();
         for src_entry in fs::read_dir(src)? {
             let src_entry = src_entry?;
-            let dst_path = dst.as_ref().join(src_entry.file_name());
+            let filename = src_entry.file_name().to_string_lossy().to_string();
             let entry_type = src_entry.file_type()?;
             if entry_type.is_dir() {
+                let dst_path = dst.as_ref().join(filename);
+                if git_file_name == src_entry.file_name() {
+                    continue;
+                }
                 copy_dir_all(src_entry.path(), dst_path)?;
             } else if entry_type.is_file() {
+                let filename = filename.strip_suffix(".liquid").unwrap_or(&filename);
+                let dst_path = dst.as_ref().join(filename);
                 fs::copy(src_entry.path(), dst_path)?;
             }
         }
@@ -401,44 +365,55 @@ fn locate_template_file(
     }
 }
 
-fn resolve_project_dir(name: &ProjectName, args: &Args) -> Result<PathBuf> {
+/// Resolves the project dir.
+///
+/// if `args.init == true` it returns the path of `$CWD` and if let some `args.destination`,
+/// it returns the given path.
+fn resolve_project_dir(
+    base_dir: &Path,
+    name: &ProjectName,
+    args: &GenerateArgs,
+) -> Result<PathBuf> {
     if args.init {
-        let cwd = env::current_dir()?;
-        return Ok(cwd);
+        return Ok(base_dir.into());
     }
 
-    let dir_name = if args.force {
-        name.raw()
-    } else {
+    let base_path = args
+        .destination
+        .as_ref()
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
+
+    let dir_name = args.force.then(|| name.raw()).unwrap_or_else(|| {
         rename_warning(name);
         name.kebab_case()
-    };
-    let project_dir = env::current_dir()
-        .unwrap_or_else(|_e| ".".into())
-        .join(&dir_name);
+    });
+
+    let project_dir = base_path.join(&dir_name);
 
     if project_dir.exists() {
-        Err(anyhow!(
+        bail!(
             "{} {}",
             emoji::ERROR,
             style("Target directory already exists, aborting!")
                 .bold()
                 .red()
-        ))
-    } else {
-        Ok(project_dir)
+        );
     }
+
+    Ok(project_dir)
 }
 
 fn expand_template(
+    project_dir: &Path,
     name: &ProjectName,
     dir: &Path,
     template_values: &HashMap<String, toml::Value>,
     mut template_config: Config,
-    args: &Args,
+    args: &GenerateArgs,
 ) -> Result<()> {
     let crate_type: CrateType = args.into();
-    let liquid_object = template::create_liquid_object(name, &crate_type, args.force)?;
+    let liquid_object = template::create_liquid_object(project_dir, name, &crate_type, args.force)?;
     let liquid_object =
         project_variables::fill_project_variables(liquid_object, &template_config, |slot| {
             let provided_value = template_values.get(&slot.var_name).and_then(|v| v.as_str());
@@ -457,7 +432,13 @@ fn expand_template(
 
     let mut liquid_object = Rc::new(RefCell::new(liquid_object));
 
-    execute_pre_hooks(dir, Rc::clone(&liquid_object), &mut template_config)?;
+    execute_pre_hooks(
+        dir,
+        Rc::clone(&liquid_object),
+        &mut template_config,
+        args.allow_commands,
+        args.silent,
+    )?;
     ignore_me::remove_unneeded_files(dir, &template_cfg.ignore, args.verbose)?;
     let mut pbar = progressbar::new();
 
@@ -472,11 +453,16 @@ fn expand_template(
         &all_hook_files,
         &mut pbar,
     )?;
-
-    execute_post_hooks(dir, Rc::clone(&liquid_object), &template_config)?;
-    remove_dir_files(all_hook_files, false);
-
     pbar.join().unwrap();
+
+    execute_post_hooks(
+        dir,
+        Rc::clone(&liquid_object),
+        &template_config,
+        args.allow_commands,
+        args.silent,
+    )?;
+    remove_dir_files(all_hook_files, false);
 
     Ok(())
 }
@@ -509,7 +495,7 @@ pub(crate) fn add_missing_provided_values(
 fn merge_conditionals(
     template_config: &Config,
     liquid_object: liquid::Object,
-    args: &Args,
+    args: &GenerateArgs,
 ) -> Result<(config::TemplateConfig, liquid::Object), anyhow::Error> {
     let mut template_config = (*template_config).clone();
     let mut template_cfg = template_config.template.unwrap_or_default();
@@ -520,6 +506,7 @@ fn merge_conditionals(
 
     let mut conditionals = conditionals.unwrap();
     let mut engine = rhai::Engine::new();
+    #[allow(deprecated)]
     engine.on_var({
         let liqobj = liquid_object.clone();
         move |name, _, _| match liqobj.get(name) {
@@ -595,6 +582,33 @@ fn rename_warning(name: &ProjectName) {
             style("...").bold()
         );
     }
+}
+
+fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::Error> {
+    if let Config {
+        template:
+            Some(config::TemplateConfig {
+                cargo_generate_version: Some(requirement),
+                ..
+            }),
+        ..
+    } = template_config
+    {
+        let version = semver::Version::parse(env!("CARGO_PKG_VERSION"))?;
+        if !requirement.matches(&version) {
+            bail!(
+                "{} {} {} {} {}",
+                emoji::ERROR,
+                style("Required cargo-generate version not met. Required:")
+                    .bold()
+                    .red(),
+                style(requirement).yellow(),
+                style(" was:").bold().red(),
+                style(version).yellow(),
+            );
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]

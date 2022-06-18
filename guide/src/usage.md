@@ -64,7 +64,7 @@ cargo generate --path $HOME/mytemplate # Use it locally
 
 > ⚠️ NOTE: `cargo-generate` will not allow to use the association `--path` and `--git` flags.
 
-## git over ssh
+### git over ssh
 
 New in version [0.7.0] is the support for both public and private and ssh git remote urls.
 For example:
@@ -82,29 +82,42 @@ cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name m
 as well as:
 
 ```sh
-cargo generate --git rustwasm/wasm-pack-template --name mywasm
+cargo generate rustwasm/wasm-pack-template --name mywasm
 ```
 
-## ssh identity file (private key)
+### authentication using `ssh-agent`
 
- the default ssh identity is that is used is the good old RSA one. `~/.ssh/id_rsa`.
+New in version [0.15.1] is the `ssh-agent` usage for password protected keys. It's also the default mechanism on Windows.
 
- However, if you use a different file, you can pass a custom ssh identity with via `-i | --identity` like `-i ~/.ssh/id_rsa_other` as argument.
+#### On Windows
 
- If you permanently want to use a custom identity file, you can configure it in the cargo-generate config file like this:
+`ssh-agent` is the default and also **the only** possibility to get git+ssh working.
+Please follow [this guide](https://github.com/cargo-generate/cargo-generate/discussions/653) to get `ssh-agent` configured on windows.
 
- ```toml
- # an extract of ~/.cargo/cargo-generate.toml
- [defaults]
- # note that `~/` and `$HOME/` are going to be expanded to the full path seamlessly
- ssh_identity = "~/.ssh/id_rsa_other"
- # that is equivalent to 
- ssh_identity = "$HOME/.ssh/id_rsa_other"
- # that is equivalent to 
- ssh_identity = "/home/john/.ssh/id_rsa_other"
- ```
+#### On *Nix and macOS
 
- > ⚠️ NOTE: that the cli argument `-i` always overrules the `ssh_identity` from the config file.
+If you omit the identity file (read the next paragraph) **OR** a provided identity file does not exist, then the default is to use `ssh-agent`.
+
+### ssh identity file (private key)
+
+However, if you use a different file, you can pass a custom ssh identity with via `-i | --identity` like `-i ~/.ssh/id_rsa_other` as argument.
+
+> ⚠️ NOTE: password protected private keys are **NOT** supported, you have to use `ssh-agent` and omit the `-i` argument (see above). 
+
+If you permanently want to use a custom identity file, you can configure it in the cargo-generate config file like this:
+
+```toml
+# an extract of ~/.cargo/cargo-generate.toml
+[defaults]
+# note that `~/` and `$HOME/` are going to be expanded to the full path seamlessly
+ssh_identity = "~/.ssh/id_rsa_other"
+# that is equivalent to 
+ssh_identity = "$HOME/.ssh/id_rsa_other"
+# that is equivalent to 
+ssh_identity = "/home/john/.ssh/id_rsa_other"
+```
+
+> ⚠️ NOTE: that the cli argument `-i` always overrules the `ssh_identity` from the config file.
 
 ## http(s) proxy
 
@@ -113,6 +126,7 @@ will be used for cloning a http(s) template repository.
 
 [0.7.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0
 [0.9.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0
+[0.15.1]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.15.1
 [VSCode]: https://code.visualstudio.com
 [`Rhai`]: https://rhai.rs/book/
 [Rhai language extension]: https://marketplace.visualstudio.com/items?itemName=rhaiscript.vscode-rhai

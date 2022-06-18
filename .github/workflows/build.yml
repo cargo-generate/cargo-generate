@@ -90,6 +90,10 @@ jobs:
 #          if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
       - name: cargo test
         run: cargo test --all --locked -- -Z unstable-options
+      - name: smoke tests
+        run: |
+          cargo run -- --version
+          cargo run -- --help
 
   audit:
     name: security audit

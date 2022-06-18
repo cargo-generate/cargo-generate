@@ -3,7 +3,7 @@ mod crate_type;
 mod os_arch;
 mod project_name;
 
-use crate::{emoji, Args};
+use crate::{emoji, GenerateArgs};
 
 use anyhow::Result;
 use console::style;
@@ -17,42 +17,41 @@ pub use crate_type::CrateType;
 pub use os_arch::get_os_arch;
 pub use project_name::ProjectName;
 
-pub fn resolve_template_values(
-    favorite_values: Option<HashMap<String, toml::Value>>,
-    args: &Args,
-) -> Result<HashMap<String, Value>> {
-    let mut values = favorite_values.unwrap_or_default();
-
-    values.extend(
-        std::env::var("CARGO_GENERATE_TEMPLATE_VALUES_FILE")
-            .ok()
-            .map_or(Ok(Default::default()), |path| {
-                read_template_values_file(Path::new(&path))
-            })?,
-    );
+fn load_env_template_values() -> Result<HashMap<String, toml::Value>> {
+    //FIXME: use this variable to be in sync with args
+    let mut values = std::env::var("CARGO_GENERATE_TEMPLATE_VALUES_FILE")
+        .ok()
+        .map_or(Ok(Default::default()), |path| {
+            read_template_values_file(Path::new(&path))
+        })?;
 
     values.extend(std::env::vars().filter_map(|(key, value)| {
         key.strip_prefix("CARGO_GENERATE_VALUE_")
             .map(|key| (key.to_lowercase(), Value::from(value)))
     }));
 
-    values.extend(
-        args.template_values_file
-            .as_ref()
-            .map(Path::new)
-            .map_or(Ok(Default::default()), |path| {
-                read_template_values_file(path)
-            })?,
-    );
-
-    add_cli_defined_values(&mut values, &args.define)?;
-
     Ok(values)
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
-struct TemplateValuesToml {
-    pub(crate) values: HashMap<String, toml::Value>,
+fn load_args_template_values(args: &GenerateArgs) -> Result<HashMap<String, toml::Value>> {
+    let mut values = args
+        .template_values_file
+        .as_ref()
+        .map(Path::new)
+        .map_or(Ok(Default::default()), |path| {
+            read_template_values_file(path)
+        })?;
+
+    values.extend(read_template_values_from_definitions(&args.define)?);
+    Ok(values)
+}
+
+pub fn load_env_and_args_template_values(
+    args: &GenerateArgs,
+) -> Result<HashMap<String, toml::Value>> {
+    let mut template_variables = load_env_template_values()?;
+    template_variables.extend(load_args_template_values(args)?);
+    Ok(template_variables)
 }
 
 fn read_template_values_file(path: &Path) -> Result<HashMap<String, Value>> {
@@ -69,109 +68,101 @@ fn read_template_values_file(path: &Path) -> Result<HashMap<String, Value>> {
     }
 }
 
-fn add_cli_defined_values<S: AsRef<str> + Display>(
-    template_values: &mut HashMap<String, Value>,
+fn read_template_values_from_definitions<S: AsRef<str> + Display>(
     definitions: &[S],
-) -> Result<()> {
+) -> Result<HashMap<String, toml::Value>> {
+    let mut values = HashMap::with_capacity(definitions.len());
     let key_value_regex = Regex::new(r"^([a-zA-Z]+[a-zA-Z0-9\-_]*)\s*=\s*(.+)$").unwrap();
 
-    definitions
-        .iter()
-        .try_fold(
-            template_values,
-            |template_values, definition| match key_value_regex.captures(definition.as_ref()) {
-                Some(cap) => {
-                    let key = cap.get(1).unwrap().as_str().to_string();
-                    let value = cap.get(2).unwrap().as_str().to_string();
-                    println!("{} => '{}'", key, value);
-                    template_values.insert(key, Value::from(value));
-                    Ok(template_values)
-                }
-                None => Err(anyhow::anyhow!(
-                    "{} {} {}",
-                    emoji::ERROR,
-                    style("Failed to parse value:").bold().red(),
-                    style(definition).bold().red(),
-                )),
-            },
-        )?;
-    Ok(())
+    definitions.iter().try_fold(
+        &mut values,
+        |template_values, definition| match key_value_regex.captures(definition.as_ref()) {
+            Some(cap) => {
+                let key = cap.get(1).unwrap().as_str().to_string();
+                let value = cap.get(2).unwrap().as_str().to_string();
+                println!("{} => '{}'", key, value);
+                template_values.insert(key, Value::from(value));
+                Ok(template_values)
+            }
+            None => Err(anyhow::anyhow!(
+                "{} {} {}",
+                emoji::ERROR,
+                style("Failed to parse value:").bold().red(),
+                style(definition).bold().red(),
+            )),
+        },
+    )?;
+    Ok(values)
+}
+
+#[derive(Deserialize, Debug, PartialEq)]
+struct TemplateValuesToml {
+    pub(crate) values: HashMap<String, toml::Value>,
 }
 
 #[cfg(test)]
 mod test {
-    use super::add_cli_defined_values;
-    use std::collections::HashMap;
+    use super::read_template_values_from_definitions;
 
     #[test]
     fn names_must_start_with_word_char() {
-        let mut template_values = HashMap::new();
         let definitions = vec!["0key=42"];
-        let result = add_cli_defined_values(&mut template_values, &definitions);
+        let result = read_template_values_from_definitions(&definitions);
         assert!(result.is_err());
 
         let definitions = vec!["$key=42"];
-        let result = add_cli_defined_values(&mut template_values, &definitions);
+        let result = read_template_values_from_definitions(&definitions);
         assert!(result.is_err());
 
         let definitions = vec!["-key=42"];
-        let result = add_cli_defined_values(&mut template_values, &definitions);
+        let result = read_template_values_from_definitions(&definitions);
         assert!(result.is_err());
 
         let definitions = vec!["_key=42"];
-        let result = add_cli_defined_values(&mut template_values, &definitions);
+        let result = read_template_values_from_definitions(&definitions);
         assert!(result.is_err());
     }
 
     #[test]
     fn names_may_contain_digits() {
-        let mut template_values = HashMap::new();
         let definitions = vec!["my0123456789key=42"];
-        let result = add_cli_defined_values(&mut template_values, &definitions);
-        assert!(result.is_ok());
+        let result = read_template_values_from_definitions(&definitions).unwrap();
 
-        let val = template_values["my0123456789key"].as_str().unwrap();
+        let val = result["my0123456789key"].as_str().unwrap();
         assert_eq!(val, "42");
     }
 
     #[test]
     fn names_may_contain_dash() {
-        let mut template_values = HashMap::new();
         let definitions = vec!["my-key=42"];
-        let result = add_cli_defined_values(&mut template_values, &definitions);
-        assert!(result.is_ok());
+        let result = read_template_values_from_definitions(&definitions).unwrap();
 
-        let val = template_values["my-key"].as_str().unwrap();
+        let val = result["my-key"].as_str().unwrap();
         assert_eq!(val, "42");
     }
 
     #[test]
     fn names_may_contain_underscore() {
-        let mut template_values = HashMap::new();
         let definitions = vec!["my_key=42"];
-        let result = add_cli_defined_values(&mut template_values, &definitions);
-        assert!(result.is_ok());
+        let result = read_template_values_from_definitions(&definitions).unwrap();
 
-        let val = template_values["my_key"].as_str().unwrap();
+        let val = result["my_key"].as_str().unwrap();
         assert_eq!(val, "42");
     }
 
     #[test]
     fn spaces_are_not_allowed_in_names() {
-        let mut template_values = HashMap::new();
         let definitions = vec!["my key=42"];
-        let result = add_cli_defined_values(&mut template_values, &definitions);
+        let result = read_template_values_from_definitions(&definitions);
         assert!(result.is_err());
     }
 
     #[test]
     fn spaces_around_assignment_is_ok() {
-        let mut template_values = HashMap::new();
         let definitions = vec!["key   =      42"];
-        let result = add_cli_defined_values(&mut template_values, &definitions);
-        assert!(result.is_ok());
+        let result = read_template_values_from_definitions(&definitions).unwrap();
 
-        let val = template_values["key"].as_str().unwrap();
+        let val = result["key"].as_str().unwrap();
         assert_eq!(val, "42");
     }
 }

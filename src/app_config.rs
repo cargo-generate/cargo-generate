@@ -18,6 +18,12 @@ pub struct AppConfig {
     pub values: Option<HashMap<String, toml::Value>>,
 }
 
+impl AppConfig {
+    pub fn get_favorite_cfg(&self, favorite_name: &str) -> Option<&FavoriteConfig> {
+        self.favorites.as_ref().and_then(|f| f.get(favorite_name))
+    }
+}
+
 #[derive(Deserialize, Default)]
 pub struct FavoriteConfig {
     pub description: Option<String>,
@@ -38,21 +44,17 @@ impl TryFrom<&Path> for AppConfig {
     type Error = anyhow::Error;
 
     fn try_from(path: &Path) -> Result<Self, Self::Error> {
-        if path.exists() {
-            let cfg = fs::read_to_string(path)?;
-            Ok(if cfg.trim().is_empty() {
-                Self::default()
-            } else {
-                info!("Using application config: {}", style(path.display()).bold());
-                toml::from_str(&cfg)?
-            })
-        } else {
-            crate::warn!(
-                "Unable to load config file: {}",
-                style(path.display()).bold().yellow()
-            );
-            Ok(Default::default())
+        if !path.exists() {
+            return Ok(Default::default());
         }
+
+        let cfg = fs::read_to_string(path)?;
+        Ok(if cfg.trim().is_empty() {
+            Self::default()
+        } else {
+            info!("Using application config: {}", style(path.display()).bold());
+            toml::from_str(&cfg)?
+        })
     }
 }
 

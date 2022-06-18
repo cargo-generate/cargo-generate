@@ -1,6 +1,113 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.13.0...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.15.2...HEAD)
+
+## [0.15.2] 2022-06-16
+[0.15.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.15.1...v0.15.2
+
+### 🤕 Fixes
+- [fix(#657): fix smoke tests + add smoke test to the build pipeline](https://github.com/cargo-generate/cargo-generate/pull/658)
+
+### Contributors
+- [sassman](https://github.com/sassman)
+
+
+## [0.15.1] 2022-06-16
+[0.15.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.15.0...v0.15.1
+
+### 🤕 Fixes
+- [Add `ssh-agent` support and fix windows git+ssh issues](https://github.com/cargo-generate/cargo-generate/pull/655)
+- [`cargo-generate` without options panics and fix `--help`](https://github.com/cargo-generate/cargo-generate/pull/651)
+
+### Contributors
+- [sassman](https://github.com/sassman)
+- [taurr](https://github.com/taurr)
+
+
+## [0.15.0] 2022-06-15
+[0.15.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.14.0...v0.15.0
+
+### ✨ Features
+- [Add placeholder `{{within_cargo_project}}`. Enables templates to adust if they are expanded inside a `cargo` project](https://github.com/cargo-generate/cargo-generate/pull/628)
+- [output from a *POST* `rhai` script is seemingly output *before* expansion.](https://github.com/cargo-generate/cargo-generate/pull/640)
+- [auto remove `.liquid` file extensions if present](https://github.com/cargo-generate/cargo-generate/pull/639)
+- [Generate release packages for `aarch64-unknown-linux-gnu`](https://github.com/cargo-generate/cargo-generate/pull/620)
+- [Enhance canonicalize_path and git errors](https://github.com/cargo-generate/cargo-generate/pull/595)
+
+### 🛠️ Maintenance
+- [chore(deps): upgrade to latest clap version + fix deprecations](https://github.com/cargo-generate/cargo-generate/pull/645)
+- [chore(deps): bump git-config from 0.4.0 to 0.5.0](https://github.com/cargo-generate/cargo-generate/pull/641)
+- [chore(deps): bump git-config from 0.2.0 to 0.4.0](https://github.com/cargo-generate/cargo-generate/pull/626)
+- [chore(deps): bump sanitize-filename from 0.3.0 to 0.4.0](https://github.com/cargo-generate/cargo-generate/pull/591)
+- [Override project_dir when using `generate()`](https://github.com/cargo-generate/cargo-generate/pull/625)
+- [Replace `structopt` by `clap`](https://github.com/cargo-generate/cargo-generate/pull/624)
+- [fix(docs): related to `v0.14.0` some breaking required doc changes](https://github.com/cargo-generate/cargo-generate/pull/622)
+- [Avoid panic caused by deleting git folders](https://github.com/cargo-generate/cargo-generate/pull/621)
+
+### Contributors
+- [SergioGasquez](https://github.com/SergioGasquez)
+- [andrewjstone](https://github.com/andrewjstone)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [jm-observer](https://github.com/jm-observer)
+- [sassman](https://github.com/sassman)
+- [taurr](https://github.com/taurr)
+- [yozhgoor](https://github.com/yozhgoor)
+
+
+## [0.14.0] 2022-05-31
+[0.14.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.13.1...v0.14.0
+
+### ✨ Features
+- [Suppress misleading git initialization message](https://github.com/cargo-generate/cargo-generate/pull/606)
+- [Generate release packages for `x86_64-unknown-linux-gnu`](https://github.com/cargo-generate/cargo-generate/pull/602)
+- [Allow system commands](https://github.com/cargo-generate/cargo-generate/pull/598)
+- [Less noise](https://github.com/cargo-generate/cargo-generate/pull/597)
+- [Enhance canonicalize_path and git errors](https://github.com/cargo-generate/cargo-generate/pull/595)
+- [Refactor of handling favorites, git and path](https://github.com/cargo-generate/cargo-generate/pull/572)
+
+### 🛠️ Maintenance
+- [chore(deps): bump sanitize-filename from 0.3.0 to 0.4.0](https://github.com/cargo-generate/cargo-generate/pull/591)
+- [chore(deps): bump anyhow from 1.0.56 to 1.0.57](https://github.com/cargo-generate/cargo-generate/pull/587)
+- [chore(deps): bump toml from 0.5.8 to 0.5.9](https://github.com/cargo-generate/cargo-generate/pull/585)
+
+### Contributors
+- [SergioGasquez](https://github.com/SergioGasquez)
+- [andrewjstone](https://github.com/andrewjstone)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [remlse](https://github.com/remlse)
+- [sassman](https://github.com/sassman)
+- [v-n-suadicani-issuu](https://github.com/v-n-suadicani-issuu)
+
+
+## [0.13.1] 2022-04-11 
+[0.13.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.13.0...v0.13.1
+
+### 🛠️ Maintenance
+- [chore(deps): bump git-config from 0.1.11 to 0.2.1](https://github.com/cargo-generate/cargo-generate/pull/581)
+- [chore(deps): bump liquid* from 0.24 to 0.26](https://github.com/cargo-generate/cargo-generate/pull/579)
+- [chore(deps): bump rhai from 1.5.0 to 1.6.0](https://github.com/cargo-generate/cargo-generate/pull/570)
+- [chore(deps): bump versions](https://github.com/cargo-generate/cargo-generate/pull/566)
+- [chore(deps): bump path-absolutize from 3.0.11 to 3.0.12](https://github.com/cargo-generate/cargo-generate/pull/565)
+- [chore(deps): bump git2 version to 0.14](https://github.com/cargo-generate/cargo-generate/pull/563)
+- [chore(deps): bump regex from 1.5.4 to 1.5.5](https://github.com/cargo-generate/cargo-generate/pull/561)
+- [chore(deps): bump liquid-derive from 0.23.1 to 0.24.0](https://github.com/cargo-generate/cargo-generate/pull/560)
+- [chore(deps): bump anyhow from 1.0.53 to 1.0.56](https://github.com/cargo-generate/cargo-generate/pull/556)
+- [chore(deps): bump semver from 1.0.5 to 1.0.6](https://github.com/cargo-generate/cargo-generate/pull/552)
+- [chore(deps): bump rhai from 1.4.1 to 1.5.0](https://github.com/cargo-generate/cargo-generate/pull/551)
+- [chore(deps): bump dialoguer from 0.9.0 to 0.10.0](https://github.com/cargo-generate/cargo-generate/pull/548)
+- [chore(clippy): make clippy happy](https://github.com/cargo-generate/cargo-generate/pull/564)
+- [chore(docs): added git url to book.toml](https://github.com/cargo-generate/cargo-generate/pull/562)
+
+### 🤕 Fixes
+- [`--config` should behave relative to `CWD`](https://github.com/cargo-generate/cargo-generate/pull/544)
+
+### Contributors
+- [TonalidadeHidrica](https://github.com/TonalidadeHidrica)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [saikiran1043](https://github.com/saikiran1043)
+- [sassman](https://github.com/sassman)
+- [taurr](https://github.com/taurr)
+- [xoac](https://github.com/xoac)
 
 ## [0.13.0] 2022-02-08
 [0.13.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.12.0...v0.13.0
