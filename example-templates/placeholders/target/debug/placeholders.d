@@ -1,0 +1,1 @@
+/Users/SoundComputer/Downloads/FinTech-UW-2021-11/cargo-generate/example-templates/placeholders/target/debug/placeholders: /Users/SoundComputer/Downloads/FinTech-UW-2021-11/cargo-generate/example-templates/placeholders/src/main.rs
