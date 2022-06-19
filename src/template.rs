@@ -34,11 +34,10 @@ pub fn create_liquid_object(
 ) -> Result<Object> {
     let authors: Authors = get_authors()?;
     let os_arch = get_os_arch();
-    let project_name = if args.force {
-        name.raw()
-    } else {
-        name.kebab_case()
-    };
+    let project_name = args
+        .force
+        .then(|| name.raw())
+        .unwrap_or_else(|| name.kebab_case());
 
     let mut liquid_object = Object::new();
     liquid_object.insert("project-name".into(), Value::Scalar(project_name.into()));
