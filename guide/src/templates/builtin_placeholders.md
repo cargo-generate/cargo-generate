@@ -31,5 +31,9 @@ The current supported builtin placeholders are:
   A boolean with the value `true` if the template is being expanded inside a `Cargo` project. It's 
   a simple matter of whether `Cargo.toml` is present in any parent folder.
 
+* `{{is_init}}`
+
+  A boolean that reflects the value of the `--init` parameter of `cargo-generate`.
+
 [liquid]: https://shopify.github.io/liquid
 [Rhai]: https://rhai.rs/book/
