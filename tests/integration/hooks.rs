@@ -272,8 +272,7 @@ fn it_can_change_case() {
         .stdout(predicates::str::contains("SHOUTY_SNAKE_CASE"))
         .stdout(predicates::str::contains("snake_case"))
         .stdout(predicates::str::contains("Title Case"))
-        .stdout(predicates::str::contains("UpperCamelCase"))
-        ;
+        .stdout(predicates::str::contains("UpperCamelCase"));
 
     //assert!(dir.read("script-project/POST").contains("world"));
 }
