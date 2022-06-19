@@ -12,16 +12,19 @@ use crate::emoji;
 use crate::filenames::substitute_filename;
 use crate::include_exclude::*;
 use crate::progressbar::spinner;
-use crate::template_filters::{
-    KebabCaseFilterParser, PascalCaseFilterParser, SnakeCaseFilterParser,
-};
+use crate::template_filters::*;
 use crate::template_variables::{get_authors, get_os_arch, Authors, CrateType, ProjectName};
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::with_stdlib()
         .filter(KebabCaseFilterParser)
+        .filter(LowerCamelCaseFilterParser)
         .filter(PascalCaseFilterParser)
+        .filter(ShoutyKebabCaseFilterParser)
+        .filter(ShoutySnakeCaseFilterParser)
         .filter(SnakeCaseFilterParser)
+        .filter(TitleCaseFilterParser)
+        .filter(UpperCamelCaseFilterParser)
         .build()
         .expect("can't fail due to no partials support")
 }
