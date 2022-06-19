@@ -6,7 +6,7 @@ use heck::{
 use liquid_core::{Filter, ParseFilter, Runtime, ValueView};
 use liquid_derive::FilterReflection;
 
-macro_rules! create_fiter_case {
+macro_rules! create_case_filter {
     ($name:literal, $kebab_name:ident, $expr:expr) => {
         paste::paste! {
             #[derive(Clone, ParseFilter, FilterReflection)]
@@ -39,15 +39,15 @@ macro_rules! create_fiter_case {
     };
 }
 
-create_fiter_case!("kebab_case", KebabCase, |i: String| i.to_kebab_case());
-create_fiter_case!("lower_camel_case", LowerCamelCase, |i: String| i
+create_case_filter!("kebab_case", KebabCase, |i: String| i.to_kebab_case());
+create_case_filter!("lower_camel_case", LowerCamelCase, |i: String| i
     .to_lower_camel_case());
-create_fiter_case!("pascal_case", PascalCase, |i: String| i.to_pascal_case());
-create_fiter_case!("shouty_kebab_case", ShoutyKebabCase, |i: String| i
+create_case_filter!("pascal_case", PascalCase, |i: String| i.to_pascal_case());
+create_case_filter!("shouty_kebab_case", ShoutyKebabCase, |i: String| i
     .to_shouty_kebab_case());
-create_fiter_case!("shouty_snake_case", ShoutySnakeCase, |i: String| i
+create_case_filter!("shouty_snake_case", ShoutySnakeCase, |i: String| i
     .to_shouty_snake_case());
-create_fiter_case!("snake_case", SnakeCase, |i: String| i.to_snake_case());
-create_fiter_case!("title_case", TitleCase, |i: String| i.to_title_case());
-create_fiter_case!("upper_camel_case", UpperCamelCase, |i: String| i
+create_case_filter!("snake_case", SnakeCase, |i: String| i.to_snake_case());
+create_case_filter!("title_case", TitleCase, |i: String| i.to_title_case());
+create_case_filter!("upper_camel_case", UpperCamelCase, |i: String| i
     .to_upper_camel_case());
