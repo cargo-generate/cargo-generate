@@ -81,12 +81,14 @@ enum SupportedVarType {
     String,
 }
 
-const RESERVED_NAMES: [&str; 5] = [
+const RESERVED_NAMES: [&str; 7] = [
     "authors",
     "os-arch",
     "project-name",
     "crate_name",
     "crate_type",
+    "within_cargo_project",
+    "is_init",
 ];
 
 pub fn fill_project_variables<F>(
