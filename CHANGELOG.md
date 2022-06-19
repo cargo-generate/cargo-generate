@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.15.2...HEAD)
 
+### ✨ Features
+- [Add case filters to `liquid` and functions to `Rhai`. Enables case changing functionallity from both `liquid` and `Rhai`](https://github.com/cargo-generate/cargo-generate/issues/638)
+
 ## [0.15.2] 2022-06-16
 [0.15.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.15.1...v0.15.2
 
