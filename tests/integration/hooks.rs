@@ -265,14 +265,12 @@ fn it_can_change_case() {
         .current_dir(&dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("kebab-case").from_utf8())
-        .stdout(predicates::str::contains("lowerCamelCase").from_utf8())
+        .stdout(predicates::str::contains("kebab-case"))
+        .stdout(predicates::str::contains("lowerCamelCase"))
         .stdout(predicates::str::contains("PascalCase"))
         .stdout(predicates::str::contains("SHOUTY-KEBAB-CASE"))
         .stdout(predicates::str::contains("SHOUTY_SNAKE_CASE"))
         .stdout(predicates::str::contains("snake_case"))
         .stdout(predicates::str::contains("Title Case"))
         .stdout(predicates::str::contains("UpperCamelCase"));
-
-    //assert!(dir.read("script-project/POST").contains("world"));
 }
