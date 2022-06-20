@@ -11,8 +11,8 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **make sure you**
-[ ] I'm on the latest rust version `rustup update`
-[ ] I'm on the latest cargo-generate version `cargo install cargo-generate`
+- [ ] I'm on the latest rust version `rustup update`
+- [ ] I'm on the latest cargo-generate version `cargo install cargo-generate`
 
 **To Reproduce**
 Steps to reproduce the behavior:
