@@ -413,7 +413,7 @@ fn expand_template(
     args: &GenerateArgs,
 ) -> Result<()> {
     let crate_type: CrateType = args.into();
-    let liquid_object = template::create_liquid_object(project_dir, name, &crate_type, args.force)?;
+    let liquid_object = template::create_liquid_object(args, project_dir, name, &crate_type)?;
     let liquid_object =
         project_variables::fill_project_variables(liquid_object, &template_config, |slot| {
             let provided_value = template_values.get(&slot.var_name).and_then(|v| v.as_str());

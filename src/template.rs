@@ -8,7 +8,6 @@ use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
 
 use crate::config::TemplateConfig;
-use crate::emoji;
 use crate::filenames::substitute_filename;
 use crate::include_exclude::*;
 use crate::progressbar::spinner;
@@ -16,6 +15,7 @@ use crate::template_filters::{
     KebabCaseFilterParser, PascalCaseFilterParser, SnakeCaseFilterParser,
 };
 use crate::template_variables::{get_authors, get_os_arch, Authors, CrateType, ProjectName};
+use crate::{emoji, GenerateArgs};
 
 fn engine() -> Parser {
     liquid::ParserBuilder::with_stdlib()
@@ -27,14 +27,17 @@ fn engine() -> Parser {
 }
 
 pub fn create_liquid_object(
+    args: &GenerateArgs,
     project_dir: &Path,
     name: &ProjectName,
     crate_type: &CrateType,
-    force: bool,
 ) -> Result<Object> {
     let authors: Authors = get_authors()?;
     let os_arch = get_os_arch();
-    let project_name = if force { name.raw() } else { name.kebab_case() };
+    let project_name = args
+        .force
+        .then(|| name.raw())
+        .unwrap_or_else(|| name.kebab_case());
 
     let mut liquid_object = Object::new();
     liquid_object.insert("project-name".into(), Value::Scalar(project_name.into()));
@@ -51,6 +54,7 @@ pub fn create_liquid_object(
         "within_cargo_project".into(),
         Value::Scalar(is_within_cargo_project(project_dir).into()),
     );
+    liquid_object.insert("is_init".into(), Value::Scalar(args.init.into()));
 
     Ok(liquid_object)
 }
