@@ -241,7 +241,42 @@ variable::set(&quot;license&quot;, license);
 </ul>
 <h4 id="other"><a class="header" href="#other">Other</a></h4>
 <ul>
-<li><strong>abort(reason: &amp;str)</strong>: Aborts <code>cargo-generate</code> with a script error.</li>
+<li><strong><code>abort(reason: &amp;str)</code></strong>: Aborts <code>cargo-generate</code> with a script error.</li>
+</ul>
+<h5 id="changing-case-of-strings"><a class="header" href="#changing-case-of-strings">Changing case of strings</a></h5>
+<ul>
+<li>
+<p><strong><code>to_kebab_case(str: &amp;str) -&gt; String</code></strong></p>
+<p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;we-are-going-to-inherit-the-earth&quot;</code></p>
+</li>
+<li>
+<p><strong><code>to_lower_camel_case(str: &amp;str) -&gt; String</code></strong></p>
+<p><code>&quot;It is we who built these palaces and cities.&quot;</code> =&gt; <code>&quot;itIsWeWhoBuiltThesePalacesAndCities&quot;</code></p>
+</li>
+<li>
+<p><strong><code>to_pascal_case(str: &amp;str) -&gt; String</code></strong></p>
+<p>Same as <code>to_upper_camel_case(str: &amp;str) -&gt; String</code></p>
+</li>
+<li>
+<p><strong><code>to_shouty_kebab_case(str: &amp;str) -&gt; String</code></strong></p>
+<p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;WE-ARE-GOING-TO-INHERIT-THE-EARTH&quot;</code></p>
+</li>
+<li>
+<p><strong><code>to_shouty_snake_case(str: &amp;str) -&gt; String</code></strong></p>
+<p><code>&quot;That world is growing in this minute.&quot;</code> =&gt; <code>&quot;THAT_WORLD_IS_GROWING_IN_THIS_MINUTE&quot;</code></p>
+</li>
+<li>
+<p><strong><code>to_snake_case(str: &amp;str) -&gt; String</code></strong></p>
+<p><code>&quot;We carry a new world here, in our hearts.&quot;</code> =&gt; <code>&quot;we_carry_a_new_world_here_in_our_hearts&quot;</code></p>
+</li>
+<li>
+<p><strong><code>to_title_case(str: &amp;str) -&gt; String</code></strong></p>
+<p><code>&quot;We have always lived in slums and holes in the wall.&quot;</code> =&gt; <code>&quot;We Have Always Lived In Slums And Holes In The Wall&quot;</code></p>
+</li>
+<li>
+<p><strong><code>to_upper_camel_case(str: &amp;str) -&gt; String</code></strong></p>
+<p><code>&quot;We are not in the least afraid of ruins.&quot;</code> =&gt; <code>&quot;WeAreNotInTheLeastAfraidOfRuins&quot;</code></p>
+</li>
 </ul>
 
                     </main>

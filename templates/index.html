@@ -159,6 +159,42 @@ Only files that are <strong>not</strong> listed in the exclude settings will be 
 will be removed from the local machine when <code>cargo-generate</code> is run on the end user's machine.
 The <code>.genignore</code> file is always ignored, so there is no need to list it in the <code>.genignore</code> file.</p>
 </blockquote>
+<h3 id="additional-liquid-filters"><a class="header" href="#additional-liquid-filters">Additional <code>liquid</code> filters</a></h3>
+<p>Following are filters that <code>cargo-generate</code> expands the <code>liquid</code> language with.</p>
+<ul>
+<li>
+<p><strong><code>kebab_case</code></strong></p>
+<p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;we-are-going-to-inherit-the-earth&quot;</code></p>
+</li>
+<li>
+<p><strong><code>lower_camel_case</code></strong></p>
+<p><code>&quot;It is we who built these palaces and cities.&quot;</code> =&gt; <code>&quot;itIsWeWhoBuiltThesePalacesAndCities&quot;</code></p>
+</li>
+<li>
+<p><strong><code>pascal_case</code></strong></p>
+<p>Same as <code>upper_camel_case</code></p>
+</li>
+<li>
+<p><strong><code>shouty_kebab_case</code></strong></p>
+<p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;WE-ARE-GOING-TO-INHERIT-THE-EARTH&quot;</code></p>
+</li>
+<li>
+<p><strong><code>shouty_snake_case</code></strong></p>
+<p><code>&quot;That world is growing in this minute.&quot;</code> =&gt; <code>&quot;THAT_WORLD_IS_GROWING_IN_THIS_MINUTE&quot;</code></p>
+</li>
+<li>
+<p><strong><code>snake_case</code></strong></p>
+<p><code>&quot;We carry a new world here, in our hearts.&quot;</code> =&gt; <code>&quot;we_carry_a_new_world_here_in_our_hearts&quot;</code></p>
+</li>
+<li>
+<p><strong><code>title_case</code></strong></p>
+<p><code>&quot;We have always lived in slums and holes in the wall.&quot;</code> =&gt; <code>&quot;We Have Always Lived In Slums And Holes In The Wall&quot;</code></p>
+</li>
+<li>
+<p><strong><code>upper_camel_case</code></strong></p>
+<p><code>&quot;We are not in the least afraid of ruins.&quot;</code> =&gt; <code>&quot;WeAreNotInTheLeastAfraidOfRuins&quot;</code></p>
+</li>
+</ul>
 <h2 id="templates-by-the-community"><a class="header" href="#templates-by-the-community">Templates by the community</a></h2>
 <p>It's encouraged to classify your template repository <a href="https://docs.github.com/en/github/administering-a-repository/managing-repository-settings/classifying-your-repository-with-topics">with a GitHub topic</a> labeled <code>cargo-generate</code>.</p>
 <p>So that every developer can find the template via <a href="https://github.com/topics/cargo-generate">cargo-generate topic on GitHub</a>.</p>
