@@ -1,5 +1,9 @@
 use anyhow::{Context, Result};
 use console::style;
+use heck::{
+    ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase, ToShoutySnakeCase, ToSnakeCase,
+    ToTitleCase, ToUpperCamelCase,
+};
 use rhai::EvalAltResult;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -80,6 +84,7 @@ fn create_rhai_engine(
 ) -> rhai::Engine {
     let mut engine = rhai::Engine::new();
 
+    // register modules
     let module = variable_mod::create_module(liquid_object);
     engine.register_static_module("variable", module.into());
 
@@ -89,6 +94,21 @@ fn create_rhai_engine(
     let module = system_mod::create_module(allow_commands, silent);
     engine.register_static_module("system", module.into());
 
+    // register functions for changing case
+    engine.register_fn("to_kebab_case", |str: &str| str.to_kebab_case());
+    engine.register_fn("to_lower_camel_case", |str: &str| str.to_lower_camel_case());
+    engine.register_fn("to_pascal_case", |str: &str| str.to_pascal_case());
+    engine.register_fn("to_shouty_kebab_case", |str: &str| {
+        str.to_shouty_kebab_case()
+    });
+    engine.register_fn("to_shouty_snake_case", |str: &str| {
+        str.to_shouty_snake_case()
+    });
+    engine.register_fn("to_snake_case", |str: &str| str.to_snake_case());
+    engine.register_fn("to_title_case", |str: &str| str.to_title_case());
+    engine.register_fn("to_upper_camel_case", |str: &str| str.to_upper_camel_case());
+
+    // other free-standing functions
     engine.register_result_fn("abort", |error: &str| -> HookResult<String> {
         Err(error.into())
     });
