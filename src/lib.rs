@@ -41,12 +41,13 @@ mod template_filters;
 mod template_variables;
 mod user_parsed_input;
 
+pub use crate::app_config::{app_config_path, AppConfig};
+pub use crate::favorites::list_favorites;
 pub use args::*;
 
 use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
-use favorites::list_favorites;
 use git::DEFAULT_BRANCH;
 use hooks::{execute_post_hooks, execute_pre_hooks};
 use ignore_me::remove_dir_files;
@@ -68,19 +69,12 @@ use tempfile::TempDir;
 
 use crate::template_variables::load_env_and_args_template_values;
 use crate::{
-    app_config::{app_config_path, AppConfig},
     project_variables::ConversionError,
     template_variables::{CrateType, ProjectName},
 };
 
 /// # Panics
-pub fn generate(mut args: GenerateArgs) -> Result<()> {
-    let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
-
-    if args.list_favorites {
-        return list_favorites(&app_config, &args);
-    }
-
+pub fn generate(app_config: AppConfig, mut args: GenerateArgs) -> Result<PathBuf> {
     if args.ssh_identity.is_none()
         && app_config.defaults.is_some()
         && app_config.defaults.as_ref().unwrap().ssh_identity.is_some()
@@ -157,7 +151,8 @@ pub fn generate(mut args: GenerateArgs) -> Result<()> {
         style("New project created").bold(),
         style(&project_dir.display()).underlined()
     );
-    Ok(())
+
+    Ok(project_dir)
 }
 
 fn prepare_local_template(

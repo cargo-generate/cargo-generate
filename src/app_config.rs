@@ -58,6 +58,7 @@ impl TryFrom<&Path> for AppConfig {
     }
 }
 
+/// # Panics
 pub fn app_config_path(path: &Option<PathBuf>) -> Result<PathBuf> {
     path.as_ref()
         .map(|p| p.canonicalize().unwrap())
