@@ -1,3 +1,4 @@
+use crate::helpers::project::read;
 use crate::helpers::project_builder::tmp_dir;
 use cargo_generate::{generate, GenerateArgs, TemplatePath, Vcs};
 
@@ -15,7 +16,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tmp_dir().build().root.into_path();
 
     let args_exposed: GenerateArgs = GenerateArgs {
         template_path: TemplatePath {
@@ -45,13 +46,11 @@ version = "0.1.0"
     };
 
     // need to cd to the dir as we aren't running in the cargo shell.
-    assert!(std::env::set_current_dir(&dir.root).is_ok());
+    assert!(std::env::set_current_dir(&dir).is_ok());
     assert_eq!(
         generate(args_exposed).expect("cannot generate project"),
-        dir.path().join("foobar_project")
+        dir.join("foobar_project")
     );
 
-    assert!(dir
-        .read("foobar_project/Cargo.toml")
-        .contains("foobar_project"));
+    assert!(read(&dir.join("foobar_project").join("Cargo.toml")).contains("foobar_project"));
 }
