@@ -2,7 +2,7 @@ use crate::helpers::project_builder::tmp_dir;
 use cargo_generate::{generate, GenerateArgs, TemplatePath, Vcs};
 
 #[test]
-fn it_allows_generate_call_with_public_args_and_return_generated_path() {
+fn it_allows_generate_call_with_public_args_and_returns_generated_path() {
     let template = tmp_dir()
         .file(
             "Cargo.toml",
