@@ -24,6 +24,43 @@ Only files that are **not** listed in the exclude settings will be templated.
 > will be removed from the local machine when `cargo-generate` is run on the end user's machine.
 > The `.genignore` file is always ignored, so there is no need to list it in the `.genignore` file.
 
+### Additional `liquid` filters
+
+Following are filters that `cargo-generate` expands the `liquid` language with.
+
+* **`kebab_case`**
+
+  `"We are going to inherit the earth."` => `"we-are-going-to-inherit-the-earth"`
+
+* **`lower_camel_case`**
+
+  `"It is we who built these palaces and cities."` => `"itIsWeWhoBuiltThesePalacesAndCities"`
+  
+* **`pascal_case`**
+
+  Same as `upper_camel_case`
+  
+* **`shouty_kebab_case`**
+
+  `"We are going to inherit the earth."` => `"WE-ARE-GOING-TO-INHERIT-THE-EARTH"`
+  
+* **`shouty_snake_case`**
+
+  `"That world is growing in this minute."` => `"THAT_WORLD_IS_GROWING_IN_THIS_MINUTE"`
+  
+* **`snake_case`**
+
+  `"We carry a new world here, in our hearts."` => `"we_carry_a_new_world_here_in_our_hearts"`
+  
+* **`title_case`**
+
+  `"We have always lived in slums and holes in the wall."` => `"We Have Always Lived In Slums And Holes In The Wall"`
+  
+* **`upper_camel_case`**
+
+  `"We are not in the least afraid of ruins."` => `"WeAreNotInTheLeastAfraidOfRuins"`
+
+
 ## Templates by the community
 
 It's encouraged to classify your template repository [with a GitHub topic](https://docs.github.com/en/github/administering-a-repository/managing-repository-settings/classifying-your-repository-with-topics) labeled `cargo-generate`.

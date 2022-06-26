@@ -3,6 +3,7 @@
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.15.2...HEAD)
 
 ### ✨ Features
+- [Add case filters to `liquid` and functions to `Rhai`. Enables case changing functionallity from both `liquid` and `Rhai`](https://github.com/cargo-generate/cargo-generate/issues/638)
 - [Add placeholder `{{is_init}}`. Enables templates to adust if they are expanded with the `--init` arg for `cargo-generate`](https://github.com/cargo-generate/cargo-generate/issues/649)
 
 ### Contributors

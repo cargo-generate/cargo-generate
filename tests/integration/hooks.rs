@@ -227,3 +227,50 @@ fn it_fails_when_it_cant_execute_system_command() {
             .from_utf8(),
         );
 }
+
+#[test]
+fn it_can_change_case() {
+    let template = tmp_dir()
+        .file(
+            "pre-script.rhai",
+            indoc! {r#"
+            print(to_kebab_case("kebab case"));
+            print(to_lower_camel_case("lower camel case"));
+            print(to_pascal_case("pascal case"));
+            print(to_shouty_kebab_case("shouty kebab case"));
+            print(to_shouty_snake_case("shouty snake case"));
+            print(to_snake_case("snake case"));
+            print(to_title_case("title case"));
+            print(to_upper_camel_case("upper camel case"));
+        "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+            [hooks]
+            pre = ["pre-script.rhai"]
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("script-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("kebab-case"))
+        .stdout(predicates::str::contains("lowerCamelCase"))
+        .stdout(predicates::str::contains("PascalCase"))
+        .stdout(predicates::str::contains("SHOUTY-KEBAB-CASE"))
+        .stdout(predicates::str::contains("SHOUTY_SNAKE_CASE"))
+        .stdout(predicates::str::contains("snake_case"))
+        .stdout(predicates::str::contains("Title Case"))
+        .stdout(predicates::str::contains("UpperCamelCase"));
+}

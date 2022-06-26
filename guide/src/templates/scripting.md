@@ -106,7 +106,41 @@ Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
 
 #### Other
 
-* **abort(reason: &str)**: Aborts `cargo-generate` with a script error.
+* **`abort(reason: &str)`**: Aborts `cargo-generate` with a script error.
+
+##### Changing case of strings
+
+* **`to_kebab_case(str: &str) -> String`**
+
+  `"We are going to inherit the earth."` => `"we-are-going-to-inherit-the-earth"`
+
+* **`to_lower_camel_case(str: &str) -> String`**
+
+  `"It is we who built these palaces and cities."` => `"itIsWeWhoBuiltThesePalacesAndCities"`
+  
+* **`to_pascal_case(str: &str) -> String`**
+
+  Same as `to_upper_camel_case(str: &str) -> String`
+  
+* **`to_shouty_kebab_case(str: &str) -> String`**
+
+  `"We are going to inherit the earth."` => `"WE-ARE-GOING-TO-INHERIT-THE-EARTH"`
+  
+* **`to_shouty_snake_case(str: &str) -> String`**
+
+  `"That world is growing in this minute."` => `"THAT_WORLD_IS_GROWING_IN_THIS_MINUTE"`
+  
+* **`to_snake_case(str: &str) -> String`**
+
+  `"We carry a new world here, in our hearts."` => `"we_carry_a_new_world_here_in_our_hearts"`
+  
+* **`to_title_case(str: &str) -> String`**
+
+  `"We have always lived in slums and holes in the wall."` => `"We Have Always Lived In Slums And Holes In The Wall"`
+  
+* **`to_upper_camel_case(str: &str) -> String`**
+
+  `"We are not in the least afraid of ruins."` => `"WeAreNotInTheLeastAfraidOfRuins"`
   
 
 [`Rhai`]: https://rhai.rs/book/

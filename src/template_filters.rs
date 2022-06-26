@@ -1,85 +1,53 @@
 use anyhow::Result;
-use heck::{ToKebabCase, ToSnakeCase, ToUpperCamelCase};
+use heck::{
+    ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase, ToShoutySnakeCase, ToSnakeCase,
+    ToTitleCase, ToUpperCamelCase,
+};
 use liquid_core::{Filter, ParseFilter, Runtime, ValueView};
 use liquid_derive::FilterReflection;
 
-#[derive(Clone, ParseFilter, FilterReflection)]
-#[filter(
-    name = "kebab_case",
-    description = "Change text to kebab-case.",
-    parsed(KebabCaseFilter)
-)]
-pub struct KebabCaseFilterParser;
+macro_rules! create_case_filter {
+    ($name:literal, $kebab_name:ident, $expr:expr) => {
+        paste::paste! {
+            #[derive(Clone, ParseFilter, FilterReflection)]
+            #[filter(
+                name = $name,
+                description = "Change text to " $name,
+                parsed([<$kebab_name Filter>])
+            )]
+            pub struct [<$kebab_name Filter Parser>];
 
-#[derive(Debug, Default, liquid_derive::Display_filter)]
-#[name = "kebab_case"]
-struct KebabCaseFilter;
+            #[derive(Debug, Default, liquid_derive::Display_filter)]
+            #[name = $name]
+            struct [<$kebab_name Filter>];
 
-impl Filter for KebabCaseFilter {
-    fn evaluate(
-        &self,
-        input: &dyn ValueView,
-        _runtime: &dyn Runtime,
-    ) -> Result<liquid_core::model::Value, liquid_core::error::Error> {
-        let input = input
-            .as_scalar()
-            .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
+            impl Filter for [<$kebab_name Filter>] {
+                fn evaluate(
+                    &self,
+                    input: &dyn ValueView,
+                    _runtime: &dyn Runtime,
+                ) -> Result<liquid_core::model::Value, liquid_core::error::Error> {
+                    let input = input
+                        .as_scalar()
+                        .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
 
-        let input = input.into_string().to_string().to_kebab_case();
-        Ok(liquid_core::model::Value::scalar(input))
-    }
+                    let input = $expr(input.into_string().to_string());
+                    Ok(liquid_core::model::Value::scalar(input))
+                }
+            }
+        }
+    };
 }
 
-#[derive(Clone, liquid_derive::ParseFilter, liquid_derive::FilterReflection)]
-#[filter(
-    name = "pascal_case",
-    description = "Change text to PascalCase.",
-    parsed(PascalCaseFilter)
-)]
-pub struct PascalCaseFilterParser;
-
-#[derive(Debug, Default, liquid_derive::Display_filter)]
-#[name = "pascal_case"]
-struct PascalCaseFilter;
-
-impl Filter for PascalCaseFilter {
-    fn evaluate(
-        &self,
-        input: &dyn ValueView,
-        _runtime: &dyn Runtime,
-    ) -> Result<liquid::model::Value, liquid_core::error::Error> {
-        let input = input
-            .as_scalar()
-            .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
-
-        let input = input.into_string().to_string().to_upper_camel_case();
-        Ok(liquid::model::Value::scalar(input))
-    }
-}
-
-#[derive(Clone, liquid_derive::ParseFilter, liquid_derive::FilterReflection)]
-#[filter(
-    name = "snake_case",
-    description = "Change text to snake_case.",
-    parsed(SnakeCaseFilter)
-)]
-pub struct SnakeCaseFilterParser;
-
-#[derive(Debug, Default, liquid_derive::Display_filter)]
-#[name = "snake_case"]
-struct SnakeCaseFilter;
-
-impl Filter for SnakeCaseFilter {
-    fn evaluate(
-        &self,
-        input: &dyn ValueView,
-        _runtime: &dyn Runtime,
-    ) -> Result<liquid::model::Value, liquid_core::error::Error> {
-        let input = input
-            .as_scalar()
-            .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
-
-        let input = input.into_string().to_string().to_snake_case();
-        Ok(input.to_value())
-    }
-}
+create_case_filter!("kebab_case", KebabCase, |i: String| i.to_kebab_case());
+create_case_filter!("lower_camel_case", LowerCamelCase, |i: String| i
+    .to_lower_camel_case());
+create_case_filter!("pascal_case", PascalCase, |i: String| i.to_pascal_case());
+create_case_filter!("shouty_kebab_case", ShoutyKebabCase, |i: String| i
+    .to_shouty_kebab_case());
+create_case_filter!("shouty_snake_case", ShoutySnakeCase, |i: String| i
+    .to_shouty_snake_case());
+create_case_filter!("snake_case", SnakeCase, |i: String| i.to_snake_case());
+create_case_filter!("title_case", TitleCase, |i: String| i.to_title_case());
+create_case_filter!("upper_camel_case", UpperCamelCase, |i: String| i
+    .to_upper_camel_case());
