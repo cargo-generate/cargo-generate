@@ -1,0 +1,37 @@
+name: Release deb package
+on:
+  push:
+    tags: 
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]-alpha.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]-beta.[0-9]+'
+    paths-ignore:
+      - "**/docs/**"
+      - "**.md"
+
+env:
+  CLICOLOR_FORCE: 1
+jobs:
+  release-deb:
+    name: Build and release a .deb package
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Install rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+    - name: Install cargo-deb
+      run: cargo install cargo-deb
+    - name: Build .deb package
+      run: cargo deb
+    - name: Upload .deb package
+      uses: svenstaro/upload-release-action@v1-release
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: 'target/debian/*'
+        tag: ${{ github.ref }}
+        file_glob: true
