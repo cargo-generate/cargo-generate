@@ -1,3 +1,5 @@
+use std::ops::Not;
+
 use predicates::prelude::*;
 
 use crate::helpers::project::binary;
@@ -98,6 +100,52 @@ fn it_accepts_template_values_file_from_environment() {
 
     let random_toml = dbg!(dir.read("foobar-project/random.toml"));
     assert!(random_toml.contains("value = \"env-file-value\""));
+}
+
+#[test]
+fn it_accepts_bool_in_file() {
+    let template = tmp_dir()
+        .file(
+            "my-values.toml",
+            indoc! {r#"
+                [values]
+                v1 = true
+                v2 = "true"
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            r#"
+[placeholders]
+v1 = {type="bool", prompt="?"}
+
+[conditional.'v1'.placeholders]
+v2 = {type="bool", prompt="?"}
+
+[conditional.'v2']
+ignore = ["included"]
+"#,
+        )
+        .file("included", "{{project-name}}")
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--silent")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--template-values-file")
+        .arg(template.path().join("my-values.toml"))
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+    assert!(dir.exists("foobar-project/included").not());
 }
 
 #[test]

@@ -1,3 +1,5 @@
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
+
 use anyhow::Result;
 use liquid::Object;
 use liquid_core::model::map::Entry;
@@ -14,6 +16,7 @@ pub struct TemplateSlots {
     pub(crate) prompt: String,
 }
 
+// Information needed to prompt for a typed value
 #[derive(Debug, Clone)]
 pub enum VarInfo {
     Bool { default: Option<bool> },
@@ -92,41 +95,38 @@ const RESERVED_NAMES: [&str; 7] = [
 ];
 
 pub fn fill_project_variables<F>(
-    mut template_object: Object,
-    template_config: &Config,
+    template_object: Rc<RefCell<Object>>,
+    config: &Config,
     value_provider: F,
-) -> Result<Object>
+) -> Result<()>
 where
     F: Fn(&TemplateSlots) -> Result<Value>,
 {
-    let template_slots = template_config
+    let template_slots = config
         .placeholders
         .as_ref()
         .map(try_into_template_slots)
-        .unwrap_or_else(|| Ok(Vec::new()))?;
+        .unwrap_or_else(|| Ok(HashMap::new()))?;
 
-    for slot in template_slots {
-        let key = slot.var_name.clone();
-
-        match template_object.entry(key) {
+    for (&key, slot) in template_slots.iter() {
+        match template_object.borrow_mut().entry(key.to_string()) {
             Entry::Occupied(_) => (), // we already have the value from the config file
             Entry::Vacant(entry) => {
-                // we don't have the file from the config and we can ask for it
-                let value = value_provider(&slot)?;
+                // we don't have the file from the config but we can ask for it
+                let value = value_provider(slot)?;
                 entry.insert(value);
             }
         }
     }
-
-    Ok(template_object)
+    Ok(())
 }
 
 fn try_into_template_slots(
     TemplateSlotsTable(table): &TemplateSlotsTable,
-) -> Result<Vec<TemplateSlots>, ConversionError> {
-    let mut slots = Vec::with_capacity(table.len());
+) -> Result<HashMap<&str, TemplateSlots>, ConversionError> {
+    let mut slots = HashMap::with_capacity(table.len());
     for (key, values) in table.iter() {
-        slots.push(try_key_value_into_slot(key, values)?);
+        slots.insert(key.as_str(), try_key_value_into_slot(key, values)?);
     }
     Ok(slots)
 }

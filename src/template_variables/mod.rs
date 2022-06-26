@@ -60,9 +60,10 @@ fn read_template_values_file(path: &Path) -> Result<HashMap<String, Value>> {
             .map(|v| v.values)
             .map_err(|e| e.into()),
         Err(e) => anyhow::bail!(
-            "{} {} {}",
+            "{} {} \"{}\": {}",
             emoji::ERROR,
             style("Values File Error:").bold().red(),
+            style(path.display()).bold().red(),
             style(e).bold().red(),
         ),
     }
