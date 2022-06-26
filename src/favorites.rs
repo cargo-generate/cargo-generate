@@ -1,13 +1,15 @@
 //! Module dealing with <favorite> arg passed to cargo-generate
 
 use crate::{
-    app_config::{AppConfig, FavoriteConfig},
+    app_config::{app_config_path, AppConfig, FavoriteConfig},
     emoji, GenerateArgs,
 };
 use anyhow::Result;
 use console::style;
 
-pub fn list_favorites(app_config: &AppConfig, args: &GenerateArgs) -> Result<()> {
+pub fn list_favorites(args: &GenerateArgs) -> Result<()> {
+    let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
+
     let data = {
         let mut d = app_config
             .favorites

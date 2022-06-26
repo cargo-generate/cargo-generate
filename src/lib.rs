@@ -74,7 +74,9 @@ use crate::{
 };
 
 /// # Panics
-pub fn generate(app_config: AppConfig, mut args: GenerateArgs) -> Result<PathBuf> {
+pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
+    let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
+
     if args.ssh_identity.is_none()
         && app_config.defaults.is_some()
         && app_config.defaults.as_ref().unwrap().ssh_identity.is_some()
