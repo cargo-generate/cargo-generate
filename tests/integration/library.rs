@@ -49,7 +49,7 @@ version = "0.1.0"
     #[cfg(target_os = "macos")]
     assert_eq!(
         generate(args_exposed).expect("cannot generate project"),
-        Path::from("/private")
+        std::path::Path::from("/private")
             .join(dir.path())
             .join("foobar_project")
     );
