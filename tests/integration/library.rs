@@ -55,3 +55,53 @@ version = "0.1.0"
         .read("foobar_project/Cargo.toml")
         .contains("foobar_project"));
 }
+
+#[test]
+fn it_returns_the_generated_path() {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    let args_exposed: GenerateArgs = GenerateArgs {
+        template_path: TemplatePath {
+            auto_path: None,
+            git: Some(format!("{}", template.path().display())),
+            branch: Some(String::from("main")),
+            path: None,
+            favorite: None,
+            subfolder: None,
+        },
+        name: Some(String::from("barbaz_project")),
+        force: true,
+        vcs: Vcs::Git,
+        verbose: true,
+        template_values_file: None,
+        silent: false,
+        list_favorites: false,
+        config: None,
+        bin: true,
+        lib: false,
+        ssh_identity: None,
+        define: vec![],
+        init: false,
+        destination: None,
+        force_git_init: false,
+        allow_commands: false,
+    };
+
+    assert!(std::env::set_current_dir(&dir.root).is_ok());
+    assert_eq!(
+        generate(args_exposed).expect("cannot generate project"),
+        dir.root.into_path().join("barbaz_project")
+    );
+}
