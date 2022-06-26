@@ -46,15 +46,6 @@ version = "0.1.0"
 
     // need to cd to the dir as we aren't running in the cargo shell.
     assert!(std::env::set_current_dir(&dir.root).is_ok());
-    #[cfg(target_os = "macos")]
-    assert_eq!(
-        generate(args_exposed).expect("cannot generate project"),
-        std::path::PathBuf::from("/private")
-            .join(dir.path())
-            .join("foobar_project")
-    );
-
-    #[cfg(not(target_os = "macos"))]
     assert_eq!(
         generate(args_exposed).expect("cannot generate project"),
         dir.path().join("foobar_project")
