@@ -72,7 +72,7 @@ version = "0.1.0"
 
     let dir = tmp_dir().build();
 
-    let args_exposed: GenerateArgs = GenerateArgs {
+    let args: GenerateArgs = GenerateArgs {
         template_path: TemplatePath {
             auto_path: None,
             git: Some(format!("{}", template.path().display())),
@@ -101,7 +101,7 @@ version = "0.1.0"
 
     assert!(std::env::set_current_dir(&dir.root).is_ok());
     assert_eq!(
-        generate(args_exposed).expect("cannot generate project"),
+        generate(args).expect("cannot generate project"),
         dir.root.into_path().join("barbaz_project")
     );
 }
