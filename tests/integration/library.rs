@@ -1,4 +1,3 @@
-use crate::helpers::project::read;
 use crate::helpers::project_builder::tmp_dir;
 use cargo_generate::{generate, GenerateArgs, TemplatePath, Vcs};
 
@@ -40,5 +39,9 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
         dir.join("foobar_project")
     );
 
-    assert!(read(&dir.join("foobar_project").join("Cargo.toml")).contains("foobar_project"));
+    assert!(
+        std::fs::read_to_string(&dir.join("foobar_project").join("Cargo.toml"))
+            .expect("cannot read file")
+            .contains("foobar_project")
+    );
 }

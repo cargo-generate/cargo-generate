@@ -41,13 +41,3 @@ impl Project {
         self.path().join(path).exists()
     }
 }
-
-pub fn read(path: &Path) -> String {
-    let mut ret = String::new();
-    File::open(&path)
-        .unwrap_or_else(|_| panic!("couldn't open file {:?}", path))
-        .read_to_string(&mut ret)
-        .unwrap_or_else(|_| panic!("couldn't read file {:?}", path));
-
-    ret
-}
