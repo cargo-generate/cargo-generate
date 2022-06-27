@@ -2,20 +2,10 @@ use crate::helpers::project_builder::tmp_dir;
 use cargo_generate::{generate, GenerateArgs, TemplatePath, Vcs};
 
 #[test]
-fn it_allows_generate_call_with_public_args() {
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        )
-        .init_git()
-        .build();
+fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
+    let template = tmp_dir().init_default_template().init_git().build();
 
-    let dir = tmp_dir().build();
+    let dir = tmp_dir().build().root.into_path();
 
     let args_exposed: GenerateArgs = GenerateArgs {
         template_path: TemplatePath {
@@ -39,15 +29,19 @@ version = "0.1.0"
         ssh_identity: None,
         define: vec![],
         init: false,
-        destination: None,
+        destination: Some(dir.clone()),
         force_git_init: false,
         allow_commands: false,
     };
-    // need to cd to the dir as we aren't running in the cargo shell.
-    assert!(std::env::set_current_dir(&dir.root).is_ok());
-    assert!(generate(args_exposed).is_ok());
 
-    assert!(dir
-        .read("foobar_project/Cargo.toml")
-        .contains("foobar_project"));
+    assert_eq!(
+        generate(args_exposed).expect("cannot generate project"),
+        dir.join("foobar_project")
+    );
+
+    assert!(
+        std::fs::read_to_string(&dir.join("foobar_project").join("Cargo.toml"))
+            .expect("cannot read file")
+            .contains("foobar_project")
+    );
 }
