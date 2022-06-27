@@ -173,8 +173,12 @@ fn get_source_template_into_temp(
     let branch: String;
     match template_location {
         TemplateLocation::Git(git) => {
-            let (temp_dir2, branch2) =
-                git::clone_git_template_into_temp(git.url(), git.branch(), git.identity())?;
+            let (temp_dir2, branch2) = git::clone_git_template_into_temp(
+                git.url(),
+                git.branch(),
+                git.tag(),
+                git.identity(),
+            )?;
             temp_dir = temp_dir2;
             branch = branch2;
         }
