@@ -4,17 +4,7 @@ use cargo_generate::{generate, GenerateArgs, TemplatePath, Vcs};
 
 #[test]
 fn it_allows_generate_call_with_public_args_and_returns_generated_path() {
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        )
-        .init_git()
-        .build();
+    let template = tmp_dir().init_default_template().init_git().build();
 
     let dir = tmp_dir().build().root.into_path();
 
@@ -40,13 +30,11 @@ version = "0.1.0"
         ssh_identity: None,
         define: vec![],
         init: false,
-        destination: None,
+        destination: Some(dir.clone()),
         force_git_init: false,
         allow_commands: false,
     };
 
-    // need to cd to the dir as we aren't running in the cargo shell.
-    assert!(std::env::set_current_dir(&dir).is_ok());
     assert_eq!(
         generate(args_exposed).expect("cannot generate project"),
         dir.join("foobar_project")
