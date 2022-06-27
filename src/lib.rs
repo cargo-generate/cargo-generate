@@ -52,16 +52,13 @@ use git::DEFAULT_BRANCH;
 use hooks::execute_hooks;
 use ignore_me::remove_dir_files;
 use interactive::prompt_for_variable;
-use liquid::ValueView;
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::ffi::OsString;
 use std::{
     borrow::Borrow,
-    cell::RefCell,
     collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
-    rc::Rc,
 };
 use user_parsed_input::{TemplateLocation, UserParsedInput};
 
@@ -74,6 +71,8 @@ use crate::{
 };
 
 use self::config::TemplateConfig;
+use self::hooks::evaluate_script;
+use self::template::create_liquid_object;
 
 /// # Panics
 pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
@@ -411,17 +410,13 @@ fn expand_template(
     mut config: Config,
     args: &GenerateArgs,
 ) -> Result<()> {
-    let crate_type: CrateType = args.into();
-    let liquid_object = template::create_liquid_object(args, project_dir, name, &crate_type)?;
-    let mut liquid_object = Rc::new(RefCell::new(liquid_object));
-
-    fill_placeholders_and_merge_conditionals(
+    let mut liquid_object = fill_placeholders_and_merge_conditionals(
         &mut config,
-        liquid_object.clone(),
+        create_liquid_object(args, project_dir, name, CrateType::from(args))?,
         provided_template_values,
         args,
     )?;
-    add_missing_provided_values(liquid_object.clone(), provided_template_values)?;
+    add_missing_provided_values(&mut liquid_object, provided_template_values)?;
 
     execute_hooks(
         dir,
@@ -437,13 +432,9 @@ fn expand_template(
     ignore_me::remove_unneeded_files(dir, &template_config.ignore, args.verbose)?;
     let mut pbar = progressbar::new();
 
-    // SAFETY: We gave a clone of the Rc to `execute_pre_hooks` which by now has already been dropped. Therefore, there
-    // is no other pointer into this Rc which makes it safe to `get_mut`.
-    let liquid_object_ref = Rc::get_mut(&mut liquid_object).unwrap().get_mut();
-
     template::walk_dir(
         dir,
-        liquid_object_ref,
+        &liquid_object,
         &mut template_config,
         &all_hook_files,
         &mut pbar,
@@ -452,7 +443,7 @@ fn expand_template(
 
     execute_hooks(
         dir,
-        Rc::clone(&liquid_object),
+        liquid_object,
         &config.get_post_hooks(),
         args.allow_commands,
         args.silent,
@@ -467,10 +458,9 @@ fn expand_template(
 /// ## Note:
 /// Values for which a placeholder exists, should already be filled by `fill_project_variables`
 pub(crate) fn add_missing_provided_values(
-    liquid_object: Rc<RefCell<liquid::Object>>,
+    liquid_object: &mut liquid::Object,
     template_values: &HashMap<String, toml::Value>,
 ) -> Result<(), anyhow::Error> {
-    let mut liquid_object = liquid_object.borrow_mut();
     template_values.iter().try_for_each(|(k, v)| {
         if liquid_object.contains_key(k.as_str()) {
             return Ok(());
@@ -496,39 +486,18 @@ pub(crate) fn add_missing_provided_values(
 
 fn fill_placeholders_and_merge_conditionals(
     config: &mut Config,
-    liquid_object: Rc<RefCell<liquid::Object>>,
+    mut liquid_object: liquid::Object,
     template_values: &HashMap<String, toml::Value>,
     args: &GenerateArgs,
-) -> Result<(), anyhow::Error> {
+) -> Result<liquid::Object, anyhow::Error> {
     let conditionals = config.conditional.take();
     if conditionals.is_none() {
-        return Ok(());
+        return Ok(liquid_object);
     }
     let mut conditionals = conditionals.unwrap();
 
-    let mut conditional_evaluation_engine = rhai::Engine::new();
-    #[allow(deprecated)]
-    conditional_evaluation_engine.on_var({
-        let liquid_object = liquid_object.clone();
-        move |name, _, _| {
-            let x = liquid_object.as_ref().borrow();
-            match x.get(name) {
-                Some(value) => Ok(value.as_view().as_scalar().map(|scalar| {
-                    scalar.to_bool().map_or_else(
-                        || {
-                            let v = scalar.to_kstr();
-                            v.as_str().into()
-                        },
-                        |v| v.into(),
-                    )
-                })),
-                None => Ok(None),
-            }
-        }
-    });
-
     loop {
-        project_variables::fill_project_variables(liquid_object.clone(), config, |slot| {
+        project_variables::fill_project_variables(&mut liquid_object, config, |slot| {
             let provided_value = template_values.get(&slot.var_name).and_then(|v| match v {
                 toml::Value::String(s) => Some(s.clone()),
                 toml::Value::Integer(s) => Some(s.to_string()),
@@ -549,8 +518,7 @@ fn fill_placeholders_and_merge_conditionals(
         let placeholders_changed = conditionals
             .iter_mut()
             .filter_map(|(key, cfg)| {
-                conditional_evaluation_engine
-                    .eval_expression::<bool>(key)
+                evaluate_script::<bool>(liquid_object.clone(), key)
                     .ok()
                     .filter(|&r| r)
                     .map(|_| cfg)
@@ -599,7 +567,7 @@ fn fill_placeholders_and_merge_conditionals(
         }
     }
 
-    Ok(())
+    Ok(liquid_object)
 }
 
 fn rename_warning(name: &ProjectName) {

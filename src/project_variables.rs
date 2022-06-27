@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::collections::HashMap;
 
 use anyhow::Result;
 use liquid::Object;
@@ -95,7 +95,7 @@ const RESERVED_NAMES: [&str; 7] = [
 ];
 
 pub fn fill_project_variables<F>(
-    template_object: Rc<RefCell<Object>>,
+    template_object: &mut Object,
     config: &Config,
     value_provider: F,
 ) -> Result<()>
@@ -109,7 +109,7 @@ where
         .unwrap_or_else(|| Ok(HashMap::new()))?;
 
     for (&key, slot) in template_slots.iter() {
-        match template_object.borrow_mut().entry(key.to_string()) {
+        match template_object.entry(key.to_string()) {
             Entry::Occupied(_) => (), // we already have the value from the config file
             Entry::Vacant(entry) => {
                 // we don't have the file from the config but we can ask for it

@@ -33,7 +33,7 @@ pub fn create_liquid_object(
     args: &GenerateArgs,
     project_dir: &Path,
     name: &ProjectName,
-    crate_type: &CrateType,
+    crate_type: CrateType,
 ) -> Result<Object> {
     let authors: Authors = get_authors()?;
     let os_arch = get_os_arch();
