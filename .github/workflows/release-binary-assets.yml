@@ -55,6 +55,17 @@ jobs:
           command: run
           use-cross: ${{ matrix.cross }}
           args: --features vendored-openssl --release --target=${{ matrix.target }} -- --version
+      - name: Install cargo-deb and create a deb package
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cargo install cargo-deb
+          cargo deb
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: 'target/debian/*'
+          tag: ${{ github.ref }}
+          file_glob: true
       - name: Create Archive
         id: archive
         shell: bash
