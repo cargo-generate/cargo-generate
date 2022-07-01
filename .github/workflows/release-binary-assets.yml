@@ -60,6 +60,7 @@ jobs:
         run: |
           cargo install cargo-deb
           cargo deb
+      - name: Upload the deb to release files
         uses: svenstaro/upload-release-action@v1-release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
