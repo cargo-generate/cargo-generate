@@ -162,27 +162,27 @@ impl TemplatePath {
             .unwrap()
     }
 
-    pub const fn git(&self) -> Option<&(impl AsRef<str> + '_)> {
+    pub fn git(&self) -> Option<&(impl AsRef<str> + '_)> {
         self.git.as_ref()
     }
 
-    pub const fn branch(&self) -> Option<&(impl AsRef<str> + '_)> {
+    pub fn branch(&self) -> Option<&(impl AsRef<str> + '_)> {
         self.branch.as_ref()
     }
 
-    pub const fn path(&self) -> Option<&(impl AsRef<str> + '_)> {
+    pub fn path(&self) -> Option<&(impl AsRef<str> + '_)> {
         self.path.as_ref()
     }
 
-    pub const fn favorite(&self) -> Option<&(impl AsRef<str> + '_)> {
+    pub fn favorite(&self) -> Option<&(impl AsRef<str> + '_)> {
         self.favorite.as_ref()
     }
 
-    pub const fn auto_path(&self) -> Option<&(impl AsRef<str> + '_)> {
+    pub fn auto_path(&self) -> Option<&(impl AsRef<str> + '_)> {
         self.auto_path.as_ref()
     }
 
-    pub const fn subfolder(&self) -> Option<&(impl AsRef<str> + '_)> {
+    pub fn subfolder(&self) -> Option<&(impl AsRef<str> + '_)> {
         if self.git.is_some() || self.path.is_some() || self.favorite.is_some() {
             self.auto_path.as_ref()
         } else {

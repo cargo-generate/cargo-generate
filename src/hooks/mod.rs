@@ -21,7 +21,7 @@ type HookResult<T> = std::result::Result<T, Box<EvalAltResult>>;
 struct CleanupJob<F: FnOnce()>(Option<F>);
 
 impl<F: FnOnce()> CleanupJob<F> {
-    pub const fn new(f: F) -> Self {
+    pub fn new(f: F) -> Self {
         Self(Some(f))
     }
 }
