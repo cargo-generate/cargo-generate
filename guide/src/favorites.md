@@ -13,6 +13,7 @@ description = "<optional description, visible with --list-favorites>"
 git = "https://github.com/ashleygwilliams/wasm-pack-template"
 branch = "<optional-branch>"
 subfolder = "<optional-subfolder>"
+vcs = "<optional: None|Git>"
 ```
 
 Values may be overridden using the CLI arguments of the same names (e.g. `--subfolder` for the `subfolder` value).
