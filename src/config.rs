@@ -6,6 +6,8 @@ use std::{collections::HashMap, fs};
 use std::{convert::TryFrom, io::ErrorKind};
 use walkdir::WalkDir;
 
+use crate::Vcs;
+
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
 #[derive(Deserialize, Debug, PartialEq, Default, Clone)]
@@ -28,6 +30,7 @@ pub struct TemplateConfig {
     pub include: Option<Vec<String>>,
     pub exclude: Option<Vec<String>>,
     pub ignore: Option<Vec<String>>,
+    pub vcs: Option<Vcs>,
 }
 
 #[derive(Deserialize, Debug, PartialEq, Clone)]
@@ -183,6 +186,7 @@ mod tests {
                 include: Some(vec!["Cargo.toml".into()]),
                 exclude: None,
                 ignore: None,
+                vcs: None,
             })
         );
         assert!(config.placeholders.is_some());

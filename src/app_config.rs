@@ -7,7 +7,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::info;
+use crate::{info, Vcs};
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
@@ -32,6 +32,7 @@ pub struct FavoriteConfig {
     pub subfolder: Option<String>,
     pub path: Option<PathBuf>,
     pub values: Option<HashMap<String, toml::Value>>,
+    pub vcs: Option<Vcs>,
 }
 
 #[derive(Deserialize, Default)]

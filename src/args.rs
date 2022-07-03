@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::{anyhow, Result};
 use clap::{Args, Parser};
+use serde::Deserialize;
 
 use crate::git;
 
@@ -77,10 +78,10 @@ pub struct GenerateArgs {
     pub config: Option<PathBuf>,
 
     /// Specify the VCS used to initialize the generated template.
-    #[clap(long, default_value = "git", value_parser)]
-    pub vcs: Vcs,
+    #[clap(long, value_parser)]
+    pub vcs: Option<Vcs>,
 
-    /// Populates a template variable `crate_type` with value `"lib"`
+    /// Populates template variable `crate_type` with value `"lib"`
     #[clap(long, conflicts_with = "bin", action)]
     pub lib: bool,
 
@@ -191,7 +192,7 @@ impl TemplatePath {
     }
 }
 
-#[derive(Debug, Parser, Clone, Copy)]
+#[derive(Debug, Parser, Clone, Copy, PartialEq, Eq, Deserialize)]
 pub enum Vcs {
     None,
     Git,

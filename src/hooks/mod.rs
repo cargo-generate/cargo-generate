@@ -35,7 +35,7 @@ impl<F: FnOnce()> Drop for CleanupJob<F> {
 pub fn execute_pre_hooks(
     dir: &Path,
     liquid_object: Rc<RefCell<liquid::Object>>,
-    template_cfg: &mut config::Config,
+    template_cfg: &config::Config,
     allow_commands: bool,
     silent: bool,
 ) -> Result<()> {

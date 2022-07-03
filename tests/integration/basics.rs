@@ -1277,6 +1277,46 @@ version = "0.1.0"
 }
 
 #[test]
+fn vsc_none_can_be_specified_in_the_template() {
+    // Build and commit on branch named 'main'
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project"
+version = "0.1.0"
+"#,
+        )
+        .file(
+            "cargo-generate.toml",
+            r#"[template]
+vcs = "None"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
+    assert!(Repository::open(dir.path().join("foobar-project")).is_err());
+}
+
+#[test]
 fn it_provides_crate_type_lib() {
     // Build and commit on branch named 'main'
     let template = tmp_dir()
