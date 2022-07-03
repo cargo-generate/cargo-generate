@@ -297,3 +297,49 @@ fn favorites_default_value_can_be_overridden_by_environment() {
         .read("my-project/Cargo.toml")
         .contains(r#"description = "Overridden value""#));
 }
+
+#[test]
+fn favorite_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "A wonderful project"
+                version = "0.1.0"
+                "#},
+        )
+        .init_git()
+        .build();
+    let config_dir = tmp_dir()
+        .file(
+            "config.toml",
+            &format!(
+                indoc! {r#"
+                [favorites.favorite]
+                git = "{git}"
+                init = true
+                "#},
+                git = template.path().display().to_string().escape_default(),
+            ),
+        )
+        .build();
+
+    let dir = tmp_dir().build();
+    binary()
+        .arg("generate")
+        .arg("--config")
+        .arg(config_dir.path().join("config.toml"))
+        .arg("--name")
+        .arg("my-proj")
+        .arg("favorite")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.read("Cargo.toml").contains("my-proj"));
+    assert!(!dir.path().join(".git").exists());
+    Ok(())
+}

@@ -28,6 +28,7 @@ pub struct TemplateConfig {
     pub include: Option<Vec<String>>,
     pub exclude: Option<Vec<String>>,
     pub ignore: Option<Vec<String>>,
+    pub init: Option<bool>,
 }
 
 #[derive(Deserialize, Debug, PartialEq, Clone)]
@@ -183,6 +184,7 @@ mod tests {
                 include: Some(vec!["Cargo.toml".into()]),
                 exclude: None,
                 ignore: None,
+                init: None,
             })
         );
         assert!(config.placeholders.is_some());

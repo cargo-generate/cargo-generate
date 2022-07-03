@@ -32,6 +32,7 @@ pub struct FavoriteConfig {
     pub subfolder: Option<String>,
     pub path: Option<PathBuf>,
     pub values: Option<HashMap<String, toml::Value>>,
+    pub init: Option<bool>,
 }
 
 #[derive(Deserialize, Default)]

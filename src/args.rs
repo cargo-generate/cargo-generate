@@ -97,11 +97,11 @@ pub struct GenerateArgs {
     pub define: Vec<String>,
 
     /// Generate the template directly into the current dir. No subfolder will be created and no vcs is initialized.
-    #[clap(long, conflicts_with = "destination", action)]
+    #[clap(long, action)]
     pub init: bool,
 
     /// Generate the template directly at the given path.
-    #[clap(long, conflicts_with = "init", value_parser)]
+    #[clap(long, value_parser)]
     pub destination: Option<PathBuf>,
 
     /// Will enforce a fresh git init on the generated project

@@ -11,6 +11,7 @@ use regex::Regex;
 use crate::{app_config::AppConfig, warn, GenerateArgs};
 
 // Contains parsed information from user.
+#[derive(Debug)]
 pub struct UserParsedInput {
     // from where clone or copy template?
     template_location: TemplateLocation,
@@ -21,6 +22,7 @@ pub struct UserParsedInput {
     // 2. configuration file
     // 3. cli arguments --define
     template_values: HashMap<String, toml::Value>,
+    pub init: bool,
     //TODO:
     // 1. This structure should be used instead of args
     // 2. This struct can contains internaly args and app_config to not confuse
@@ -32,11 +34,13 @@ impl UserParsedInput {
         template_location: impl Into<TemplateLocation>,
         subfolder: Option<T>,
         default_values: HashMap<String, toml::Value>,
+        init: bool,
     ) -> Self {
         Self {
             template_location: template_location.into(),
             subfolder: subfolder.map(|s| s.as_ref().to_owned()),
             template_values: default_values,
+            init,
         }
     }
 
@@ -61,7 +65,12 @@ impl UserParsedInput {
                 ssh_identity,
                 args.force_git_init,
             );
-            return Self::new(git_user_in, args.template_path.subfolder(), default_values);
+            return Self::new(
+                git_user_in,
+                args.template_path.subfolder(),
+                default_values,
+                args.init,
+            );
         }
 
         // --path
@@ -70,6 +79,7 @@ impl UserParsedInput {
                 path.as_ref(),
                 args.template_path.subfolder(),
                 default_values,
+                args.init,
             );
         }
 
@@ -109,6 +119,9 @@ impl UserParsedInput {
                     .map(|s| s.as_ref().to_owned())
                     .or_else(|| fav_cfg.subfolder.clone()),
                 default_values,
+                args.init
+                    .then(|| true)
+                    .unwrap_or_else(|| fav_cfg.init.unwrap_or(false)),
             );
         }
 
@@ -165,6 +178,7 @@ impl UserParsedInput {
                 .subfolder()
                 .map(|s| s.as_ref().to_owned()),
             default_values,
+            args.init,
         )
     }
 
@@ -182,6 +196,10 @@ impl UserParsedInput {
 
     pub fn template_values_mut(&mut self) -> &mut HashMap<String, toml::Value> {
         &mut self.template_values
+    }
+
+    pub const fn init(&self) -> bool {
+        self.init
     }
 }
 
@@ -214,6 +232,7 @@ pub fn local_path(fav: &str) -> Option<PathBuf> {
 }
 
 // Template should be cloned with git
+#[derive(Debug)]
 pub struct GitUserInput {
     url: String,
     branch: Option<String>,
@@ -267,6 +286,7 @@ impl GitUserInput {
 }
 
 // Distinguish between plain copy and clone
+#[derive(Debug)]
 pub enum TemplateLocation {
     Git(GitUserInput),
     Path(PathBuf),
