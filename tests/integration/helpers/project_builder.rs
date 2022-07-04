@@ -11,6 +11,7 @@ pub struct ProjectBuilder {
     root: TempDir,
     git: bool,
     branch: Option<String>,
+    tag: Option<String>,
 }
 
 pub fn tmp_dir() -> ProjectBuilder {
@@ -20,6 +21,7 @@ pub fn tmp_dir() -> ProjectBuilder {
         root: tempdir().unwrap(),
         git: false,
         branch: None,
+        tag: None,
     }
 }
 
@@ -52,6 +54,11 @@ version = "0.1.0"
 
     pub fn branch(mut self, branch: &str) -> Self {
         self.branch = Some(branch.to_owned());
+        self
+    }
+
+    pub fn tag(mut self, tag: &str) -> Self {
+        self.tag = Some(tag.to_owned());
         self
     }
 
@@ -162,6 +169,40 @@ version = "0.1.0"
                 .current_dir(&path)
                 .assert()
                 .success();
+
+            if let Some(ref tag) = self.tag {
+                Command::new("git")
+                    .arg("tag")
+                    .arg("-a")
+                    .arg(tag)
+                    .arg("-m")
+                    .arg(format!("our test tag {tag}"))
+                    .current_dir(&path)
+                    .assert()
+                    .success();
+
+                for &(ref file, _) in self.files.iter() {
+                    let path = path.join(file);
+                    fs::remove_file(&path).unwrap_or_else(|_| {
+                        panic!("couldn't remove file {path:?}, after commiting tag {tag}")
+                    });
+                }
+
+                Command::new("git")
+                    .arg("add")
+                    .arg("--all")
+                    .current_dir(&path)
+                    .assert()
+                    .success();
+
+                Command::new("git")
+                    .arg("commit")
+                    .arg("--message")
+                    .arg("dummy commit after tag")
+                    .current_dir(&path)
+                    .assert()
+                    .success();
+            }
 
             if self.branch.is_some() {
                 Command::new("git")
