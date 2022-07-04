@@ -29,6 +29,7 @@ pub struct FavoriteConfig {
     pub description: Option<String>,
     pub git: Option<String>,
     pub branch: Option<String>,
+    pub tag: Option<String>,
     pub subfolder: Option<String>,
     pub path: Option<PathBuf>,
     pub values: Option<HashMap<String, toml::Value>>,

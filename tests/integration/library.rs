@@ -12,6 +12,7 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
             auto_path: None,
             git: Some(format!("{}", template.path().display())),
             branch: Some(String::from("main")),
+            tag: None,
             path: None,
             favorite: None,
             subfolder: None,
