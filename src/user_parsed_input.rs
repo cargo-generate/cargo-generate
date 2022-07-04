@@ -58,6 +58,7 @@ impl UserParsedInput {
             let git_user_in = GitUserInput::new(
                 git_url,
                 args.template_path.branch(),
+                args.template_path.tag(),
                 ssh_identity,
                 args.force_git_init,
             );
@@ -87,9 +88,15 @@ impl UserParsedInput {
                         .branch()
                         .map(|s| s.as_ref().to_owned())
                         .or_else(|| fav_cfg.branch.clone());
+                    let tag = args
+                        .template_path
+                        .tag()
+                        .map(|s| s.as_ref().to_owned())
+                        .or_else(|| fav_cfg.tag.clone());
                     let git_user_input = GitUserInput::new(
                         git_url,
                         branch.as_ref(),
+                        tag.as_ref(),
                         ssh_identity,
                         args.force_git_init,
                     );
@@ -138,6 +145,7 @@ impl UserParsedInput {
             let git_user_in = GitUserInput::new(
                 &fav_name,
                 args.template_path.branch(),
+                args.template_path.tag(),
                 ssh_identity,
                 args.force_git_init,
             );
@@ -217,24 +225,28 @@ pub fn local_path(fav: &str) -> Option<PathBuf> {
 pub struct GitUserInput {
     url: String,
     branch: Option<String>,
+    tag: Option<String>,
     identity: Option<PathBuf>,
     _force_init: bool,
 }
 
 impl GitUserInput {
-    fn new<T1, T2>(
+    fn new<T1, T2, T3>(
         url: &T1,
         branch: Option<&T2>,
+        tag: Option<&T3>,
         identity: Option<PathBuf>,
         force_init: bool,
     ) -> Self
     where
         T1: AsRef<str>,
         T2: AsRef<str>,
+        T3: AsRef<str>,
     {
         Self {
             url: url.as_ref().to_owned(),
             branch: branch.map(|s| s.as_ref().to_owned()),
+            tag: tag.map(|s| s.as_ref().to_owned()),
             identity,
             _force_init: force_init,
         }
@@ -248,6 +260,7 @@ impl GitUserInput {
         Self::new(
             url,
             args.template_path.branch(),
+            args.template_path.tag(),
             args.ssh_identity.clone(),
             args.force_git_init,
         )
@@ -259,6 +272,10 @@ impl GitUserInput {
 
     pub fn branch(&self) -> Option<&str> {
         self.branch.as_deref()
+    }
+
+    pub fn tag(&self) -> Option<&str> {
+        self.tag.as_deref()
     }
 
     pub fn identity(&self) -> Option<&Path> {

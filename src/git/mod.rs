@@ -68,16 +68,16 @@ impl<'cb> RepoCloneBuilder<'cb> {
     }
 
     pub fn new_with(url: &str, branch: Option<&str>, identity_path: Option<&Path>) -> Result<Self> {
-        let mut builer = Self::new(url)?;
+        let mut builder = Self::new(url)?;
         if let Some(branch) = branch {
-            builer.set_branch(branch);
+            builder.set_branch(branch);
         }
 
         if let Some(identity_path) = identity_path {
-            builer.set_identity(identity_path);
+            builder.set_identity(identity_path);
         }
 
-        Ok(builer)
+        Ok(builder)
     }
 
     pub fn set_identity(&mut self, identity_path: &Path) {

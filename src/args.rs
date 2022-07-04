@@ -136,8 +136,12 @@ pub struct TemplatePath {
     pub git: Option<String>,
 
     /// Branch to use when installing from git
-    #[clap(short, long)]
+    #[clap(short, long, conflicts_with = "tag")]
     pub branch: Option<String>,
+
+    /// Tag to use when installing from git
+    #[clap(short, long, conflicts_with = "branch")]
+    pub tag: Option<String>,
 
     /// Local path to copy the template from. Can not be specified together with --git.
     #[clap(short, long, group("SpecificPath"))]
@@ -168,6 +172,10 @@ impl TemplatePath {
 
     pub const fn branch(&self) -> Option<&(impl AsRef<str> + '_)> {
         self.branch.as_ref()
+    }
+
+    pub const fn tag(&self) -> Option<&(impl AsRef<str> + '_)> {
+        self.tag.as_ref()
     }
 
     pub const fn path(&self) -> Option<&(impl AsRef<str> + '_)> {
