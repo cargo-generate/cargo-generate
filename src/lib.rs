@@ -76,7 +76,7 @@ use self::template::create_liquid_object;
 
 /// # Panics
 pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
-    let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
+    let app_config = AppConfig::try_from(app_config_path(&args.config)?.as_path())?;
 
     if args.ssh_identity.is_none()
         && app_config.defaults.is_some()
@@ -91,28 +91,36 @@ pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
             .cloned();
     }
 
-    let mut source_template = UserParsedInput::try_from_args_and_config(&app_config, &args);
-    source_template
+    // mash AppConfig and CLI arguments together into UserParsedInput
+    let mut user_parsed_input = UserParsedInput::try_from_args_and_config(app_config, &args);
+    // let ENV vars provide values we don't have yet
+    user_parsed_input
         .template_values_mut()
         .extend(load_env_and_args_template_values(&args)?);
 
-    let (template_base_dir, template_folder, branch) = prepare_local_template(&source_template)?;
+    let (template_base_dir, template_dir, branch) = prepare_local_template(&user_parsed_input)?;
 
-    let template_config = Config::from_path(
-        &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &template_folder).ok(),
-    )?
-    .unwrap_or_default();
+    // read configuration in the template
+    let mut config = Config::from_path(
+        &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &template_dir).ok(),
+    )?;
+    config.template.get_or_insert(Default::default());
 
-    check_cargo_generate_version(&template_config)?;
+    user_parsed_input.init |= config
+        .template
+        .as_ref()
+        .and_then(|c| c.init)
+        .unwrap_or(false);
 
-    let base_dir = env::current_dir()?;
+    check_cargo_generate_version(&config)?;
+
     let project_name = resolve_project_name(&args)?;
-    let project_dir = resolve_project_dir(&base_dir, &project_name, &args)?;
+    let project_dir = resolve_project_dir(&project_name, &args, &user_parsed_input)?;
 
     println!(
         "{} {} {}",
         emoji::WRENCH,
-        style(format!("Basedir: {}", base_dir.display())).bold(),
+        style(format!("Destination: {}", project_dir.display())).bold(),
         style("...").bold()
     );
 
@@ -124,11 +132,11 @@ pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
     );
 
     expand_template(
+        &user_parsed_input,
         &project_dir,
         &project_name,
-        &template_folder,
-        source_template.template_values(),
-        template_config,
+        &template_dir,
+        &mut config,
         &args,
     )?;
 
@@ -139,12 +147,15 @@ pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
         style(project_dir.display()).bold().yellow(),
         style("...").bold()
     );
-    copy_dir_all(&template_folder, &project_dir)?;
+    copy_dir_all(&template_dir, &project_dir)?;
 
-    if !args.vcs.is_none() && (!args.init || args.force_git_init) {
+    let vcs = config
+        .template
+        .and_then(|t| t.vcs)
+        .unwrap_or_else(|| user_parsed_input.vcs());
+    if !vcs.is_none() && (!user_parsed_input.init || args.force_git_init) {
         info!("{}", style("Initializing a fresh Git repository").bold());
-        args.vcs
-            .initialize(&project_dir, branch, args.force_git_init)?;
+        vcs.initialize(&project_dir, branch, args.force_git_init)?;
     }
 
     println!(
@@ -372,19 +383,19 @@ fn locate_template_file(
 /// if `args.init == true` it returns the path of `$CWD` and if let some `args.destination`,
 /// it returns the given path.
 fn resolve_project_dir(
-    base_dir: &Path,
     name: &ProjectName,
     args: &GenerateArgs,
+    source_template: &UserParsedInput,
 ) -> Result<PathBuf> {
-    if args.init {
-        return Ok(base_dir.into());
-    }
-
     let base_path = args
         .destination
         .as_ref()
         .map(|p| p.to_path_buf())
         .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
+
+    if source_template.init() {
+        return Ok(base_path);
+    }
 
     let dir_name = args.force.then(|| name.raw()).unwrap_or_else(|| {
         rename_warning(name);
@@ -407,37 +418,43 @@ fn resolve_project_dir(
 }
 
 fn expand_template(
+    source_template: &UserParsedInput,
     project_dir: &Path,
-    name: &ProjectName,
-    dir: &Path,
-    provided_template_values: &HashMap<String, toml::Value>,
-    mut config: Config,
+    project_name: &ProjectName,
+    template_dir: &Path,
+    config: &mut Config,
     args: &GenerateArgs,
 ) -> Result<()> {
     let mut liquid_object = fill_placeholders_and_merge_conditionals(
-        &mut config,
-        create_liquid_object(args, project_dir, name, CrateType::from(args))?,
-        provided_template_values,
+        config,
+        create_liquid_object(
+            args,
+            project_dir,
+            project_name,
+            &CrateType::from(args),
+            source_template,
+        )?,
+        source_template.template_values(),
         args,
     )?;
-    add_missing_provided_values(&mut liquid_object, provided_template_values)?;
+    add_missing_provided_values(&mut liquid_object, source_template.template_values())?;
 
     execute_hooks(
-        dir,
+        template_dir,
         liquid_object.clone(),
         &config.get_pre_hooks(),
         args.allow_commands,
         args.silent,
     )?;
 
-    let mut template_config = config.template.take().unwrap_or_default();
     let all_hook_files = config.get_hook_files();
+    let mut template_config = config.template.take().unwrap_or_default();
 
-    ignore_me::remove_unneeded_files(dir, &template_config.ignore, args.verbose)?;
+    ignore_me::remove_unneeded_files(template_dir, &template_config.ignore, args.verbose)?;
     let mut pbar = progressbar::new();
 
     template::walk_dir(
-        dir,
+        template_dir,
         &liquid_object,
         &mut template_config,
         &all_hook_files,
@@ -446,7 +463,7 @@ fn expand_template(
     pbar.join().unwrap();
 
     execute_hooks(
-        dir,
+        template_dir,
         liquid_object,
         &config.get_post_hooks(),
         args.allow_commands,
@@ -454,6 +471,7 @@ fn expand_template(
     )?;
     remove_dir_files(all_hook_files, false);
 
+    config.template.replace(template_config);
     Ok(())
 }
 

@@ -44,12 +44,12 @@ pub fn execute_hooks(
     evaluate_scripts(dir, hooks, engine)
 }
 
-fn evaluate_scripts(dir: &Path, scripts: &[String], engine: rhai::Engine) -> Result<()> {
+fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engine) -> Result<()> {
     let cwd = env::current_dir()?;
     let _ = CleanupJob::new(move || {
         env::set_current_dir(cwd).ok();
     });
-    env::set_current_dir(dir)?;
+    env::set_current_dir(template_dir)?;
 
     for script in scripts {
         engine

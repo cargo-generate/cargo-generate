@@ -13,6 +13,7 @@ use crate::include_exclude::*;
 use crate::progressbar::spinner;
 use crate::template_filters::*;
 use crate::template_variables::{get_authors, get_os_arch, Authors, CrateType, ProjectName};
+use crate::user_parsed_input::UserParsedInput;
 use crate::{emoji, GenerateArgs};
 
 fn engine() -> liquid::Parser {
@@ -33,7 +34,8 @@ pub fn create_liquid_object(
     args: &GenerateArgs,
     project_dir: &Path,
     name: &ProjectName,
-    crate_type: CrateType,
+    crate_type: &CrateType,
+    source_template: &UserParsedInput,
 ) -> Result<Object> {
     let authors: Authors = get_authors()?;
     let os_arch = get_os_arch();
@@ -57,7 +59,10 @@ pub fn create_liquid_object(
         "within_cargo_project".into(),
         Value::Scalar(is_within_cargo_project(project_dir).into()),
     );
-    liquid_object.insert("is_init".into(), Value::Scalar(args.init.into()));
+    liquid_object.insert(
+        "is_init".into(),
+        Value::Scalar(source_template.init().into()),
+    );
 
     Ok(liquid_object)
 }

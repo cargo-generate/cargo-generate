@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::{anyhow, Result};
 use clap::{Args, Parser};
+use serde::Deserialize;
 
 use crate::git;
 
@@ -77,10 +78,10 @@ pub struct GenerateArgs {
     pub config: Option<PathBuf>,
 
     /// Specify the VCS used to initialize the generated template.
-    #[clap(long, default_value = "git", value_parser)]
-    pub vcs: Vcs,
+    #[clap(long, value_parser)]
+    pub vcs: Option<Vcs>,
 
-    /// Populates a template variable `crate_type` with value `"lib"`
+    /// Populates template variable `crate_type` with value `"lib"`
     #[clap(long, conflicts_with = "bin", action)]
     pub lib: bool,
 
@@ -97,11 +98,11 @@ pub struct GenerateArgs {
     pub define: Vec<String>,
 
     /// Generate the template directly into the current dir. No subfolder will be created and no vcs is initialized.
-    #[clap(long, conflicts_with = "destination", action)]
+    #[clap(long, action)]
     pub init: bool,
 
     /// Generate the template directly at the given path.
-    #[clap(long, conflicts_with = "init", value_parser)]
+    #[clap(long, value_parser)]
     pub destination: Option<PathBuf>,
 
     /// Will enforce a fresh git init on the generated project
@@ -199,7 +200,7 @@ impl TemplatePath {
     }
 }
 
-#[derive(Debug, Parser, Clone, Copy)]
+#[derive(Debug, Parser, Clone, Copy, PartialEq, Eq, Deserialize)]
 pub enum Vcs {
     None,
     Git,

@@ -1,3 +1,5 @@
+use cargo_generate::Vcs;
+use git2::Repository;
 use predicates::prelude::*;
 
 use crate::helpers::project::binary;
@@ -7,7 +9,11 @@ use assert_cmd::prelude::*;
 use indoc::indoc;
 use std::path::PathBuf;
 
-fn create_favorite_config(name: &str, template_path: &Project) -> (Project, PathBuf) {
+fn create_favorite_config(
+    name: &str,
+    template_path: &Project,
+    vcs: Option<Vcs>,
+) -> (Project, PathBuf) {
     let project = tmp_dir()
         .file(
             "cargo-generate",
@@ -17,10 +23,16 @@ fn create_favorite_config(name: &str, template_path: &Project) -> (Project, Path
                     description = "Favorite for the {name} template"
                     git = "{git}"
                     branch = "{branch}"
+                    {vcs}
                     "#},
                 name = name,
                 git = template_path.path().display().to_string().escape_default(),
-                branch = "main"
+                branch = "main",
+                vcs = if let Some(vcs) = vcs {
+                    format!(r#"vcs = "{vcs:?}""#)
+                } else {
+                    String::from("")
+                }
             ),
         )
         .build();
@@ -32,7 +44,7 @@ fn create_favorite_config(name: &str, template_path: &Project) -> (Project, Path
 fn favorite_with_git_becomes_subfolder() {
     let favorite_template = create_template("favorite-template");
     let git_template = create_template("git-template");
-    let (_config, config_path) = create_favorite_config("test", &favorite_template);
+    let (_config, config_path) = create_favorite_config("test", &favorite_template, None);
     let working_dir = tmp_dir().build();
 
     binary()
@@ -134,7 +146,7 @@ fn favorite_with_subfolder() -> anyhow::Result<()> {
 #[test]
 fn it_can_use_favorites() {
     let favorite_template = create_template("favorite-template");
-    let (_config, config_path) = create_favorite_config("test", &favorite_template);
+    let (_config, config_path) = create_favorite_config("test", &favorite_template, None);
     let working_dir = tmp_dir().build();
 
     binary()
@@ -149,15 +161,38 @@ fn it_can_use_favorites() {
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
+    assert!(Repository::open(working_dir.path().join("favorite-project")).is_ok());
     assert!(working_dir
         .read("favorite-project/Cargo.toml")
         .contains(r#"description = "favorite-template""#));
 }
 
 #[test]
+fn a_favorite_can_set_vcs_to_none_by_default() {
+    let favorite_template = create_template("favorite-template");
+    let (_config, config_path) =
+        create_favorite_config("test", &favorite_template, Some(Vcs::None));
+    let working_dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--config")
+        .arg(config_path)
+        .arg("--name")
+        .arg("favorite-project")
+        .arg("test")
+        .current_dir(&working_dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(Repository::open(working_dir.path().join("favorite-project")).is_err());
+}
+
+#[test]
 fn favorites_default_to_git_if_not_defined() {
     let favorite_template = create_template("favorite-template");
-    let (_config, config_path) = create_favorite_config("test", &favorite_template);
+    let (_config, config_path) = create_favorite_config("test", &favorite_template, None);
     let working_dir = tmp_dir().build();
 
     binary()
@@ -296,4 +331,50 @@ fn favorites_default_value_can_be_overridden_by_environment() {
     assert!(working_dir
         .read("my-project/Cargo.toml")
         .contains(r#"description = "Overridden value""#));
+}
+
+#[test]
+fn favorite_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "A wonderful project"
+                version = "0.1.0"
+                "#},
+        )
+        .init_git()
+        .build();
+    let config_dir = tmp_dir()
+        .file(
+            "config.toml",
+            &format!(
+                indoc! {r#"
+                [favorites.favorite]
+                git = "{git}"
+                init = true
+                "#},
+                git = template.path().display().to_string().escape_default(),
+            ),
+        )
+        .build();
+
+    let dir = tmp_dir().build();
+    binary()
+        .arg("generate")
+        .arg("--config")
+        .arg(config_dir.path().join("config.toml"))
+        .arg("--name")
+        .arg("my-proj")
+        .arg("favorite")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.read("Cargo.toml").contains("my-proj"));
+    assert!(!dir.path().join(".git").exists());
+    Ok(())
 }

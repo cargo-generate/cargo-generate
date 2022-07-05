@@ -1,4 +1,4 @@
-//! Input from user but after prase
+//! Input from user but after parse
 
 use std::{
     collections::HashMap,
@@ -8,9 +8,10 @@ use std::{
 use console::style;
 use regex::Regex;
 
-use crate::{app_config::AppConfig, warn, GenerateArgs};
+use crate::{app_config::AppConfig, warn, GenerateArgs, Vcs};
 
 // Contains parsed information from user.
+#[derive(Debug)]
 pub struct UserParsedInput {
     // from where clone or copy template?
     template_location: TemplateLocation,
@@ -21,6 +22,8 @@ pub struct UserParsedInput {
     // 2. configuration file
     // 3. cli arguments --define
     template_values: HashMap<String, toml::Value>,
+    vcs: Vcs,
+    pub init: bool,
     //TODO:
     // 1. This structure should be used instead of args
     // 2. This struct can contains internaly args and app_config to not confuse
@@ -32,11 +35,15 @@ impl UserParsedInput {
         template_location: impl Into<TemplateLocation>,
         subfolder: Option<T>,
         default_values: HashMap<String, toml::Value>,
+        vcs: Vcs,
+        init: bool,
     ) -> Self {
         Self {
             template_location: template_location.into(),
             subfolder: subfolder.map(|s| s.as_ref().to_owned()),
             template_values: default_values,
+            vcs,
+            init,
         }
     }
 
@@ -45,7 +52,9 @@ impl UserParsedInput {
     /// # Panics
     /// This function assume that Args and AppConfig are verfied eariler and are logicly correct
     /// For example if both `--git` and `--path` are set this function will panic
-    pub fn try_from_args_and_config(app_config: &AppConfig, args: &GenerateArgs) -> Self {
+    pub fn try_from_args_and_config(app_config: AppConfig, args: &GenerateArgs) -> Self {
+        const DEFAULT_VCS: Vcs = Vcs::Git;
+
         let mut default_values = app_config.values.clone().unwrap_or_default();
         let ssh_identity = app_config
             .defaults
@@ -62,7 +71,13 @@ impl UserParsedInput {
                 ssh_identity,
                 args.force_git_init,
             );
-            return Self::new(git_user_in, args.template_path.subfolder(), default_values);
+            return Self::new(
+                git_user_in,
+                args.template_path.subfolder(),
+                default_values,
+                args.vcs.unwrap_or(DEFAULT_VCS),
+                args.init,
+            );
         }
 
         // --path
@@ -71,6 +86,8 @@ impl UserParsedInput {
                 path.as_ref(),
                 args.template_path.subfolder(),
                 default_values,
+                args.vcs.unwrap_or(DEFAULT_VCS),
+                args.init,
             );
         }
 
@@ -116,6 +133,11 @@ impl UserParsedInput {
                     .map(|s| s.as_ref().to_owned())
                     .or_else(|| fav_cfg.subfolder.clone()),
                 default_values,
+                args.vcs
+                    .unwrap_or_else(|| fav_cfg.vcs.unwrap_or(DEFAULT_VCS)),
+                args.init
+                    .then(|| true)
+                    .unwrap_or_else(|| fav_cfg.init.unwrap_or(false)),
             );
         }
 
@@ -173,6 +195,8 @@ impl UserParsedInput {
                 .subfolder()
                 .map(|s| s.as_ref().to_owned()),
             default_values,
+            args.vcs.unwrap_or(DEFAULT_VCS),
+            args.init,
         )
     }
 
@@ -190,6 +214,14 @@ impl UserParsedInput {
 
     pub fn template_values_mut(&mut self) -> &mut HashMap<String, toml::Value> {
         &mut self.template_values
+    }
+
+    pub const fn vcs(&self) -> Vcs {
+        self.vcs
+    }
+
+    pub const fn init(&self) -> bool {
+        self.init
     }
 }
 
@@ -222,6 +254,7 @@ pub fn local_path(fav: &str) -> Option<PathBuf> {
 }
 
 // Template should be cloned with git
+#[derive(Debug)]
 pub struct GitUserInput {
     url: String,
     branch: Option<String>,
@@ -284,6 +317,7 @@ impl GitUserInput {
 }
 
 // Distinguish between plain copy and clone
+#[derive(Debug)]
 pub enum TemplateLocation {
     Git(GitUserInput),
     Path(PathBuf),
