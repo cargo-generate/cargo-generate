@@ -1,4 +1,5 @@
 use git2::Repository;
+use indoc::indoc;
 use predicates::prelude::*;
 
 use crate::helpers::project::binary;
@@ -1433,4 +1434,46 @@ fn error_message_for_invalid_repo_or_user() {
             predicates::str::contains(r#"Error: Please check if the Git user / repository exists"#)
                 .from_utf8(),
         );
+}
+
+#[test]
+fn a_template_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "A wonderful project"
+                version = "0.1.0"
+                "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [template]
+                init = true
+                "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.exists("Cargo.toml"));
+    assert!(!dir.path().join(".git").exists());
+    Ok(())
 }

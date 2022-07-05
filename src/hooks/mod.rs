@@ -33,14 +33,14 @@ impl<F: FnOnce()> Drop for CleanupJob<F> {
 }
 
 pub fn execute_pre_hooks(
-    dir: &Path,
+    template_dir: &Path,
     liquid_object: Rc<RefCell<liquid::Object>>,
-    template_cfg: &mut config::Config,
+    template_cfg: &config::Config,
     allow_commands: bool,
     silent: bool,
 ) -> Result<()> {
-    let engine = create_rhai_engine(dir, liquid_object, allow_commands, silent);
-    evaluate_scripts(dir, &template_cfg.get_pre_hooks(), engine)
+    let engine = create_rhai_engine(template_dir, liquid_object, allow_commands, silent);
+    evaluate_scripts(template_dir, &template_cfg.get_pre_hooks(), engine)
 }
 
 pub fn execute_post_hooks(
@@ -54,12 +54,12 @@ pub fn execute_post_hooks(
     evaluate_scripts(dir, &template_cfg.get_post_hooks(), engine)
 }
 
-fn evaluate_scripts(dir: &Path, scripts: &[String], engine: rhai::Engine) -> Result<()> {
+fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engine) -> Result<()> {
     let cwd = env::current_dir()?;
     let _ = CleanupJob::new(move || {
         env::set_current_dir(cwd).ok();
     });
-    env::set_current_dir(dir)?;
+    env::set_current_dir(template_dir)?;
 
     for script in scripts {
         engine
