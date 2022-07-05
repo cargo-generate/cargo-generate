@@ -31,6 +31,7 @@ pub struct TemplateConfig {
     pub exclude: Option<Vec<String>>,
     pub ignore: Option<Vec<String>>,
     pub vcs: Option<Vcs>,
+    pub init: Option<bool>,
 }
 
 #[derive(Deserialize, Debug, PartialEq, Clone)]
@@ -187,6 +188,7 @@ mod tests {
                 exclude: None,
                 ignore: None,
                 vcs: None,
+                init: None,
             })
         );
         assert!(config.placeholders.is_some());

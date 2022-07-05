@@ -102,16 +102,21 @@ pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
     )?
     .unwrap_or_default();
 
+    source_template.init |= template_config
+        .template
+        .as_ref()
+        .and_then(|c| c.init)
+        .unwrap_or(false);
+
     check_cargo_generate_version(&template_config)?;
 
-    let base_dir = env::current_dir()?;
     let project_name = resolve_project_name(&args)?;
-    let project_dir = resolve_project_dir(&base_dir, &project_name, &args)?;
+    let project_dir = resolve_project_dir(&project_name, &args, &source_template)?;
 
     println!(
         "{} {} {}",
         emoji::WRENCH,
-        style(format!("Basedir: {}", base_dir.display())).bold(),
+        style(format!("Destination: {}", project_dir.display())).bold(),
         style("...").bold()
     );
 
@@ -123,10 +128,10 @@ pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
     );
 
     expand_template(
+        &source_template,
         &project_dir,
         &project_name,
         &template_folder,
-        source_template.template_values(),
         &template_config,
         &args,
     )?;
@@ -144,7 +149,7 @@ pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
         .template
         .and_then(|t| t.vcs)
         .unwrap_or_else(|| source_template.vcs());
-    if !vcs.is_none() && (!args.init || args.force_git_init) {
+    if !vcs.is_none() && (!source_template.init || args.force_git_init) {
         info!("{}", style("Initializing a fresh Git repository").bold());
         vcs.initialize(&project_dir, branch, args.force_git_init)?;
     }
@@ -374,19 +379,19 @@ fn locate_template_file(
 /// if `args.init == true` it returns the path of `$CWD` and if let some `args.destination`,
 /// it returns the given path.
 fn resolve_project_dir(
-    base_dir: &Path,
     name: &ProjectName,
     args: &GenerateArgs,
+    source_template: &UserParsedInput,
 ) -> Result<PathBuf> {
-    if args.init {
-        return Ok(base_dir.into());
-    }
-
     let base_path = args
         .destination
         .as_ref()
         .map(|p| p.to_path_buf())
         .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
+
+    if source_template.init() {
+        return Ok(base_path);
+    }
 
     let dir_name = args.force.then(|| name.raw()).unwrap_or_else(|| {
         rename_warning(name);
@@ -409,15 +414,22 @@ fn resolve_project_dir(
 }
 
 fn expand_template(
+    source_template: &UserParsedInput,
     project_dir: &Path,
-    name: &ProjectName,
-    dir: &Path,
-    template_values: &HashMap<String, toml::Value>,
+    project_name: &ProjectName,
+    template_dir: &Path,
     template_config: &Config,
     args: &GenerateArgs,
 ) -> Result<()> {
+    let template_values = source_template.template_values();
     let crate_type: CrateType = args.into();
-    let liquid_object = template::create_liquid_object(args, project_dir, name, &crate_type)?;
+    let liquid_object = template::create_liquid_object(
+        args,
+        project_dir,
+        project_name,
+        &crate_type,
+        source_template,
+    )?;
     let liquid_object =
         project_variables::fill_project_variables(liquid_object, template_config, |slot| {
             let provided_value = template_values.get(&slot.var_name).and_then(|v| v.as_str());
@@ -437,13 +449,13 @@ fn expand_template(
     let mut liquid_object = Rc::new(RefCell::new(liquid_object));
 
     execute_pre_hooks(
-        dir,
+        template_dir,
         Rc::clone(&liquid_object),
         template_config,
         args.allow_commands,
         args.silent,
     )?;
-    ignore_me::remove_unneeded_files(dir, &template_cfg.ignore, args.verbose)?;
+    ignore_me::remove_unneeded_files(template_dir, &template_cfg.ignore, args.verbose)?;
     let mut pbar = progressbar::new();
 
     // SAFETY: We gave a clone of the Rc to `execute_pre_hooks` which by now has already been dropped. Therefore, there
@@ -451,7 +463,7 @@ fn expand_template(
     let liquid_object_ref = Rc::get_mut(&mut liquid_object).unwrap().get_mut();
 
     template::walk_dir(
-        dir,
+        template_dir,
         liquid_object_ref,
         &mut template_cfg,
         &all_hook_files,
@@ -460,7 +472,7 @@ fn expand_template(
     pbar.join().unwrap();
 
     execute_post_hooks(
-        dir,
+        template_dir,
         Rc::clone(&liquid_object),
         template_config,
         args.allow_commands,
