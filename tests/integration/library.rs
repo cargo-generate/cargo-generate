@@ -1,5 +1,5 @@
 use crate::helpers::project_builder::tmp_dir;
-use cargo_generate::{generate, GenerateArgs, TemplatePath, Vcs};
+use cargo_generate::{generate, GenerateArgs, TemplatePath};
 
 #[test]
 fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
@@ -19,7 +19,7 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
         },
         name: Some(String::from("foobar_project")),
         force: true,
-        vcs: Vcs::Git,
+        vcs: None,
         verbose: true,
         template_values_file: None,
         silent: false,

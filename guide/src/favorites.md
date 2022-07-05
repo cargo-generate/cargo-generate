@@ -13,6 +13,7 @@ description = "<optional description, visible with --list-favorites>"
 git = "https://github.com/ashleygwilliams/wasm-pack-template"
 branch = "<optional-branch>"
 subfolder = "<optional-subfolder>"
+vcs = "<optional: None|Git>"
 init = optional true|false
 ```
 

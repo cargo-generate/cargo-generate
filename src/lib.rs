@@ -132,7 +132,7 @@ pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
         &project_dir,
         &project_name,
         &template_folder,
-        template_config,
+        &template_config,
         &args,
     )?;
 
@@ -145,10 +145,13 @@ pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
     );
     copy_dir_all(&template_folder, &project_dir)?;
 
-    if !args.vcs.is_none() && (!source_template.init() || args.force_git_init) {
+    let vcs = template_config
+        .template
+        .and_then(|t| t.vcs)
+        .unwrap_or_else(|| source_template.vcs());
+    if !vcs.is_none() && (!source_template.init || args.force_git_init) {
         info!("{}", style("Initializing a fresh Git repository").bold());
-        args.vcs
-            .initialize(&project_dir, branch, args.force_git_init)?;
+        vcs.initialize(&project_dir, branch, args.force_git_init)?;
     }
 
     println!(
@@ -415,7 +418,7 @@ fn expand_template(
     project_dir: &Path,
     project_name: &ProjectName,
     template_dir: &Path,
-    template_config: Config,
+    template_config: &Config,
     args: &GenerateArgs,
 ) -> Result<()> {
     let template_values = source_template.template_values();
@@ -428,7 +431,7 @@ fn expand_template(
         source_template,
     )?;
     let liquid_object =
-        project_variables::fill_project_variables(liquid_object, &template_config, |slot| {
+        project_variables::fill_project_variables(liquid_object, template_config, |slot| {
             let provided_value = template_values.get(&slot.var_name).and_then(|v| v.as_str());
             if provided_value.is_none() && args.silent {
                 anyhow::bail!(ConversionError::MissingPlaceholderVariable {
@@ -439,7 +442,7 @@ fn expand_template(
         })?;
     let liquid_object = add_missing_provided_values(liquid_object, template_values)?;
     let (mut template_cfg, liquid_object) =
-        merge_conditionals(&template_config, liquid_object, args)?;
+        merge_conditionals(template_config, liquid_object, args)?;
 
     let all_hook_files = template_config.get_hook_files();
 
@@ -448,7 +451,7 @@ fn expand_template(
     execute_pre_hooks(
         template_dir,
         Rc::clone(&liquid_object),
-        &template_config,
+        template_config,
         args.allow_commands,
         args.silent,
     )?;
@@ -471,7 +474,7 @@ fn expand_template(
     execute_post_hooks(
         template_dir,
         Rc::clone(&liquid_object),
-        &template_config,
+        template_config,
         args.allow_commands,
         args.silent,
     )?;
