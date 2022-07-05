@@ -6,6 +6,7 @@ use crate::helpers::project::binary;
 use crate::helpers::project_builder::tmp_dir;
 
 use assert_cmd::prelude::*;
+use chrono::Datelike;
 use std::env;
 use std::fs;
 use std::ops::Not;
@@ -185,6 +186,40 @@ version = "0.1.0"
     assert!(dir
         .read("foobar-project/Cargo.toml")
         .contains("Copyright 2018"));
+}
+
+#[test]
+fn it_substitutes_current_year() {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project-name}}"
+description = "A wonderful project Copyright {{current_year}}"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("--branch")
+        .arg("main")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    let content = format!("Copyright {}", chrono::Local::now().date().year());
+
+    assert!(dir.read("foobar-project/Cargo.toml").contains(&content));
 }
 
 #[test]

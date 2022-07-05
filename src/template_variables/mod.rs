@@ -1,5 +1,6 @@
 mod authors;
 mod crate_type;
+mod current_year;
 mod os_arch;
 mod project_name;
 
@@ -14,6 +15,7 @@ use toml::Value;
 
 pub use authors::{get_authors, Authors};
 pub use crate_type::CrateType;
+pub use current_year::get_current_year;
 pub use os_arch::get_os_arch;
 pub use project_name::ProjectName;
 

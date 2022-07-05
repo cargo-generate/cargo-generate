@@ -12,7 +12,9 @@ use crate::filenames::substitute_filename;
 use crate::include_exclude::*;
 use crate::progressbar::spinner;
 use crate::template_filters::*;
-use crate::template_variables::{get_authors, get_os_arch, Authors, CrateType, ProjectName};
+use crate::template_variables::{
+    get_authors, get_current_year, get_os_arch, Authors, CrateType, ProjectName,
+};
 use crate::user_parsed_input::UserParsedInput;
 use crate::{emoji, GenerateArgs};
 
@@ -43,6 +45,7 @@ pub fn create_liquid_object(
         .force
         .then(|| name.raw())
         .unwrap_or_else(|| name.kebab_case());
+    let current_year = get_current_year();
 
     let mut liquid_object = Object::new();
     liquid_object.insert("project-name".into(), Value::Scalar(project_name.into()));
@@ -63,6 +66,7 @@ pub fn create_liquid_object(
         "is_init".into(),
         Value::Scalar(source_template.init().into()),
     );
+    liquid_object.insert("current_year".into(), Value::Scalar(current_year.into()));
 
     Ok(liquid_object)
 }

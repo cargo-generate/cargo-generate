@@ -65,7 +65,10 @@ pub enum ConversionError {
         regex: String,
         error: regex::Error,
     },
-    #[error("placeholder `{var_name}` is not valid as you can't override `project-name`, `crate_name`, `crate_type`, `authors` and `os-arch`")]
+    #[error(
+        "placeholder `{var_name}` is not valid as you can't override `project-name`, `crate_name` \
+            , `crate_type`, `authors`, `os-arch` and `current_year`"
+    )]
     InvalidPlaceholderName { var_name: String },
 }
 
@@ -81,7 +84,7 @@ enum SupportedVarType {
     String,
 }
 
-const RESERVED_NAMES: [&str; 7] = [
+const RESERVED_NAMES: [&str; 8] = [
     "authors",
     "os-arch",
     "project-name",
@@ -89,6 +92,7 @@ const RESERVED_NAMES: [&str; 7] = [
     "crate_type",
     "within_cargo_project",
     "is_init",
+    "current_year",
 ];
 
 pub fn fill_project_variables<F>(
