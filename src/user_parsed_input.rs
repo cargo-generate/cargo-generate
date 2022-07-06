@@ -1,4 +1,4 @@
-//! Input from user but after prase
+//! Input from user but after parse
 
 use std::{
     collections::HashMap,
@@ -52,7 +52,7 @@ impl UserParsedInput {
     /// # Panics
     /// This function assume that Args and AppConfig are verfied eariler and are logicly correct
     /// For example if both `--git` and `--path` are set this function will panic
-    pub fn try_from_args_and_config(app_config: &AppConfig, args: &GenerateArgs) -> Self {
+    pub fn try_from_args_and_config(app_config: AppConfig, args: &GenerateArgs) -> Self {
         const DEFAULT_VCS: Vcs = Vcs::Git;
 
         let mut default_values = app_config.values.clone().unwrap_or_default();

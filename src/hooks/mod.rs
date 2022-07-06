@@ -4,12 +4,12 @@ use heck::{
     ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase, ToShoutySnakeCase, ToSnakeCase,
     ToTitleCase, ToUpperCamelCase,
 };
+use liquid::ValueView;
 use rhai::EvalAltResult;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::{env, path::Path};
 
-use crate::config;
 use crate::emoji;
 
 mod file_mod;
@@ -32,26 +32,16 @@ impl<F: FnOnce()> Drop for CleanupJob<F> {
     }
 }
 
-pub fn execute_pre_hooks(
-    template_dir: &Path,
-    liquid_object: Rc<RefCell<liquid::Object>>,
-    template_cfg: &config::Config,
-    allow_commands: bool,
-    silent: bool,
-) -> Result<()> {
-    let engine = create_rhai_engine(template_dir, liquid_object, allow_commands, silent);
-    evaluate_scripts(template_dir, &template_cfg.get_pre_hooks(), engine)
-}
-
-pub fn execute_post_hooks(
+pub fn execute_hooks(
     dir: &Path,
-    liquid_object: Rc<RefCell<liquid::Object>>,
-    template_cfg: &config::Config,
+    liquid_object: liquid::Object,
+    hooks: &[String],
     allow_commands: bool,
     silent: bool,
 ) -> Result<()> {
+    let liquid_object = Rc::new(RefCell::new(liquid_object));
     let engine = create_rhai_engine(dir, liquid_object, allow_commands, silent);
-    evaluate_scripts(dir, &template_cfg.get_post_hooks(), engine)
+    evaluate_scripts(dir, hooks, engine)
 }
 
 fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engine) -> Result<()> {
@@ -74,6 +64,31 @@ fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engin
     }
 
     Ok(())
+}
+
+pub fn evaluate_script<T: Clone + 'static>(
+    liquid_object: liquid::Object,
+    script: &str,
+) -> Result<T, Box<rhai::EvalAltResult>> {
+    let mut conditional_evaluation_engine = rhai::Engine::new();
+
+    #[allow(deprecated)]
+    conditional_evaluation_engine.on_var({
+        move |name, _, _| match liquid_object.get(name) {
+            Some(value) => Ok(value.as_view().as_scalar().map(|scalar| {
+                scalar.to_bool().map_or_else(
+                    || {
+                        let v = scalar.to_kstr();
+                        v.as_str().into()
+                    },
+                    |v| v.into(),
+                )
+            })),
+            None => Ok(None),
+        }
+    });
+
+    conditional_evaluation_engine.eval_expression::<T>(script)
 }
 
 fn create_rhai_engine(

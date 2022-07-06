@@ -49,19 +49,16 @@ use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
 use git::DEFAULT_BRANCH;
-use hooks::{execute_post_hooks, execute_pre_hooks};
+use hooks::execute_hooks;
 use ignore_me::remove_dir_files;
 use interactive::prompt_for_variable;
-use liquid::ValueView;
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::ffi::OsString;
 use std::{
     borrow::Borrow,
-    cell::RefCell,
     collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
-    rc::Rc,
 };
 use user_parsed_input::{TemplateLocation, UserParsedInput};
 
@@ -73,9 +70,13 @@ use crate::{
     template_variables::{CrateType, ProjectName},
 };
 
+use self::config::TemplateConfig;
+use self::hooks::evaluate_script;
+use self::template::create_liquid_object;
+
 /// # Panics
 pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
-    let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
+    let app_config = AppConfig::try_from(app_config_path(&args.config)?.as_path())?;
 
     if args.ssh_identity.is_none()
         && app_config.defaults.is_some()
@@ -90,28 +91,31 @@ pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
             .cloned();
     }
 
-    let mut source_template = UserParsedInput::try_from_args_and_config(&app_config, &args);
-    source_template
+    // mash AppConfig and CLI arguments together into UserParsedInput
+    let mut user_parsed_input = UserParsedInput::try_from_args_and_config(app_config, &args);
+    // let ENV vars provide values we don't have yet
+    user_parsed_input
         .template_values_mut()
         .extend(load_env_and_args_template_values(&args)?);
 
-    let (template_base_dir, template_folder, branch) = prepare_local_template(&source_template)?;
+    let (template_base_dir, template_dir, branch) = prepare_local_template(&user_parsed_input)?;
 
-    let template_config = Config::from_path(
-        &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &template_folder).ok(),
-    )?
-    .unwrap_or_default();
+    // read configuration in the template
+    let mut config = Config::from_path(
+        &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &template_dir).ok(),
+    )?;
+    config.template.get_or_insert(Default::default());
 
-    source_template.init |= template_config
+    user_parsed_input.init |= config
         .template
         .as_ref()
         .and_then(|c| c.init)
         .unwrap_or(false);
 
-    check_cargo_generate_version(&template_config)?;
+    check_cargo_generate_version(&config)?;
 
     let project_name = resolve_project_name(&args)?;
-    let project_dir = resolve_project_dir(&project_name, &args, &source_template)?;
+    let project_dir = resolve_project_dir(&project_name, &args, &user_parsed_input)?;
 
     println!(
         "{} {} {}",
@@ -128,11 +132,11 @@ pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
     );
 
     expand_template(
-        &source_template,
+        &user_parsed_input,
         &project_dir,
         &project_name,
-        &template_folder,
-        &template_config,
+        &template_dir,
+        &mut config,
         &args,
     )?;
 
@@ -143,13 +147,13 @@ pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
         style(project_dir.display()).bold().yellow(),
         style("...").bold()
     );
-    copy_dir_all(&template_folder, &project_dir)?;
+    copy_dir_all(&template_dir, &project_dir)?;
 
-    let vcs = template_config
+    let vcs = config
         .template
         .and_then(|t| t.vcs)
-        .unwrap_or_else(|| source_template.vcs());
-    if !vcs.is_none() && (!source_template.init || args.force_git_init) {
+        .unwrap_or_else(|| user_parsed_input.vcs());
+    if !vcs.is_none() && (!user_parsed_input.init || args.force_git_init) {
         info!("{}", style("Initializing a fresh Git repository").bold());
         vcs.initialize(&project_dir, branch, args.force_git_init)?;
     }
@@ -418,79 +422,73 @@ fn expand_template(
     project_dir: &Path,
     project_name: &ProjectName,
     template_dir: &Path,
-    template_config: &Config,
+    config: &mut Config,
     args: &GenerateArgs,
 ) -> Result<()> {
-    let template_values = source_template.template_values();
-    let crate_type: CrateType = args.into();
-    let liquid_object = template::create_liquid_object(
+    let mut liquid_object = fill_placeholders_and_merge_conditionals(
+        config,
+        create_liquid_object(
+            args,
+            project_dir,
+            project_name,
+            &CrateType::from(args),
+            source_template,
+        )?,
+        source_template.template_values(),
         args,
-        project_dir,
-        project_name,
-        &crate_type,
-        source_template,
     )?;
-    let liquid_object =
-        project_variables::fill_project_variables(liquid_object, template_config, |slot| {
-            let provided_value = template_values.get(&slot.var_name).and_then(|v| v.as_str());
-            if provided_value.is_none() && args.silent {
-                anyhow::bail!(ConversionError::MissingPlaceholderVariable {
-                    var_name: slot.var_name.clone()
-                })
-            }
-            interactive::variable(slot, provided_value)
-        })?;
-    let liquid_object = add_missing_provided_values(liquid_object, template_values)?;
-    let (mut template_cfg, liquid_object) =
-        merge_conditionals(template_config, liquid_object, args)?;
+    add_missing_provided_values(&mut liquid_object, source_template.template_values())?;
 
-    let all_hook_files = template_config.get_hook_files();
-
-    let mut liquid_object = Rc::new(RefCell::new(liquid_object));
-
-    execute_pre_hooks(
+    execute_hooks(
         template_dir,
-        Rc::clone(&liquid_object),
-        template_config,
+        liquid_object.clone(),
+        &config.get_pre_hooks(),
         args.allow_commands,
         args.silent,
     )?;
-    ignore_me::remove_unneeded_files(template_dir, &template_cfg.ignore, args.verbose)?;
-    let mut pbar = progressbar::new();
 
-    // SAFETY: We gave a clone of the Rc to `execute_pre_hooks` which by now has already been dropped. Therefore, there
-    // is no other pointer into this Rc which makes it safe to `get_mut`.
-    let liquid_object_ref = Rc::get_mut(&mut liquid_object).unwrap().get_mut();
+    let all_hook_files = config.get_hook_files();
+    let mut template_config = config.template.take().unwrap_or_default();
+
+    ignore_me::remove_unneeded_files(template_dir, &template_config.ignore, args.verbose)?;
+    let mut pbar = progressbar::new();
 
     template::walk_dir(
         template_dir,
-        liquid_object_ref,
-        &mut template_cfg,
+        &liquid_object,
+        &mut template_config,
         &all_hook_files,
         &mut pbar,
     )?;
     pbar.join().unwrap();
 
-    execute_post_hooks(
+    execute_hooks(
         template_dir,
-        Rc::clone(&liquid_object),
-        template_config,
+        liquid_object,
+        &config.get_post_hooks(),
         args.allow_commands,
         args.silent,
     )?;
     remove_dir_files(all_hook_files, false);
 
+    config.template.replace(template_config);
     Ok(())
 }
 
+/// Try to add all provided template_values to the liquid_object.
+///
+/// ## Note:
+/// Values for which a placeholder exists, should already be filled by `fill_project_variables`
 pub(crate) fn add_missing_provided_values(
-    mut liquid_object: liquid::Object,
+    liquid_object: &mut liquid::Object,
     template_values: &HashMap<String, toml::Value>,
-) -> Result<liquid::Object, anyhow::Error> {
+) -> Result<(), anyhow::Error> {
     template_values.iter().try_for_each(|(k, v)| {
         if liquid_object.contains_key(k.as_str()) {
             return Ok(());
         }
+        // we have a value without a slot in the liquid object.
+        // try to create the slot from the provided value
         let value = match v {
             toml::Value::String(content) => liquid_core::Value::Scalar(content.clone().into()),
             toml::Value::Boolean(content) => liquid_core::Value::Scalar((*content).into()),
@@ -505,86 +503,93 @@ pub(crate) fn add_missing_provided_values(
         liquid_object.insert(k.clone().into(), value);
         Ok(())
     })?;
-    Ok(liquid_object)
+    Ok(())
 }
 
-fn merge_conditionals(
-    template_config: &Config,
-    liquid_object: liquid::Object,
+fn fill_placeholders_and_merge_conditionals(
+    config: &mut Config,
+    mut liquid_object: liquid::Object,
+    template_values: &HashMap<String, toml::Value>,
     args: &GenerateArgs,
-) -> Result<(config::TemplateConfig, liquid::Object), anyhow::Error> {
-    let mut template_config = (*template_config).clone();
-    let mut template_cfg = template_config.template.unwrap_or_default();
-    let conditionals = template_config.conditional.take();
+) -> Result<liquid::Object, anyhow::Error> {
+    let conditionals = config.conditional.take();
     if conditionals.is_none() {
-        return Ok((template_cfg, liquid_object));
+        return Ok(liquid_object);
     }
-
     let mut conditionals = conditionals.unwrap();
-    let mut engine = rhai::Engine::new();
-    #[allow(deprecated)]
-    engine.on_var({
-        let liqobj = liquid_object.clone();
-        move |name, _, _| match liqobj.get(name) {
-            Some(value) => Ok(value.as_view().as_scalar().map(|scalar| {
-                scalar.to_bool().map_or_else(
-                    || {
-                        let v = scalar.to_kstr();
-                        v.as_str().into()
-                    },
-                    |v| v.into(),
-                )
-            })),
-            None => Ok(None),
-        }
-    });
 
-    for (_, conditional_template_cfg) in conditionals
-        .iter_mut()
-        .filter(|(key, _)| engine.eval_expression::<bool>(key).unwrap_or_default())
-    {
-        if let Some(mut extra_includes) = conditional_template_cfg.include.take() {
-            let mut includes = template_cfg.include.unwrap_or_default();
-            includes.append(&mut extra_includes);
-            template_cfg.include = Some(includes);
-        }
-        if let Some(mut extra_excludes) = conditional_template_cfg.exclude.take() {
-            let mut excludes = template_cfg.exclude.unwrap_or_default();
-            excludes.append(&mut extra_excludes);
-            template_cfg.exclude = Some(excludes);
-        }
-        if let Some(mut extra_ignores) = conditional_template_cfg.ignore.take() {
-            let mut ignores = template_cfg.ignore.unwrap_or_default();
-            ignores.append(&mut extra_ignores);
-            template_cfg.ignore = Some(ignores);
-        }
-        if let Some(extra_placeholders) = conditional_template_cfg.placeholders.take() {
-            match template_config.placeholders.as_mut() {
-                Some(placeholders) => {
-                    for (k, v) in extra_placeholders.0 {
-                        placeholders.0.insert(k, v);
-                    }
-                }
-                None => {
-                    template_config.placeholders = Some(extra_placeholders);
-                }
-            }
-        }
-    }
-
-    template_config.template = Some(template_cfg);
-    let template =
-        project_variables::fill_project_variables(liquid_object, &template_config, |slot| {
-            if args.silent {
+    loop {
+        project_variables::fill_project_variables(&mut liquid_object, config, |slot| {
+            let provided_value = template_values.get(&slot.var_name).and_then(|v| match v {
+                toml::Value::String(s) => Some(s.clone()),
+                toml::Value::Integer(s) => Some(s.to_string()),
+                toml::Value::Float(s) => Some(s.to_string()),
+                toml::Value::Boolean(s) => Some(s.to_string()),
+                toml::Value::Datetime(s) => Some(s.to_string()),
+                toml::Value::Array(_) => None,
+                toml::Value::Table(_) => None,
+            });
+            if provided_value.is_none() && args.silent {
                 anyhow::bail!(ConversionError::MissingPlaceholderVariable {
                     var_name: slot.var_name.clone()
                 })
             }
-            interactive::variable(slot, None)
+            interactive::variable(slot, provided_value.as_ref())
         })?;
-    template_cfg = template_config.template.unwrap_or_default();
 
-    Ok((template_cfg, template))
+        let placeholders_changed = conditionals
+            .iter_mut()
+            .filter_map(|(key, cfg)| {
+                evaluate_script::<bool>(liquid_object.clone(), key)
+                    .ok()
+                    .filter(|&r| r)
+                    .map(|_| cfg)
+            })
+            .map(|conditional_template_cfg| {
+                let template_cfg = config.template.get_or_insert_with(TemplateConfig::default);
+                if let Some(mut extras) = conditional_template_cfg.include.take() {
+                    template_cfg
+                        .include
+                        .get_or_insert_with(Vec::default)
+                        .append(&mut extras);
+                }
+                if let Some(mut extras) = conditional_template_cfg.exclude.take() {
+                    template_cfg
+                        .exclude
+                        .get_or_insert_with(Vec::default)
+                        .append(&mut extras);
+                }
+                if let Some(mut extras) = conditional_template_cfg.ignore.take() {
+                    template_cfg
+                        .ignore
+                        .get_or_insert_with(Vec::default)
+                        .append(&mut extras);
+                }
+                if let Some(extra_placeholders) = conditional_template_cfg.placeholders.take() {
+                    match config.placeholders.as_mut() {
+                        Some(placeholders) => {
+                            for (k, v) in extra_placeholders.0 {
+                                placeholders.0.insert(k, v);
+                            }
+                        }
+                        None => {
+                            config.placeholders = Some(extra_placeholders);
+                        }
+                    };
+                    return true;
+                }
+                false
+            })
+            .fold(false, |acc, placeholders_changed| {
+                acc | placeholders_changed
+            });
+
+        if !placeholders_changed {
+            break;
+        }
+    }
+
+    Ok(liquid_object)
 }
 
 fn rename_warning(name: &ProjectName) {

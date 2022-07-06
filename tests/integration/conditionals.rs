@@ -1,6 +1,7 @@
+use std::ops::Not;
+
 use crate::helpers::{project::binary, project_builder::tmp_dir};
 use assert_cmd::assert::OutputAssertExt;
-use cargo_generate::{generate, Args, Vcs};
 use predicates::str::PredicateStrExt;
 
 #[test]
@@ -90,4 +91,81 @@ ignore = ["included"]
     assert!(dir
         .read("foobar-project/excluded2")
         .contains("{{should-not-process}}"));
+}
+
+#[test]
+fn it_can_ask_placeholders_in_multiple_levels() {
+    let template = tmp_dir()
+        .file(
+            "cargo-generate.toml",
+            r#"
+[placeholders]
+v1 = {type="bool", prompt="?"}
+
+[conditional.'v1'.placeholders]
+v2 = {type="bool", prompt="?"}
+
+[conditional.'v2']
+ignore = ["included"]
+"#,
+        )
+        .file("included", "{{project-name}}")
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--silent")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("-d")
+        .arg("v1=true")
+        .current_dir(&dir.path())
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("Error:").from_utf8());
+}
+
+#[test]
+fn it_supports_conditions_in_multiple_levels() {
+    let template = tmp_dir()
+        .file(
+            "cargo-generate.toml",
+            r#"
+[placeholders]
+v1 = {type="bool", prompt="?"}
+
+[conditional.'v1'.placeholders]
+v2 = {type="bool", prompt="?"}
+
+[conditional.'v2']
+ignore = ["included"]
+"#,
+        )
+        .file("included", "{{project-name}}")
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--silent")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("-d")
+        .arg("v1=true")
+        .arg("-d")
+        .arg("v2=true")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+    assert!(dir.exists("foobar-project/included").not());
 }
