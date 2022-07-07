@@ -49,5 +49,5 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
     );
 
     let cwd_after = std::env::current_dir().unwrap();
-    assert!(cwd_after.as_os_str() == cwd_before.as_os_str());
+    assert!(cwd_after == cwd_before);
 }
