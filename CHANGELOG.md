@@ -6,6 +6,8 @@
 - [fix(#514): boolean value being ignored](https://github.com/cargo-generate/cargo-generate/issues/514)
 
 ### ✨ Features
+- [Test for file existance from rhai scripts](https://github.com/cargo-generate/cargo-generate/pull/690).
+  Adds the `file::exists(path: &str)` method for use from hook scripts.
 - Conditionals and placeholders now supported in multiple levels.
   If a template sets up more placeholders conditionally, those placeholders are now checked/asked
   for and respected for use in further expressions/conditionals.
