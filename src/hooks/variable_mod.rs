@@ -5,7 +5,7 @@ use rhai::{Array, Dynamic, Module};
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::interactive::prompt_for_variable;
+use crate::interactive::prompt_and_check_variable;
 use crate::project_variables::{StringEntry, TemplateSlots, VarInfo};
 
 use super::HookResult;
@@ -84,13 +84,16 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
 
     module.set_native_fn("prompt", {
         move |prompt: &str, default_value: bool| -> HookResult<bool> {
-            let value = prompt_for_variable(&TemplateSlots {
-                prompt: prompt.into(),
-                var_name: "".into(),
-                var_info: VarInfo::Bool {
-                    default: Some(default_value),
+            let value = prompt_and_check_variable(
+                &TemplateSlots {
+                    prompt: prompt.into(),
+                    var_name: "".into(),
+                    var_info: VarInfo::Bool {
+                        default: Some(default_value),
+                    },
                 },
-            });
+                None,
+            );
 
             match value {
                 Ok(v) => Ok(v.parse::<bool>().map_err(|_| "Unable to parse into bool")?),
@@ -101,17 +104,20 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
 
     module.set_native_fn("prompt", {
         move |prompt: &str| -> HookResult<String> {
-            let value = prompt_for_variable(&TemplateSlots {
-                prompt: prompt.into(),
-                var_name: "".into(),
-                var_info: VarInfo::String {
-                    entry: Box::new(StringEntry {
-                        default: None,
-                        choices: None,
-                        regex: None,
-                    }),
+            let value = prompt_and_check_variable(
+                &TemplateSlots {
+                    prompt: prompt.into(),
+                    var_name: "".into(),
+                    var_info: VarInfo::String {
+                        entry: Box::new(StringEntry {
+                            default: None,
+                            choices: None,
+                            regex: None,
+                        }),
+                    },
                 },
-            });
+                None,
+            );
 
             match value {
                 Ok(v) => Ok(v),
@@ -122,17 +128,20 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
 
     module.set_native_fn("prompt", {
         move |prompt: &str, default_value: &str| -> HookResult<String> {
-            let value = prompt_for_variable(&TemplateSlots {
-                prompt: prompt.into(),
-                var_name: "".into(),
-                var_info: VarInfo::String {
-                    entry: Box::new(StringEntry {
-                        default: Some(default_value.into()),
-                        choices: None,
-                        regex: None,
-                    }),
+            let value = prompt_and_check_variable(
+                &TemplateSlots {
+                    prompt: prompt.into(),
+                    var_name: "".into(),
+                    var_info: VarInfo::String {
+                        entry: Box::new(StringEntry {
+                            default: Some(default_value.into()),
+                            choices: None,
+                            regex: None,
+                        }),
+                    },
                 },
-            });
+                None,
+            );
 
             match value {
                 Ok(v) => Ok(v),
@@ -143,17 +152,20 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
 
     module.set_native_fn("prompt", {
         move |prompt: &str, default_value: &str, regex: &str| -> HookResult<String> {
-            let value = prompt_for_variable(&TemplateSlots {
-                prompt: prompt.into(),
-                var_name: "".into(),
-                var_info: VarInfo::String {
-                    entry: Box::new(StringEntry {
-                        default: Some(default_value.into()),
-                        choices: None,
-                        regex: Some(Regex::new(regex).map_err(|_| "Invalid regex")?),
-                    }),
+            let value = prompt_and_check_variable(
+                &TemplateSlots {
+                    prompt: prompt.into(),
+                    var_name: "".into(),
+                    var_info: VarInfo::String {
+                        entry: Box::new(StringEntry {
+                            default: Some(default_value.into()),
+                            choices: None,
+                            regex: Some(Regex::new(regex).map_err(|_| "Invalid regex")?),
+                        }),
+                    },
                 },
-            });
+                None,
+            );
 
             match value {
                 Ok(v) => Ok(v),
@@ -164,22 +176,25 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
 
     module.set_native_fn("prompt", {
         move |prompt: &str, default_value: &str, choices: rhai::Array| -> HookResult<String> {
-            let value = prompt_for_variable(&TemplateSlots {
-                prompt: prompt.into(),
-                var_name: "".into(),
-                var_info: VarInfo::String {
-                    entry: Box::new(StringEntry {
-                        default: Some(default_value.into()),
-                        choices: Some(
-                            choices
-                                .iter()
-                                .map(|d| d.to_owned().into_string().unwrap())
-                                .collect(),
-                        ),
-                        regex: None,
-                    }),
+            let value = prompt_and_check_variable(
+                &TemplateSlots {
+                    prompt: prompt.into(),
+                    var_name: "".into(),
+                    var_info: VarInfo::String {
+                        entry: Box::new(StringEntry {
+                            default: Some(default_value.into()),
+                            choices: Some(
+                                choices
+                                    .iter()
+                                    .map(|d| d.to_owned().into_string().unwrap())
+                                    .collect(),
+                            ),
+                            regex: None,
+                        }),
+                    },
                 },
-            });
+                None,
+            );
 
             match value {
                 Ok(v) => Ok(v),

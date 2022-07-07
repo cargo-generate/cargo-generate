@@ -51,7 +51,7 @@ use console::style;
 use git::DEFAULT_BRANCH;
 use hooks::execute_hooks;
 use ignore_me::remove_dir_files;
-use interactive::prompt_for_variable;
+use interactive::prompt_and_check_variable;
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::ffi::OsString;
 use std::{
@@ -195,7 +195,9 @@ fn get_source_template_into_temp(
             branch = branch2;
         }
         TemplateLocation::Path(path) => {
-            temp_dir = copy_path_template_into_temp(path)?;
+            temp_dir = tempfile::tempdir()?;
+            copy_dir_all(path, temp_dir.path())?;
+            git::remove_history(temp_dir.path())?;
             branch = String::from(DEFAULT_BRANCH); // FIXME is here any reason to set branch when path is used?
         }
     };
@@ -252,12 +254,13 @@ fn resolve_template_dir(template_base_dir: &TempDir, subfolder: Option<&str>) ->
             ));
         }
 
-        Ok(auto_locate_template_dir(
-            &template_dir,
-            prompt_for_variable,
-        )?)
+        Ok(auto_locate_template_dir(&template_dir, |slots| {
+            prompt_and_check_variable(slots, None)
+        })?)
     } else {
-        auto_locate_template_dir(template_base_dir.path(), prompt_for_variable)
+        auto_locate_template_dir(template_base_dir.path(), |slots| {
+            prompt_and_check_variable(slots, None)
+        })
     }
 }
 
@@ -285,14 +288,6 @@ fn auto_locate_template_dir(
             Ok(template_base_dir.join(&path))
         }
     }
-}
-
-fn copy_path_template_into_temp(src_path: &Path) -> Result<TempDir> {
-    let path_clone_dir = tempfile::tempdir()?;
-    copy_dir_all(src_path, path_clone_dir.path())?;
-    git::remove_history(path_clone_dir.path())?;
-
-    Ok(path_clone_dir)
 }
 
 pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
@@ -512,11 +507,7 @@ fn fill_placeholders_and_merge_conditionals(
     template_values: &HashMap<String, toml::Value>,
     args: &GenerateArgs,
 ) -> Result<liquid::Object, anyhow::Error> {
-    let conditionals = config.conditional.take();
-    if conditionals.is_none() {
-        return Ok(liquid_object);
-    }
-    let mut conditionals = conditionals.unwrap();
+    let mut conditionals = config.conditional.take().unwrap_or_default();
 
     loop {
         project_variables::fill_project_variables(&mut liquid_object, config, |slot| {
