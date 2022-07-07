@@ -24,6 +24,7 @@ pub struct UserParsedInput {
     template_values: HashMap<String, toml::Value>,
     vcs: Vcs,
     pub init: bool,
+    overwrite: bool,
     //TODO:
     // 1. This structure should be used instead of args
     // 2. This struct can contains internaly args and app_config to not confuse
@@ -37,6 +38,7 @@ impl UserParsedInput {
         default_values: HashMap<String, toml::Value>,
         vcs: Vcs,
         init: bool,
+        overwrite: bool,
     ) -> Self {
         Self {
             template_location: template_location.into(),
@@ -44,6 +46,7 @@ impl UserParsedInput {
             template_values: default_values,
             vcs,
             init,
+            overwrite,
         }
     }
 
@@ -77,6 +80,7 @@ impl UserParsedInput {
                 default_values,
                 args.vcs.unwrap_or(DEFAULT_VCS),
                 args.init,
+                args.overwrite,
             );
         }
 
@@ -88,6 +92,7 @@ impl UserParsedInput {
                 default_values,
                 args.vcs.unwrap_or(DEFAULT_VCS),
                 args.init,
+                args.overwrite,
             );
         }
 
@@ -133,11 +138,12 @@ impl UserParsedInput {
                     .map(|s| s.as_ref().to_owned())
                     .or_else(|| fav_cfg.subfolder.clone()),
                 default_values,
-                args.vcs
-                    .unwrap_or_else(|| fav_cfg.vcs.unwrap_or(DEFAULT_VCS)),
-                args.init
+                args.vcs.or(fav_cfg.vcs).unwrap_or(DEFAULT_VCS),
+                args.init.then(|| true).or(fav_cfg.init).unwrap_or_default(),
+                args.overwrite
                     .then(|| true)
-                    .unwrap_or_else(|| fav_cfg.init.unwrap_or(false)),
+                    .or(fav_cfg.overwrite)
+                    .unwrap_or_default(),
             );
         }
 
@@ -197,6 +203,7 @@ impl UserParsedInput {
             default_values,
             args.vcs.unwrap_or(DEFAULT_VCS),
             args.init,
+            args.overwrite,
         )
     }
 
@@ -222,6 +229,10 @@ impl UserParsedInput {
 
     pub const fn init(&self) -> bool {
         self.init
+    }
+
+    pub const fn overwrite(&self) -> bool {
+        self.overwrite
     }
 }
 

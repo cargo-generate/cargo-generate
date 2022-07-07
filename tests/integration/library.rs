@@ -33,6 +33,7 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
         destination: Some(dir.clone()),
         force_git_init: false,
         allow_commands: false,
+        overwrite: false,
     };
 
     assert_eq!(
