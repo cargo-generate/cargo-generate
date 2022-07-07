@@ -74,8 +74,15 @@ use self::config::TemplateConfig;
 use self::hooks::evaluate_script;
 use self::template::create_liquid_object;
 
+pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
+    let cwd = std::env::current_dir()?;
+    let r = internal_generate(args);
+    std::env::set_current_dir(cwd)?;
+    r
+}
+
 /// # Panics
-pub fn generate(mut args: GenerateArgs) -> Result<PathBuf> {
+fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
     let app_config = AppConfig::try_from(app_config_path(&args.config)?.as_path())?;
 
     if args.ssh_identity.is_none()
