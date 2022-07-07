@@ -88,6 +88,10 @@ Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
 
 #### Files
 
+* **`file::exists(path: &str)`**
+
+  Test if a path exists
+
 * **`file::rename(from: &str, to: &str)`**
 
   Rename one of the files in the template folder

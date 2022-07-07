@@ -3,6 +3,8 @@ use cargo_generate::{generate, GenerateArgs, TemplatePath};
 
 #[test]
 fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
+    let cwd_before = std::env::current_dir().unwrap();
+
     let template = tmp_dir().init_default_template().init_git().build();
 
     let dir = tmp_dir().build().root.into_path();
@@ -46,4 +48,7 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
             .expect("cannot read file")
             .contains("foobar_project")
     );
+
+    let cwd_after = std::env::current_dir().unwrap();
+    assert!(cwd_after == cwd_before);
 }

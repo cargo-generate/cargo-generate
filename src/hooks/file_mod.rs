@@ -10,6 +10,15 @@ pub fn create_module(dir: &Path) -> Module {
     let dir = dir.to_owned();
     let mut module = Module::new();
 
+    module.set_native_fn("exists", {
+        let dir = dir.clone();
+
+        move |path: &str| -> HookResult<bool> {
+            let path = to_absolute_path(&dir, path)?;
+            Ok(path.exists())
+        }
+    });
+
     module.set_native_fn("rename", {
         let dir = dir.clone();
 
