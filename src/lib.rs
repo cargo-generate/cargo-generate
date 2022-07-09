@@ -853,21 +853,20 @@ mod tests {
         {
             VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
-                if let Some(mut choices) = entry.choices.clone() {
-                    choices.sort();
+                if let Some(choices) = entry.choices.clone() {
                     let expected = vec![
                         Path::new("dir2").join("dir2_2").to_string(),
                         "dir4".to_string(),
                     ];
                     assert_eq!(expected, choices);
-                    Ok("my_path".to_string())
+                    Ok("dir4".to_string())
                 } else {
                     anyhow::bail!("Missing choices")
                 }
             }
         })?
         .canonicalize()?;
-        let expected = tmp.path().join("my_path").canonicalize()?;
+        let expected = tmp.path().join("dir4").canonicalize()?;
 
         assert_eq!(expected, actual);
 
