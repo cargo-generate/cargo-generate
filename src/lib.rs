@@ -794,7 +794,7 @@ mod tests {
         create_file(&tmp, "sub1/sub12/sub122/Cargo.toml", "")?;
 
         let mut prompt_num = 0;
-        let r = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
+        let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
             .var_info
         {
             VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
@@ -816,8 +816,16 @@ mod tests {
                     anyhow::bail!("Missing choices")
                 }
             }
-        })?;
-        assert_eq!(tmp.path().join("sub1").join("sub12").join("sub121"), r);
+        })?
+        .canonicalize()?;
+
+        let expected = tmp
+            .path()
+            .join("sub1")
+            .join("sub12")
+            .join("sub121")
+            .canonicalize()?;
+        assert_eq!(expected, actual);
         Ok(())
     }
 
