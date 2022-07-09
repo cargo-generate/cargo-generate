@@ -714,9 +714,12 @@ mod tests {
         create_file(&tmp, "dir2/dir2_1/Cargo.toml", "")?;
         create_file(&tmp, "dir3/Cargo.toml", "")?;
 
-        let r =
-            auto_locate_template_dir(tmp.path().to_path_buf(), &mut |_slots| Err(anyhow!("test")))?;
-        assert_eq!(tmp.path(), r);
+        let actual =
+            auto_locate_template_dir(tmp.path().to_path_buf(), &mut |_slots| Err(anyhow!("test")))?
+                .canonicalize()?;
+        let expected = tmp.path().canonicalize()?;
+
+        assert_eq!(expected, actual);
         Ok(())
     }
 
@@ -729,9 +732,12 @@ mod tests {
         create_file(&tmp, "dir2/dir2_2/cargo-generate.toml", "")?;
         create_file(&tmp, "dir3/Cargo.toml", "")?;
 
-        let r =
-            auto_locate_template_dir(tmp.path().to_path_buf(), &mut |_slots| Err(anyhow!("test")))?;
-        assert_eq!(tmp.path().join("dir2/dir2_2"), r);
+        let actual =
+            auto_locate_template_dir(tmp.path().to_path_buf(), &mut |_slots| Err(anyhow!("test")))?
+                .canonicalize()?;
+        let expected = tmp.path().join("dir2/dir2_2").canonicalize()?;
+
+        assert_eq!(expected, actual);
         Ok(())
     }
 
@@ -749,7 +755,7 @@ mod tests {
         create_file(&tmp, "sub1/Cargo.toml", "")?;
         create_file(&tmp, "sub2/Cargo.toml", "")?;
 
-        let r = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
+        let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
             .var_info
         {
             VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
@@ -762,8 +768,11 @@ mod tests {
                     anyhow::bail!("Missing choices")
                 }
             }
-        })?;
-        assert_eq!(tmp.path().join("sub2"), r);
+        })?
+        .canonicalize()?;
+        let expected = tmp.path().join("sub2").canonicalize()?;
+
+        assert_eq!(expected, actual);
         Ok(())
     }
 
@@ -825,6 +834,7 @@ mod tests {
             .join("sub12")
             .join("sub121")
             .canonicalize()?;
+
         assert_eq!(expected, actual);
         Ok(())
     }
@@ -838,7 +848,7 @@ mod tests {
         create_file(&tmp, "dir3/Cargo.toml", "")?;
         create_file(&tmp, "dir4/cargo-generate.toml", "")?;
 
-        let r = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
+        let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
             .var_info
         {
             VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
@@ -855,8 +865,11 @@ mod tests {
                     anyhow::bail!("Missing choices")
                 }
             }
-        });
-        assert_eq!(tmp.path().join("my_path"), r?);
+        })?
+        .canonicalize()?;
+        let expected = tmp.path().join("my_path").canonicalize()?;
+
+        assert_eq!(expected, actual);
 
         Ok(())
     }
