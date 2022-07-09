@@ -33,13 +33,22 @@ cargo generate --git https://github.com/username-on-github/mytemplate.git --name
 
 ## Templates in subfolders
 
-If the git repository contains multiple templates, the specific subfolder in the git repository may be specified like this:
+If the repository or path specified for the template contains multiple templates (Any sub-folder that contains a `cargo-generate.toml` file), `cargo-generate` will ask for the specific folder to be used as the template.
+
+Multiple *sub-templates* can also be configured in the `cargo-generate.toml` file like this:
+
+```toml
+[template]
+sub_templates = ["folder1", "folder2"]
+```
+
+Doing so also sets the order when `cargo-generate` asks what to expand, while the first option will be the default.
+
+The specific subfolder in the git repository may be specified on the command line like this:
 
 ```sh
 cargo generate --git https://github.com/username-on-github/mytemplate.git <relative-template-path>
 ```
-
-> ⚠️ NOTE: The specified `relative-template-path` will be used as the actual template root, whether or not this is actually true!
 
 > ⚠️ NOTE: When using the `subfolder` feature, `cargo-generate` will search for the `cargo-generate.toml` file in the subfolder first, traversing back towards the template root in case it is not found.
 
