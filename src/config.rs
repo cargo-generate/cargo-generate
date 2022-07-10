@@ -55,10 +55,7 @@ impl TryFrom<String> for Config {
 }
 
 impl Config {
-    pub(crate) fn from_path<P>(path: &Option<P>) -> Result<Self>
-    where
-        P: AsRef<Path>,
-    {
+    pub(crate) fn from_path(path: &Option<impl AsRef<Path>>) -> Result<Self> {
         match path {
             Some(path) => match fs::read_to_string(path) {
                 Ok(contents) => Self::try_from(contents).map_err(|e| e.into()),

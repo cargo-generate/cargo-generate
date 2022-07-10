@@ -31,9 +31,9 @@ pub struct UserParsedInput {
 }
 
 impl UserParsedInput {
-    fn new<T: AsRef<str>>(
+    fn new(
         template_location: impl Into<TemplateLocation>,
-        subfolder: Option<T>,
+        subfolder: Option<impl AsRef<str>>,
         default_values: HashMap<String, toml::Value>,
         vcs: Vcs,
         init: bool,
@@ -264,18 +264,13 @@ pub struct GitUserInput {
 }
 
 impl GitUserInput {
-    fn new<T1, T2, T3>(
-        url: &T1,
-        branch: Option<&T2>,
-        tag: Option<&T3>,
+    fn new(
+        url: &impl AsRef<str>,
+        branch: Option<&impl AsRef<str>>,
+        tag: Option<&impl AsRef<str>>,
         identity: Option<PathBuf>,
         force_init: bool,
-    ) -> Self
-    where
-        T1: AsRef<str>,
-        T2: AsRef<str>,
-        T3: AsRef<str>,
-    {
+    ) -> Self {
         Self {
             url: url.as_ref().to_owned(),
             branch: branch.map(|s| s.as_ref().to_owned()),
@@ -286,10 +281,7 @@ impl GitUserInput {
     }
 
     // when git was used as abbreviation but other flags still could be passed
-    fn with_git_url_and_args<T1>(url: &T1, args: &GenerateArgs) -> Self
-    where
-        T1: AsRef<str>,
-    {
+    fn with_git_url_and_args(url: &impl AsRef<str>, args: &GenerateArgs) -> Self {
         Self::new(
             url,
             args.template_path.branch(),

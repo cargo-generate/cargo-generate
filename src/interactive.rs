@@ -98,10 +98,7 @@ pub fn prompt_for_variable(variable: &TemplateSlots) -> Result<String> {
     }
 }
 
-pub fn variable<T: ToString>(
-    variable: &TemplateSlots,
-    provided_value: Option<&T>,
-) -> Result<Value> {
+pub fn variable(variable: &TemplateSlots, provided_value: Option<&impl ToString>) -> Result<Value> {
     let user_input = provided_value
         .map(|v| Ok(v.to_string()))
         .unwrap_or_else(|| prompt_for_variable(variable))?;
