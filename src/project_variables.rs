@@ -94,14 +94,11 @@ const RESERVED_NAMES: [&str; 7] = [
     "is_init",
 ];
 
-pub fn fill_project_variables<F>(
+pub fn fill_project_variables(
     template_object: &mut Object,
     config: &Config,
-    value_provider: F,
-) -> Result<()>
-where
-    F: Fn(&TemplateSlots) -> Result<Value>,
-{
+    value_provider: impl Fn(&TemplateSlots) -> Result<Value>,
+) -> Result<()> {
     let template_slots = config
         .placeholders
         .as_ref()

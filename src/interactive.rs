@@ -51,10 +51,7 @@ pub fn prompt_and_check_variable(
     }
 }
 
-pub fn variable<T: ToString>(
-    variable: &TemplateSlots,
-    provided_value: Option<&T>,
-) -> Result<Value> {
+pub fn variable(variable: &TemplateSlots, provided_value: Option<&impl ToString>) -> Result<Value> {
     let user_entry = prompt_and_check_variable(variable, provided_value.map(|v| v.to_string()))?;
     match &variable.var_info {
         VarInfo::Bool { .. } => {
