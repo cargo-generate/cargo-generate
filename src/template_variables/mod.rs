@@ -69,8 +69,8 @@ fn read_template_values_file(path: &Path) -> Result<HashMap<String, Value>> {
     }
 }
 
-fn read_template_values_from_definitions<S: AsRef<str> + Display>(
-    definitions: &[S],
+fn read_template_values_from_definitions(
+    definitions: &[impl AsRef<str> + Display],
 ) -> Result<HashMap<String, toml::Value>> {
     let mut values = HashMap::with_capacity(definitions.len());
     let key_value_regex = Regex::new(r"^([a-zA-Z]+[a-zA-Z0-9\-_]*)\s*=\s*(.+)$").unwrap();
