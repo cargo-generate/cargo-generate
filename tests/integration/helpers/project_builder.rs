@@ -62,7 +62,11 @@ version = "0.1.0"
         self
     }
 
-    pub fn add_submodule<I: Into<String>>(mut self, destination: I, path: I) -> Self {
+    pub fn add_submodule(
+        mut self,
+        destination: impl Into<String>,
+        path: impl Into<String>,
+    ) -> Self {
         self.submodules.push((destination.into(), path.into()));
         self
     }

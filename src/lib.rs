@@ -740,13 +740,17 @@ mod tests {
         }
     }
 
-    pub fn create_file(base_path: &TempDir, path: &str, contents: &str) -> anyhow::Result<()> {
+    pub fn create_file(
+        base_path: &TempDir,
+        path: impl AsRef<Path>,
+        contents: impl AsRef<str>,
+    ) -> anyhow::Result<()> {
         let path = base_path.path().join(path);
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
         }
 
-        fs::File::create(&path)?.write_all(contents.as_ref())?;
+        fs::File::create(&path)?.write_all(contents.as_ref().as_ref())?;
         Ok(())
     }
 }
