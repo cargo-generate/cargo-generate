@@ -1,10 +1,9 @@
 use anyhow::Result;
 use semver::VersionReq;
 use serde::Deserialize;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::{collections::HashMap, fs};
 use std::{convert::TryFrom, io::ErrorKind};
-use walkdir::WalkDir;
 
 use crate::Vcs;
 
@@ -26,6 +25,8 @@ pub struct HooksConfig {
 
 #[derive(Deserialize, Debug, PartialEq, Default, Clone)]
 pub struct TemplateConfig {
+    pub sub_templates: Option<Vec<String>>,
+
     pub cargo_generate_version: Option<VersionReq>,
     pub include: Option<Vec<String>>,
     pub exclude: Option<Vec<String>>,
@@ -89,30 +90,38 @@ impl Config {
     }
 }
 
-pub fn locate_template_configs(dir: &Path) -> Result<Vec<String>> {
-    let mut result = vec![];
+/// Search through a folder structure for template configuration files, but look no deeper than
+/// a found file!
+pub fn locate_template_configs(base_dir: &Path) -> Result<Vec<PathBuf>> {
+    let mut results = Vec::with_capacity(1);
 
-    for entry in WalkDir::new(dir) {
-        let entry = entry?;
-        if entry.file_name() == CONFIG_FILE_NAME {
-            let path = entry
-                .path()
-                .parent()
-                .unwrap()
-                .strip_prefix(dir)
-                .unwrap()
-                .to_string_lossy()
-                .to_string();
-            result.push(path)
+    if base_dir.is_dir() {
+        let mut paths_to_search_in = vec![base_dir.to_path_buf()];
+        'next_path: while let Some(path) = paths_to_search_in.pop() {
+            let mut sub_paths = vec![];
+            for entry in fs::read_dir(&path)? {
+                let entry = entry?;
+                let entry_path = entry.path();
+                if entry_path.is_dir() {
+                    sub_paths.push(entry_path);
+                } else if entry.file_name() == CONFIG_FILE_NAME {
+                    results.push(path.strip_prefix(base_dir)?.to_path_buf());
+                    continue 'next_path;
+                }
+            }
+            paths_to_search_in.append(&mut sub_paths);
         }
+    } else {
+        results.push(base_dir.to_path_buf());
     }
 
-    Ok(result)
+    results.sort();
+    Ok(results)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::tests::{create_file, PathString};
+    use crate::tests::create_file;
 
     use super::*;
     use std::fs::File;
@@ -129,7 +138,7 @@ mod tests {
         create_file(&tmp, "dir3/Cargo.toml", "")?;
 
         let result = locate_template_configs(tmp.path())?;
-        assert_eq!(Vec::new() as Vec<String>, result);
+        assert_eq!(Vec::new() as Vec<PathBuf>, result);
         Ok(())
     }
 
@@ -142,15 +151,20 @@ mod tests {
         create_file(&tmp, "dir3/Cargo.toml", "")?;
         create_file(&tmp, "dir4/cargo-generate.toml", "")?;
 
-        let expected = vec![
-            Path::new("dir2").join("dir2_2").to_string(),
-            "dir4".to_string(),
-        ];
-        let result = {
-            let mut x = locate_template_configs(tmp.path())?;
-            x.sort();
-            x
-        };
+        let expected = vec![Path::new("dir2").join("dir2_2"), PathBuf::from("dir4")];
+        let result = locate_template_configs(tmp.path())?;
+        assert_eq!(expected, result);
+        Ok(())
+    }
+
+    #[test]
+    fn locate_configs_doesnt_look_past_cargo_generate() -> anyhow::Result<()> {
+        let tmp = tempdir().unwrap();
+        create_file(&tmp, "dir1/cargo-generate.toml", "")?;
+        create_file(&tmp, "dir1/dir2/cargo-generate.toml", "")?;
+
+        let expected = vec![PathBuf::from("dir1")];
+        let result = locate_template_configs(tmp.path())?;
         assert_eq!(expected, result);
         Ok(())
     }
@@ -178,6 +192,7 @@ mod tests {
         assert_eq!(
             config.template,
             Some(TemplateConfig {
+                sub_templates: None,
                 cargo_generate_version: Some(VersionReq::from_str(">=0.8.0").unwrap()),
                 include: Some(vec!["Cargo.toml".into()]),
                 exclude: None,
