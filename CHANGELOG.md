@@ -6,15 +6,27 @@
 - [fix(#514): boolean value being ignored](https://github.com/cargo-generate/cargo-generate/issues/514)
 
 ### ✨ Features
-- [Add option to overwrite files in existing project](https://github.com/cargo-generate/cargo-generate/issues/569 )
+- [Configured sub-templates](https://github.com/cargo-generate/cargo-generate/issues/636).
+
+  Sub-templates may now be specified in the `cargo-generate.toml` file like this:
+  ```toml
+  [template]
+  sub_templates = ["sub1", "sub2"]
+  ```
+  Doing so also sets the order when `cargo-generate` asks what to expand, while the first option will be the default.
+  
+  If a selected template doesn't have a `cargo-generate.toml` file, but a parent one exists, any configured sub-templates will be ignored.
+  
+  Further implication is that sub-templates no longer needs to have a `cargo-generate.toml` file.
 - [Test for file existance from rhai scripts](https://github.com/cargo-generate/cargo-generate/pull/690).
   Adds the `file::exists(path: &str)` method for use from hook scripts.
 - Conditionals and placeholders now supported in multiple levels.
   If a template sets up more placeholders conditionally, those placeholders are now checked/asked
   for and respected for use in further expressions/conditionals.
 - [Set default VCS in the favorite or template config](https://github.com/cargo-generate/cargo-generate/issues/635)
-- [Add case filters to `liquid` and functions to `Rhai`. Enables case changing functionallity from both `liquid` and `Rhai`](https://github.com/cargo-generate/cargo-generate/issues/638)
+- [Add case filters to `liquid` and functions to `Rhai`. Enables case changing functionality from both `liquid` and `Rhai`](https://github.com/cargo-generate/cargo-generate/issues/638)
 - [Add placeholder `{{is_init}}`. Enables templates to adust if they are expanded with the `--init` arg for `cargo-generate`](https://github.com/cargo-generate/cargo-generate/issues/649)
+- [Add option to overwrite files in existing project](https://github.com/cargo-generate/cargo-generate/issues/569)
 
 ### Contributors
 - [taurr](https://github.com/taurr)
