@@ -210,29 +210,24 @@ fn get_source_template_into_temp(
     Ok((temp_dir, branch))
 }
 
-fn resolve_project_name(args: &GenerateArgs) -> Result<ProjectName> {
-    match args.name {
-        Some(ref n) => Ok(ProjectName::new(n)),
-        None if !args.silent => Ok(ProjectName::new(interactive::name()?)),
-        None => Err(anyhow!(
-            "{} {} {}",
-            emoji::ERROR,
-            style("Project Name Error:").bold().red(),
-            style("Option `--silent` provided, but project name was not set. Please use `--name`.")
-                .bold()
-                .red(),
-        )),
-    }
+/// resolve the template location for the actual template to expand
+fn resolve_template_dir(template_base_dir: &TempDir, subfolder: Option<&str>) -> Result<PathBuf> {
+    let template_dir = resolve_template_dir_subfolder(template_base_dir.path(), subfolder)?;
+    auto_locate_template_dir(template_dir, &mut prompt_for_variable)
 }
 
-fn resolve_template_dir(template_base_dir: &TempDir, subfolder: Option<&str>) -> Result<PathBuf> {
+/// join the base-dir and the sufolder, ensuring that we stay within the template directory
+fn resolve_template_dir_subfolder<P: AsRef<str>>(
+    template_base_dir: &Path,
+    subfolder: Option<P>,
+) -> Result<PathBuf> {
     if let Some(subfolder) = subfolder {
-        let template_base_dir = fs::canonicalize(template_base_dir.path())?;
-        let template_dir =
-            fs::canonicalize(template_base_dir.join(subfolder)).with_context(|| {
+        let template_base_dir = fs::canonicalize(template_base_dir)?;
+        let template_dir = fs::canonicalize(template_base_dir.join(subfolder.as_ref()))
+            .with_context(|| {
                 format!(
                     "not able to find subfolder '{}' in source template",
-                    subfolder
+                    subfolder.as_ref()
                 )
             })?;
 
@@ -259,38 +254,100 @@ fn resolve_template_dir(template_base_dir: &TempDir, subfolder: Option<&str>) ->
             ));
         }
 
-        Ok(auto_locate_template_dir(
-            &template_dir,
-            prompt_for_variable,
-        )?)
+        Ok(template_dir)
     } else {
-        auto_locate_template_dir(template_base_dir.path(), prompt_for_variable)
+        Ok(template_base_dir.to_path_buf())
     }
 }
 
+/// look through the template folder structure and attempt to find a suitable template.
 fn auto_locate_template_dir(
-    template_base_dir: &Path,
-    prompt: impl Fn(&TemplateSlots) -> Result<String>,
+    template_base_dir: PathBuf,
+    prompt: &mut impl FnMut(&TemplateSlots) -> Result<String>,
 ) -> Result<PathBuf> {
-    let config_paths = locate_template_configs(template_base_dir)?;
+    let config_paths = locate_template_configs(&template_base_dir)?;
     match config_paths.len() {
-        0 => Ok(template_base_dir.to_owned()),
-        1 => Ok(template_base_dir.join(&config_paths[0])),
+        0 => {
+            // No configurations found, so this *must* be a template
+            Ok(template_base_dir)
+        }
+        1 => {
+            // A single configuration found, but it may contain multiple configured sub-templates
+            resolve_configured_sub_templates(template_base_dir.join(&config_paths[0]), prompt)
+        }
         _ => {
+            // Multiple configurations found, each in different "roots"
+            // let user select between them
             let prompt_args = TemplateSlots {
                 prompt: "Which template should be expanded?".into(),
                 var_name: "Template".into(),
                 var_info: VarInfo::String {
                     entry: Box::new(StringEntry {
-                        default: Some(config_paths[0].clone()),
-                        choices: Some(config_paths),
+                        default: Some(config_paths[0].display().to_string()),
+                        choices: Some(
+                            config_paths
+                                .into_iter()
+                                .map(|p| p.display().to_string())
+                                .collect(),
+                        ),
                         regex: None,
                     }),
                 },
             };
             let path = prompt(&prompt_args)?;
-            Ok(template_base_dir.join(&path))
+
+            // recursively retry to resolve the template,
+            // until we hit a single or no config, idetifying the final template folder
+            auto_locate_template_dir(template_base_dir.join(&path), prompt)
         }
+    }
+}
+
+fn resolve_configured_sub_templates(
+    config_path: PathBuf,
+    prompt: &mut impl FnMut(&TemplateSlots) -> Result<String>,
+) -> Result<PathBuf> {
+    Config::from_path(&Some(config_path.join(CONFIG_FILE_NAME)))
+        .ok()
+        .and_then(|config| config.template)
+        .and_then(|config| config.sub_templates)
+        .map(|sub_templates| {
+            // we have a config that defines sub-templates, let the user select
+            let prompt_args = TemplateSlots {
+                prompt: "Which sub-template should be expanded?".into(),
+                var_name: "Template".into(),
+                var_info: VarInfo::String {
+                    entry: Box::new(StringEntry {
+                        default: Some(sub_templates[0].clone()),
+                        choices: Some(sub_templates.clone()),
+                        regex: None,
+                    }),
+                },
+            };
+            let path = prompt(&prompt_args)?;
+
+            // recursively retry to resolve the template,
+            // until we hit a single or no config, idetifying the final template folder
+            auto_locate_template_dir(
+                resolve_template_dir_subfolder(&config_path, Some(path))?,
+                prompt,
+            )
+        })
+        .unwrap_or_else(|| Ok(config_path.to_path_buf()))
+}
+
+fn resolve_project_name(args: &GenerateArgs) -> Result<ProjectName> {
+    match args.name {
+        Some(ref n) => Ok(ProjectName::new(n)),
+        None if !args.silent => Ok(ProjectName::new(interactive::name()?)),
+        None => Err(anyhow!(
+            "{} {} {}",
+            emoji::ERROR,
+            style("Project Name Error:").bold().red(),
+            style("Option `--silent` provided, but project name was not set. Please use `--name`.")
+                .bold()
+                .red(),
+        )),
     }
 }
 
@@ -657,8 +714,12 @@ mod tests {
         create_file(&tmp, "dir2/dir2_1/Cargo.toml", "")?;
         create_file(&tmp, "dir3/Cargo.toml", "")?;
 
-        let r = auto_locate_template_dir(tmp.path(), |_slots| Err(anyhow!("test")))?;
-        assert_eq!(tmp.path(), r);
+        let actual =
+            auto_locate_template_dir(tmp.path().to_path_buf(), &mut |_slots| Err(anyhow!("test")))?
+                .canonicalize()?;
+        let expected = tmp.path().canonicalize()?;
+
+        assert_eq!(expected, actual);
         Ok(())
     }
 
@@ -671,8 +732,110 @@ mod tests {
         create_file(&tmp, "dir2/dir2_2/cargo-generate.toml", "")?;
         create_file(&tmp, "dir3/Cargo.toml", "")?;
 
-        let r = auto_locate_template_dir(tmp.path(), |_slots| Err(anyhow!("test")))?;
-        assert_eq!(tmp.path().join("dir2/dir2_2"), r);
+        let actual =
+            auto_locate_template_dir(tmp.path().to_path_buf(), &mut |_slots| Err(anyhow!("test")))?
+                .canonicalize()?;
+        let expected = tmp.path().join("dir2/dir2_2").canonicalize()?;
+
+        assert_eq!(expected, actual);
+        Ok(())
+    }
+
+    #[test]
+    fn auto_locate_template_can_resolve_configured_subtemplates() -> anyhow::Result<()> {
+        let tmp = tempdir().unwrap();
+        create_file(
+            &tmp,
+            "cargo-generate.toml",
+            indoc::indoc! {r#"
+                [template]
+                sub_templates = ["sub1", "sub2"]
+            "#},
+        )?;
+        create_file(&tmp, "sub1/Cargo.toml", "")?;
+        create_file(&tmp, "sub2/Cargo.toml", "")?;
+
+        let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
+            .var_info
+        {
+            VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
+            VarInfo::String { entry } => {
+                if let Some(choices) = entry.choices.clone() {
+                    let expected = vec!["sub1".to_string(), "sub2".to_string()];
+                    assert_eq!(expected, choices);
+                    Ok("sub2".to_string())
+                } else {
+                    anyhow::bail!("Missing choices")
+                }
+            }
+        })?
+        .canonicalize()?;
+        let expected = tmp.path().join("sub2").canonicalize()?;
+
+        assert_eq!(expected, actual);
+        Ok(())
+    }
+
+    #[test]
+    fn auto_locate_template_recurses_to_resolve_subtemplates() -> anyhow::Result<()> {
+        let tmp = tempdir().unwrap();
+        create_file(
+            &tmp,
+            "cargo-generate.toml",
+            indoc::indoc! {r#"
+                [template]
+                sub_templates = ["sub1", "sub2"]
+            "#},
+        )?;
+        create_file(&tmp, "sub1/Cargo.toml", "")?;
+        create_file(&tmp, "sub1/sub11/cargo-generate.toml", "")?;
+        create_file(
+            &tmp,
+            "sub1/sub12/cargo-generate.toml",
+            indoc::indoc! {r#"
+                [template]
+                sub_templates = ["sub122", "sub121"]
+            "#},
+        )?;
+        create_file(&tmp, "sub2/Cargo.toml", "")?;
+        create_file(&tmp, "sub1/sub11/Cargo.toml", "")?;
+        create_file(&tmp, "sub1/sub12/sub121/Cargo.toml", "")?;
+        create_file(&tmp, "sub1/sub12/sub122/Cargo.toml", "")?;
+
+        let mut prompt_num = 0;
+        let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
+            .var_info
+        {
+            VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
+            VarInfo::String { entry } => {
+                if let Some(choices) = entry.choices.clone() {
+                    let (expected, answer) = match prompt_num {
+                        0 => (vec!["sub1", "sub2"], "sub1"),
+                        1 => (vec!["sub11", "sub12"], "sub12"),
+                        2 => (vec!["sub122", "sub121"], "sub121"),
+                        _ => panic!("Unexpected number of prompts"),
+                    };
+                    prompt_num += 1;
+                    expected
+                        .into_iter()
+                        .zip(choices.iter())
+                        .for_each(|(a, b)| assert_eq!(a, b));
+                    Ok(answer.to_string())
+                } else {
+                    anyhow::bail!("Missing choices")
+                }
+            }
+        })?
+        .canonicalize()?;
+
+        let expected = tmp
+            .path()
+            .join("sub1")
+            .join("sub12")
+            .join("sub121")
+            .canonicalize()?;
+
+        assert_eq!(expected, actual);
         Ok(())
     }
 
@@ -685,23 +848,27 @@ mod tests {
         create_file(&tmp, "dir3/Cargo.toml", "")?;
         create_file(&tmp, "dir4/cargo-generate.toml", "")?;
 
-        let r = auto_locate_template_dir(tmp.path(), |slots| match &slots.var_info {
+        let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
+            .var_info
+        {
             VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
-                if let Some(mut choices) = entry.choices.clone() {
-                    choices.sort();
+                if let Some(choices) = entry.choices.clone() {
                     let expected = vec![
                         Path::new("dir2").join("dir2_2").to_string(),
                         "dir4".to_string(),
                     ];
                     assert_eq!(expected, choices);
-                    Ok("my_path".to_string())
+                    Ok("dir4".to_string())
                 } else {
                     anyhow::bail!("Missing choices")
                 }
             }
-        });
-        assert_eq!(tmp.path().join("my_path"), r?);
+        })?
+        .canonicalize()?;
+        let expected = tmp.path().join("dir4").canonicalize()?;
+
+        assert_eq!(expected, actual);
 
         Ok(())
     }
