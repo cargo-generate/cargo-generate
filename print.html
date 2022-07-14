@@ -287,10 +287,12 @@ branch = &quot;&lt;optional-branch&gt;&quot;
 subfolder = &quot;&lt;optional-subfolder&gt;&quot;
 vcs = &quot;&lt;optional: None|Git&gt;&quot;
 init = optional true|false
+overwrite = optional true|false
 </code></pre>
 <p>Values may be overridden using the CLI arguments of the same names (e.g. <code>--subfolder</code> for the <code>subfolder</code> value).</p>
 <p><strong>Note:</strong> Specifying <code>init = true</code> has the effect of forcing the template to exhibit behaviour as if <code>--init</code> is specified on the
 commandline, as there is no counter-option!</p>
+<p><strong>Note:</strong> Specifying <code>overwrite = true</code> has the effect of allowing the template to always overwrite files as there is no counter-option!</p>
 <p>When favorites are available, they can be generated simply by invoking:</p>
 <pre><code class="language-cli">cargo gen &lt;favorite&gt;
 </code></pre>
