@@ -43,7 +43,8 @@ pub struct GenerateArgs {
             "define",
             "init",
             "template-values-file",
-            "ssh-identity"
+            "ssh-identity",
+            "test",
         ])
     )]
     pub list_favorites: bool,
@@ -118,6 +119,26 @@ pub struct GenerateArgs {
     /// Allow the template to overwrite existing files in the destination.
     #[clap(short, long, action)]
     pub overwrite: bool,
+
+    /// Expand the template, but instead of copying the result to the destination, run `cargo test` inside the expanded template dir.
+    ///
+    /// Any arguments given after a `--` argument, will be used as arguments for `cargo test`.
+    #[clap(
+        long,
+        action,
+        conflicts_with_all(&[
+            "list-favorites",
+            "destination",
+            "vcs",
+            "init",
+            "force-git-init",
+        ])
+    )]
+    pub test: bool,
+
+    /// All args after "--" on the command line.
+    #[clap(skip)]
+    pub other_args: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Args)]
