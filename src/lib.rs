@@ -154,7 +154,7 @@ fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
         style(project_dir.display()).bold().yellow(),
         style("...").bold()
     );
-    copy_dir_all(&template_dir, &project_dir)?;
+    copy_dir_all(&template_dir, &project_dir, user_parsed_input.overwrite())?;
 
     let vcs = config
         .template
@@ -353,14 +353,18 @@ fn resolve_project_name(args: &GenerateArgs) -> Result<ProjectName> {
 
 fn copy_path_template_into_temp(src_path: &Path) -> Result<TempDir> {
     let path_clone_dir = tempfile::tempdir()?;
-    copy_dir_all(src_path, path_clone_dir.path())?;
+    copy_dir_all(src_path, path_clone_dir.path(), false)?;
     git::remove_history(path_clone_dir.path())?;
 
     Ok(path_clone_dir)
 }
 
-pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
-    fn check_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
+pub(crate) fn copy_dir_all(
+    src: impl AsRef<Path>,
+    dst: impl AsRef<Path>,
+    overwrite: bool,
+) -> Result<()> {
+    fn check_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>, overwrite: bool) -> Result<()> {
         if !dst.as_ref().exists() {
             return Ok(());
         }
@@ -372,18 +376,29 @@ pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resu
 
             if entry_type.is_dir() {
                 let dst_path = dst.as_ref().join(filename);
-                check_dir_all(src_entry.path(), dst_path)?;
+                check_dir_all(src_entry.path(), dst_path, overwrite)?;
             } else if entry_type.is_file() {
                 let filename = filename.strip_suffix(".liquid").unwrap_or(&filename);
                 let dst_path = dst.as_ref().join(filename);
-                if dst_path.exists() {
-                    bail!(
-                        "{} {} {}",
-                        crate::emoji::WARN,
-                        style("File already exists:").bold().red(),
-                        style(dst_path.display()).bold().red(),
-                    )
-                }
+                match (dst_path.exists(), overwrite) {
+                    (true, false) => {
+                        bail!(
+                            "{} {} {}",
+                            crate::emoji::WARN,
+                            style("File already exists:").bold().red(),
+                            style(dst_path.display()).bold().red(),
+                        )
+                    }
+                    (true, true) => {
+                        eprintln!(
+                            "{} {} {}",
+                            emoji::WARN,
+                            style("Overwriting file:").bold().red(),
+                            style(dst_path.display()).bold().red(),
+                        );
+                    }
+                    _ => {}
+                };
             } else {
                 bail!(
                     "{} {}",
@@ -394,7 +409,7 @@ pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resu
         }
         Ok(())
     }
-    fn copy_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
+    fn copy_all(src: impl AsRef<Path>, dst: impl AsRef<Path>, overwrite: bool) -> Result<()> {
         fs::create_dir_all(&dst)?;
         let git_file_name: OsString = ".git".into();
         for src_entry in fs::read_dir(src)? {
@@ -406,18 +421,21 @@ pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Resu
                 if git_file_name == src_entry.file_name() {
                     continue;
                 }
-                copy_dir_all(src_entry.path(), dst_path)?;
+                copy_dir_all(src_entry.path(), dst_path, overwrite)?;
             } else if entry_type.is_file() {
                 let filename = filename.strip_suffix(".liquid").unwrap_or(&filename);
                 let dst_path = dst.as_ref().join(filename);
+                if dst_path.exists() && overwrite {
+                    fs::remove_file(&dst_path)?;
+                }
                 fs::copy(src_entry.path(), dst_path)?;
             }
         }
         Ok(())
     }
 
-    check_dir_all(&src, &dst)?;
-    copy_all(src, dst)
+    check_dir_all(&src, &dst, overwrite)?;
+    copy_all(src, dst, overwrite)
 }
 
 fn locate_template_file(

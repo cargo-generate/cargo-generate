@@ -114,6 +114,10 @@ pub struct GenerateArgs {
     /// Use at your own risk and be sure to review the template code beforehand.
     #[clap(short, long, action)]
     pub allow_commands: bool,
+
+    /// Allow the template to overwrite existing files in the destination.
+    #[clap(short, long, action)]
+    pub overwrite: bool,
 }
 
 #[derive(Debug, Clone, Args)]

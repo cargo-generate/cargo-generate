@@ -35,6 +35,7 @@ pub struct FavoriteConfig {
     pub values: Option<HashMap<String, toml::Value>>,
     pub vcs: Option<Vcs>,
     pub init: Option<bool>,
+    pub overwrite: Option<bool>,
 }
 
 #[derive(Deserialize, Default)]

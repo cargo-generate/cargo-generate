@@ -18,7 +18,7 @@
   If a selected template doesn't have a `cargo-generate.toml` file, but a parent one exists, any configured sub-templates will be ignored.
   
   Further implication is that sub-templates no longer needs to have a `cargo-generate.toml` file.
-- [Test for file existence from rhai scripts](https://github.com/cargo-generate/cargo-generate/pull/690).
+- [Test for file existance from rhai scripts](https://github.com/cargo-generate/cargo-generate/pull/690).
   Adds the `file::exists(path: &str)` method for use from hook scripts.
 - Conditionals and placeholders now supported in multiple levels.
   If a template sets up more placeholders conditionally, those placeholders are now checked/asked
@@ -26,6 +26,7 @@
 - [Set default VCS in the favorite or template config](https://github.com/cargo-generate/cargo-generate/issues/635)
 - [Add case filters to `liquid` and functions to `Rhai`. Enables case changing functionality from both `liquid` and `Rhai`](https://github.com/cargo-generate/cargo-generate/issues/638)
 - [Add placeholder `{{is_init}}`. Enables templates to adust if they are expanded with the `--init` arg for `cargo-generate`](https://github.com/cargo-generate/cargo-generate/issues/649)
+- [Add option to overwrite files in existing project](https://github.com/cargo-generate/cargo-generate/issues/569)
 
 ### Contributors
 - [taurr](https://github.com/taurr)
