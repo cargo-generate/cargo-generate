@@ -2,7 +2,7 @@ use rhai::{Dynamic, Module};
 use std::process::Command;
 
 use crate::{
-    interactive::prompt_for_variable,
+    interactive::prompt_and_check_variable,
     project_variables::{StringEntry, TemplateSlots, VarInfo},
 };
 
@@ -45,17 +45,20 @@ fn run_command(
             let prompt = format!("The template is requesting to run the following command. Do you agree?\n{full_command}");
 
             // Prompt the user for whether they actually want to run the command.
-            let value = prompt_for_variable(&TemplateSlots {
-                prompt,
-                var_name: "".into(),
-                var_info: VarInfo::String {
-                    entry: Box::new(StringEntry {
-                        default: Some("no".into()),
-                        choices: Some(vec!["yes".into(), "no".into()]),
-                        regex: None,
-                    }),
+            let value = prompt_and_check_variable(
+                &TemplateSlots {
+                    prompt,
+                    var_name: "".into(),
+                    var_info: VarInfo::String {
+                        entry: Box::new(StringEntry {
+                            default: Some("no".into()),
+                            choices: Some(vec!["yes".into(), "no".into()]),
+                            regex: None,
+                        }),
+                    },
                 },
-            });
+                None,
+            );
 
             // Only accept clearly positive affirmations.
             matches!(

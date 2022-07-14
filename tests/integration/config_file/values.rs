@@ -375,3 +375,42 @@ fn cli_value_overrides_others() {
     let cargo_toml = dir.read("foobar-project/Cargo.toml");
     assert!(cargo_toml.contains("content of cli-value"));
 }
+
+#[test]
+fn cli_values_are_checked_via_regex() {
+    let template = tmp_dir()
+        .file(
+            "Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "{{my_value}}"
+                version = "0.1.0"
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [placeholders.my_value]
+                type = "string"
+                prompt = "What will the name of 'my_value' be?"
+                regex = "^$"
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("generate")
+        .arg("--name")
+        .arg("foobar-project")
+        .arg("-d")
+        .arg(r#"my_value="content of my-value""#)
+        .arg("--path")
+        .arg(template.path())
+        .current_dir(&dir.path())
+        .assert()
+        .failure();
+}

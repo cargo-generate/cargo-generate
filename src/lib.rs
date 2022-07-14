@@ -51,7 +51,7 @@ use console::style;
 use git::DEFAULT_BRANCH;
 use hooks::execute_hooks;
 use ignore_me::remove_dir_files;
-use interactive::prompt_for_variable;
+use interactive::prompt_and_check_variable;
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::ffi::OsString;
 use std::{
@@ -202,7 +202,9 @@ fn get_source_template_into_temp(
             branch = branch2;
         }
         TemplateLocation::Path(path) => {
-            temp_dir = copy_path_template_into_temp(path)?;
+            temp_dir = tempfile::tempdir()?;
+            copy_dir_all(path, temp_dir.path(), false)?;
+            git::remove_history(temp_dir.path())?;
             branch = String::from(DEFAULT_BRANCH); // FIXME is here any reason to set branch when path is used?
         }
     };
@@ -210,16 +212,33 @@ fn get_source_template_into_temp(
     Ok((temp_dir, branch))
 }
 
+fn resolve_project_name(args: &GenerateArgs) -> Result<ProjectName> {
+    match args.name {
+        Some(ref n) => Ok(ProjectName::new(n)),
+        None if !args.silent => Ok(ProjectName::new(interactive::name()?)),
+        None => Err(anyhow!(
+            "{} {} {}",
+            emoji::ERROR,
+            style("Project Name Error:").bold().red(),
+            style("Option `--silent` provided, but project name was not set. Please use `--name`.")
+                .bold()
+                .red(),
+        )),
+    }
+}
+
 /// resolve the template location for the actual template to expand
 fn resolve_template_dir(template_base_dir: &TempDir, subfolder: Option<&str>) -> Result<PathBuf> {
     let template_dir = resolve_template_dir_subfolder(template_base_dir.path(), subfolder)?;
-    auto_locate_template_dir(template_dir, &mut prompt_for_variable)
+    auto_locate_template_dir(template_dir, &mut |slots| {
+        prompt_and_check_variable(slots, None)
+    })
 }
 
 /// join the base-dir and the sufolder, ensuring that we stay within the template directory
-fn resolve_template_dir_subfolder<P: AsRef<str>>(
+fn resolve_template_dir_subfolder(
     template_base_dir: &Path,
-    subfolder: Option<P>,
+    subfolder: Option<impl AsRef<str>>,
 ) -> Result<PathBuf> {
     if let Some(subfolder) = subfolder {
         let template_base_dir = fs::canonicalize(template_base_dir)?;
@@ -256,7 +275,7 @@ fn resolve_template_dir_subfolder<P: AsRef<str>>(
 
         Ok(template_dir)
     } else {
-        Ok(template_base_dir.to_path_buf())
+        Ok(template_base_dir.to_owned())
     }
 }
 
@@ -334,29 +353,6 @@ fn resolve_configured_sub_templates(
             )
         })
         .unwrap_or_else(|| Ok(config_path.to_path_buf()))
-}
-
-fn resolve_project_name(args: &GenerateArgs) -> Result<ProjectName> {
-    match args.name {
-        Some(ref n) => Ok(ProjectName::new(n)),
-        None if !args.silent => Ok(ProjectName::new(interactive::name()?)),
-        None => Err(anyhow!(
-            "{} {} {}",
-            emoji::ERROR,
-            style("Project Name Error:").bold().red(),
-            style("Option `--silent` provided, but project name was not set. Please use `--name`.")
-                .bold()
-                .red(),
-        )),
-    }
-}
-
-fn copy_path_template_into_temp(src_path: &Path) -> Result<TempDir> {
-    let path_clone_dir = tempfile::tempdir()?;
-    copy_dir_all(src_path, path_clone_dir.path(), false)?;
-    git::remove_history(path_clone_dir.path())?;
-
-    Ok(path_clone_dir)
 }
 
 pub(crate) fn copy_dir_all(
@@ -594,11 +590,7 @@ fn fill_placeholders_and_merge_conditionals(
     template_values: &HashMap<String, toml::Value>,
     args: &GenerateArgs,
 ) -> Result<liquid::Object, anyhow::Error> {
-    let conditionals = config.conditional.take();
-    if conditionals.is_none() {
-        return Ok(liquid_object);
-    }
-    let mut conditionals = conditionals.unwrap();
+    let mut conditionals = config.conditional.take().unwrap_or_default();
 
     loop {
         project_variables::fill_project_variables(&mut liquid_object, config, |slot| {

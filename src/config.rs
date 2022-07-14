@@ -158,7 +158,7 @@ mod tests {
     }
 
     #[test]
-    fn locate_configs_can_doesnt_look_past_cargo_generate() -> anyhow::Result<()> {
+    fn locate_configs_doesnt_look_past_cargo_generate() -> anyhow::Result<()> {
         let tmp = tempdir().unwrap();
         create_file(&tmp, "dir1/cargo-generate.toml", "")?;
         create_file(&tmp, "dir1/dir2/cargo-generate.toml", "")?;
