@@ -97,8 +97,6 @@ fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
             .cloned();
     }
 
-    println!("template-path: {:?}", args.template_path);
-
     // mash AppConfig and CLI arguments together into UserParsedInput
     let mut user_parsed_input = UserParsedInput::try_from_args_and_config(app_config, &args);
     // let ENV vars provide values we don't have yet

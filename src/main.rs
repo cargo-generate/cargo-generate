@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::Result;
 use cargo_generate::{generate, list_favorites, Cli};
 use clap::Parser;
@@ -19,7 +21,13 @@ fn main() -> Result<()> {
         let Cli::Generate(mut args) = Cli::parse_from(args);
         args.other_args = Some(other_args);
         if args.template_path.test {
-            args.template_path.path = Some(String::from("."));
+            args.template_path.path = Some(
+                args.template_path
+                    .auto_path
+                    .take()
+                    .map(|sub| PathBuf::from(".").join(sub).display().to_string())
+                    .unwrap_or_else(|| String::from(".")),
+            );
         }
         args
     };
