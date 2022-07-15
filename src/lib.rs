@@ -147,60 +147,85 @@ fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
     )?;
 
     if args.template_path.test {
-        println!(
-            "{} {}{}{}",
-            emoji::WRENCH,
-            style("Running \"").bold(),
-            style("cargo test"),
-            style("\" ...").bold(),
-        );
-        std::env::set_current_dir(&template_dir)?;
-        let (cmd, cmd_args) = std::env::var("CARGO_GENERATE_TEST_CMD")
-            .map(|env_test_cmd| {
-                let mut split_cmd_args = env_test_cmd.split_whitespace().map(str::to_string);
-                (
-                    split_cmd_args.next().unwrap(),
-                    split_cmd_args.collect::<Vec<String>>(),
-                )
-            })
-            .unwrap_or_else(|_| (String::from("cargo"), vec![String::from("test")]));
-        std::process::Command::new(cmd)
-            .args(cmd_args)
-            .args(args.other_args.unwrap_or_default().into_iter())
-            .spawn()?
-            .wait()?
-            .success()
-            .then(PathBuf::new)
-            .ok_or_else(|| anyhow!("{} Testing failed", emoji::ERROR))
+        test_expanded_template(&template_dir, &args)
     } else {
-        println!(
-            "{} {} `{}`{}",
-            emoji::WRENCH,
-            style("Moving generated files into:").bold(),
-            style(project_dir.display()).bold().yellow(),
-            style("...").bold()
-        );
-        copy_dir_all(&template_dir, &project_dir, user_parsed_input.overwrite())?;
-
-        let vcs = config
-            .template
-            .and_then(|t| t.vcs)
-            .unwrap_or_else(|| user_parsed_input.vcs());
-        if !vcs.is_none() && (!user_parsed_input.init || args.force_git_init) {
-            info!("{}", style("Initializing a fresh Git repository").bold());
-            vcs.initialize(&project_dir, branch, args.force_git_init)?;
-        }
-
-        println!(
-            "{} {} {} {}",
-            emoji::SPARKLE,
-            style("Done!").bold().green(),
-            style("New project created").bold(),
-            style(&project_dir.display()).underlined()
-        );
-
-        Ok(project_dir)
+        copy_expanded_template(
+            template_dir,
+            project_dir,
+            user_parsed_input,
+            config,
+            args,
+            branch,
+        )
     }
+}
+
+fn copy_expanded_template(
+    template_dir: PathBuf,
+    project_dir: PathBuf,
+    user_parsed_input: UserParsedInput,
+    config: Config,
+    args: GenerateArgs,
+    branch: String,
+) -> Result<PathBuf> {
+    println!(
+        "{} {} `{}`{}",
+        emoji::WRENCH,
+        style("Moving generated files into:").bold(),
+        style(project_dir.display()).bold().yellow(),
+        style("...").bold()
+    );
+    copy_dir_all(&template_dir, &project_dir, user_parsed_input.overwrite())?;
+    let vcs = config
+        .template
+        .and_then(|t| t.vcs)
+        .unwrap_or_else(|| user_parsed_input.vcs());
+    if !vcs.is_none() && (!user_parsed_input.init || args.force_git_init) {
+        info!("{}", style("Initializing a fresh Git repository").bold());
+        vcs.initialize(&project_dir, branch, args.force_git_init)?;
+    }
+    println!(
+        "{} {} {} {}",
+        emoji::SPARKLE,
+        style("Done!").bold().green(),
+        style("New project created").bold(),
+        style(&project_dir.display()).underlined()
+    );
+    Ok(project_dir)
+}
+
+fn test_expanded_template(template_dir: &PathBuf, args: &GenerateArgs) -> Result<PathBuf> {
+    println!(
+        "{} {}{}{}",
+        emoji::WRENCH,
+        style("Running \"").bold(),
+        style("cargo test"),
+        style("\" ...").bold(),
+    );
+    std::env::set_current_dir(template_dir)?;
+    let (cmd, cmd_args) = std::env::var("CARGO_GENERATE_TEST_CMD")
+        .map(|env_test_cmd| {
+            let mut split_cmd_args = env_test_cmd.split_whitespace().map(str::to_string);
+            (
+                split_cmd_args.next().unwrap(),
+                split_cmd_args.collect::<Vec<String>>(),
+            )
+        })
+        .unwrap_or_else(|_| (String::from("cargo"), vec![String::from("test")]));
+    std::process::Command::new(cmd)
+        .args(cmd_args)
+        .args(
+            args.other_args
+                .as_ref()
+                .cloned()
+                .unwrap_or_default()
+                .into_iter(),
+        )
+        .spawn()?
+        .wait()?
+        .success()
+        .then(PathBuf::new)
+        .ok_or_else(|| anyhow!("{} Testing failed", emoji::ERROR))
 }
 
 fn prepare_local_template(
