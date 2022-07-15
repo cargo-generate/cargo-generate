@@ -28,6 +28,9 @@ fn main() -> Result<()> {
                     .map(|sub| PathBuf::from(".").join(sub).display().to_string())
                     .unwrap_or_else(|| String::from(".")),
             );
+            if args.name.is_none() {
+                args.name = names::Generator::default().next();
+            }
         }
         args
     };
