@@ -53,7 +53,6 @@ use hooks::execute_hooks;
 use ignore_me::remove_dir_files;
 use interactive::prompt_and_check_variable;
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
-use std::ffi::OsString;
 use std::{
     borrow::Borrow,
     collections::HashMap,
@@ -97,6 +96,8 @@ fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
             .as_ref()
             .cloned();
     }
+
+    println!("template-path: {:?}", args.template_path);
 
     // mash AppConfig and CLI arguments together into UserParsedInput
     let mut user_parsed_input = UserParsedInput::try_from_args_and_config(app_config, &args);
@@ -147,7 +148,7 @@ fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
         &args,
     )?;
 
-    if args.test {
+    if args.template_path.test {
         println!(
             "{} {}{}{}",
             emoji::WRENCH,
@@ -435,14 +436,13 @@ pub(crate) fn copy_dir_all(
     }
     fn copy_all(src: impl AsRef<Path>, dst: impl AsRef<Path>, overwrite: bool) -> Result<()> {
         fs::create_dir_all(&dst)?;
-        let git_file_name: OsString = ".git".into();
         for src_entry in fs::read_dir(src)? {
             let src_entry = src_entry?;
             let filename = src_entry.file_name().to_string_lossy().to_string();
             let entry_type = src_entry.file_type()?;
             if entry_type.is_dir() {
                 let dst_path = dst.as_ref().join(filename);
-                if git_file_name == src_entry.file_name() {
+                if ".git" == src_entry.file_name() {
                     continue;
                 }
                 copy_dir_all(src_entry.path(), dst_path, overwrite)?;

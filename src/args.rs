@@ -120,22 +120,6 @@ pub struct GenerateArgs {
     #[clap(short, long, action)]
     pub overwrite: bool,
 
-    /// Expand the template, but instead of copying the result to the destination, run `cargo test` inside the expanded template dir.
-    ///
-    /// Any arguments given after a `--` argument, will be used as arguments for `cargo test`.
-    #[clap(
-        long,
-        action,
-        conflicts_with_all(&[
-            "list-favorites",
-            "destination",
-            "vcs",
-            "init",
-            "force-git-init",
-        ])
-    )]
-    pub test: bool,
-
     /// All args after "--" on the command line.
     #[clap(skip)]
     pub other_args: Option<Vec<String>>,
@@ -151,6 +135,12 @@ pub struct TemplatePath {
     /// Specifies a subfolder within the template repository to be used as the actual template.
     #[clap()]
     pub subfolder: Option<String>,
+
+    /// Expand $CWD as a template, then run `cargo test` on the expansion (set $CARGO_GENERATE_TEST_CMD to override test command).
+    ///
+    /// Any arguments given after the `--test` argument, will be used as arguments for the test command.
+    #[clap(long, action, group("SpecificPath"))]
+    pub test: bool,
 
     /// Git repository to clone template from. Can be a URL (like
     /// `https://github.com/rust-cli/cli-template`), a path (relative or absolute), or an
