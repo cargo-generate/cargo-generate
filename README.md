@@ -28,6 +28,10 @@ Here's an example of using `cargo-generate` with [this template]:
 
 See the `cargo-generate` [guide](https://cargo-generate.github.io/cargo-generate/index.html) for complete documentation.
 
+## Templates
+
+One place to find templates is to look for the [cargo-generate topic](https://github.com/topics/cargo-generate) on GitHub.
+
 ## Quickstart
 ### Installation
 
