@@ -53,7 +53,6 @@ use hooks::execute_hooks;
 use ignore_me::remove_dir_files;
 use interactive::prompt_and_check_variable;
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
-use std::ffi::OsString;
 use std::{
     borrow::Borrow,
     collections::HashMap,
@@ -147,6 +146,28 @@ fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
         &args,
     )?;
 
+    if args.template_path.test {
+        test_expanded_template(&template_dir, &args)
+    } else {
+        copy_expanded_template(
+            template_dir,
+            project_dir,
+            user_parsed_input,
+            config,
+            args,
+            branch,
+        )
+    }
+}
+
+fn copy_expanded_template(
+    template_dir: PathBuf,
+    project_dir: PathBuf,
+    user_parsed_input: UserParsedInput,
+    config: Config,
+    args: GenerateArgs,
+    branch: String,
+) -> Result<PathBuf> {
     println!(
         "{} {} `{}`{}",
         emoji::WRENCH,
@@ -155,7 +176,6 @@ fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
         style("...").bold()
     );
     copy_dir_all(&template_dir, &project_dir, user_parsed_input.overwrite())?;
-
     let vcs = config
         .template
         .and_then(|t| t.vcs)
@@ -164,7 +184,6 @@ fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
         info!("{}", style("Initializing a fresh Git repository").bold());
         vcs.initialize(&project_dir, branch, args.force_git_init)?;
     }
-
     println!(
         "{} {} {} {}",
         emoji::SPARKLE,
@@ -172,8 +191,41 @@ fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
         style("New project created").bold(),
         style(&project_dir.display()).underlined()
     );
-
     Ok(project_dir)
+}
+
+fn test_expanded_template(template_dir: &PathBuf, args: &GenerateArgs) -> Result<PathBuf> {
+    println!(
+        "{} {}{}{}",
+        emoji::WRENCH,
+        style("Running \"").bold(),
+        style("cargo test"),
+        style("\" ...").bold(),
+    );
+    std::env::set_current_dir(template_dir)?;
+    let (cmd, cmd_args) = std::env::var("CARGO_GENERATE_TEST_CMD")
+        .map(|env_test_cmd| {
+            let mut split_cmd_args = env_test_cmd.split_whitespace().map(str::to_string);
+            (
+                split_cmd_args.next().unwrap(),
+                split_cmd_args.collect::<Vec<String>>(),
+            )
+        })
+        .unwrap_or_else(|_| (String::from("cargo"), vec![String::from("test")]));
+    std::process::Command::new(cmd)
+        .args(cmd_args)
+        .args(
+            args.other_args
+                .as_ref()
+                .cloned()
+                .unwrap_or_default()
+                .into_iter(),
+        )
+        .spawn()?
+        .wait()?
+        .success()
+        .then(PathBuf::new)
+        .ok_or_else(|| anyhow!("{} Testing failed", emoji::ERROR))
 }
 
 fn prepare_local_template(
@@ -407,14 +459,13 @@ pub(crate) fn copy_dir_all(
     }
     fn copy_all(src: impl AsRef<Path>, dst: impl AsRef<Path>, overwrite: bool) -> Result<()> {
         fs::create_dir_all(&dst)?;
-        let git_file_name: OsString = ".git".into();
         for src_entry in fs::read_dir(src)? {
             let src_entry = src_entry?;
             let filename = src_entry.file_name().to_string_lossy().to_string();
             let entry_type = src_entry.file_type()?;
             if entry_type.is_dir() {
                 let dst_path = dst.as_ref().join(filename);
-                if git_file_name == src_entry.file_name() {
+                if ".git" == src_entry.file_name() {
                     continue;
                 }
                 copy_dir_all(src_entry.path(), dst_path, overwrite)?;

@@ -43,7 +43,8 @@ pub struct GenerateArgs {
             "define",
             "init",
             "template-values-file",
-            "ssh-identity"
+            "ssh-identity",
+            "test",
         ])
     )]
     pub list_favorites: bool,
@@ -118,6 +119,10 @@ pub struct GenerateArgs {
     /// Allow the template to overwrite existing files in the destination.
     #[clap(short, long, action)]
     pub overwrite: bool,
+
+    /// All args after "--" on the command line.
+    #[clap(skip)]
+    pub other_args: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Args)]
@@ -130,6 +135,12 @@ pub struct TemplatePath {
     /// Specifies a subfolder within the template repository to be used as the actual template.
     #[clap()]
     pub subfolder: Option<String>,
+
+    /// Expand $CWD as a template, then run `cargo test` on the expansion (set $CARGO_GENERATE_TEST_CMD to override test command).
+    ///
+    /// Any arguments given after the `--test` argument, will be used as arguments for the test command.
+    #[clap(long, action, group("SpecificPath"))]
+    pub test: bool,
 
     /// Git repository to clone template from. Can be a URL (like
     /// `https://github.com/rust-cli/cli-template`), a path (relative or absolute), or an

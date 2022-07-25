@@ -18,6 +18,7 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
             path: None,
             favorite: None,
             subfolder: None,
+            test: false,
         },
         name: Some(String::from("foobar_project")),
         force: true,
@@ -36,6 +37,7 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
         force_git_init: false,
         allow_commands: false,
         overwrite: false,
+        other_args: None,
     };
 
     assert_eq!(
