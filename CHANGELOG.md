@@ -1,12 +1,13 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.15.2...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.16.0...HEAD)
 
-### 🤕 Fixes
-- [fix(#514): boolean value being ignored](https://github.com/cargo-generate/cargo-generate/issues/514)
+## [0.16.0] 2022-07-25
+[0.16.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.15.2...v0.16.0
 
 ### ✨ Features
-- [Configured sub-templates](https://github.com/cargo-generate/cargo-generate/issues/636).
+- [Support `--test` for running tests on the expanded template](https://github.com/cargo-generate/cargo-generate/pull/699)
+- [Allow the template author to manually specify sub-temlates](https://github.com/cargo-generate/cargo-generate/pull/693)
 
   Sub-templates may now be specified in the `cargo-generate.toml` file like this:
   ```toml
@@ -18,18 +19,48 @@
   If a selected template doesn't have a `cargo-generate.toml` file, but a parent one exists, any configured sub-templates will be ignored.
   
   Further implication is that sub-templates no longer needs to have a `cargo-generate.toml` file.
-- [Test for file existance from rhai scripts](https://github.com/cargo-generate/cargo-generate/pull/690).
+- [Test for file existance from rhai scripts](https://github.com/cargo-generate/cargo-generate/pull/690)
   Adds the `file::exists(path: &str)` method for use from hook scripts.
-- Conditionals and placeholders now supported in multiple levels.
+- Conditionals and placeholders are now supported at multiple levels.
   If a template sets up more placeholders conditionally, those placeholders are now checked/asked
   for and respected for use in further expressions/conditionals.
 - [Set default VCS in the favorite or template config](https://github.com/cargo-generate/cargo-generate/issues/635)
 - [Add case filters to `liquid` and functions to `Rhai`. Enables case changing functionality from both `liquid` and `Rhai`](https://github.com/cargo-generate/cargo-generate/issues/638)
-- [Add placeholder `{{is_init}}`. Enables templates to adust if they are expanded with the `--init` arg for `cargo-generate`](https://github.com/cargo-generate/cargo-generate/issues/649)
-- [Add option to overwrite files in existing project](https://github.com/cargo-generate/cargo-generate/issues/569)
+- [Add placeholder `{{is_init}}`. Enables templates to adjust if they are expanded with the `--init` arg for `cargo-generate`](https://github.com/cargo-generate/cargo-generate/issues/649)
+- [Make it possible to convert to `snake_case` and `kebab_case` from `Rhai`](https://github.com/cargo-generate/cargo-generate/pull/662)
+- [New `Rhai` variable: `is_init` ?](https://github.com/cargo-generate/cargo-generate/pull/661)
+- [Return the path of the generated project from the `generate` function](https://github.com/cargo-generate/cargo-generate/pull/666)
+- [Support `--tag` in addition to `--branch`](https://github.com/cargo-generate/cargo-generate/pull/671)
+- [Set default VCS from within templates](https://github.com/cargo-generate/cargo-generate/pull/677)
+- [Let template specify it is designed to NOT go into a sub-folder (aka. the template always has --init behaviour)](https://github.com/cargo-generate/cargo-generate/pull/680)
+- [Add an option to overwrite files in an existing project](https://github.com/cargo-generate/cargo-generate/pull/691)
+- [Add a link to finding templates directly from the README](https://github.com/cargo-generate/cargo-generate/pull/700)
+
+### 🤕 Fixes
+- [fix(#514): boolean value being ignored](https://github.com/cargo-generate/cargo-generate/pull/669)
+- [fix lint error](https://github.com/cargo-generate/cargo-generate/pull/678)
+- [fix for cargo-generate changes the $CWD](https://github.com/cargo-generate/cargo-generate/pull/688)
+- [should fail if --define placeholder value doesn't match placeholder regex](https://github.com/cargo-generate/cargo-generate/pull/692)
+
+### 🛠️ Maintenance
+- [chore(deps): bump anyhow from 1.0.57 to 1.0.58](https://github.com/cargo-generate/cargo-generate/pull/663)
+- [chore(deps): bump clap from 3.2.5 to 3.2.6](https://github.com/cargo-generate/cargo-generate/pull/672)
+- [chore(deps): bump clap from 3.2.6 to 3.2.8](https://github.com/cargo-generate/cargo-generate/pull/684)
+- [chore(deps): bump clap from 3.2.8 to 3.2.12](https://github.com/cargo-generate/cargo-generate/pull/702)
+- [chore(deps): bump openssl-src from 111.20.0+1.1.1o to 111.22.0+1.1.1q](https://github.com/cargo-generate/cargo-generate/pull/687)
+- [chore(deps): bump rhai from 1.7.0 to 1.8.0](https://github.com/cargo-generate/cargo-generate/pull/683)
+- [chore(deps): bump serde from 1.0.137 to 1.0.138](https://github.com/cargo-generate/cargo-generate/pull/682)
+- [chore(deps): bump semver from 1.0.10 to 1.0.12](https://github.com/cargo-generate/cargo-generate/pull/681)
+- [chore(deps): bump serde from 1.0.138 to 1.0.139](https://github.com/cargo-generate/cargo-generate/pull/697)
+- [chore(deps): bump openssl from 0.10.40 to 0.10.41](https://github.com/cargo-generate/cargo-generate/pull/696)
+- [chore(deps): bump regex from 1.5.6 to 1.6.0](https://github.com/cargo-generate/cargo-generate/pull/695)
+- [refactor: use impl T to improve readability, and change path params to use Path](https://github.com/cargo-generate/cargo-generate/pull/694)
 
 ### Contributors
 - [taurr](https://github.com/taurr)
+- [sassman](https://github.com/sassman)
+- [yozhgoor](https://github.com/yozhgoor)
+- [dependabot[bot]](https://github.com/apps/dependabot)
 
 ## [0.15.2] 2022-06-16
 [0.15.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.15.1...v0.15.2
