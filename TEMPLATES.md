@@ -25,7 +25,6 @@ The following is a **deprecated** list of projects that haven't added the topic 
   up, in addition to benchmarking and testing boilerplate [Rebecca Turner]
 - [mongodb-service-template]: Create a graphql service using mongodb [briandeboer]
 - [godot-rust-template]: Create games with Godot and Rust [macalimlim]
-- [serenity]: Write a Discord bot in rust using the Serenity library, [chilipepperhott]
 
 [PyO3]: https://github.com/DD5HT/pyo3-template
 [DD5HT]: https://github.com/DD5HT
@@ -68,5 +67,3 @@ The following is a **deprecated** list of projects that haven't added the topic 
 [briandeboer]: https://github.com/briandeboer
 [godot-rust-template]: https://github.com/godot-rust/godot-rust-template
 [macalimlim]: https://github.com/macalimlim
-[serenity]: https://github.com/chilipepperhott/discord-bot-template
-[chilipepperhott]: https://github.com/chilipepperhott
