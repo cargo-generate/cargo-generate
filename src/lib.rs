@@ -568,9 +568,9 @@ fn expand_template(
     )?;
     add_missing_provided_values(&mut liquid_object, source_template.template_values())?;
 
-    execute_hooks(
+    let liquid_object = execute_hooks(
         template_dir,
-        liquid_object.clone(),
+        liquid_object,
         &config.get_pre_hooks(),
         args.allow_commands,
         args.silent,

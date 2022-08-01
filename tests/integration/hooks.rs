@@ -274,3 +274,44 @@ fn it_can_change_case() {
         .stdout(predicates::str::contains("Title Case"))
         .stdout(predicates::str::contains("UpperCamelCase"));
 }
+#[test]
+fn can_change_variables_from_pre_hook() {
+    let template = tmp_dir()
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+            [hooks]
+            pre = ["pre-script.rhai"]
+            "#},
+        )
+        .file(
+            "pre-script.rhai",
+            indoc! {r#"
+                variable::set("foo", "bar");
+            "#},
+        )
+        .file(
+            "PRE-TEST",
+            indoc! {r#"
+                {{foo}};
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("script-project")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.exists("script-project/PRE-TEST"));
+    assert!(dir.read("script-project/PRE-TEST").contains("bar"));
+}
