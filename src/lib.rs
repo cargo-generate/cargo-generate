@@ -48,7 +48,6 @@ pub use args::*;
 use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
-use git::DEFAULT_BRANCH;
 use hooks::execute_hooks;
 use ignore_me::remove_dir_files;
 use interactive::prompt_and_check_variable;
@@ -70,6 +69,7 @@ use crate::{
 };
 
 use self::config::TemplateConfig;
+use self::git::try_get_branch_from_path;
 use self::hooks::evaluate_script;
 use self::template::create_liquid_object;
 
@@ -155,7 +155,7 @@ fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
             user_parsed_input,
             config,
             args,
-            branch,
+            branch.as_deref(),
         )
     }
 }
@@ -166,7 +166,7 @@ fn copy_expanded_template(
     user_parsed_input: UserParsedInput,
     config: Config,
     args: GenerateArgs,
-    branch: String,
+    branch: Option<&str>,
 ) -> Result<PathBuf> {
     println!(
         "{} {} `{}`{}",
@@ -230,7 +230,7 @@ fn test_expanded_template(template_dir: &PathBuf, args: &GenerateArgs) -> Result
 
 fn prepare_local_template(
     source_template: &UserParsedInput,
-) -> Result<(TempDir, PathBuf, String), anyhow::Error> {
+) -> Result<(TempDir, PathBuf, Option<String>), anyhow::Error> {
     let (temp_dir, branch) = get_source_template_into_temp(source_template.location())?;
     let template_folder = resolve_template_dir(&temp_dir, source_template.subfolder())?;
 
@@ -239,29 +239,19 @@ fn prepare_local_template(
 
 fn get_source_template_into_temp(
     template_location: &TemplateLocation,
-) -> Result<(TempDir, String)> {
-    let temp_dir: TempDir;
-    let branch: String;
+) -> Result<(TempDir, Option<String>)> {
     match template_location {
         TemplateLocation::Git(git) => {
-            let (temp_dir2, branch2) = git::clone_git_template_into_temp(
-                git.url(),
-                git.branch(),
-                git.tag(),
-                git.identity(),
-            )?;
-            temp_dir = temp_dir2;
-            branch = branch2;
+            git::clone_git_template_into_temp(git.url(), git.branch(), git.tag(), git.identity())
+                .map(|(dir, branch)| (dir, Some(branch)))
         }
         TemplateLocation::Path(path) => {
-            temp_dir = tempfile::tempdir()?;
+            let temp_dir = tempfile::tempdir()?;
             copy_dir_all(path, temp_dir.path(), false)?;
             git::remove_history(temp_dir.path())?;
-            branch = String::from(DEFAULT_BRANCH); // FIXME is here any reason to set branch when path is used?
+            Ok((temp_dir, try_get_branch_from_path(path)))
         }
-    };
-
-    Ok((temp_dir, branch))
+    }
 }
 
 fn resolve_project_name(args: &GenerateArgs) -> Result<ProjectName> {
