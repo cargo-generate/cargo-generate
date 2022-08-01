@@ -37,15 +37,19 @@ fn it_substitutes_filename() {
         "project should contain foobar-project/main.rs"
     );
     assert!(
+        !dir.exists("foobar-project/{{project-name}}.rs"),
+        "project should NOT contain foobar-project/{{project-name}}.rs"
+    );
+    assert!(
         dir.exists("foobar-project/foobar-project.rs"),
         "project should contain foobar-project/foobar-project.rs"
     );
     assert!(
-        dir.exists("foobar-project/src/foobar-project/lib.rs"),
-        "project should contain foobar-project/src/foobar-project/lib.rs"
+        !dir.exists("foobar-project/src/{{project-name}}/lib.rs"),
+        "project should NOT contain foobar-project/src/foobar-project/lib.rs.liquid"
     );
     assert!(
-        !dir.exists("foobar-project/src/{{project-name}}/lib.rs"),
-        "project should not contain foobar-project/src/foobar-project/lib.rs.liquid"
+        dir.exists("foobar-project/src/foobar-project/lib.rs"),
+        "project should contain foobar-project/src/foobar-project/lib.rs"
     );
 }

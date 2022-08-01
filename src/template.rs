@@ -152,6 +152,9 @@ pub fn walk_dir(
                                     style(new_filename.display()).bold()
                                 )
                             })?;
+                            if filename != new_filename {
+                                fs::remove_file(filename)?;
+                            }
                             pb.inc(50);
                             pb.finish_with_message(format!("Done: {}", f));
                         }
