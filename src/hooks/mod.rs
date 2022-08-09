@@ -38,10 +38,11 @@ pub fn execute_hooks(
     hooks: &[String],
     allow_commands: bool,
     silent: bool,
-) -> Result<()> {
+) -> Result<liquid::Object> {
     let liquid_object = Rc::new(RefCell::new(liquid_object));
-    let engine = create_rhai_engine(dir, liquid_object, allow_commands, silent);
-    evaluate_scripts(dir, hooks, engine)
+    let engine = create_rhai_engine(dir, liquid_object.clone(), allow_commands, silent);
+    evaluate_scripts(dir, hooks, engine)?;
+    Ok(liquid_object.take())
 }
 
 fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engine) -> Result<()> {

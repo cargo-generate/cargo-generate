@@ -8,4 +8,5 @@ pub fn spinner() -> ProgressStyle {
     ProgressStyle::default_spinner()
         .tick_chars("⠁⠂⠄⡀⢀⠠⠐⠈ ")
         .template("{prefix:.bold.dim} {spinner} {wide_msg}")
+        .unwrap()
 }
