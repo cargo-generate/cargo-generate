@@ -589,7 +589,6 @@ fn expand_template(
         &all_hook_files,
         &mut pbar,
     )?;
-    pbar.join().unwrap();
 
     execute_hooks(
         template_dir,
