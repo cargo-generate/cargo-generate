@@ -55,6 +55,12 @@ pub fn clone_git_template_into_temp(
     Ok((git_clone_dir, branch))
 }
 
+pub fn try_get_branch_from_path(git: impl AsRef<Path>) -> Option<String> {
+    Repository::open(git)
+        .ok()
+        .and_then(|repo| get_branch_name_repo(&repo).ok())
+}
+
 /// thanks to @extrawurst for pointing this out
 /// <https://github.com/extrawurst/gitui/blob/master/asyncgit/src/sync/branch/mod.rs#L38>
 fn get_branch_name_repo(repo: &Repository) -> anyhow::Result<String> {
