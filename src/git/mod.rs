@@ -16,6 +16,8 @@ mod gitconfig;
 mod identity_path;
 mod utils;
 
+pub use utils::try_get_branch_from_path;
+
 // cargo-generate (as application) whant from git module:
 // 1. cloning remote
 // 2. initialize freshly generated template
@@ -30,9 +32,6 @@ mod utils;
 
 // basically we want to call:
 // git clone --recurse-submodules --depth 1 --branch <branch> <url> <tmp_dir>
-
-/// Default branch to use if not specified but required
-pub const DEFAULT_BRANCH: &str = "main";
 
 type Git2Result<T> = Result<T, git2::Error>;
 
@@ -139,11 +138,13 @@ impl<'cb> RepoCloneBuilder<'cb> {
 ///
 /// Arguments:
 /// - `force` - enforce a fresh git init
-pub fn init(project_dir: &Path, branch: &str, force: bool) -> Git2Result<Repository> {
-    fn just_init(project_dir: &Path, branch: &str) -> Git2Result<Repository> {
+pub fn init(project_dir: &Path, branch: Option<&str>, force: bool) -> Git2Result<Repository> {
+    fn just_init(project_dir: &Path, branch: Option<&str>) -> Git2Result<Repository> {
         let mut opts = RepositoryInitOptions::new();
         opts.bare(false);
-        opts.initial_head(branch);
+        if let Some(branch) = branch {
+            opts.initial_head(branch);
+        }
         Repository::init_opts(project_dir, &opts)
     }
 

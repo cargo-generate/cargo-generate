@@ -234,10 +234,10 @@ impl FromStr for Vcs {
 }
 
 impl Vcs {
-    pub fn initialize(&self, project_dir: &Path, branch: String, force: bool) -> Result<()> {
+    pub fn initialize(&self, project_dir: &Path, branch: Option<&str>, force: bool) -> Result<()> {
         match self {
             Self::None => Ok(()),
-            Self::Git => git::init(project_dir, &branch, force)
+            Self::Git => git::init(project_dir, branch, force)
                 .map(|_| ())
                 .map_err(anyhow::Error::from),
         }
