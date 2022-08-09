@@ -62,16 +62,15 @@ use user_parsed_input::{TemplateLocation, UserParsedInput};
 
 use tempfile::TempDir;
 
-use crate::template_variables::load_env_and_args_template_values;
-use crate::{
-    project_variables::ConversionError,
-    template_variables::{CrateType, ProjectName},
+use crate::template_variables::{
+    load_env_and_args_template_values, CrateName, ProjectDir, ProjectNameInput,
 };
+use crate::{project_variables::ConversionError, template_variables::ProjectName};
 
 use self::config::TemplateConfig;
 use self::git::try_get_branch_from_path;
 use self::hooks::evaluate_script;
-use self::template::create_liquid_object;
+use self::template::{create_liquid_object, set_project_name_variables};
 
 pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     let cwd = std::env::current_dir()?;
@@ -81,21 +80,8 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
 }
 
 /// # Panics
-fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
+fn internal_generate(args: GenerateArgs) -> Result<PathBuf> {
     let app_config = AppConfig::try_from(app_config_path(&args.config)?.as_path())?;
-
-    if args.ssh_identity.is_none()
-        && app_config.defaults.is_some()
-        && app_config.defaults.as_ref().unwrap().ssh_identity.is_some()
-    {
-        args.ssh_identity = app_config
-            .defaults
-            .as_ref()
-            .unwrap()
-            .ssh_identity
-            .as_ref()
-            .cloned();
-    }
 
     // mash AppConfig and CLI arguments together into UserParsedInput
     let mut user_parsed_input = UserParsedInput::try_from_args_and_config(app_config, &args);
@@ -110,8 +96,9 @@ fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
     let mut config = Config::from_path(
         &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &template_dir).ok(),
     )?;
-    config.template.get_or_insert(Default::default());
 
+    // the `--init` parameter may also be set by the template itself
+    // TODO: should we show a warning to the user if the template doesn't agree with the parameter? The user might not expect the template files to end up in CWD!
     user_parsed_input.init |= config
         .template
         .as_ref()
@@ -120,41 +107,16 @@ fn internal_generate(mut args: GenerateArgs) -> Result<PathBuf> {
 
     check_cargo_generate_version(&config)?;
 
-    let project_name = resolve_project_name(&args)?;
-    let project_dir = resolve_project_dir(&project_name, &args, &user_parsed_input)?;
+    let project_dir = expand_template(&template_dir, &mut config, &user_parsed_input, &args)?;
 
-    println!(
-        "{} {} {}",
-        emoji::WRENCH,
-        style(format!("Destination: {}", project_dir.display())).bold(),
-        style("...").bold()
-    );
-
-    println!(
-        "{} {} {}",
-        emoji::WRENCH,
-        style("Generating template").bold(),
-        style("...").bold()
-    );
-
-    expand_template(
-        &user_parsed_input,
-        &project_dir,
-        &project_name,
-        &template_dir,
-        &mut config,
-        &args,
-    )?;
-
-    if args.template_path.test {
-        test_expanded_template(&template_dir, &args)
+    if user_parsed_input.test() {
+        test_expanded_template(&template_dir, args.other_args)
     } else {
         copy_expanded_template(
             template_dir,
             project_dir,
             user_parsed_input,
             config,
-            args,
             branch.as_deref(),
         )
     }
@@ -165,7 +127,6 @@ fn copy_expanded_template(
     project_dir: PathBuf,
     user_parsed_input: UserParsedInput,
     config: Config,
-    args: GenerateArgs,
     branch: Option<&str>,
 ) -> Result<PathBuf> {
     println!(
@@ -180,9 +141,9 @@ fn copy_expanded_template(
         .template
         .and_then(|t| t.vcs)
         .unwrap_or_else(|| user_parsed_input.vcs());
-    if !vcs.is_none() && (!user_parsed_input.init || args.force_git_init) {
+    if !vcs.is_none() && (!user_parsed_input.init || user_parsed_input.force_git_init()) {
         info!("{}", style("Initializing a fresh Git repository").bold());
-        vcs.initialize(&project_dir, branch, args.force_git_init)?;
+        vcs.initialize(&project_dir, branch, user_parsed_input.force_git_init())?;
     }
     println!(
         "{} {} {} {}",
@@ -194,7 +155,7 @@ fn copy_expanded_template(
     Ok(project_dir)
 }
 
-fn test_expanded_template(template_dir: &PathBuf, args: &GenerateArgs) -> Result<PathBuf> {
+fn test_expanded_template(template_dir: &PathBuf, args: Option<Vec<String>>) -> Result<PathBuf> {
     println!(
         "{} {}{}{}",
         emoji::WRENCH,
@@ -214,13 +175,7 @@ fn test_expanded_template(template_dir: &PathBuf, args: &GenerateArgs) -> Result
         .unwrap_or_else(|_| (String::from("cargo"), vec![String::from("test")]));
     std::process::Command::new(cmd)
         .args(cmd_args)
-        .args(
-            args.other_args
-                .as_ref()
-                .cloned()
-                .unwrap_or_default()
-                .into_iter(),
-        )
+        .args(args.unwrap_or_default().into_iter())
         .spawn()?
         .wait()?
         .success()
@@ -251,21 +206,6 @@ fn get_source_template_into_temp(
             git::remove_history(temp_dir.path())?;
             Ok((temp_dir, try_get_branch_from_path(path)))
         }
-    }
-}
-
-fn resolve_project_name(args: &GenerateArgs) -> Result<ProjectName> {
-    match args.name {
-        Some(ref n) => Ok(ProjectName::new(n)),
-        None if !args.silent => Ok(ProjectName::new(interactive::name()?)),
-        None => Err(anyhow!(
-            "{} {} {}",
-            emoji::ERROR,
-            style("Project Name Error:").bold().red(),
-            style("Option `--silent` provided, but project name was not set. Please use `--name`.")
-                .bold()
-                .red(),
-        )),
     }
 }
 
@@ -497,75 +437,71 @@ fn locate_template_file(
     }
 }
 
-/// Resolves the project dir.
-///
-/// if `args.init == true` it returns the path of `$CWD` and if let some `args.destination`,
-/// it returns the given path.
-fn resolve_project_dir(
-    name: &ProjectName,
-    args: &GenerateArgs,
-    source_template: &UserParsedInput,
-) -> Result<PathBuf> {
-    let base_path = args
-        .destination
-        .as_ref()
-        .map(|p| p.to_path_buf())
-        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
-
-    if source_template.init() {
-        return Ok(base_path);
-    }
-
-    let dir_name = args.force.then(|| name.raw()).unwrap_or_else(|| {
-        rename_warning(name);
-        name.kebab_case()
-    });
-
-    let project_dir = base_path.join(&dir_name);
-
-    if project_dir.exists() {
-        bail!(
-            "{} {}",
-            emoji::ERROR,
-            style("Target directory already exists, aborting!")
-                .bold()
-                .red()
-        );
-    }
-
-    Ok(project_dir)
-}
-
 fn expand_template(
-    source_template: &UserParsedInput,
-    project_dir: &Path,
-    project_name: &ProjectName,
     template_dir: &Path,
     config: &mut Config,
+    user_parsed_input: &UserParsedInput,
     args: &GenerateArgs,
-) -> Result<()> {
+) -> Result<PathBuf> {
+    let liquid_object = create_liquid_object(user_parsed_input)?;
+
+    // run init hooks - these won't have access to `crate_name`/`within_cargo_project`
+    // variables, as these are not set yet. Furthermore, if `project-name` is set, it is the raw
+    // user input!
+    // The init hooks are free to set `project-name` (but it will be validated before further
+    // use).
+    let mut liquid_object = execute_hooks(
+        template_dir,
+        liquid_object,
+        &config.get_init_hooks(),
+        user_parsed_input.allow_commands(),
+        user_parsed_input.silent(),
+    )?;
+
+    let project_name_input = ProjectNameInput::try_from((&liquid_object, user_parsed_input))?;
+    let destination = ProjectDir::try_from((&project_name_input, user_parsed_input))?;
+    let project_name = ProjectName::from((&project_name_input, user_parsed_input));
+    let crate_name = CrateName::from(&project_name_input);
+    set_project_name_variables(&mut liquid_object, &destination, &project_name, &crate_name)?;
+
+    println!(
+        "{} {} {}",
+        emoji::WRENCH,
+        style(format!("Destination: {}", destination)).bold(),
+        style("...").bold()
+    );
+    println!(
+        "{} {} {}",
+        emoji::WRENCH,
+        style(format!("project-name: {}", project_name)).bold(),
+        style("...").bold()
+    );
+    println!(
+        "{} {} {}",
+        emoji::WRENCH,
+        style("Generating template").bold(),
+        style("...").bold()
+    );
+
+    // evaluate config for placeholders and and any that are undefined
     let mut liquid_object = fill_placeholders_and_merge_conditionals(
         config,
-        create_liquid_object(
-            args,
-            project_dir,
-            project_name,
-            &CrateType::from(args),
-            source_template,
-        )?,
-        source_template.template_values(),
+        liquid_object,
+        user_parsed_input.template_values(),
         args,
     )?;
-    add_missing_provided_values(&mut liquid_object, source_template.template_values())?;
+    add_missing_provided_values(&mut liquid_object, user_parsed_input.template_values())?;
 
+    // run pre-hooks
     let liquid_object = execute_hooks(
         template_dir,
         liquid_object,
         &config.get_pre_hooks(),
-        args.allow_commands,
-        args.silent,
+        user_parsed_input.allow_commands(),
+        user_parsed_input.silent(),
     )?;
 
+    // walk/evaluate the template
     let all_hook_files = config.get_hook_files();
     let mut template_config = config.template.take().unwrap_or_default();
 
@@ -580,17 +516,20 @@ fn expand_template(
         &mut pbar,
     )?;
 
+    // run post-hooks
     execute_hooks(
         template_dir,
         liquid_object,
         &config.get_post_hooks(),
-        args.allow_commands,
-        args.silent,
+        user_parsed_input.allow_commands(),
+        user_parsed_input.silent(),
     )?;
+
+    // remove all hook files as they are never part of the template output
     remove_dir_files(all_hook_files, false);
 
     config.template.replace(template_config);
-    Ok(())
+    Ok(destination.as_ref().to_owned())
 }
 
 /// Try to add all provided template_values to the liquid_object.
@@ -624,6 +563,7 @@ pub(crate) fn add_missing_provided_values(
     Ok(())
 }
 
+// Evaluate the configuration, adding defined placeholder variables to the liquid object.
 fn fill_placeholders_and_merge_conditionals(
     config: &mut Config,
     mut liquid_object: liquid::Object,
@@ -633,6 +573,7 @@ fn fill_placeholders_and_merge_conditionals(
     let mut conditionals = config.conditional.take().unwrap_or_default();
 
     loop {
+        // keep evaluating for placeholder variables as long new ones are added.
         project_variables::fill_project_variables(&mut liquid_object, config, |slot| {
             let provided_value = template_values.get(&slot.var_name).and_then(|v| match v {
                 toml::Value::String(s) => Some(s.clone()),
@@ -653,6 +594,7 @@ fn fill_placeholders_and_merge_conditionals(
 
         let placeholders_changed = conditionals
             .iter_mut()
+            // filter each conditional config block by trueness of the expression, given the known variables
             .filter_map(|(key, cfg)| {
                 evaluate_script::<bool>(liquid_object.clone(), key)
                     .ok()
@@ -660,6 +602,7 @@ fn fill_placeholders_and_merge_conditionals(
                     .map(|_| cfg)
             })
             .map(|conditional_template_cfg| {
+                // append the conditional blocks configuration, returning true if any placeholders were added
                 let template_cfg = config.template.get_or_insert_with(TemplateConfig::default);
                 if let Some(mut extras) = conditional_template_cfg.include.take() {
                     template_cfg
@@ -704,19 +647,6 @@ fn fill_placeholders_and_merge_conditionals(
     }
 
     Ok(liquid_object)
-}
-
-fn rename_warning(name: &ProjectName) {
-    if !name.is_crate_name() {
-        warn!(
-            "{} `{}` {} `{}`{}",
-            style("Renaming project called").bold(),
-            style(&name.user_input).bold().yellow(),
-            style("to").bold(),
-            style(&name.kebab_case()).bold().green(),
-            style("...").bold()
-        );
-    }
 }
 
 fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::Error> {

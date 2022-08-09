@@ -2,19 +2,25 @@
 
 use std::{
     collections::HashMap,
+    env,
     path::{Path, PathBuf},
 };
 
 use console::style;
 use regex::Regex;
 
-use crate::{app_config::AppConfig, warn, GenerateArgs, Vcs};
+use crate::{app_config::AppConfig, template_variables::CrateType, warn, GenerateArgs, Vcs};
 
 // Contains parsed information from user.
 #[derive(Debug)]
 pub struct UserParsedInput {
+    name: Option<String>,
+
     // from where clone or copy template?
     template_location: TemplateLocation,
+
+    destination: PathBuf,
+
     // if template_location contains many templates user already specified one
     subfolder: Option<String>,
     // all values that user defined through:
@@ -22,9 +28,16 @@ pub struct UserParsedInput {
     // 2. configuration file
     // 3. cli arguments --define
     template_values: HashMap<String, toml::Value>,
+
     vcs: Vcs,
     pub init: bool,
     overwrite: bool,
+    crate_type: CrateType,
+    allow_commands: bool,
+    silent: bool,
+    force: bool,
+    test: bool,
+    force_git_init: bool,
     //TODO:
     // 1. This structure should be used instead of args
     // 2. This struct can contains internaly args and app_config to not confuse
@@ -32,24 +45,6 @@ pub struct UserParsedInput {
 }
 
 impl UserParsedInput {
-    fn new(
-        template_location: impl Into<TemplateLocation>,
-        subfolder: Option<impl AsRef<str>>,
-        default_values: HashMap<String, toml::Value>,
-        vcs: Vcs,
-        init: bool,
-        overwrite: bool,
-    ) -> Self {
-        Self {
-            template_location: template_location.into(),
-            subfolder: subfolder.map(|s| s.as_ref().to_owned()),
-            template_values: default_values,
-            vcs,
-            init,
-            overwrite,
-        }
-    }
-
     /// Try create `UserParsedInput` reading in order [`AppConfig`] and [`Args`]
     ///
     /// # Panics
@@ -58,12 +53,26 @@ impl UserParsedInput {
     pub fn try_from_args_and_config(app_config: AppConfig, args: &GenerateArgs) -> Self {
         const DEFAULT_VCS: Vcs = Vcs::Git;
 
+        let destination = args
+            .destination
+            .as_ref()
+            .map(|p| p.to_path_buf())
+            .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
+
         let mut default_values = app_config.values.clone().unwrap_or_default();
+
         let ssh_identity = app_config
             .defaults
             .as_ref()
             .and_then(|dcfg| dcfg.ssh_identity.clone())
-            .or_else(|| args.ssh_identity.clone());
+            .or_else(|| {
+                args.ssh_identity.as_ref().cloned().or_else(|| {
+                    app_config
+                        .defaults
+                        .as_ref()
+                        .and_then(|defaults| defaults.ssh_identity.clone())
+                })
+            });
 
         // --git
         if let Some(git_url) = args.template_path.git() {
@@ -74,26 +83,48 @@ impl UserParsedInput {
                 ssh_identity,
                 args.force_git_init,
             );
-            return Self::new(
-                git_user_in,
-                args.template_path.subfolder(),
-                default_values,
-                args.vcs.unwrap_or(DEFAULT_VCS),
-                args.init,
-                args.overwrite,
-            );
+            return Self {
+                name: args.name.clone(),
+                template_location: git_user_in.into(),
+                subfolder: args
+                    .template_path
+                    .subfolder()
+                    .map(|s| s.as_ref().to_owned()),
+                template_values: default_values,
+                vcs: args.vcs.unwrap_or(DEFAULT_VCS),
+                init: args.init,
+                overwrite: args.overwrite,
+                crate_type: CrateType::from(args),
+                allow_commands: args.allow_commands,
+                silent: args.silent,
+                destination,
+                force: args.force,
+                test: args.template_path.test,
+                force_git_init: args.force_git_init,
+            };
         }
 
         // --path
         if let Some(path) = args.template_path.path() {
-            return Self::new(
-                path.as_ref(),
-                args.template_path.subfolder(),
-                default_values,
-                args.vcs.unwrap_or(DEFAULT_VCS),
-                args.init,
-                args.overwrite,
-            );
+            return Self {
+                name: args.name.clone(),
+                template_location: path.as_ref().into(),
+                subfolder: args
+                    .template_path
+                    .subfolder()
+                    .map(|s| s.as_ref().to_owned()),
+                template_values: default_values,
+                vcs: args.vcs.unwrap_or(DEFAULT_VCS),
+                init: args.init,
+                overwrite: args.overwrite,
+                crate_type: CrateType::from(args),
+                allow_commands: args.allow_commands,
+                silent: args.silent,
+                destination,
+                force: args.force,
+                test: args.template_path.test,
+                force_git_init: args.force_git_init,
+            };
         }
 
         // check if favorite is favorite configuration
@@ -131,23 +162,34 @@ impl UserParsedInput {
                 default_values.extend(fav_default_values.clone());
             }
 
-            return Self::new(
-                temp_location,
-                args.template_path
+            return Self {
+                name: args.name.clone(),
+                template_location: temp_location,
+                subfolder: args
+                    .template_path
                     .subfolder()
                     .map(|s| s.as_ref().to_owned())
                     .or_else(|| fav_cfg.subfolder.clone()),
-                default_values,
-                args.vcs.or(fav_cfg.vcs).unwrap_or(DEFAULT_VCS),
-                args.init
+                template_values: default_values,
+                vcs: args.vcs.or(fav_cfg.vcs).unwrap_or(DEFAULT_VCS),
+                init: args
+                    .init
                     .then_some(true)
                     .or(fav_cfg.init)
                     .unwrap_or_default(),
-                args.overwrite
+                overwrite: args
+                    .overwrite
                     .then_some(true)
                     .or(fav_cfg.overwrite)
                     .unwrap_or_default(),
-            );
+                crate_type: CrateType::from(args),
+                allow_commands: args.allow_commands,
+                silent: args.silent,
+                destination,
+                force: args.force,
+                test: args.template_path.test,
+                force_git_init: args.force_git_init,
+            };
         }
 
         // there is no specified favorite in configuration
@@ -198,16 +240,29 @@ impl UserParsedInput {
             location_msg
         );
 
-        Self::new(
-            temp_location,
-            args.template_path
+        return Self {
+            name: args.name.clone(),
+            template_location: temp_location,
+            subfolder: args
+                .template_path
                 .subfolder()
                 .map(|s| s.as_ref().to_owned()),
-            default_values,
-            args.vcs.unwrap_or(DEFAULT_VCS),
-            args.init,
-            args.overwrite,
-        )
+            template_values: default_values,
+            vcs: args.vcs.unwrap_or(DEFAULT_VCS),
+            init: args.init,
+            overwrite: args.overwrite,
+            crate_type: CrateType::from(args),
+            allow_commands: args.allow_commands,
+            silent: args.silent,
+            destination,
+            force: args.force,
+            test: args.template_path.test,
+            force_git_init: args.force_git_init,
+        };
+    }
+
+    pub fn name(&self) -> Option<&str> {
+        self.name.as_deref()
     }
 
     pub const fn location(&self) -> &TemplateLocation {
@@ -236,6 +291,34 @@ impl UserParsedInput {
 
     pub const fn overwrite(&self) -> bool {
         self.overwrite
+    }
+
+    pub const fn crate_type(&self) -> CrateType {
+        self.crate_type
+    }
+
+    pub const fn allow_commands(&self) -> bool {
+        self.allow_commands
+    }
+
+    pub const fn silent(&self) -> bool {
+        self.silent
+    }
+
+    pub fn destination(&self) -> &Path {
+        self.destination.as_path()
+    }
+
+    pub const fn force(&self) -> bool {
+        self.force
+    }
+
+    pub const fn test(&self) -> bool {
+        self.test
+    }
+
+    pub const fn force_git_init(&self) -> bool {
+        self.force_git_init
     }
 }
 

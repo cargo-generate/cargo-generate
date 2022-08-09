@@ -19,6 +19,7 @@ pub struct Config {
 
 #[derive(Deserialize, Debug, PartialEq, Eq, Default, Clone)]
 pub struct HooksConfig {
+    pub init: Option<Vec<String>>,
     pub pre: Option<Vec<String>>,
     pub post: Option<Vec<String>>,
 }
@@ -57,16 +58,25 @@ impl TryFrom<String> for Config {
 
 impl Config {
     pub(crate) fn from_path(path: &Option<impl AsRef<Path>>) -> Result<Self> {
-        match path {
+        let mut config = match path {
             Some(path) => match fs::read_to_string(path) {
-                Ok(contents) => Self::try_from(contents).map_err(|e| e.into()),
+                Ok(contents) => Self::try_from(contents)?,
                 Err(e) => match e.kind() {
-                    ErrorKind::NotFound => Ok(Self::default()),
+                    ErrorKind::NotFound => Self::default(),
                     _ => anyhow::bail!(e),
                 },
             },
-            None => Ok(Self::default()),
-        }
+            None => Self::default(),
+        };
+        config.template.get_or_insert(Default::default());
+        Ok(config)
+    }
+
+    pub fn get_init_hooks(&self) -> Vec<String> {
+        self.hooks
+            .as_ref()
+            .map(|h| h.init.as_ref().map(Clone::clone).unwrap_or_default())
+            .unwrap_or_default()
     }
 
     pub fn get_pre_hooks(&self) -> Vec<String> {
@@ -84,7 +94,8 @@ impl Config {
     }
 
     pub fn get_hook_files(&self) -> Vec<String> {
-        let mut pre = self.get_pre_hooks();
+        let mut pre = self.get_init_hooks();
+        pre.append(&mut self.get_pre_hooks());
         pre.append(&mut self.get_post_hooks());
         pre
     }

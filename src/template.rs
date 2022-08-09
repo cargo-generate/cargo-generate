@@ -8,13 +8,15 @@ use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
 
 use crate::config::TemplateConfig;
+use crate::emoji;
 use crate::filenames::substitute_filename;
 use crate::include_exclude::*;
 use crate::progressbar::spinner;
 use crate::template_filters::*;
-use crate::template_variables::{get_authors, get_os_arch, Authors, CrateType, ProjectName};
+use crate::template_variables::{
+    get_authors, get_os_arch, Authors, CrateName, ProjectDir, ProjectName,
+};
 use crate::user_parsed_input::UserParsedInput;
-use crate::{emoji, GenerateArgs};
 
 fn engine() -> liquid::Parser {
     liquid::ParserBuilder::with_stdlib()
@@ -30,41 +32,54 @@ fn engine() -> liquid::Parser {
         .expect("can't fail due to no partials support")
 }
 
-pub fn create_liquid_object(
-    args: &GenerateArgs,
-    project_dir: &Path,
-    name: &ProjectName,
-    crate_type: &CrateType,
-    source_template: &UserParsedInput,
-) -> Result<Object> {
+/// create liquid object for the template, and pre-fill it with all known variables
+pub fn create_liquid_object(user_parsed_input: &UserParsedInput) -> Result<Object> {
     let authors: Authors = get_authors()?;
     let os_arch = get_os_arch();
-    let project_name = args
-        .force
-        .then(|| name.raw())
-        .unwrap_or_else(|| name.kebab_case());
 
     let mut liquid_object = Object::new();
-    liquid_object.insert("project-name".into(), Value::Scalar(project_name.into()));
-    liquid_object.insert("crate_name".into(), Value::Scalar(name.snake_case().into()));
+
+    if let Some(name) = user_parsed_input.name() {
+        liquid_object.insert("project-name".into(), Value::Scalar(name.to_owned().into()));
+    }
+
     liquid_object.insert(
         "crate_type".into(),
-        Value::Scalar(crate_type.to_string().into()),
+        Value::Scalar(user_parsed_input.crate_type().to_string().into()),
     );
     liquid_object.insert("authors".into(), Value::Scalar(authors.author.into()));
     liquid_object.insert("username".into(), Value::Scalar(authors.username.into()));
     liquid_object.insert("os-arch".into(), Value::Scalar(os_arch.into()));
 
     liquid_object.insert(
-        "within_cargo_project".into(),
-        Value::Scalar(is_within_cargo_project(project_dir).into()),
-    );
-    liquid_object.insert(
         "is_init".into(),
-        Value::Scalar(source_template.init().into()),
+        Value::Scalar(user_parsed_input.init().into()),
     );
 
     Ok(liquid_object)
+}
+
+pub fn set_project_name_variables(
+    liquid_object: &mut Object,
+    project_dir: &ProjectDir,
+    project_name: &ProjectName,
+    crate_name: &CrateName,
+) -> Result<()> {
+    liquid_object.insert(
+        "project-name".into(),
+        Value::Scalar(project_name.as_ref().to_owned().into()),
+    );
+    liquid_object.insert(
+        "crate_name".into(),
+        Value::Scalar(crate_name.as_ref().to_owned().into()),
+    );
+
+    liquid_object.insert(
+        "within_cargo_project".into(),
+        Value::Scalar(is_within_cargo_project(project_dir.as_ref()).into()),
+    );
+
+    Ok(())
 }
 
 fn is_within_cargo_project(project_dir: &Path) -> bool {
