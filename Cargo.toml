@@ -14,7 +14,7 @@ git2 = { version = "0.15", features = ["ssh", "https", "vendored-libgit2", "vend
 console = "0.15"
 dialoguer = "0.10"
 dirs = "4.0"
-indicatif = "0.16"
+indicatif = "0.17.0"
 tempfile = "3.3"
 regex = "1.6"
 heck = "0.4"
