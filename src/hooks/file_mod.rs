@@ -34,11 +34,13 @@ pub fn create_module(dir: &Path) -> Module {
         let dir = dir.clone();
 
         move |file: &str| -> HookResult<()> {
-            let file = to_absolute_path(&dir, file)?;
-            if file.is_file() {
-                std::fs::remove_file(file).map_err(|e| e.to_string())?;
-            } else {
-                std::fs::remove_dir_all(file).map_err(|e| e.to_string())?;
+            let path = to_absolute_path(&dir, file)?;
+            if path.exists() {
+                if path.is_file() {
+                    std::fs::remove_file(path).map_err(|e| e.to_string())?;
+                } else {
+                    std::fs::remove_dir_all(path).map_err(|e| e.to_string())?;
+                }
             }
             Ok(())
         }
