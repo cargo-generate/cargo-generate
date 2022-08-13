@@ -17,13 +17,13 @@ pub struct Config {
     pub conditional: Option<HashMap<String, ConditionalConfig>>,
 }
 
-#[derive(Deserialize, Debug, PartialEq, Default, Clone)]
+#[derive(Deserialize, Debug, PartialEq, Eq, Default, Clone)]
 pub struct HooksConfig {
     pub pre: Option<Vec<String>>,
     pub post: Option<Vec<String>>,
 }
 
-#[derive(Deserialize, Debug, PartialEq, Default, Clone)]
+#[derive(Deserialize, Debug, PartialEq, Eq, Default, Clone)]
 pub struct TemplateConfig {
     pub sub_templates: Option<Vec<String>>,
 
