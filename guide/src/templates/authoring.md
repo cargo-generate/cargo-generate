@@ -6,7 +6,7 @@ As a template author you're probably concerned about successful builds of your t
 
 Imagine a couple of months after your first template release, some new versions of any dependencies would break your template, and you would not even be aware of it?
 
-The answer to this question is a vital build pipeline for your template project. This challenge got now much simpler to solve with the new official [GitHub Action cargo-generate][gh/action].
+The answer to this question is a vital build pipeline for your template project. This challenge got now much simpler to solve with the new official [cargo-generate GitHub Action](https://github.com/marketplace/actions/cargo-generate).
 
 Here an example:
 
