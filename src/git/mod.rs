@@ -18,7 +18,7 @@ mod utils;
 
 pub use utils::try_get_branch_from_path;
 
-// cargo-generate (as application) whant from git module:
+// cargo-generate (as application) want from git module:
 // 1. cloning remote
 // 2. initialize freshly generated template
 // 3. remove history from cloned template

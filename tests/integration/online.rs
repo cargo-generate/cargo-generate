@@ -1,4 +1,4 @@
-//! Thest that use real connection and working third part service.
+//! Test that use real connection and working third part service.
 //!
 //! The test are ignored by default
 //! You can run them with:

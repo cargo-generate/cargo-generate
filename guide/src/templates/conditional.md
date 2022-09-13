@@ -17,7 +17,7 @@ cargo_generate_version = ">=0.10.0"
 ...
 ```
 
-This first part declares that the template requires `cargo-generate` version 0.10 or higher. In this same section the template auther may also specify the following 3 lists:
+This first part declares that the template requires `cargo-generate` version 0.10 or higher. In this same section the template author may also specify the following 3 lists:
 
 * `ignore` Files/folders on this list will be ignored entirely and are not included in the final output.
 * `include` These files will be processed for `Liquid` syntax by the template engine.
@@ -47,7 +47,7 @@ ignore = [ "src/main.rs" ]
 
 This is a conditional block.
 
-Here it has been choosen that the `src/main.rs` file must be ignored when the `crate_type` variable is equal to the string `"lib"`.
+Here it has been chosen that the `src/main.rs` file must be ignored when the `crate_type` variable is equal to the string `"lib"`.
 
 ```toml
 ...

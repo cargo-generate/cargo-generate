@@ -188,7 +188,7 @@ version = "0.1.0"
                 for &(ref file, _) in self.files.iter() {
                     let path = path.join(file);
                     fs::remove_file(&path).unwrap_or_else(|_| {
-                        panic!("couldn't remove file {path:?}, after commiting tag {tag}")
+                        panic!("couldn't remove file {path:?}, after committing tag {tag}")
                     });
                 }
 

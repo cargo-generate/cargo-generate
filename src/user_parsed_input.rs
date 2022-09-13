@@ -24,7 +24,7 @@ pub struct UserParsedInput {
     // if template_location contains many templates user already specified one
     subfolder: Option<String>,
     // all values that user defined through:
-    // 1. envirnoment variables
+    // 1. environment variables
     // 2. configuration file
     // 3. cli arguments --define
     template_values: HashMap<String, toml::Value>,
@@ -40,7 +40,7 @@ pub struct UserParsedInput {
     force_git_init: bool,
     //TODO:
     // 1. This structure should be used instead of args
-    // 2. This struct can contains internaly args and app_config to not confuse
+    // 2. This struct can contains internally args and app_config to not confuse
     //    other developer with parsing configuration and args by themself
 }
 
@@ -195,7 +195,7 @@ impl UserParsedInput {
         // there is no specified favorite in configuration
         // this part try to guess what user wanted in order:
 
-        // 1. look for abbrevations like gh:, gl: etc.
+        // 1. look for abbreviations like gh:, gl: etc.
         let temp_location = abbreviated_git_url_to_full_remote(&fav_name).map(|git_url| {
             let git_user_in = GitUserInput::with_git_url_and_args(&git_url, args);
             TemplateLocation::from(git_user_in)
@@ -225,7 +225,7 @@ impl UserParsedInput {
             TemplateLocation::from(git_user_in)
         });
 
-        // Print information what happend to user
+        // Print information what happened to user
         let location_msg = match &temp_location {
             TemplateLocation::Git(git_user_input) => {
                 format!("git repository: {}", style(git_user_input.url()).bold())
@@ -322,7 +322,7 @@ impl UserParsedInput {
     }
 }
 
-// favorite can be in form with abbrevation what means that input is git repositoru
+// favorite can be in form with abbreviation what means that input is git repositoru
 pub fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> Option<String> {
     let git = git.as_ref();
     if git.len() >= 3 {
