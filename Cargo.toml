@@ -54,7 +54,7 @@ features = ["derive"]
 predicates = "2.1"
 assert_cmd = "2.0"
 indoc = "1.0"
-url = "2.2"
+url = "2.3"
 
 [dev-dependencies.cargo-husky]
 version = "1"
