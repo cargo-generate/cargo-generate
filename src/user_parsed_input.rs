@@ -139,9 +139,12 @@ impl UserParsedInput {
                     .or_else(|| fav_cfg.subfolder.clone()),
                 default_values,
                 args.vcs.or(fav_cfg.vcs).unwrap_or(DEFAULT_VCS),
-                args.init.then(|| true).or(fav_cfg.init).unwrap_or_default(),
+                args.init
+                    .then_some(true)
+                    .or(fav_cfg.init)
+                    .unwrap_or_default(),
                 args.overwrite
-                    .then(|| true)
+                    .then_some(true)
                     .or(fav_cfg.overwrite)
                     .unwrap_or_default(),
             );
@@ -261,7 +264,7 @@ pub fn abbreviated_github(fav: &str) -> Option<String> {
 
 pub fn local_path(fav: &str) -> Option<PathBuf> {
     let path = PathBuf::from(fav);
-    (path.exists() && path.is_dir()).then(|| path)
+    (path.exists() && path.is_dir()).then_some(path)
 }
 
 // Template should be cloned with git
