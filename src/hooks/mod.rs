@@ -125,7 +125,7 @@ fn create_rhai_engine(
     engine.register_fn("to_upper_camel_case", |str: &str| str.to_upper_camel_case());
 
     // other free-standing functions
-    engine.register_result_fn("abort", |error: &str| -> HookResult<String> {
+    engine.register_fn("abort", |error: &str| -> HookResult<String> {
         Err(error.into())
     });
 
