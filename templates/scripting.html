@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Pre/Post Scripts - Cargo Generate Documentation</title>
+        <title>Hooks - Cargo Generate Documentation</title>
         <!-- Custom HTML head -->
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="cargo, make me a project">
@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../usage.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li class="chapter-item expanded "><a href="../favorites.html"><strong aria-hidden="true">4.</strong> Favorites</a></li><li class="chapter-item expanded "><a href="../templates/index.html"><strong aria-hidden="true">5.</strong> Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/builtin_placeholders.html"><strong aria-hidden="true">5.1.</strong> Builtin Placeholders</a></li><li class="chapter-item expanded "><a href="../templates/custom_placeholders.html"><strong aria-hidden="true">5.2.</strong> Custom Placeholders</a></li><li class="chapter-item expanded "><a href="../templates/ignoring.html"><strong aria-hidden="true">5.3.</strong> Ignoring Files</a></li><li class="chapter-item expanded "><a href="../templates/include_exclude.html"><strong aria-hidden="true">5.4.</strong> Include/Exclude</a></li><li class="chapter-item expanded "><a href="../templates/require_version.html"><strong aria-hidden="true">5.5.</strong> Require Version</a></li><li class="chapter-item expanded "><a href="../templates/conditional.html"><strong aria-hidden="true">5.6.</strong> Conditionals</a></li><li class="chapter-item expanded "><a href="../templates/scripting.html" class="active"><strong aria-hidden="true">5.7.</strong> Pre/Post Scripts</a></li><li class="chapter-item expanded "><a href="../templates/authoring.html"><strong aria-hidden="true">5.8.</strong> Authoring</a></li></ol></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../license.html"><strong aria-hidden="true">7.</strong> License</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../usage.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li class="chapter-item expanded "><a href="../favorites.html"><strong aria-hidden="true">4.</strong> Favorites</a></li><li class="chapter-item expanded "><a href="../templates/index.html"><strong aria-hidden="true">5.</strong> Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/builtin_placeholders.html"><strong aria-hidden="true">5.1.</strong> Builtin Placeholders</a></li><li class="chapter-item expanded "><a href="../templates/custom_placeholders.html"><strong aria-hidden="true">5.2.</strong> Custom Placeholders</a></li><li class="chapter-item expanded "><a href="../templates/ignoring.html"><strong aria-hidden="true">5.3.</strong> Ignoring Files</a></li><li class="chapter-item expanded "><a href="../templates/include_exclude.html"><strong aria-hidden="true">5.4.</strong> Include/Exclude</a></li><li class="chapter-item expanded "><a href="../templates/require_version.html"><strong aria-hidden="true">5.5.</strong> Require Version</a></li><li class="chapter-item expanded "><a href="../templates/conditional.html"><strong aria-hidden="true">5.6.</strong> Conditionals</a></li><li class="chapter-item expanded "><a href="../templates/scripting.html" class="active"><strong aria-hidden="true">5.7.</strong> Hooks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/scripting.hook-types.html"><strong aria-hidden="true">5.7.1.</strong> Hook types</a></li><li class="chapter-item expanded "><a href="../templates/scripting.rhai-extensions.html"><strong aria-hidden="true">5.7.2.</strong> Rhai extensions</a></li><li class="chapter-item expanded "><a href="../templates/scripting.mini-example.html"><strong aria-hidden="true">5.7.3.</strong> Mini example</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/authoring.html"><strong aria-hidden="true">5.8.</strong> Authoring</a></li></ol></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../license.html"><strong aria-hidden="true">7.</strong> License</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -140,148 +140,16 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="prepost-scripts"><a class="header" href="#prepost-scripts">Pre/Post Scripts</a></h1>
-<p>In <code>cargo-generate.toml</code> write a <code>[hooks]</code> section, example:</p>
-<pre><code class="language-toml">[template]
-cargo_generate_version = &quot;0.10.0&quot;
-
-[hooks]
-pre = [&quot;pre-script.rhai&quot;]
-#post = [...]
-
-[placeholders]
-license = { type = &quot;string&quot;, prompt = &quot;What license to use?&quot;, choices = [&quot;APACHE&quot;, &quot;MIT&quot;], default = &quot;MIT&quot; }
+                        <h1 id="initprepost-scripts"><a class="header" href="#initprepost-scripts">Init/Pre/Post Scripts</a></h1>
+<p><code>cargo-generate</code> can run scripts in the <a href="https://rhai.rs/book/"><code>Rhai</code></a> language as part of the template expansion.</p>
+<p>Doing so requires the template is configured to use hooks, which can be used at specific times
+during template expansion.</p>
+<p>To configure the use of hooks, write a <code>hooks</code> section in the <code>cargo-generate.toml</code> file.</p>
+<pre><code class="language-toml">[hooks]
+#init = [&quot;init-script.rhai&quot;]
+#pre = [&quot;pre-script.rhai&quot;]
+#post = [&quot;post-script.rhai&quot;]
 </code></pre>
-<p>Now, write the script in <a href="https://rhai.rs/book/"><code>Rhai</code></a>, utilizing the <code>cargo-generate</code> <a href="#Rhai-extensions">provided extensions</a>:</p>
-<pre><code class="language-rhai">// we can see existing variables.
-// note that template and Rhai variables are separate!
-let crate_type = variable::get(&quot;crate_type&quot;)
-debug(`crate_type: ${crate_type}`);
-
-let license = variable::get(&quot;license&quot;).to_upper();
-while switch license {
-  &quot;APACHE&quot; =&gt; {
-    file::delete(&quot;LICENSE-MIT&quot;);
-    file::rename(&quot;LICENSE-APACHE&quot;, &quot;LICENSE&quot;);
-    false
-  }
-  &quot;MIT&quot; =&gt; {
-    file::delete(&quot;LICENSE-APACHE&quot;);
-    file::rename(&quot;LICENSE-MIT&quot;, &quot;LICENSE&quot;);
-    false
-  }
-  _ =&gt; true,
-} {
-  license = variable::prompt(&quot;Select license?&quot;, &quot;MIT&quot;, [
-    &quot;APACHE&quot;,
-    &quot;MIT&quot;,
-  ]);
-}
-variable::set(&quot;license&quot;, license);
-</code></pre>
-<h3 id="rhai-extensions"><a class="header" href="#rhai-extensions">Rhai extensions</a></h3>
-<p>Besides the basic <a href="https://rhai.rs/book/"><code>Rhai</code></a> features, these are the modules/behaviors defined:</p>
-<h4 id="variables"><a class="header" href="#variables">Variables</a></h4>
-<h5 id="getset"><a class="header" href="#getset">get/set</a></h5>
-<ul>
-<li>
-<p><strong><code>variable::is_set(name: &amp;str) -&gt; bool</code></strong></p>
-<p>Returns true if the variable/placeholder has been set for the template</p>
-</li>
-<li>
-<p><strong><code>variable::get(name: &amp;str) -&gt; value</code></strong></p>
-<p>Gets any defined variable in the <code>Liquid</code> template object</p>
-</li>
-<li>
-<p><strong><code>variable::set(name: &amp;str, value: (&amp;str|bool))</code></strong></p>
-<p>Set new or overwrite existing variables. Do not allow to change types.</p>
-</li>
-</ul>
-<h5 id="prompt"><a class="header" href="#prompt">Prompt</a></h5>
-<ul>
-<li>
-<p><strong><code>variable::prompt(text: &amp;str, default_value: bool) -&gt; value</code></strong></p>
-<p>Prompt the user for a boolean value</p>
-</li>
-<li>
-<p><strong><code>variable::prompt(text: &amp;str) -&gt; value</code></strong></p>
-<p>Prompt the user for a string value</p>
-</li>
-<li>
-<p><strong><code>variable::prompt(text: &amp;str, default_value: &amp;str) -&gt; value</code></strong></p>
-<p>Prompt the user for a string value, with a default already in place</p>
-</li>
-<li>
-<p><strong><code>variable::prompt(text: &amp;str, default_value: &amp;str, regex: &amp;str) -&gt; value</code></strong></p>
-<p>Prompt the user for a string value, validated with a regex</p>
-</li>
-<li>
-<p><strong><code>variable::prompt(text: &amp;str, default_value: &amp;str, choices: Array) -&gt; value</code></strong></p>
-<p>Prompt the user for a choice value</p>
-</li>
-</ul>
-<h4 id="files"><a class="header" href="#files">Files</a></h4>
-<ul>
-<li>
-<p><strong><code>file::exists(path: &amp;str)</code></strong></p>
-<p>Test if a path exists</p>
-</li>
-<li>
-<p><strong><code>file::rename(from: &amp;str, to: &amp;str)</code></strong></p>
-<p>Rename one of the files in the template folder</p>
-</li>
-<li>
-<p><strong><code>file::delete(path: &amp;str)</code></strong></p>
-<p>Delete a file or folder inside the template folder</p>
-</li>
-<li>
-<p><strong><code>file::write(file: &amp;str, content: &amp;str)</code></strong></p>
-<p>Create/overwrite a file inside the template folder</p>
-</li>
-<li>
-<p>*<em><code>file::write(file: &amp;str, content: Array)</code></em></p>
-<p>Create/overwrite a file inside the template folder, each entry in the array on a new line</p>
-</li>
-</ul>
-<h4 id="other"><a class="header" href="#other">Other</a></h4>
-<ul>
-<li><strong><code>abort(reason: &amp;str)</code></strong>: Aborts <code>cargo-generate</code> with a script error.</li>
-</ul>
-<h5 id="changing-case-of-strings"><a class="header" href="#changing-case-of-strings">Changing case of strings</a></h5>
-<ul>
-<li>
-<p><strong><code>to_kebab_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;we-are-going-to-inherit-the-earth&quot;</code></p>
-</li>
-<li>
-<p><strong><code>to_lower_camel_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;It is we who built these palaces and cities.&quot;</code> =&gt; <code>&quot;itIsWeWhoBuiltThesePalacesAndCities&quot;</code></p>
-</li>
-<li>
-<p><strong><code>to_pascal_case(str: &amp;str) -&gt; String</code></strong></p>
-<p>Same as <code>to_upper_camel_case(str: &amp;str) -&gt; String</code></p>
-</li>
-<li>
-<p><strong><code>to_shouty_kebab_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;WE-ARE-GOING-TO-INHERIT-THE-EARTH&quot;</code></p>
-</li>
-<li>
-<p><strong><code>to_shouty_snake_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;That world is growing in this minute.&quot;</code> =&gt; <code>&quot;THAT_WORLD_IS_GROWING_IN_THIS_MINUTE&quot;</code></p>
-</li>
-<li>
-<p><strong><code>to_snake_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;We carry a new world here, in our hearts.&quot;</code> =&gt; <code>&quot;we_carry_a_new_world_here_in_our_hearts&quot;</code></p>
-</li>
-<li>
-<p><strong><code>to_title_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;We have always lived in slums and holes in the wall.&quot;</code> =&gt; <code>&quot;We Have Always Lived In Slums And Holes In The Wall&quot;</code></p>
-</li>
-<li>
-<p><strong><code>to_upper_camel_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;We are not in the least afraid of ruins.&quot;</code> =&gt; <code>&quot;WeAreNotInTheLeastAfraidOfRuins&quot;</code></p>
-</li>
-</ul>
 
                     </main>
 
@@ -290,7 +158,7 @@ variable::set(&quot;license&quot;, license);
                             <a rel="prev" href="../templates/conditional.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
-                            <a rel="next" href="../templates/authoring.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../templates/scripting.hook-types.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
@@ -302,7 +170,7 @@ variable::set(&quot;license&quot;, license);
                     <a rel="prev" href="../templates/conditional.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    <a rel="next" href="../templates/authoring.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../templates/scripting.hook-types.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

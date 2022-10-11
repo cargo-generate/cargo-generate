@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="usage.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li class="chapter-item expanded "><a href="favorites.html"><strong aria-hidden="true">4.</strong> Favorites</a></li><li class="chapter-item expanded "><a href="templates/index.html"><strong aria-hidden="true">5.</strong> Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="templates/builtin_placeholders.html"><strong aria-hidden="true">5.1.</strong> Builtin Placeholders</a></li><li class="chapter-item expanded "><a href="templates/custom_placeholders.html"><strong aria-hidden="true">5.2.</strong> Custom Placeholders</a></li><li class="chapter-item expanded "><a href="templates/ignoring.html"><strong aria-hidden="true">5.3.</strong> Ignoring Files</a></li><li class="chapter-item expanded "><a href="templates/include_exclude.html"><strong aria-hidden="true">5.4.</strong> Include/Exclude</a></li><li class="chapter-item expanded "><a href="templates/require_version.html"><strong aria-hidden="true">5.5.</strong> Require Version</a></li><li class="chapter-item expanded "><a href="templates/conditional.html"><strong aria-hidden="true">5.6.</strong> Conditionals</a></li><li class="chapter-item expanded "><a href="templates/scripting.html"><strong aria-hidden="true">5.7.</strong> Pre/Post Scripts</a></li><li class="chapter-item expanded "><a href="templates/authoring.html"><strong aria-hidden="true">5.8.</strong> Authoring</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="license.html"><strong aria-hidden="true">7.</strong> License</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="usage.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li class="chapter-item expanded "><a href="favorites.html"><strong aria-hidden="true">4.</strong> Favorites</a></li><li class="chapter-item expanded "><a href="templates/index.html"><strong aria-hidden="true">5.</strong> Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="templates/builtin_placeholders.html"><strong aria-hidden="true">5.1.</strong> Builtin Placeholders</a></li><li class="chapter-item expanded "><a href="templates/custom_placeholders.html"><strong aria-hidden="true">5.2.</strong> Custom Placeholders</a></li><li class="chapter-item expanded "><a href="templates/ignoring.html"><strong aria-hidden="true">5.3.</strong> Ignoring Files</a></li><li class="chapter-item expanded "><a href="templates/include_exclude.html"><strong aria-hidden="true">5.4.</strong> Include/Exclude</a></li><li class="chapter-item expanded "><a href="templates/require_version.html"><strong aria-hidden="true">5.5.</strong> Require Version</a></li><li class="chapter-item expanded "><a href="templates/conditional.html"><strong aria-hidden="true">5.6.</strong> Conditionals</a></li><li class="chapter-item expanded "><a href="templates/scripting.html"><strong aria-hidden="true">5.7.</strong> Hooks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="templates/scripting.hook-types.html"><strong aria-hidden="true">5.7.1.</strong> Hook types</a></li><li class="chapter-item expanded "><a href="templates/scripting.rhai-extensions.html"><strong aria-hidden="true">5.7.2.</strong> Rhai extensions</a></li><li class="chapter-item expanded "><a href="templates/scripting.mini-example.html"><strong aria-hidden="true">5.7.3.</strong> Mini example</a></li></ol></li><li class="chapter-item expanded "><a href="templates/authoring.html"><strong aria-hidden="true">5.8.</strong> Authoring</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="license.html"><strong aria-hidden="true">7.</strong> License</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -627,49 +627,55 @@ ignore = [ &quot;LICENSE-MIT.txt&quot; ]
 <blockquote>
 <p>⚠️ Note that <code>include</code> and <code>exclude</code> are still mutually exclusive even if they are in different, but included, conditional sections.</p>
 </blockquote>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="prepost-scripts"><a class="header" href="#prepost-scripts">Pre/Post Scripts</a></h1>
-<p>In <code>cargo-generate.toml</code> write a <code>[hooks]</code> section, example:</p>
-<pre><code class="language-toml">[template]
-cargo_generate_version = &quot;0.10.0&quot;
-
-[hooks]
-pre = [&quot;pre-script.rhai&quot;]
-#post = [...]
-
-[placeholders]
-license = { type = &quot;string&quot;, prompt = &quot;What license to use?&quot;, choices = [&quot;APACHE&quot;, &quot;MIT&quot;], default = &quot;MIT&quot; }
+<div style="break-before: page; page-break-before: always;"></div><h1 id="initprepost-scripts"><a class="header" href="#initprepost-scripts">Init/Pre/Post Scripts</a></h1>
+<p><code>cargo-generate</code> can run scripts in the <a href="https://rhai.rs/book/"><code>Rhai</code></a> language as part of the template expansion.</p>
+<p>Doing so requires the template is configured to use hooks, which can be used at specific times
+during template expansion.</p>
+<p>To configure the use of hooks, write a <code>hooks</code> section in the <code>cargo-generate.toml</code> file.</p>
+<pre><code class="language-toml">[hooks]
+#init = [&quot;init-script.rhai&quot;]
+#pre = [&quot;pre-script.rhai&quot;]
+#post = [&quot;post-script.rhai&quot;]
 </code></pre>
-<p>Now, write the script in <a href="https://rhai.rs/book/"><code>Rhai</code></a>, utilizing the <code>cargo-generate</code> <a href="templates/scripting.html#Rhai-extensions">provided extensions</a>:</p>
-<pre><code class="language-rhai">// we can see existing variables.
-// note that template and Rhai variables are separate!
-let crate_type = variable::get(&quot;crate_type&quot;)
-debug(`crate_type: ${crate_type}`);
-
-let license = variable::get(&quot;license&quot;).to_upper();
-while switch license {
-  &quot;APACHE&quot; =&gt; {
-    file::delete(&quot;LICENSE-MIT&quot;);
-    file::rename(&quot;LICENSE-APACHE&quot;, &quot;LICENSE&quot;);
-    false
-  }
-  &quot;MIT&quot; =&gt; {
-    file::delete(&quot;LICENSE-APACHE&quot;);
-    file::rename(&quot;LICENSE-MIT&quot;, &quot;LICENSE&quot;);
-    false
-  }
-  _ =&gt; true,
-} {
-  license = variable::prompt(&quot;Select license?&quot;, &quot;MIT&quot;, [
-    &quot;APACHE&quot;,
-    &quot;MIT&quot;,
-  ]);
-}
-variable::set(&quot;license&quot;, license);
-</code></pre>
-<h3 id="rhai-extensions"><a class="header" href="#rhai-extensions">Rhai extensions</a></h3>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="hook-types"><a class="header" href="#hook-types">Hook types</a></h2>
+<h3 id="init"><a class="header" href="#init">Init</a></h3>
+<ul>
+<li>
+<p>Init hooks are run before anything else.</p>
+</li>
+<li>
+<p>The variables <code>crate_type</code>/<code>authors</code>/<code>username</code>/<code>os-arch</code> and <code>is_init</code> are available.</p>
+</li>
+<li>
+<p>The variable <code>project-name</code> <em>may</em> be available.</p>
+<p>And only if <code>cargo-generate</code> was called with the <code>--init</code> flag, in which case it is the raw user input.</p>
+</li>
+<li>
+<p>The variable <code>project-name</code> may be set - avoiding a user prompt!</p>
+<p>The variable will still be subject for case changes to fit with the rust/cargo expectations.</p>
+<p>The <code>--name</code> parameter still decides the final destination dir (together with the the <code>--init</code> flag),
+in order not to confuse the user.</p>
+</li>
+</ul>
+<h3 id="pre"><a class="header" href="#pre">Pre</a></h3>
+<ul>
+<li>
+<p>Pre hooks are run <em>after all placeholders mentioned in cargo-generate.toml has been resolved</em>.</p>
+</li>
+<li>
+<p>The hooks are free to add aditional variables, but its too late to influence the conditional system.</p>
+<p>This is a sideeffect of conditionals influencing the hooks - so placeholders need to be evaluated before the hooks are known.</p>
+</li>
+</ul>
+<h3 id="post"><a class="header" href="#post">Post</a></h3>
+<ul>
+<li>Post hooks are run after template expansion, but <em>before final output is moved to the final destination</em>.</li>
+</ul>
+<p>Why not later? Security, and the fact that a failing scrips still causes no errors in the users destination.</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="rhai-extensions"><a class="header" href="#rhai-extensions">Rhai extensions</a></h2>
 <p>Besides the basic <a href="https://rhai.rs/book/"><code>Rhai</code></a> features, these are the modules/behaviors defined:</p>
-<h4 id="variables"><a class="header" href="#variables">Variables</a></h4>
-<h5 id="getset"><a class="header" href="#getset">get/set</a></h5>
+<h3 id="variables"><a class="header" href="#variables">Variables</a></h3>
+<h4 id="getset"><a class="header" href="#getset">get/set</a></h4>
 <ul>
 <li>
 <p><strong><code>variable::is_set(name: &amp;str) -&gt; bool</code></strong></p>
@@ -684,7 +690,7 @@ variable::set(&quot;license&quot;, license);
 <p>Set new or overwrite existing variables. Do not allow to change types.</p>
 </li>
 </ul>
-<h5 id="prompt"><a class="header" href="#prompt">Prompt</a></h5>
+<h4 id="prompt"><a class="header" href="#prompt">Prompt</a></h4>
 <ul>
 <li>
 <p><strong><code>variable::prompt(text: &amp;str, default_value: bool) -&gt; value</code></strong></p>
@@ -707,7 +713,7 @@ variable::set(&quot;license&quot;, license);
 <p>Prompt the user for a choice value</p>
 </li>
 </ul>
-<h4 id="files"><a class="header" href="#files">Files</a></h4>
+<h3 id="files"><a class="header" href="#files">Files</a></h3>
 <ul>
 <li>
 <p><strong><code>file::exists(path: &amp;str)</code></strong></p>
@@ -730,11 +736,11 @@ variable::set(&quot;license&quot;, license);
 <p>Create/overwrite a file inside the template folder, each entry in the array on a new line</p>
 </li>
 </ul>
-<h4 id="other"><a class="header" href="#other">Other</a></h4>
+<h3 id="other"><a class="header" href="#other">Other</a></h3>
 <ul>
 <li><strong><code>abort(reason: &amp;str)</code></strong>: Aborts <code>cargo-generate</code> with a script error.</li>
 </ul>
-<h5 id="changing-case-of-strings"><a class="header" href="#changing-case-of-strings">Changing case of strings</a></h5>
+<h4 id="changing-case-of-strings"><a class="header" href="#changing-case-of-strings">Changing case of strings</a></h4>
 <ul>
 <li>
 <p><strong><code>to_kebab_case(str: &amp;str) -&gt; String</code></strong></p>
@@ -769,6 +775,46 @@ variable::set(&quot;license&quot;, license);
 <p><code>&quot;We are not in the least afraid of ruins.&quot;</code> =&gt; <code>&quot;WeAreNotInTheLeastAfraidOfRuins&quot;</code></p>
 </li>
 </ul>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="mini-example"><a class="header" href="#mini-example">Mini Example</a></h2>
+<p>In <code>cargo-generate.toml</code> write a <code>[hooks]</code> section:</p>
+<pre><code class="language-toml">[template]
+cargo_generate_version = &quot;0.10.0&quot;
+
+[hooks]
+#init = [...]
+pre = [&quot;pre-script.rhai&quot;]
+#post = [...]
+
+[placeholders]
+license = { type = &quot;string&quot;, prompt = &quot;What license to use?&quot;, choices = [&quot;APACHE&quot;, &quot;MIT&quot;], default = &quot;MIT&quot; }
+</code></pre>
+<p>Now, write the script in <a href="https://rhai.rs/book/"><code>Rhai</code></a>, utilizing the <code>cargo-generate</code> <a href="templates/scripting.mini-example.html#Rhai-extensions">provided extensions</a>:</p>
+<pre><code class="language-rhai">// we can see existing variables.
+// note that template and Rhai variables are separate!
+let crate_type = variable::get(&quot;crate_type&quot;)
+debug(`crate_type: ${crate_type}`);
+
+let license = variable::get(&quot;license&quot;).to_upper();
+while switch license {
+  &quot;APACHE&quot; =&gt; {
+    file::delete(&quot;LICENSE-MIT&quot;);
+    file::rename(&quot;LICENSE-APACHE&quot;, &quot;LICENSE&quot;);
+    false
+  }
+  &quot;MIT&quot; =&gt; {
+    file::delete(&quot;LICENSE-APACHE&quot;);
+    file::rename(&quot;LICENSE-MIT&quot;, &quot;LICENSE&quot;);
+    false
+  }
+  _ =&gt; true,
+} {
+  license = variable::prompt(&quot;Select license?&quot;, &quot;MIT&quot;, [
+    &quot;APACHE&quot;,
+    &quot;MIT&quot;,
+  ]);
+}
+variable::set(&quot;license&quot;, license);
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="template-authoring"><a class="header" href="#template-authoring">Template Authoring</a></h1>
 <blockquote>
 <p>Available since version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0">0.9.0</a></p>
