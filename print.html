@@ -578,7 +578,7 @@ cargo_generate_version = &quot;&gt;=0.10.0&quot;
 # exclude = [ &quot;...&quot; ]
 ...
 </code></pre>
-<p>This first part declares that the template requires <code>cargo-generate</code> version 0.10 or higher. In this same section the template auther may also specify the following 3 lists:</p>
+<p>This first part declares that the template requires <code>cargo-generate</code> version 0.10 or higher. In this same section the template author may also specify the following 3 lists:</p>
 <ul>
 <li><code>ignore</code> Files/folders on this list will be ignored entirely and are not included in the final output.</li>
 <li><code>include</code> These files will be processed for <code>Liquid</code> syntax by the template engine.</li>
@@ -600,7 +600,7 @@ ignore = [ &quot;src/main.rs&quot; ]
 ...
 </code></pre>
 <p>This is a conditional block.</p>
-<p>Here it has been choosen that the <code>src/main.rs</code> file must be ignored when the <code>crate_type</code> variable is equal to the string <code>&quot;lib&quot;</code>.</p>
+<p>Here it has been chosen that the <code>src/main.rs</code> file must be ignored when the <code>crate_type</code> variable is equal to the string <code>&quot;lib&quot;</code>.</p>
 <pre><code class="language-toml">...
 [conditional.'crate_type != &quot;lib&quot;'.placeholders]
 hypervisor = { type = &quot;string&quot;, prompt = &quot;What hypervisor to use?&quot;, choices = [&quot;uhyve&quot;, &quot;qemu&quot;], default = &quot;qemu&quot; }
