@@ -46,7 +46,7 @@ For example:
 cargo generate --git https://github.com/rustwasm/wasm-pack-template
 ```
 
-Once you tested the project has been correctly cloned and setted, please to
+Once you tested the project has been correctly cloned and set, please to
 do the same with a template that contains git submodules.
 
 **2. Clone an existing template, with at least one git submodule, locally**
@@ -57,7 +57,7 @@ For example:
 cargo generate --git https://github.com/k0pernicus/cargo-template-test-submodule
 ```
 
-Please check that the project has been correctly cloned and setted, and check
+Please check that the project has been correctly cloned and set, and check
 if the repository contains initialized submodules.
 
 **Your ideas/contributions are welcome to create automated tests for this** :)
