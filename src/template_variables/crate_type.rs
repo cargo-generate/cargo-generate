@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::GenerateArgs;
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 pub enum CrateType {
     Bin,
     Lib,

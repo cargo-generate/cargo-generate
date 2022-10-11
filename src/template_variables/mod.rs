@@ -1,7 +1,10 @@
 mod authors;
+mod crate_name;
 mod crate_type;
 mod os_arch;
+mod project_dir;
 mod project_name;
+mod project_name_input;
 
 use crate::{emoji, GenerateArgs};
 
@@ -13,9 +16,12 @@ use std::{collections::HashMap, fmt::Display, fs, path::Path};
 use toml::Value;
 
 pub use authors::{get_authors, Authors};
+pub use crate_name::CrateName;
 pub use crate_type::CrateType;
 pub use os_arch::get_os_arch;
+pub use project_dir::ProjectDir;
 pub use project_name::ProjectName;
+pub use project_name_input::ProjectNameInput;
 
 fn load_env_template_values() -> Result<HashMap<String, toml::Value>> {
     //FIXME: use this variable to be in sync with args

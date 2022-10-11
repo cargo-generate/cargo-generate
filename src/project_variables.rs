@@ -94,6 +94,7 @@ const RESERVED_NAMES: [&str; 7] = [
     "is_init",
 ];
 
+/// For each defined placeholder, try to add it with value as a variable to the template_object.
 pub fn fill_project_variables(
     template_object: &mut Object,
     config: &Config,

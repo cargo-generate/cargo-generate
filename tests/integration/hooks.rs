@@ -9,6 +9,12 @@ use crate::helpers::{project::binary, project_builder::tmp_dir};
 fn it_runs_all_hook_types() {
     let template = tmp_dir()
         .file(
+            "init-script.rhai",
+            indoc! {r#"
+            print("init-script has run");
+        "#},
+        )
+        .file(
             "pre-script.rhai",
             indoc! {r#"
             file::rename("PRE-TEST", "PRE");
@@ -45,6 +51,7 @@ fn it_runs_all_hook_types() {
             exclude = ["PRE-TEST", "POST"]
 
             [hooks]
+            init = ["init-script.rhai"]
             pre = ["pre-script.rhai"]
             post = ["post-script.rhai", "system-script.rhai"]
             "#},
@@ -68,6 +75,7 @@ fn it_runs_all_hook_types() {
         .current_dir(&dir.path())
         .assert()
         .success()
+        .stdout(predicates::str::contains("init-script has run").from_utf8())
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("script-project/PRE"));
@@ -314,4 +322,131 @@ fn can_change_variables_from_pre_hook() {
 
     assert!(dir.exists("script-project/PRE-TEST"));
     assert!(dir.read("script-project/PRE-TEST").contains("bar"));
+}
+
+#[test]
+fn init_hook_can_set_project_name() {
+    let template = tmp_dir()
+        .file(
+            "init.rhai",
+            indoc! {r#"
+                variable::set("project-name", "ProjectBar");
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+            [hooks]
+            init = ["init.rhai"]
+            "#},
+        )
+        .file(
+            "generated.txt",
+            indoc! {r#"
+            {{crate_name}}
+        "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.exists("project-bar/generated.txt"));
+    assert!(dir
+        .read("project-bar/generated.txt")
+        .contains("project_bar"));
+}
+
+#[test]
+fn init_hook_can_change_project_name_but_keeps_cli_name_for_destination() {
+    let template = tmp_dir()
+        .file(
+            "init.rhai",
+            indoc! {r#"
+                variable::set("project-name", "bar");
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+            [hooks]
+            init = ["init.rhai"]
+            "#},
+        )
+        .file(
+            "generated.txt",
+            indoc! {r#"
+            {{crate_name}}
+        "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foo")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.exists("foo/generated.txt"));
+    assert!(dir.read("foo/generated.txt").contains("bar"));
+}
+
+#[test]
+fn init_hook_can_change_project_name_but_keeps_init_destination() {
+    let template = tmp_dir()
+        .file(
+            "init.rhai",
+            indoc! {r#"
+                variable::set("project-name", "bar");
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+            [hooks]
+            init = ["init.rhai"]
+            "#},
+        )
+        .file(
+            "generated.txt",
+            indoc! {r#"
+            {{crate_name}}
+        "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("--name")
+        .arg("foo")
+        .arg("--init")
+        .current_dir(&dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.exists("generated.txt"));
+    assert!(dir.read("generated.txt").contains("bar"));
 }

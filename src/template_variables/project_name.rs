@@ -1,31 +1,35 @@
-use heck::{ToKebabCase, ToSnakeCase};
+use std::fmt::Display;
 
-/// Stores user inputted name and provides convenience methods
-/// for handling casing.
-pub struct ProjectName {
-    pub(crate) user_input: String,
+use heck::ToKebabCase;
+
+use crate::user_parsed_input::UserParsedInput;
+
+use super::ProjectNameInput;
+
+#[derive(Debug)]
+pub struct ProjectName(String);
+
+impl From<(&ProjectNameInput, &UserParsedInput)> for ProjectName {
+    fn from(
+        (project_name_input, user_parsed_input): (&ProjectNameInput, &UserParsedInput),
+    ) -> Self {
+        Self(
+            user_parsed_input
+                .force()
+                .then(|| project_name_input.as_ref().to_owned())
+                .unwrap_or_else(|| project_name_input.as_ref().to_kebab_case()),
+        )
+    }
 }
 
-impl ProjectName {
-    pub(crate) fn new(name: impl Into<String>) -> Self {
-        Self {
-            user_input: name.into(),
-        }
+impl AsRef<str> for ProjectName {
+    fn as_ref(&self) -> &str {
+        self.0.as_ref()
     }
+}
 
-    pub(crate) fn raw(&self) -> String {
-        self.user_input.to_owned()
-    }
-
-    pub(crate) fn kebab_case(&self) -> String {
-        self.user_input.to_kebab_case()
-    }
-
-    pub(crate) fn snake_case(&self) -> String {
-        self.user_input.to_snake_case()
-    }
-
-    pub(crate) fn is_crate_name(&self) -> bool {
-        self.user_input == self.kebab_case()
+impl Display for ProjectName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
