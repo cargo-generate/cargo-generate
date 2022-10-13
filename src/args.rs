@@ -125,7 +125,33 @@ pub struct GenerateArgs {
     pub other_args: Option<Vec<String>>,
 }
 
-#[derive(Debug, Clone, Args)]
+impl Default for GenerateArgs {
+    fn default() -> Self {
+        Self {
+            template_path: TemplatePath::default(),
+            list_favorites: false,
+            name: None,
+            force: false,
+            verbose: false,
+            template_values_file: None,
+            silent: false,
+            config: None,
+            vcs: None,
+            lib: true,
+            bin: false,
+            ssh_identity: None,
+            define: Vec::default(),
+            init: false,
+            destination: None,
+            force_git_init: false,
+            allow_commands: false,
+            overwrite: false,
+            other_args: None,
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone, Args)]
 pub struct TemplatePath {
     /// Auto attempt to use as either `--git` or `--favorite`.
     /// If either is specified explicitly, use as subfolder.
