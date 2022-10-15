@@ -48,7 +48,7 @@ impl UserParsedInput {
     /// Try create `UserParsedInput` reading in order [`AppConfig`] and [`Args`]
     ///
     /// # Panics
-    /// This function assume that Args and AppConfig are verfied eariler and are logicly correct
+    /// This function assume that Args and AppConfig are verified earlier and are logically correct
     /// For example if both `--git` and `--path` are set this function will panic
     pub fn try_from_args_and_config(app_config: AppConfig, args: &GenerateArgs) -> Self {
         const DEFAULT_VCS: Vcs = Vcs::Git;

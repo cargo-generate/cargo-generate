@@ -94,7 +94,7 @@ fn favorite_subfolder_must_be_valid() {
         .arg("-n")
         .arg("outer")
         .arg(template.path())
-        .arg("non-existant")
+        .arg("non-existent")
         .current_dir(&working_dir.path())
         .assert()
         .failure(); // Error text is OS specific

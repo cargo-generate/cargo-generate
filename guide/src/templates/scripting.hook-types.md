@@ -18,9 +18,9 @@
 ### Pre
 
 - Pre hooks are run *after all placeholders mentioned in cargo-generate.toml has been resolved*.
-- The hooks are free to add aditional variables, but its too late to influence the conditional system.
+- The hooks are free to add additional variables, but its too late to influence the conditional system.
 
-  This is a sideeffect of conditionals influencing the hooks - so placeholders need to be evaluated before the hooks are known.
+  This is a side effect of conditionals influencing the hooks - so placeholders need to be evaluated before the hooks are known.
 
 ### Post
 

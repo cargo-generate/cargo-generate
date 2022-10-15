@@ -17,7 +17,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
         let liquid_object = liquid_object.clone();
         move |name: &str| -> HookResult<bool> {
             match liquid_object.get_value(name) {
-                NamedValue::NonExistant => Ok(false),
+                NamedValue::NonExistent => Ok(false),
                 _ => Ok(true),
             }
         }
@@ -27,7 +27,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
         let liquid_object = liquid_object.clone();
         move |name: &str| -> HookResult<Dynamic> {
             match liquid_object.get_value(name) {
-                NamedValue::NonExistant => Ok(Dynamic::from(String::from(""))),
+                NamedValue::NonExistent => Ok(Dynamic::from(String::from(""))),
                 NamedValue::Bool(v) => Ok(Dynamic::from(v)),
                 NamedValue::String(v) => Ok(Dynamic::from(v)),
             }
@@ -39,7 +39,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
 
         move |name: &str, value: &str| -> HookResult<()> {
             match liquid_object.get_value(name) {
-                NamedValue::NonExistant | NamedValue::String(_) => {
+                NamedValue::NonExistent | NamedValue::String(_) => {
                     liquid_object.borrow_mut().insert(
                         name.to_string().into(),
                         Value::Scalar(value.to_string().into()),
@@ -56,7 +56,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
 
         move |name: &str, value: bool| -> HookResult<()> {
             match liquid_object.get_value(name) {
-                NamedValue::NonExistant | NamedValue::Bool(_) => {
+                NamedValue::NonExistent | NamedValue::Bool(_) => {
                     liquid_object
                         .borrow_mut()
                         .insert(name.to_string().into(), Value::Scalar(value.into()));
@@ -70,7 +70,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     module.set_native_fn("set", {
         move |name: &str, value: Array| -> HookResult<()> {
             match liquid_object.get_value(name) {
-                NamedValue::NonExistant => {
+                NamedValue::NonExistent => {
                     let val = rhai_to_liquid_value(Dynamic::from(value))?;
                     liquid_object
                         .borrow_mut()
@@ -207,7 +207,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
 }
 
 enum NamedValue {
-    NonExistant,
+    NonExistent,
     Bool(bool),
     String(String),
 }
@@ -230,8 +230,8 @@ impl GetNamedValue for Rc<RefCell<Object>> {
                         NamedValue::Bool,
                     )
                 })
-                .unwrap_or_else(|| NamedValue::NonExistant),
-            None => NamedValue::NonExistant,
+                .unwrap_or_else(|| NamedValue::NonExistent),
+            None => NamedValue::NonExistent,
         }
     }
 }
