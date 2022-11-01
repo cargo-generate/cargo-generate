@@ -30,6 +30,10 @@ jobs:
             os: macos-latest
             cross: false
             binName: cargo-generate
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            cross: true
+            binName: cargo-generate
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             cross: false
