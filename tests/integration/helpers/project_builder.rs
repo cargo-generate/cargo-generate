@@ -157,6 +157,8 @@ version = "0.1.0"
 
             self.submodules.iter().for_each(|(d, m)| {
                 Command::new("git")
+                    .arg("-c")
+                    .arg("protocol.file.allow=always")
                     .arg("submodule")
                     .arg("add")
                     .arg(m)
