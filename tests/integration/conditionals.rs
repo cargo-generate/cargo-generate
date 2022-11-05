@@ -36,7 +36,7 @@ ignore = ["included"]
         .arg("foobar-project")
         .arg("-d")
         .arg("foo=false")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -76,7 +76,7 @@ ignore = ["included"]
         .arg("foobar-project")
         .arg("-d")
         .arg("foo=true")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -124,7 +124,7 @@ ignore = ["included"]
         .arg("foobar-project")
         .arg("-d")
         .arg("v1=true")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .failure()
         .stderr(predicates::str::contains("Error:").from_utf8());
@@ -163,7 +163,7 @@ ignore = ["included"]
         .arg("v1=true")
         .arg("-d")
         .arg("v2=true")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());

@@ -110,7 +110,7 @@ version = "0.1.0"
 
             Command::new("git")
                 .arg("init")
-                .current_dir(&path)
+                .current_dir(path)
                 .assert()
                 .success();
 
@@ -125,7 +125,7 @@ version = "0.1.0"
                 Command::new("git")
                     .arg("add")
                     .arg("dummy.txt")
-                    .current_dir(&path)
+                    .current_dir(path)
                     .assert()
                     .success();
 
@@ -133,7 +133,7 @@ version = "0.1.0"
                     .arg("commit")
                     .arg("--message")
                     .arg("initial main commit")
-                    .current_dir(&path)
+                    .current_dir(path)
                     .assert()
                     .success();
 
@@ -143,7 +143,7 @@ version = "0.1.0"
                     .arg("checkout")
                     .arg("-b")
                     .arg(branch)
-                    .current_dir(&path)
+                    .current_dir(path)
                     .assert()
                     .success();
             }
@@ -151,7 +151,7 @@ version = "0.1.0"
             Command::new("git")
                 .arg("add")
                 .arg("--all")
-                .current_dir(&path)
+                .current_dir(path)
                 .assert()
                 .success();
 
@@ -159,9 +159,9 @@ version = "0.1.0"
                 Command::new("git")
                     .arg("submodule")
                     .arg("add")
-                    .arg(&m)
-                    .arg(&d)
-                    .current_dir(&path)
+                    .arg(m)
+                    .arg(d)
+                    .current_dir(path)
                     .assert()
                     .success();
             });
@@ -170,7 +170,7 @@ version = "0.1.0"
                 .arg("commit")
                 .arg("--message")
                 .arg("initial commit")
-                .current_dir(&path)
+                .current_dir(path)
                 .assert()
                 .success();
 
@@ -181,7 +181,7 @@ version = "0.1.0"
                     .arg(tag)
                     .arg("-m")
                     .arg(format!("our test tag {tag}"))
-                    .current_dir(&path)
+                    .current_dir(path)
                     .assert()
                     .success();
 
@@ -195,7 +195,7 @@ version = "0.1.0"
                 Command::new("git")
                     .arg("add")
                     .arg("--all")
-                    .current_dir(&path)
+                    .current_dir(path)
                     .assert()
                     .success();
 
@@ -203,7 +203,7 @@ version = "0.1.0"
                     .arg("commit")
                     .arg("--message")
                     .arg("dummy commit after tag")
-                    .current_dir(&path)
+                    .current_dir(path)
                     .assert()
                     .success();
             }
@@ -212,7 +212,7 @@ version = "0.1.0"
                 Command::new("git")
                     .arg("checkout")
                     .arg("main")
-                    .current_dir(&path)
+                    .current_dir(path)
                     .assert()
                     .success();
             } else {

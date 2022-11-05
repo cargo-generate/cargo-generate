@@ -72,7 +72,7 @@ fn it_runs_all_hook_types() {
         .arg("-d")
         .arg("post=world")
         .arg("--allow-commands")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("init-script has run").from_utf8())
@@ -115,7 +115,7 @@ fn it_runs_system_commands() {
         .arg("-n")
         .arg("script-project")
         .arg("--allow-commands")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -151,7 +151,7 @@ fn it_fails_to_prompt_for_system_commands_in_silent_mode() {
         .arg("-n")
         .arg("script-project")
         .arg("--silent")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .failure()
         // The error message should instruct the user on how to proceed with silent mode (i.e. by setting the allow flag).
@@ -186,7 +186,7 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
         .arg("-n")
         .arg("script-project")
         .arg("--allow-commands")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .failure()
         .stderr(
@@ -225,7 +225,7 @@ fn it_fails_when_it_cant_execute_system_command() {
         .arg("-n")
         .arg("script-project")
         .arg("--allow-commands")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .failure()
         .stderr(
@@ -270,7 +270,7 @@ fn it_can_change_case() {
         .arg(template.path())
         .arg("-n")
         .arg("script-project")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("kebab-case"))
@@ -315,7 +315,7 @@ fn can_change_variables_from_pre_hook() {
         .arg(template.path())
         .arg("-n")
         .arg("script-project")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -355,7 +355,7 @@ fn init_hook_can_set_project_name() {
         .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -399,7 +399,7 @@ fn init_hook_can_change_project_name_but_keeps_cli_name_for_destination() {
         .arg(template.path())
         .arg("--name")
         .arg("foo")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -442,7 +442,7 @@ fn init_hook_can_change_project_name_but_keeps_init_destination() {
         .arg("--name")
         .arg("foo")
         .arg("--init")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
