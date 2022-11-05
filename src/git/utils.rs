@@ -46,10 +46,10 @@ pub fn clone_git_template_into_temp(
     if let Some(tag) = tag {
         let (object, reference) = repo.revparse_ext(tag)?;
         repo.checkout_tree(&object, None)?;
-        match reference {
-            Some(gref) => repo.set_head(gref.name().unwrap()),
-            None => repo.set_head_detached(object.id()),
-        }?;
+        reference.map_or_else(
+            || repo.set_head_detached(object.id()),
+            |gref| repo.set_head(gref.name().unwrap()),
+        )?
     }
 
     Ok((git_clone_dir, branch))

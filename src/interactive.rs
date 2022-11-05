@@ -66,7 +66,7 @@ fn handle_string_input(
     provided_value: Option<String>,
     var_name: &str,
     entry: &StringEntry,
-    prompt: &str,
+    _prompt: &str,
 ) -> Result<String> {
     match provided_value {
         Some(value) => {
@@ -90,14 +90,10 @@ fn handle_string_input(
             }
         }
         None => {
-            let prompt = format!(
-                "{} {}",
-                prompt,
-                match &entry.default {
-                    Some(d) => format!("[default: {}]", style(d).bold()),
-                    None => "".into(),
-                }
-            );
+            let prompt = entry
+                .default
+                .as_ref()
+                .map_or_else(|| "".into(), |d| format!("[default: {}]", style(d).bold()));
             let default = entry.default.as_ref().map(|v| v.into());
 
             match &entry.regex {
@@ -176,7 +172,7 @@ fn handle_bool_input(
             let chosen = Select::with_theme(&ColorfulTheme::default())
                 .items(&choices)
                 .with_prompt(prompt)
-                .default(if default.unwrap_or(false) { 1 } else { 0 })
+                .default(usize::from(default.unwrap_or(false)))
                 .interact()?;
 
             Ok(choices.index(chosen).to_string())
