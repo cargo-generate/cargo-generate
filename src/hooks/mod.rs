@@ -75,17 +75,18 @@ pub fn evaluate_script<T: Clone + 'static>(
 
     #[allow(deprecated)]
     conditional_evaluation_engine.on_var({
-        move |name, _, _| match liquid_object.get(name) {
-            Some(value) => Ok(value.as_view().as_scalar().map(|scalar| {
-                scalar.to_bool().map_or_else(
-                    || {
-                        let v = scalar.to_kstr();
-                        v.as_str().into()
-                    },
-                    |v| v.into(),
-                )
-            })),
-            None => Ok(None),
+        move |name, _, _| {
+            liquid_object.get(name).map_or(Ok(None), |value| {
+                Ok(value.as_view().as_scalar().map(|scalar| {
+                    scalar.to_bool().map_or_else(
+                        || {
+                            let v = scalar.to_kstr();
+                            v.as_str().into()
+                        },
+                        |v| v.into(),
+                    )
+                }))
+            })
         }
     });
 

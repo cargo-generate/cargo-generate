@@ -81,24 +81,27 @@ fn read_template_values_from_definitions(
     let mut values = HashMap::with_capacity(definitions.len());
     let key_value_regex = Regex::new(r"^([a-zA-Z]+[a-zA-Z0-9\-_]*)\s*=\s*(.+)$").unwrap();
 
-    definitions.iter().try_fold(
-        &mut values,
-        |template_values, definition| match key_value_regex.captures(definition.as_ref()) {
-            Some(cap) => {
-                let key = cap.get(1).unwrap().as_str().to_string();
-                let value = cap.get(2).unwrap().as_str().to_string();
-                println!("{} => '{}'", key, value);
-                template_values.insert(key, Value::from(value));
-                Ok(template_values)
-            }
-            None => Err(anyhow::anyhow!(
-                "{} {} {}",
-                emoji::ERROR,
-                style("Failed to parse value:").bold().red(),
-                style(definition).bold().red(),
-            )),
-        },
-    )?;
+    definitions
+        .iter()
+        .try_fold(&mut values, |template_values, definition| {
+            key_value_regex.captures(definition.as_ref()).map_or_else(
+                || {
+                    Err(anyhow::anyhow!(
+                        "{} {} {}",
+                        emoji::ERROR,
+                        style("Failed to parse value:").bold().red(),
+                        style(definition).bold().red(),
+                    ))
+                },
+                |cap| {
+                    let key = cap.get(1).unwrap().as_str().to_string();
+                    let value = cap.get(2).unwrap().as_str().to_string();
+                    println!("{} => '{}'", key, value);
+                    template_values.insert(key, Value::from(value));
+                    Ok(template_values)
+                },
+            )
+        })?;
     Ok(values)
 }
 

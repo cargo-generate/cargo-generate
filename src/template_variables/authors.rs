@@ -68,13 +68,15 @@ pub fn get_authors() -> Result<Authors> {
     }
 
     fn find_real_git_config() -> Option<GitConfig> {
-        match env::current_dir() {
-            Ok(cwd) => GitRepository::discover(cwd)
-                .and_then(|repo| repo.config())
-                .or_else(|_| GitConfig::open_default())
-                .ok(),
-            Err(_) => GitConfig::open_default().ok(),
-        }
+        env::current_dir().map_or_else(
+            |_| GitConfig::open_default().ok(),
+            |cwd| {
+                GitRepository::discover(cwd)
+                    .and_then(|repo| repo.config())
+                    .or_else(|_| GitConfig::open_default())
+                    .ok()
+            },
+        )
     }
 
     let author = match discover_author()? {

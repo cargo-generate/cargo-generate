@@ -148,16 +148,16 @@ pub fn init(project_dir: &Path, branch: Option<&str>, force: bool) -> Git2Result
         Repository::init_opts(project_dir, &opts)
     }
 
-    match Repository::discover(project_dir) {
-        Ok(repo) => {
+    Repository::discover(project_dir).map_or_else(
+        |_| just_init(project_dir, branch),
+        |repo| {
             if force {
                 Repository::open(project_dir).or_else(|_| just_init(project_dir, branch))
             } else {
                 Ok(repo)
             }
-        }
-        Err(_) => just_init(project_dir, branch),
-    }
+        },
+    )
 }
 
 /// remove context of repository by removing `.git` from filesystem

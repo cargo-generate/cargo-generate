@@ -22,7 +22,7 @@ fn it_allows_a_git_branch_to_be_specified() {
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -45,7 +45,7 @@ fn it_allows_a_git_tag_to_be_specified() {
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -66,7 +66,7 @@ fn it_removes_git_history() {
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -87,7 +87,7 @@ fn it_removes_git_history_also_on_local_templates() {
         .arg(template.path())
         .arg("--name")
         .arg("xyz")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -109,7 +109,7 @@ fn it_should_init_an_empty_git_repo_even_when_starting_from_a_repo_when_forced()
         .arg(template.path())
         .arg("--name")
         .arg("foo")
-        .current_dir(&target_path)
+        .current_dir(target_path)
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
