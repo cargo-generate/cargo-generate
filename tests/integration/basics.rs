@@ -31,7 +31,7 @@ version = "0.1.0"
         .arg("--name")
         .arg("foobar-project")
         .arg(template.path())
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(
@@ -69,7 +69,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--path")
         .arg(template.path())
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -103,7 +103,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -138,7 +138,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .env("CARGO_EMAIL", "Email")
         .env("CARGO_NAME", "Author")
         .assert()
@@ -177,7 +177,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -204,7 +204,7 @@ fn it_substitutes_os_arch() {
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -240,7 +240,7 @@ version = "0.1.0"
         .arg("foobar_project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -272,7 +272,7 @@ extern crate {{crate_name}};
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -306,7 +306,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -336,7 +336,7 @@ version = "0.1.0"
         .arg(template.path())
         .arg("--name")
         .arg("outer")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -382,7 +382,7 @@ version = "0.1.0"
         .arg("--name")
         .arg("my-proj")
         .arg("--init")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -415,7 +415,7 @@ version = "0.1.0"
         .arg("my-proj")
         .arg("--destination")
         .arg(&dest)
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -446,7 +446,7 @@ version = "0.1.0"
         .arg("--name")
         .arg("my-proj")
         .arg("--init")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .status();
     binary()
         .arg("generate")
@@ -455,7 +455,7 @@ version = "0.1.0"
         .arg("--name")
         .arg("overwritten-proj")
         .arg("--init")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .failure();
     assert!(dir.read("Cargo.toml").contains("my-proj"));
@@ -483,7 +483,7 @@ version = "0.1.0"
         .arg("--name")
         .arg("my-proj")
         .arg("--init")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .status();
     binary()
         .arg("generate")
@@ -493,7 +493,7 @@ version = "0.1.0"
         .arg("overwritten-proj")
         .arg("--init")
         .arg("--overwrite")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success();
     assert!(dir.read("Cargo.toml").contains("overwritten-proj"));
@@ -525,7 +525,7 @@ version = "0.1.0"
         .arg("--branch")
         .arg("main")
         .arg("--force")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -568,7 +568,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -610,7 +610,7 @@ version = "0.1.0"
         .arg("--branch")
         .arg("main")
         .arg("--verbose")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("deleteme.trash").from_utf8());
@@ -641,7 +641,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -674,7 +674,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -708,7 +708,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -757,7 +757,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -798,7 +798,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -842,7 +842,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -872,7 +872,7 @@ version = "0.1.0"
     let relative_path = {
         let mut relative_path = std::path::PathBuf::new();
         relative_path.push("../");
-        relative_path.push(&template.path().file_name().unwrap().to_str().unwrap());
+        relative_path.push(template.path().file_name().unwrap().to_str().unwrap());
         relative_path
     };
 
@@ -885,7 +885,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -917,7 +917,7 @@ fn it_respects_template_branch_name() {
         .arg("foobar-project")
         .arg("--branch")
         .arg("gh-pages")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -956,7 +956,7 @@ exclude = ["excluded2"]
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -997,7 +997,7 @@ exclude = ["excluded"]
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -1045,7 +1045,7 @@ exclude = ["not-actually-excluded"]
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("both").from_utf8())
@@ -1088,7 +1088,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -1125,7 +1125,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("neither").count(0).from_utf8())
@@ -1157,7 +1157,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Removed:").count(0).from_utf8())
@@ -1194,7 +1194,7 @@ without_suffix = {{crate_name | split: "_" | first}}
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -1227,7 +1227,7 @@ fn it_processes_dot_github_directory_files() {
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -1266,7 +1266,7 @@ _This README was generated with [cargo-readme](https://github.com/livioribeiro/c
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -1304,7 +1304,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--vcs")
         .arg("nONE")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -1344,7 +1344,7 @@ vcs = "None"
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -1379,7 +1379,7 @@ version = "0.1.0"
         .arg("--name")
         .arg("foobar-project")
         .arg("--lib")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -1411,7 +1411,7 @@ version = "0.1.0"
         .arg(template.path())
         .arg("--name")
         .arg("foobar-project")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -1444,7 +1444,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -1477,7 +1477,7 @@ version = "0.1.0"
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -1505,7 +1505,7 @@ fn error_message_for_invalid_repo_or_user() {
         .arg("sassman/cli-template-rs-xx")
         .arg("--name")
         .arg("favorite-project")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .failure()
         .stderr(
@@ -1546,7 +1546,7 @@ fn a_template_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
         .arg("foobar-project")
         .arg("--branch")
         .arg("main")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());

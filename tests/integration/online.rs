@@ -24,7 +24,7 @@ fn git_flag_can_be_skipped_and_cargo_will_use_correct_implementation() {
         .arg("my-proj")
         .arg("--init")
         .arg("git://github.com/ashleygwilliams/wasm-pack-template")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -52,7 +52,7 @@ fn plain_git_repo_works() {
             .arg("--name")
             .arg("my-proj")
             .arg("--init")
-            .current_dir(&dir.path())
+            .current_dir(dir.path())
             .assert()
             .success()
             .stdout(predicates::str::contains("Done!").from_utf8());
@@ -68,7 +68,7 @@ fn abbreviation_for_github_works() {
         .arg("--name")
         .arg("my-proj")
         .arg("ashleygwilliams/wasm-pack-template")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").and(
@@ -94,7 +94,7 @@ mod ssh_remote {
             .arg("git@github.com:ashleygwilliams/wasm-pack-template.git")
             .arg("--name")
             .arg("foobar-project")
-            .current_dir(&dir.path())
+            .current_dir(dir.path())
             .assert()
             .success()
             .stdout(predicates::str::contains("Done!").from_utf8());
@@ -115,7 +115,7 @@ mod ssh_remote {
             .arg("git@github.com:cargo-generate/wasm-pack-template.git")
             .arg("--name")
             .arg("foobar-project")
-            .current_dir(&dir.path())
+            .current_dir(dir.path())
             .assert()
             .success()
             .stdout(predicates::str::contains("Done!").from_utf8());
@@ -138,7 +138,7 @@ mod ssh_remote {
             .arg("git@github.com:cargo-generate/wasm-pack-template.git")
             .arg("--name")
             .arg("foobar-project")
-            .current_dir(&dir.path())
+            .current_dir(dir.path())
             .assert()
             .success()
             .stdout(

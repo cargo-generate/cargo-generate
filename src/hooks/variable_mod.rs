@@ -218,21 +218,22 @@ trait GetNamedValue {
 
 impl GetNamedValue for Rc<RefCell<Object>> {
     fn get_value(&self, name: &str) -> NamedValue {
-        match self.borrow().get(name) {
-            Some(value) => value
-                .as_scalar()
-                .map(|scalar| {
-                    scalar.to_bool().map_or_else(
-                        || {
-                            let v = scalar.to_kstr();
-                            NamedValue::String(String::from(v.as_str()))
-                        },
-                        NamedValue::Bool,
-                    )
-                })
-                .unwrap_or_else(|| NamedValue::NonExistent),
-            None => NamedValue::NonExistent,
-        }
+        self.borrow()
+            .get(name)
+            .map_or(NamedValue::NonExistent, |value| {
+                value
+                    .as_scalar()
+                    .map(|scalar| {
+                        scalar.to_bool().map_or_else(
+                            || {
+                                let v = scalar.to_kstr();
+                                NamedValue::String(String::from(v.as_str()))
+                            },
+                            NamedValue::Bool,
+                        )
+                    })
+                    .unwrap_or_else(|| NamedValue::NonExistent)
+            })
     }
 }
 

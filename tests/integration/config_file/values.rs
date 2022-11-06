@@ -40,7 +40,7 @@ fn it_accepts_default_template_values() {
         .arg("my-project")
         .arg("--git")
         .arg(template_dir.path())
-        .current_dir(&working_dir.path())
+        .current_dir(working_dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -89,7 +89,7 @@ fn it_accepts_template_values_file_from_environment() {
         .arg("foobar-project")
         .arg("--git")
         .arg(template_dir.path())
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .env(
             "CARGO_GENERATE_TEMPLATE_VALUES_FILE",
             template_dir.path().join("my-env-values.toml"),
@@ -141,7 +141,7 @@ ignore = ["included"]
         .arg("foobar-project")
         .arg("--template-values-file")
         .arg(template.path().join("my-values.toml"))
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -175,7 +175,7 @@ fn it_accepts_individual_template_values_from_environment() {
         .arg("foobar-project")
         .arg("--git")
         .arg(template.path())
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .env(
             "CARGO_GENERATE_TEMPLATE_VALUES_FILE",
             template.path().join("my-env-values.toml"),
@@ -218,7 +218,7 @@ fn it_accepts_template_values_file_via_flag() {
         .arg(template.path())
         .arg("--template-values-file")
         .arg(template.path().join("my-values.toml"))
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .env("CARGO_GENERATE_VALUE_MY_VALUE", "env-def-value")
         .assert()
         .success()
@@ -259,7 +259,7 @@ fn it_accepts_individual_template_values_via_flag() {
         .arg(template.path().join("my-values.toml"))
         .arg("--define")
         .arg("my_value=def-value")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -292,7 +292,7 @@ fn it_accepts_values_via_long_option() {
         .arg("--define")
         .arg(r#"my_value="content of my-value""#)
         .arg(template.path())
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -325,7 +325,7 @@ fn it_accepts_values_via_short_option() {
         .arg("-d")
         .arg(r#"my_value="content of my-value""#)
         .arg(template.path())
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -367,7 +367,7 @@ fn cli_value_overrides_others() {
         .arg("-d")
         .arg(r#"my_value="content of cli-value""#)
         .arg(template.path())
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -410,7 +410,7 @@ fn cli_values_are_checked_via_regex() {
         .arg(r#"my_value="content of my-value""#)
         .arg("--path")
         .arg(template.path())
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .failure();
 }

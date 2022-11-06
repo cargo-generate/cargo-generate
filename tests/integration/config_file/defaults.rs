@@ -34,7 +34,7 @@ fn it_uses_ssh_identity_from_defaults_config() {
         .arg("foo")
         .arg("--git")
         .arg(some_template.path())
-        .current_dir(&working_dir.path())
+        .current_dir(working_dir.path())
         .assert()
         .success()
         .stdout(

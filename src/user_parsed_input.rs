@@ -196,7 +196,7 @@ impl UserParsedInput {
         // this part try to guess what user wanted in order:
 
         // 1. look for abbreviations like gh:, gl: etc.
-        let temp_location = abbreviated_git_url_to_full_remote(&fav_name).map(|git_url| {
+        let temp_location = abbreviated_git_url_to_full_remote(fav_name).map(|git_url| {
             let git_user_in = GitUserInput::with_git_url_and_args(&git_url, args);
             TemplateLocation::from(git_user_in)
         });

@@ -56,7 +56,7 @@ fn favorite_with_git_becomes_subfolder() {
         .arg("--git")
         .arg(git_template.path())
         .arg("test")
-        .current_dir(&working_dir.path())
+        .current_dir(working_dir.path())
         .assert()
         .failure();
 }
@@ -84,7 +84,7 @@ fn favorite_subfolder_must_be_valid() {
         .arg("outer")
         .arg(template.path())
         .arg("Cargo.toml")
-        .current_dir(&working_dir.path())
+        .current_dir(working_dir.path())
         .assert()
         .failure()
         .stderr(predicates::str::contains("must be a valid folder").from_utf8());
@@ -95,7 +95,7 @@ fn favorite_subfolder_must_be_valid() {
         .arg("outer")
         .arg(template.path())
         .arg("non-existent")
-        .current_dir(&working_dir.path())
+        .current_dir(working_dir.path())
         .assert()
         .failure(); // Error text is OS specific
 
@@ -105,7 +105,7 @@ fn favorite_subfolder_must_be_valid() {
         .arg("outer")
         .arg(template.path())
         .arg(working_dir.path().parent().unwrap())
-        .current_dir(&working_dir.path())
+        .current_dir(working_dir.path())
         .assert()
         .failure()
         .stderr(predicates::str::contains("Invalid subfolder.").from_utf8());
@@ -134,7 +134,7 @@ fn favorite_with_subfolder() -> anyhow::Result<()> {
         .arg("outer")
         .arg(template.path())
         .arg("inner")
-        .current_dir(&working_dir.path())
+        .current_dir(working_dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -156,7 +156,7 @@ fn it_can_use_favorites() {
         .arg("--name")
         .arg("favorite-project")
         .arg("test")
-        .current_dir(&working_dir.path())
+        .current_dir(working_dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -181,7 +181,7 @@ fn a_favorite_can_set_vcs_to_none_by_default() {
         .arg("--name")
         .arg("favorite-project")
         .arg("test")
-        .current_dir(&working_dir.path())
+        .current_dir(working_dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -202,7 +202,7 @@ fn favorites_default_to_git_if_not_defined() {
         .arg("--name")
         .arg("favorite-project")
         .arg("dummy")
-        .current_dir(&working_dir.path())
+        .current_dir(working_dir.path())
         .assert()
         .failure()
         .stderr(
@@ -255,7 +255,7 @@ fn favorites_can_use_default_values() {
         .arg("--name")
         .arg("my-project")
         .arg("favorite")
-        .current_dir(&working_dir.path())
+        .current_dir(working_dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
@@ -319,7 +319,7 @@ fn favorites_default_value_can_be_overridden_by_environment() {
         .arg("--name")
         .arg("my-project")
         .arg("favorite")
-        .current_dir(&working_dir.path())
+        .current_dir(working_dir.path())
         .env(
             "CARGO_GENERATE_TEMPLATE_VALUES_FILE",
             values_dir.path().join("values_file.toml"),
@@ -369,7 +369,7 @@ fn favorite_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
         .arg("--name")
         .arg("my-proj")
         .arg("favorite")
-        .current_dir(&dir.path())
+        .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
