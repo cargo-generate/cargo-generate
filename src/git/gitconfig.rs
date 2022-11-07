@@ -23,10 +23,8 @@ pub fn resolve_instead_url(
     let remote = remote.as_ref().to_string();
     let config = GitConfigParser::from_path_no_includes(gitconfig, Source::User)
         .context("Cannot read or parse .gitconfig")?;
-    let x = config
-        .sections_by_name("url")
-        .unwrap()
-        .map(|section| {
+    let x = config.sections_by_name("url").and_then(|iter| {
+        iter.map(|section| {
             let head = section.header();
             let body = section.body();
             let url = head.subsection_name();
@@ -42,7 +40,9 @@ pub fn resolve_instead_url(
             remote
                 .starts_with(old.as_str())
                 .then(|| remote.replace(old.as_str(), new.as_str()))
-        });
+        })
+    });
+
     Ok(x)
 }
 
