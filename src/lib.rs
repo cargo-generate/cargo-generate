@@ -353,6 +353,9 @@ pub(crate) fn copy_dir_all(
             let entry_type = src_entry.file_type()?;
 
             if entry_type.is_dir() {
+                if filename == ".git" {
+                    continue;
+                }
                 let dst_path = dst.as_ref().join(filename);
                 check_dir_all(src_entry.path(), dst_path, overwrite)?;
             } else if entry_type.is_file() {
