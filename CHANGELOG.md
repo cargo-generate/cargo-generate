@@ -1,6 +1,18 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.0...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.1...HEAD)
+
+## [0.17.1] 2022-11-07
+[0.17.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.0...v0.17.1
+
+### 🤕 Fixes
+- [fix(#790): fix string template var prompts and default value presentation issues](https://github.com/cargo-generate/cargo-generate/pull/791)
+
+### 🛠️ Maintenance
+- [chore(deps): bump clap from 4.0.19 to 4.0.22](https://github.com/cargo-generate/cargo-generate/pull/792)
+ 
+### Contributors
+- [sassman](https://github.com/sassman)
 
 ## [0.17.0] 2022-11-07
 [0.17.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.16.0...v0.17.0

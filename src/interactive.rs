@@ -66,7 +66,7 @@ fn handle_string_input(
     provided_value: Option<String>,
     var_name: &str,
     entry: &StringEntry,
-    _prompt: &str,
+    prompt: &str,
 ) -> Result<String> {
     match provided_value {
         Some(value) => {
@@ -90,11 +90,18 @@ fn handle_string_input(
             }
         }
         None => {
-            let prompt = entry
+            let default = entry
                 .default
                 .as_ref()
-                .map_or_else(|| "".into(), |d| format!("[default: {}]", style(d).bold()));
-            let default = entry.default.as_ref().map(|v| v.into());
+                .filter(|v| !v.is_empty())
+                .map(|v| v.to_owned());
+            let prompt = format!(
+                "{prompt}{}",
+                default
+                    .as_ref()
+                    .map(|default| format!(" [default: {}]", style(default).bold()))
+                    .unwrap_or_else(|| "".to_owned())
+            );
 
             match &entry.regex {
                 Some(regex) => loop {
