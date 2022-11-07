@@ -1,6 +1,61 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.16.0...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.0...HEAD)
+
+## [0.17.0] 2022-11-07
+[0.17.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.16.0...v0.17.0
+
+### ✨ Features
+- [Add `aarch64-apple-darwin` release package](https://github.com/cargo-generate/cargo-generate/pull/775)
+- [Extend the GitHub CI build pipeline for spellchecks](https://github.com/cargo-generate/cargo-generate/pull/764)
+- [ci: close issues that are labeled as `waiting-for-user-input` and got no updates for 14days](https://github.com/cargo-generate/cargo-generate/pull/762)
+- [feat: impl `Default` for `GenerateArgs` and `TemplatePath`](https://github.com/cargo-generate/cargo-generate/pull/754)
+- [support providing `project-name` via hooks, env vars and template value file](https://github.com/cargo-generate/cargo-generate/pull/729)
+- [Remove `Smoke Test` step](https://github.com/cargo-generate/cargo-generate/pull/721)
+- [renaming files by using e.g. `{{project-name}}.yml` as filename doesn't remove the original file](https://github.com/cargo-generate/cargo-generate/pull/713)
+- [Support `--test` for running tests on the expanded template](https://github.com/cargo-generate/cargo-generate/pull/699)
+ 
+### 🤕 Fixes
+- [Variables set in pre scripts don't carry over to the template](https://github.com/cargo-generate/cargo-generate/pull/711)
+- [Git default branch is not honored when using --path](https://github.com/cargo-generate/cargo-generate/pull/712)
+- [Deleting_a_non_existing_file_should_not_fail](https://github.com/cargo-generate/cargo-generate/pull/730)
+- [Fix typos](https://github.com/cargo-generate/cargo-generate/pull/751)
+- [Fix link to Github Action](https://github.com/cargo-generate/cargo-generate/pull/742)
+- [Fix tests (1.65.0 toolchain support + git 2.38.1 compatibility)](https://github.com/cargo-generate/cargo-generate/pull/780)
+- [When using --init, do not copy .git directories](https://github.com/cargo-generate/cargo-generate/pull/781)
+
+### 🛠️ Maintenance
+- [chore(deps): bump git-config from 0.5.0 to 0.10.0](https://github.com/cargo-generate/cargo-generate/pull/786)
+- [chore(deps): bump clap from 3.2.22 to 4.0](https://github.com/cargo-generate/cargo-generate/pull/785)
+- [Dependency_update](https://github.com/cargo-generate/cargo-generate/pull/728)
+- [chore(deps): bump semver from 1.0.12 to 1.0.13](https://github.com/cargo-generate/cargo-generate/pull/727)
+- [chore(deps): bump indoc from 1.0.6 to 1.0.7](https://github.com/cargo-generate/cargo-generate/pull/725)
+- [chore(deps): bump paste from 1.0.7 to 1.0.8](https://github.com/cargo-generate/cargo-generate/pull/724)
+- [chore(deps): bump thiserror from 1.0.31 to 1.0.32](https://github.com/cargo-generate/cargo-generate/pull/723)
+- [chore(deps): bump serde from 1.0.141 to 1.0.142](https://github.com/cargo-generate/cargo-generate/pull/722)
+- [chore(deps): bump serde from 1.0.140 to 1.0.141](https://github.com/cargo-generate/cargo-generate/pull/720)
+- [chore(deps): bump git2 from 0.14.4 to 0.15.0](https://github.com/cargo-generate/cargo-generate/pull/719)
+- [chore(deps): bump dialoguer from 0.10.1 to 0.10.2](https://github.com/cargo-generate/cargo-generate/pull/718)
+- [chore(deps): bump clap from 3.2.15 to 3.2.16](https://github.com/cargo-generate/cargo-generate/pull/717)
+- [chore(deps): bump anyhow from 1.0.58 to 1.0.59](https://github.com/cargo-generate/cargo-generate/pull/715)
+- [chore(deps): bump console from 0.15.0 to 0.15.1](https://github.com/cargo-generate/cargo-generate/pull/714)
+- [chore(deps): bump clap from 3.2.14 to 3.2.15](https://github.com/cargo-generate/cargo-generate/pull/705)
+- [chore(deps): bump clap from 3.2.8 to 3.2.12](https://github.com/cargo-generate/cargo-generate/pull/702)
+- [update dependencies](https://github.com/cargo-generate/cargo-generate/pull/755)
+- [Removed Serenity Template from Template List](https://github.com/cargo-generate/cargo-generate/pull/707)
+
+### Contributors
+- [EstebanBorai](https://github.com/EstebanBorai)
+- [MalloryA](https://github.com/MalloryA)
+- [SergioGasquez](https://github.com/SergioGasquez)
+- [chilipepperhott](https://github.com/chilipepperhott)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [joshrotenberg](https://github.com/joshrotenberg)
+- [kianmeng](https://github.com/kianmeng)
+- [printfn](https://github.com/printfn)
+- [sassman](https://github.com/sassman)
+- [taurr](https://github.com/taurr)
+- [turboMaCk](https://github.com/turboMaCk)
 
 ## [0.16.0] 2022-07-25
 [0.16.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.15.2...v0.16.0
