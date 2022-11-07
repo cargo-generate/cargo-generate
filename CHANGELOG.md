@@ -7,6 +7,9 @@
 
 ### 🤕 Fixes
 - [fix(#790): fix string template var prompts and default value presentation issues](https://github.com/cargo-generate/cargo-generate/pull/791)
+
+### 🛠️ Maintenance
+- [chore(deps): bump clap from 4.0.19 to 4.0.22](https://github.com/cargo-generate/cargo-generate/pull/792)
  
 ### Contributors
 - [sassman](https://github.com/sassman)
