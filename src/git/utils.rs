@@ -27,7 +27,7 @@ pub fn home() -> Result<PathBuf> {
     dirs::home_dir().context("$HOME was not set")
 }
 
-// clone git reposiotry into temp using libgit2
+// clone git repository into temp using libgit2
 pub fn clone_git_template_into_temp(
     git: &str,
     branch: Option<&str>,

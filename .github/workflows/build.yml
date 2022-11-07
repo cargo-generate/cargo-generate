@@ -15,6 +15,15 @@ on:
   workflow_call:
 
 jobs:
+  typos:
+    name: typos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: crate-ci/typos@master
+        with:
+          config: ./typos.toml
+
   check:
     name: check
     strategy:
