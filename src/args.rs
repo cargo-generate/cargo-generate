@@ -42,8 +42,8 @@ pub struct GenerateArgs {
             "bin",
             "define",
             "init",
-            "template-values-file",
-            "ssh-identity",
+            "template_values_file",
+            "ssh_identity",
             "test",
         ])
     )]
