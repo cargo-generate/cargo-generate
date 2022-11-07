@@ -1,8 +1,7 @@
 use crate::git::utils::home;
 use anyhow::Context;
 use anyhow::Result;
-use git_config::parser::Key;
-use git_config::File as GitConfigParser;
+use git_config::{File as GitConfigParser, Source};
 use std::path::{Path, PathBuf};
 
 pub fn find_gitconfig() -> Result<Option<PathBuf>> {
@@ -22,14 +21,17 @@ pub fn resolve_instead_url(
 ) -> Result<Option<String>> {
     let gitconfig = gitconfig.as_ref();
     let remote = remote.as_ref().to_string();
-    let config = GitConfigParser::open(gitconfig).context("Cannot read or parse .gitconfig")?;
-    Ok(config
-        .sections_by_name_with_header("url")
-        .iter()
-        .map(|(head, body)| {
-            let url = head.subsection_name.as_ref();
+    let config = GitConfigParser::from_path_no_includes(gitconfig, Source::User)
+        .context("Cannot read or parse .gitconfig")?;
+    let x = config
+        .sections_by_name("url")
+        .unwrap()
+        .map(|section| {
+            let head = section.header();
+            let body = section.body();
+            let url = head.subsection_name();
             let instead_of = body
-                .value(&Key::from("insteadOf"))
+                .value("insteadOf")
                 .map(|x| std::str::from_utf8(&x[..]).unwrap().to_owned());
             (instead_of, url)
         })
@@ -40,7 +42,8 @@ pub fn resolve_instead_url(
             remote
                 .starts_with(old.as_str())
                 .then(|| remote.replace(old.as_str(), new.as_str()))
-        }))
+        });
+    Ok(x)
 }
 
 #[cfg(test)]

@@ -1,9 +1,8 @@
 use assert_cmd::prelude::*;
+use bstr::ByteSlice;
 use git2::Repository;
-use git_config::parser::Key;
 use git_config::File as GitConfig;
 use predicates::prelude::*;
-use std::borrow::Cow;
 use std::ops::Deref;
 
 use crate::helpers::project::binary;
@@ -127,17 +126,11 @@ fn should_retrieve_an_instead_of_url() {
 "#;
     let mut config = GitConfig::try_from(input).unwrap();
     let url = config
-        .value::<Cow<[u8]>>("url", Some("ssh://git@github.com:"), "insteadOf")
-        .map(|v| String::from_utf8_lossy(v.as_ref()).to_string())
+        .string("url", Some("ssh://git@github.com:"), "insteadOf")
         .unwrap();
-    assert_eq!(url, "https://github.com/");
+    assert_eq!(url.deref(), "https://github.com/");
     config
-        .set_raw_value(
-            "url",
-            Some("ssh://git@github.com:"),
-            "insteadOf",
-            "foo".as_bytes().to_vec(),
-        )
+        .set_raw_value("url", Some("ssh://git@github.com:"), "insteadOf", "foo")
         .unwrap();
 }
 
@@ -150,25 +143,23 @@ fn should_find_them_all() {
     insteadOf = https://bitbucket.org/
 "#;
     let config = GitConfig::try_from(input).unwrap();
-    let url = config.sections_by_name_with_header("url");
-    assert_eq!(url.len(), 2);
+    let url = config.sections_by_name("url").unwrap();
+    assert_eq!(config.sections_by_name("url").unwrap().count(), 2);
 
-    for (head, body) in url.iter() {
-        let url = head.subsection_name.as_ref().unwrap();
+    for section in url {
+        let head = section.header();
+        let body = section.body();
 
-        let instead_of = body.value(&Key::from("insteadOf"));
-        if url.contains("github") {
+        let url = head.subsection_name().as_ref().unwrap().to_str().unwrap();
+
+        let instead_of_value = body.value("insteadOf").unwrap();
+        let instead_of = instead_of_value.to_str().unwrap();
+        if instead_of.contains("github") {
             assert_eq!(url, "ssh://git@github.com:");
-            assert_eq!(
-                instead_of.unwrap().deref(),
-                "https://github.com/".as_bytes()
-            )
+            assert_eq!(instead_of, "https://github.com/")
         } else {
             assert_eq!(url, "ssh://git@bitbucket.org:");
-            assert_eq!(
-                instead_of.unwrap().as_ref(),
-                "https://bitbucket.org/".as_bytes()
-            )
+            assert_eq!(instead_of, "https://bitbucket.org/")
         }
     }
 }
