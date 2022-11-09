@@ -90,11 +90,7 @@ fn handle_string_input(
             }
         }
         None => {
-            let default = entry
-                .default
-                .as_ref()
-                .filter(|v| !v.is_empty())
-                .map(|v| v.to_owned());
+            let default = entry.default.as_ref().map(|v| v.to_owned());
             let prompt = format!(
                 "{prompt}{}",
                 default

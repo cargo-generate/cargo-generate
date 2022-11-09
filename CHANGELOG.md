@@ -1,7 +1,16 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.1...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.2...HEAD)
 
+## [0.17.2] 2022-11-09
+[0.17.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.1...v0.17.2
+
+### 🤕 Fixes
+- [fix(#793): empty defaults are now back #794 ](https://github.com/cargo-generate/cargo-generate/pull/794)
+
+### Contributors
+- [sassman](https://github.com/sassman)
+ 
 ## [0.17.1] 2022-11-07
 [0.17.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.0...v0.17.1
 
