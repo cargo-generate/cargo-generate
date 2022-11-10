@@ -46,7 +46,10 @@ pub fn list_favorites(args: &GenerateArgs) -> Result<()> {
             emoji::DIAMOND,
             style(key).bold(),
             " ".repeat(longest_key - key.len()),
-            conf.description.as_ref().cloned().unwrap_or_default()
+            conf.description
+                .as_ref()
+                .cloned()
+                .unwrap_or_else(|| "no description".into())
         );
     });
     println!("{} {}", emoji::SPARKLE, style("Done").bold().green());
