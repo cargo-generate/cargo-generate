@@ -1,7 +1,16 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.2...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.3...HEAD)
 
+## [0.17.3] 2022-11-11
+[0.17.3]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.2...v0.17.3
+
+### 🤕 Fixes
+- [fix(#795): '--list-favorites' option is broken (#796) ](https://github.com/cargo-generate/cargo-generate/pull/796)
+
+### Contributors
+- [taurr](https://github.com/taurr)
+ 
 ## [0.17.2] 2022-11-09
 [0.17.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.1...v0.17.2
 
