@@ -32,6 +32,7 @@ pub struct GenerateArgs {
     #[clap(
         long,
         action,
+        group("SpecificPath"),
         conflicts_with_all(&[
             "git", "path", "subfolder", "branch",
             "name",
