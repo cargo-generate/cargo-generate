@@ -322,7 +322,8 @@ impl UserParsedInput {
     }
 }
 
-// favorite can be in form with abbreviation what means that input is git repositoru
+/// favorite can be in form with abbreviation what means that input is git repository
+/// if so, the 3rd character would be a semicolon
 pub fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> Option<String> {
     let git = git.as_ref();
     if git.len() >= 3 {
@@ -330,6 +331,9 @@ pub fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> Option<String
             "gl:" => Some(format!("https://gitlab.com/{}.git", &git[3..])),
             "bb:" => Some(format!("https://bitbucket.org/{}.git", &git[3..])),
             "gh:" => Some(format!("https://github.com/{}.git", &git[3..])),
+            short_cut_maybe if is_abbreviated_github(short_cut_maybe) => {
+                Some(format!("https://github.com/{short_cut_maybe}.git"))
+            }
             _ => None,
         }
     } else {
@@ -337,12 +341,14 @@ pub fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> Option<String
     }
 }
 
+fn is_abbreviated_github(fav: &str) -> bool {
+    let org_repo_regex = Regex::new(r"^[a-zA-Z0-9_]+/[a-zA-Z0-9_%-]+$").unwrap();
+    org_repo_regex.is_match(fav)
+}
+
 // favorite can be in form of org/repo what should be parsed as github.com
 pub fn abbreviated_github(fav: &str) -> Option<String> {
-    let org_repo_regex = Regex::new(r"^[a-zA-Z0-9_]+/[a-zA-Z0-9_%-]+$").unwrap();
-    org_repo_regex
-        .is_match(fav)
-        .then(|| format!("https://github.com/{fav}.git"))
+    is_abbreviated_github(fav).then(|| format!("https://github.com/{fav}.git"))
 }
 
 pub fn local_path(fav: &str) -> Option<PathBuf> {
