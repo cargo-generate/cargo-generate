@@ -342,7 +342,7 @@ pub fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> Option<String
 }
 
 fn is_abbreviated_github(fav: &str) -> bool {
-    let org_repo_regex = Regex::new(r"^[a-zA-Z0-9_]+/[a-zA-Z0-9_%-]+$").unwrap();
+    let org_repo_regex = Regex::new(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_%-]+$").unwrap();
     org_repo_regex.is_match(fav)
 }
 
