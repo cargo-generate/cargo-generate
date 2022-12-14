@@ -1,6 +1,25 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.3...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.4...HEAD)
+
+## [0.17.4] 2022-12-14
+[0.17.4]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.3...v0.17.4
+
+### 🤕 Fixes
+- [fix(git:url): fix #752 short `owner/repo` github urls](https://github.com/cargo-generate/cargo-generate/pull/821)
+- [fix(docs): fix outdated docs, relates to #674](https://github.com/cargo-generate/cargo-generate/pull/818)
+
+### 🛠️ Maintenance
+- [chore(deps): bump assert_cmd from 2.0.6 to 2.0.7](https://github.com/cargo-generate/cargo-generate/pull/815)
+- [chore(deps): bump predicates from 2.1.2 to 2.1.4](https://github.com/cargo-generate/cargo-generate/pull/814)
+- [chore(deps): bump clap from 4.0.22 to 4.0.29](https://github.com/cargo-generate/cargo-generate/pull/813)
+- [chore(deps): bump serde from 1.0.147 to 1.0.149](https://github.com/cargo-generate/cargo-generate/pull/812)
+- [chore(deps): bump git-config from 0.11.0 to 0.12.0](https://github.com/cargo-generate/cargo-generate/pull/810)
+- [chore(deps): bump openssl from 0.10.42 to 0.10.43](https://github.com/cargo-generate/cargo-generate/pull/809)
+- [chore(deps): bump git-config from 0.10.0 to 0.11.0](https://github.com/cargo-generate/cargo-generate/pull/804)
+
+### Contributors
+- [sassman](https://github.com/sassman)
 
 ## [0.17.3] 2022-11-11
 [0.17.3]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.2...v0.17.3
