@@ -136,7 +136,7 @@ fn copy_expanded_template(
         style(project_dir.display()).bold().yellow(),
         style("...").bold()
     );
-    copy_dir_all(&template_dir, &project_dir, user_parsed_input.overwrite())?;
+    copy_dir_all(template_dir, &project_dir, user_parsed_input.overwrite())?;
     let vcs = config
         .template
         .and_then(|t| t.vcs)
@@ -299,7 +299,7 @@ fn auto_locate_template_dir(
 
             // recursively retry to resolve the template,
             // until we hit a single or no config, idetifying the final template folder
-            auto_locate_template_dir(template_base_dir.join(&path), prompt)
+            auto_locate_template_dir(template_base_dir.join(path), prompt)
         }
     }
 }

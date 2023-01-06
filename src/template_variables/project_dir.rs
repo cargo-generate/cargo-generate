@@ -62,7 +62,7 @@ impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
                 renamed_project_name
             });
 
-        let project_dir = base_path.join(&dir_name);
+        let project_dir = base_path.join(dir_name);
 
         if project_dir.exists() {
             bail!(

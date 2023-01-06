@@ -17,7 +17,7 @@ fn create_favorite_config(
     let project = tmp_dir()
         .file(
             "cargo-generate",
-            &format!(
+            format!(
                 indoc! {r#"
                     [favorites.{name}]
                     description = "Favorite for the {name} template"
@@ -229,7 +229,7 @@ fn favorites_can_use_default_values() {
     let config_dir = tmp_dir()
         .file(
             "cargo-generate.toml",
-            &format!(
+            format!(
                 indoc! {r#"
                 [favorites.favorite]
                 git = "{git}"
@@ -293,7 +293,7 @@ fn favorites_default_value_can_be_overridden_by_environment() {
     let config_dir = tmp_dir()
         .file(
             "cargo-generate.toml",
-            &format!(
+            format!(
                 indoc! {r#"
                 [favorites.favorite]
                 git = "{git}"
@@ -350,7 +350,7 @@ fn favorite_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
     let config_dir = tmp_dir()
         .file(
             "config.toml",
-            &format!(
+            format!(
                 indoc! {r#"
                 [favorites.favorite]
                 git = "{git}"
