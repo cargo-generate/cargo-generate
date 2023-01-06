@@ -26,7 +26,7 @@
 
 - Post hooks are run after template expansion, but *before final output is moved to the final destination*.
 
-Why not later? Security, and the fact that a failing scrips still causes no errors in the users destination.
+Why not later? Security, and the fact that a failing script still causes no errors in the users destination.
 
 
 [`Rhai`]: https://rhai.rs/book/
