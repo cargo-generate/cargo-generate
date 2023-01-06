@@ -46,7 +46,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
                     );
                     Ok(())
                 }
-                _ => Err(format!("Variable {} not a String", name).into()),
+                _ => Err(format!("Variable {name} not a String").into()),
             }
         }
     });
@@ -62,7 +62,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
                         .insert(name.to_string().into(), Value::Scalar(value.into()));
                     Ok(())
                 }
-                _ => Err(format!("Variable {} not a bool", name).into()),
+                _ => Err(format!("Variable {name} not a bool").into()),
             }
         }
     });
@@ -77,7 +77,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
                         .insert(name.to_string().into(), val);
                     Ok(())
                 }
-                _ => Err(format!("Variable {} not an array", name).into()),
+                _ => Err(format!("Variable {name} not an array").into()),
             }
         }
     });

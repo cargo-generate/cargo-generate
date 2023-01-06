@@ -41,12 +41,11 @@ impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
 
         let name = user_parsed_input
             .name()
-            .map(String::from)
-            .unwrap_or_else(|| project_name_input.as_ref().to_owned());
+            .map_or_else(|| project_name_input.as_ref().to_owned(), String::from);
 
         let dir_name = user_parsed_input
             .force()
-            .then(|| name.to_owned())
+            .then(|| name.clone())
             .unwrap_or_else(|| {
                 let renamed_project_name = name.to_kebab_case();
                 if renamed_project_name != name {

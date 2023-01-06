@@ -85,8 +85,7 @@ pub fn app_config_path(path: &Option<PathBuf>) -> Result<PathBuf> {
             format!(
                 r#"
 Unable to resolve path for configuration file.
-Use --config option, or place {} in $CARGO_HOME."#,
-                CONFIG_FILE_NAME
+Use --config option, or place {CONFIG_FILE_NAME} in $CARGO_HOME."#
             )
         })
 }

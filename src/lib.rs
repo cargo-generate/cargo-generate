@@ -164,15 +164,16 @@ fn test_expanded_template(template_dir: &PathBuf, args: Option<Vec<String>>) -> 
         style("\" ...").bold(),
     );
     std::env::set_current_dir(template_dir)?;
-    let (cmd, cmd_args) = std::env::var("CARGO_GENERATE_TEST_CMD")
-        .map(|env_test_cmd| {
+    let (cmd, cmd_args) = std::env::var("CARGO_GENERATE_TEST_CMD").map_or_else(
+        |_| (String::from("cargo"), vec![String::from("test")]),
+        |env_test_cmd| {
             let mut split_cmd_args = env_test_cmd.split_whitespace().map(str::to_string);
             (
                 split_cmd_args.next().unwrap(),
                 split_cmd_args.collect::<Vec<String>>(),
             )
-        })
-        .unwrap_or_else(|_| (String::from("cargo"), vec![String::from("test")]));
+        },
+    );
     std::process::Command::new(cmd)
         .args(cmd_args)
         .args(args.unwrap_or_default().into_iter())
@@ -274,7 +275,7 @@ fn auto_locate_template_dir(
         }
         1 => {
             // A single configuration found, but it may contain multiple configured sub-templates
-            resolve_configured_sub_templates(template_base_dir.join(&config_paths[0]), prompt)
+            resolve_configured_sub_templates(&template_base_dir.join(&config_paths[0]), prompt)
         }
         _ => {
             // Multiple configurations found, each in different "roots"
@@ -305,36 +306,38 @@ fn auto_locate_template_dir(
 }
 
 fn resolve_configured_sub_templates(
-    config_path: PathBuf,
+    config_path: &Path,
     prompt: &mut impl FnMut(&TemplateSlots) -> Result<String>,
 ) -> Result<PathBuf> {
     Config::from_path(&Some(config_path.join(CONFIG_FILE_NAME)))
         .ok()
         .and_then(|config| config.template)
         .and_then(|config| config.sub_templates)
-        .map(|sub_templates| {
-            // we have a config that defines sub-templates, let the user select
-            let prompt_args = TemplateSlots {
-                prompt: "Which sub-template should be expanded?".into(),
-                var_name: "Template".into(),
-                var_info: VarInfo::String {
-                    entry: Box::new(StringEntry {
-                        default: Some(sub_templates[0].clone()),
-                        choices: Some(sub_templates.clone()),
-                        regex: None,
-                    }),
-                },
-            };
-            let path = prompt(&prompt_args)?;
+        .map_or_else(
+            || Ok(PathBuf::from(config_path)),
+            |sub_templates| {
+                // we have a config that defines sub-templates, let the user select
+                let prompt_args = TemplateSlots {
+                    prompt: "Which sub-template should be expanded?".into(),
+                    var_name: "Template".into(),
+                    var_info: VarInfo::String {
+                        entry: Box::new(StringEntry {
+                            default: Some(sub_templates[0].clone()),
+                            choices: Some(sub_templates.clone()),
+                            regex: None,
+                        }),
+                    },
+                };
+                let path = prompt(&prompt_args)?;
 
-            // recursively retry to resolve the template,
-            // until we hit a single or no config, idetifying the final template folder
-            auto_locate_template_dir(
-                resolve_template_dir_subfolder(&config_path, Some(path))?,
-                prompt,
-            )
-        })
-        .unwrap_or_else(|| Ok(config_path.to_path_buf()))
+                // recursively retry to resolve the template,
+                // until we hit a single or no config, idetifying the final template folder
+                auto_locate_template_dir(
+                    resolve_template_dir_subfolder(config_path, Some(path))?,
+                    prompt,
+                )
+            },
+        )
 }
 
 pub(crate) fn copy_dir_all(
@@ -470,13 +473,13 @@ fn expand_template(
     println!(
         "{} {} {}",
         emoji::WRENCH,
-        style(format!("Destination: {}", destination)).bold(),
+        style(format!("Destination: {destination}")).bold(),
         style("...").bold()
     );
     println!(
         "{} {} {}",
         emoji::WRENCH,
-        style(format!("project-name: {}", project_name)).bold(),
+        style(format!("project-name: {project_name}")).bold(),
         style("...").bold()
     );
     println!(
@@ -535,7 +538,7 @@ fn expand_template(
     Ok(destination.as_ref().to_owned())
 }
 
-/// Try to add all provided template_values to the liquid_object.
+/// Try to add all provided `template_values` to the `liquid_object`.
 ///
 /// ## Note:
 /// Values for which a placeholder exists, should already be filled by `fill_project_variables`
@@ -584,8 +587,7 @@ fn fill_placeholders_and_merge_conditionals(
                 toml::Value::Float(s) => Some(s.to_string()),
                 toml::Value::Boolean(s) => Some(s.to_string()),
                 toml::Value::Datetime(s) => Some(s.to_string()),
-                toml::Value::Array(_) => None,
-                toml::Value::Table(_) => None,
+                toml::Value::Array(_) | toml::Value::Table(_) => None,
             });
             if provided_value.is_none() && args.silent {
                 anyhow::bail!(ConversionError::MissingPlaceholderVariable {

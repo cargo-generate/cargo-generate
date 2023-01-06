@@ -61,7 +61,7 @@ pub fn create_module(dir: &Path) -> Module {
             let file = to_absolute_path(&dir, file)?;
             let mut file = std::fs::File::create(file).map_err(|e| e.to_string())?;
             for v in content.iter() {
-                writeln!(file, "{}", v).map_err(|e| e.to_string())?;
+                writeln!(file, "{v}").map_err(|e| e.to_string())?;
             }
 
             Ok(())

@@ -39,9 +39,9 @@ pub fn git_ssh_agent_callback<'a>() -> RemoteCallbacks<'a> {
     let mut cb = RemoteCallbacks::new();
     cb.credentials(
         move |_url, username_from_url: Option<&str>, _allowed_types| {
-            let username = username_from_url.unwrap_or("git"); 
+            let username = username_from_url.unwrap_or("git");
             Ok(Cred::ssh_key_from_agent(username)
-                .unwrap_or_else(|e| panic!("There was a problem talking to your ssh-agent: {:?}\n\ncheck our Q&A thread: https://github.com/cargo-generate/cargo-generate/discussions/653", e)))
+                .unwrap_or_else(|e| panic!("There was a problem talking to your ssh-agent: {e:?}\n\ncheck our Q&A thread: https://github.com/cargo-generate/cargo-generate/discussions/653")))
     });
 
     cb

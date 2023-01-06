@@ -89,19 +89,19 @@ version = "0.1.0"
     pub fn build(self) -> Project {
         let path = self.root.path();
 
-        for &(ref file, ref contents) in self.files.iter() {
+        for (file, contents) in self.files.iter() {
             let path = path.join(file);
             let parent = path
                 .parent()
-                .unwrap_or_else(|| panic!("couldn't find parent dir of {:?}", path));
+                .unwrap_or_else(|| panic!("couldn't find parent dir of {path:?}"));
 
             fs::create_dir_all(parent)
-                .unwrap_or_else(|_| panic!("couldn't create {:?} directory", parent));
+                .unwrap_or_else(|_| panic!("couldn't create {parent:?} directory"));
 
             fs::File::create(&path)
-                .unwrap_or_else(|_| panic!("couldn't create file {:?}", path))
+                .unwrap_or_else(|_| panic!("couldn't create file {path:?}"))
                 .write_all(contents.as_ref())
-                .unwrap_or_else(|_| panic!("couldn't write to file {:?}: {:?}", path, contents));
+                .unwrap_or_else(|_| panic!("couldn't write to file {path:?}: {contents:?}"));
         }
 
         if self.git {
@@ -187,7 +187,7 @@ version = "0.1.0"
                     .assert()
                     .success();
 
-                for &(ref file, _) in self.files.iter() {
+                for (file, _) in self.files.iter() {
                     let path = path.join(file);
                     fs::remove_file(&path).unwrap_or_else(|_| {
                         panic!("couldn't remove file {path:?}, after committing tag {tag}")

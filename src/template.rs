@@ -130,7 +130,7 @@ pub fn walk_dir(
         let filename = entry.path();
         let relative_path = filename.strip_prefix(project_dir)?;
         let f = relative_path.display();
-        pb.set_message(format!("Processing: {}", f));
+        pb.set_message(format!("Processing: {f}"));
 
         // todo(refactor): as parameter
         let verbose = false;
@@ -171,7 +171,7 @@ pub fn walk_dir(
                                 fs::remove_file(filename)?;
                             }
                             pb.inc(50);
-                            pb.finish_with_message(format!("Done: {}", f));
+                            pb.finish_with_message(format!("Done: {f}"));
                         }
                     }
                 } else {
@@ -183,14 +183,14 @@ pub fn walk_dir(
                         fs::remove_dir_all(filename)?;
                     }
                     pb.inc(50);
-                    pb.finish_with_message(format!("Done: {}", f));
+                    pb.finish_with_message(format!("Done: {f}"));
                 }
             }
             ShouldInclude::Exclude => {
-                pb.finish_with_message(format!("Skipped: {}", f));
+                pb.finish_with_message(format!("Skipped: {f}"));
             }
             ShouldInclude::Ignore => {
-                pb.finish_with_message(format!("Ignored: {}", f));
+                pb.finish_with_message(format!("Ignored: {f}"));
             }
         }
     }
@@ -274,5 +274,5 @@ fn print_files_with_errors_warning(files_with_errors: Vec<(String, liquid_core::
         "Learn more: https://github.com/cargo-generate/cargo-generate#include--exclude.\n\n";
     let hint = style("Consider adding these files to a `cargo-generate.toml` in the template repo to skip substitution on these files.").bold();
 
-    println!("{}\n{}\n\n{}", msg, hint, read_more);
+    println!("{msg}\n{hint}\n\n{read_more}");
 }
