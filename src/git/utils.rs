@@ -82,24 +82,24 @@ fn get_branch_name_repo(repo: &Repository) -> anyhow::Result<String> {
 fn should_canonicalize() {
     #[cfg(target_os = "macos")]
     {
-        assert!(canonicalize_path(&PathBuf::from("../"))
+        assert!(canonicalize_path(PathBuf::from("../"))
             .unwrap()
             .starts_with("/Users/"));
 
-        assert!(canonicalize_path(&PathBuf::from("$HOME/"))
+        assert!(canonicalize_path(PathBuf::from("$HOME/"))
             .unwrap()
             .starts_with("/Users/"));
     }
     #[cfg(target_os = "linux")]
     assert_eq!(
-        canonicalize_path(&PathBuf::from("../")).ok(),
+        canonicalize_path(PathBuf::from("../")).ok(),
         std::env::current_dir()
             .unwrap()
             .parent()
             .map(|p| p.to_path_buf())
     );
     #[cfg(windows)]
-    assert!(canonicalize_path(&PathBuf::from("../"))
+    assert!(canonicalize_path(PathBuf::from("../"))
         .unwrap()
         // not a bug, a feature:
         // https://stackoverflow.com/questions/41233684/why-does-my-canonicalized-path-get-prefixed-with

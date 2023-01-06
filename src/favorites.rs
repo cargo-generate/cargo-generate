@@ -1,4 +1,4 @@
-//! Module dealing with <favorite> arg passed to cargo-generate
+//! Module dealing with &lt;favorite&gt; arg passed to cargo-generate
 
 use crate::{
     app_config::{app_config_path, AppConfig, FavoriteConfig},

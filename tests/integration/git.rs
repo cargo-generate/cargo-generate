@@ -70,7 +70,7 @@ fn it_removes_git_history() {
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    let repo = Repository::open(&dir.path().join("foobar-project")).unwrap();
+    let repo = Repository::open(dir.path().join("foobar-project")).unwrap();
     let references = repo.references().unwrap().count();
     assert_eq!(0, references);
 }
@@ -92,7 +92,7 @@ fn it_removes_git_history_also_on_local_templates() {
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     let target_path = dir.target_path("xyz");
-    let repo = git2::Repository::open(&target_path).unwrap();
+    let repo = git2::Repository::open(target_path).unwrap();
     assert_eq!(0, repo.references().unwrap().count());
 }
 
@@ -113,7 +113,7 @@ fn it_should_init_an_empty_git_repo_even_when_starting_from_a_repo_when_forced()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    let repo = Repository::open(&target_path.join("foo")).unwrap();
+    let repo = Repository::open(target_path.join("foo")).unwrap();
     let references = repo.references().unwrap().count();
     assert_eq!(0, references);
 }
@@ -126,11 +126,16 @@ fn should_retrieve_an_instead_of_url() {
 "#;
     let mut config = GitConfig::try_from(input).unwrap();
     let url = config
-        .string("url", Some("ssh://git@github.com:"), "insteadOf")
+        .string("url", Some("ssh://git@github.com:".into()), "insteadOf")
         .unwrap();
     assert_eq!(url.deref(), "https://github.com/");
     config
-        .set_raw_value("url", Some("ssh://git@github.com:"), "insteadOf", "foo")
+        .set_raw_value(
+            "url",
+            Some("ssh://git@github.com:".into()),
+            "insteadOf",
+            "foo",
+        )
         .unwrap();
 }
 

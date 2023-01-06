@@ -14,7 +14,7 @@ fn it_uses_ssh_identity_from_defaults_config() {
     let config_dir = tmp_dir()
         .file(
             "cargo-generate.toml",
-            &format!(
+            format!(
                 indoc! {r#"
                     [defaults]
                     ssh_identity = "{id}"

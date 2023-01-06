@@ -46,7 +46,7 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
     );
 
     assert!(
-        std::fs::read_to_string(&dir.join("foobar_project").join("Cargo.toml"))
+        std::fs::read_to_string(dir.join("foobar_project").join("Cargo.toml"))
             .expect("cannot read file")
             .contains("foobar_project")
     );

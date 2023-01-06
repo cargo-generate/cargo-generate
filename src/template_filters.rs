@@ -1,3 +1,5 @@
+#![allow(clippy::box_default)]
+
 use anyhow::Result;
 use heck::{
     ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase, ToShoutySnakeCase, ToSnakeCase,

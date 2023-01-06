@@ -43,7 +43,7 @@ version = "0.1.0"
                 .from_utf8(),
         );
 
-    let repo = git2::Repository::open(&dir.path().join("foobar-project")).unwrap();
+    let repo = git2::Repository::open(dir.path().join("foobar-project")).unwrap();
     let references = repo.references().unwrap().count();
     assert_eq!(0, references);
 }
@@ -74,7 +74,7 @@ version = "0.1.0"
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    let repo = git2::Repository::open(&dir.path().join("foobar-project")).unwrap();
+    let repo = git2::Repository::open(dir.path().join("foobar-project")).unwrap();
     let references = repo.references().unwrap().count();
     assert_eq!(0, references);
 }
@@ -1282,7 +1282,7 @@ _This README was generated with [cargo-readme](https://github.com/livioribeiro/c
 "#;
     let raw_template = format!("{{% raw %}}{}{{% endraw %}}", raw_body);
     let template = tmp_dir()
-        .file("README.tpl", &raw_template)
+        .file("README.tpl", raw_template)
         .init_git()
         .build();
 
