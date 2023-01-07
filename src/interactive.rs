@@ -83,7 +83,7 @@ fn handle_string_input(
                     emoji::WARN,
                     style("Sorry,").bold().red(),
                     style(&value).bold().yellow(),
-                    style(format!("is not a valid value for {}", var_name))
+                    style(format!("is not a valid value for {var_name}"))
                         .bold()
                         .red()
                 )
@@ -110,7 +110,7 @@ fn handle_string_input(
                         emoji::WARN,
                         style("Sorry,").bold().red(),
                         style(&user_entry).bold().yellow(),
-                        style(format!("is not a valid value for {}", var_name))
+                        style(format!("is not a valid value for {var_name}"))
                             .bold()
                             .red()
                     );
@@ -138,7 +138,7 @@ fn handle_choice_input(
                     emoji::WARN,
                     style("Sorry,").bold().red(),
                     style(&value).bold().yellow(),
-                    style(format!("is not a valid value for {}", var_name))
+                    style(format!("is not a valid value for {var_name}"))
                         .bold()
                         .red(),
                 )

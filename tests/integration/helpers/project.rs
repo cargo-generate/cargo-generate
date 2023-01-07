@@ -21,9 +21,9 @@ impl Project {
         let mut ret = String::new();
         let path = self.path().join(path);
         File::open(&path)
-            .unwrap_or_else(|_| panic!("couldn't open file {:?}", path))
+            .unwrap_or_else(|_| panic!("couldn't open file {path:?}"))
             .read_to_string(&mut ret)
-            .unwrap_or_else(|_| panic!("couldn't read file {:?}", path));
+            .unwrap_or_else(|_| panic!("couldn't read file {path:?}"));
 
         ret
     }

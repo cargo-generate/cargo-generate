@@ -85,12 +85,12 @@ pub fn remove_dir_files(files: impl IntoIterator<Item = impl Into<PathBuf>>, ver
         if item.is_dir() {
             remove_dir_all(&item).unwrap();
             if verbose {
-                println!("{}", ignore_message);
+                println!("{ignore_message}");
             }
         } else if item.is_file() {
             remove_file(&item).unwrap();
             if verbose {
-                println!("{}", ignore_message);
+                println!("{ignore_message}");
             }
         } else {
             println!(

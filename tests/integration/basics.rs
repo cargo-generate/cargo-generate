@@ -954,7 +954,7 @@ fn it_respects_template_branch_name() {
 
     Command::new("git")
         .arg("status")
-        .current_dir(&dir.path().join("foobar-project"))
+        .current_dir(dir.path().join("foobar-project"))
         .assert()
         .success()
         .stdout(predicates::str::contains("On branch gh-pages").from_utf8());
@@ -1280,7 +1280,7 @@ This project try follow rules:
 * [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 _This README was generated with [cargo-readme](https://github.com/livioribeiro/cargo-readme) from [template](https://github.com/xoac/crates-io-lib-template)
 "#;
-    let raw_template = format!("{{% raw %}}{}{{% endraw %}}", raw_body);
+    let raw_template = format!("{{% raw %}}{raw_body}{{% endraw %}}");
     let template = tmp_dir()
         .file("README.tpl", raw_template)
         .init_git()
