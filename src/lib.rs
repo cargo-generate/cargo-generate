@@ -98,12 +98,21 @@ fn internal_generate(args: GenerateArgs) -> Result<PathBuf> {
     )?;
 
     // the `--init` parameter may also be set by the template itself
-    // TODO: should we show a warning to the user if the template doesn't agree with the parameter? The user might not expect the template files to end up in CWD!
-    user_parsed_input.init |= config
+    if config
         .template
         .as_ref()
         .and_then(|c| c.init)
-        .unwrap_or(false);
+        .unwrap_or(false)
+        && !user_parsed_input.init
+    {
+        eprintln!(
+            "{} {}",
+            emoji::WARN,
+            style("Template specifies --init, while not specified on the command line. Output location is affected!").bold().red(),
+        );
+
+        user_parsed_input.init = true;
+    };
 
     check_cargo_generate_version(&config)?;
 
