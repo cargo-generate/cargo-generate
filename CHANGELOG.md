@@ -1,6 +1,18 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.4...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.5...HEAD)
+
+## [0.17.5] 2023-01-16
+[0.17.5]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.4...v0.17.5
+
+### 🛠️ Maintenance
+- [chore(deps): bump dependencies](https://github.com/cargo-generate/cargo-generate/pull/850)
+
+### ✨ Features
+- [build a debian package on release](https://github.com/cargo-generate/cargo-generate/pull/846)
+
+### Contributors
+- [sassman](https://github.com/sassman)
 
 ## [0.17.4] 2022-12-14
 [0.17.4]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.3...v0.17.4
