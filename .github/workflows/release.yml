@@ -23,9 +23,8 @@ jobs:
     name: post / cargo publish
     needs: doing-a-build
     runs-on: ubuntu-latest
-    environment: release
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -41,9 +40,8 @@ jobs:
     name: post / github release
     needs: publish
     runs-on: ubuntu-latest
-    environment: release
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:

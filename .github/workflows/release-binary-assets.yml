@@ -39,7 +39,7 @@ jobs:
             cross: false
             binName: cargo-generate.exe
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -59,6 +59,20 @@ jobs:
       #     command: run
       #     use-cross: ${{ matrix.cross }}
       #     args: --features vendored-openssl --release --target=${{ matrix.target }} -- --version
+      - name: Install cargo-deb and create a deb package
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cargo install cargo-deb
+          cargo build --features vendored-openssl --release
+          cargo deb --no-build
+      - name: Upload the deb to release files
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/debian/*
+          tag: ${{ github.ref }}
+          file_glob: true
+          overwrite: true
       - name: Create Archive
         id: archive
         shell: bash

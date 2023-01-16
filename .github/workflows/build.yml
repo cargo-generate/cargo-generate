@@ -19,7 +19,7 @@ jobs:
     name: typos
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: crate-ci/typos@master
         with:
           config: ./typos.toml
@@ -32,7 +32,7 @@ jobs:
         version: [ 'macos-latest', 'ubuntu-latest', 'windows-latest']
     runs-on: ${{ matrix.version }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -55,7 +55,7 @@ jobs:
           - clippy --all-targets --all-features -- -D warnings
     runs-on: ${{ matrix.version }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -76,9 +76,8 @@ jobs:
         rust: [ nightly, stable ]
     runs-on: ${{ matrix.version }}
     continue-on-error: ${{ matrix.rust == 'nightly' }}
-    environment: build
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -109,7 +108,7 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -127,7 +126,7 @@ jobs:
     name: publish dry run
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -141,7 +140,7 @@ jobs:
     name: docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
