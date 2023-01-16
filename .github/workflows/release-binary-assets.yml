@@ -39,7 +39,7 @@ jobs:
             cross: false
             binName: cargo-generate.exe
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
         with:
