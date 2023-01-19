@@ -10,6 +10,7 @@
 
 ### 🤕 Fixes
 - [fix(ci): fix deb package on release (#852)](https://github.com/cargo-generate/cargo-generate/pull/853)
+- release notes for 0.17.5 missed out on #844
 
 ### Contributors
 - [dependabot[bot]](https://github.com/apps/dependabot)
@@ -23,9 +24,11 @@
 
 ### ✨ Features
 - [build a debian package on release](https://github.com/cargo-generate/cargo-generate/pull/846)
+- [show a warning to the user if the template doesn't agree with the cli parameters](https://github.com/cargo-generate/cargo-generate/pull/844)
 
 ### Contributors
 - [sassman](https://github.com/sassman)
+- [taurr](https://github.com/taurr)
 
 ## [0.17.4] 2022-12-14
 [0.17.4]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.3...v0.17.4
