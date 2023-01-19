@@ -1,6 +1,20 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.5...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.6...HEAD)
+
+## [0.17.6] 2023-01-19
+[0.17.6]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.5...v0.17.6
+
+### 🛠️ Maintenance
+- [chore(deps): bump git2 from 0.15.0 to 0.16.0](https://github.com/cargo-generate/cargo-generate/pull/851)
+
+### 🤕 Fixes
+- [fix(ci): fix deb package on release (#852)](https://github.com/cargo-generate/cargo-generate/pull/853)
+- release notes for 0.17.5 missed out on #844
+
+### Contributors
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [sassman](https://github.com/sassman)
 
 ## [0.17.5] 2023-01-16
 [0.17.5]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.4...v0.17.5
@@ -10,9 +24,11 @@
 
 ### ✨ Features
 - [build a debian package on release](https://github.com/cargo-generate/cargo-generate/pull/846)
+- [show a warning to the user if the template doesn't agree with the cli parameters](https://github.com/cargo-generate/cargo-generate/pull/844)
 
 ### Contributors
 - [sassman](https://github.com/sassman)
+- [taurr](https://github.com/taurr)
 
 ## [0.17.4] 2022-12-14
 [0.17.4]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.3...v0.17.4
