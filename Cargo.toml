@@ -10,7 +10,7 @@ include = ["src/**/*", "LICENSE-*", "*.md"]
 
 [dependencies]
 clap = { version = "~4.1", features = ["derive", "std", "help"], default-features = false }
-git2 = { version = "~0.16", features = ["ssh", "https", "vendored-libgit2", "vendored-openssl"], default-features = false }
+git2 = { version = "~0.16", features = ["ssh", "https"], default-features = false }
 console = "~0.15"
 dialoguer = "~0.10"
 dirs = "~4.0"
@@ -68,7 +68,9 @@ features = [
 ]
 
 [features]
-vendored-openssl = ['openssl/vendored']
+default = ["vendored-libgit2", "vendored-openssl"]
+vendored-libgit2 = ["git2/vendored-libgit2"]
+vendored-openssl = ['openssl/vendored', "git2/vendored-openssl"]
 
 [[bin]]
 path = "src/main.rs"
