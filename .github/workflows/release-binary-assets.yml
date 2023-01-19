@@ -66,6 +66,7 @@ jobs:
           cargo build --features vendored-openssl --release
           cargo deb --no-build
       - name: Upload the deb to release files
+        if: matrix.os == 'ubuntu-latest'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
