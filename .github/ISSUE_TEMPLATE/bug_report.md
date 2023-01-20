@@ -13,6 +13,7 @@ A clear and concise description of what the bug is.
 **make sure you**
 - [ ] I'm on the latest rust version `rustup update`
 - [ ] I'm on the latest cargo-generate version `cargo install cargo-generate`
+- [ ] In case you have an own `.gitconfig`, provide all sections that contains one of: `insteadOf`, `url`
 
 **To Reproduce**
 Steps to reproduce the behavior:
@@ -35,4 +36,5 @@ If applicable, add screenshots to help explain your problem.
  - `cargo generate --version`: x
 
 **Additional context**
-Add any other context about the problem here.
+
+<!-- maybe parts of your ~/.gitconfig should be provided? -->
