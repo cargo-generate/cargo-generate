@@ -43,6 +43,7 @@ mod user_parsed_input;
 
 pub use crate::app_config::{app_config_path, AppConfig};
 pub use crate::favorites::list_favorites;
+use crate::template::create_liquid_engine;
 pub use args::*;
 
 use anyhow::{anyhow, bail, Context, Result};
@@ -54,9 +55,11 @@ use interactive::prompt_and_check_variable;
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::{
     borrow::Borrow,
+    cell::RefCell,
     collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
+    sync::{Arc, Mutex},
 };
 use user_parsed_input::{TemplateLocation, UserParsedInput};
 
@@ -70,17 +73,12 @@ use crate::{project_variables::ConversionError, template_variables::ProjectName}
 use self::config::TemplateConfig;
 use self::git::try_get_branch_from_path;
 use self::hooks::evaluate_script;
-use self::template::{create_liquid_object, set_project_name_variables};
-
-pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
-    let cwd = std::env::current_dir()?;
-    let r = internal_generate(args);
-    std::env::set_current_dir(cwd)?;
-    r
-}
+use self::template::{create_liquid_object, set_project_name_variables, LiquidObjectResource};
 
 /// # Panics
-fn internal_generate(args: GenerateArgs) -> Result<PathBuf> {
+pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
+    let _working_dir_scope = ScopedWorkingDirectory::default();
+
     let app_config = AppConfig::try_from(app_config_path(&args.config)?.as_path())?;
 
     // mash AppConfig and CLI arguments together into UserParsedInput
@@ -465,9 +463,9 @@ fn expand_template(
     // user input!
     // The init hooks are free to set `project-name` (but it will be validated before further
     // use).
-    let mut liquid_object = execute_hooks(
+    execute_hooks(
         template_dir,
-        liquid_object,
+        &liquid_object,
         &config.get_init_hooks(),
         user_parsed_input.allow_commands(),
         user_parsed_input.silent(),
@@ -477,7 +475,7 @@ fn expand_template(
     let destination = ProjectDir::try_from((&project_name_input, user_parsed_input))?;
     let project_name = ProjectName::from((&project_name_input, user_parsed_input));
     let crate_name = CrateName::from(&project_name_input);
-    set_project_name_variables(&mut liquid_object, &destination, &project_name, &crate_name)?;
+    set_project_name_variables(&liquid_object, &destination, &project_name, &crate_name)?;
 
     println!(
         "{} {} {}",
@@ -499,18 +497,18 @@ fn expand_template(
     );
 
     // evaluate config for placeholders and and any that are undefined
-    let mut liquid_object = fill_placeholders_and_merge_conditionals(
+    fill_placeholders_and_merge_conditionals(
         config,
-        liquid_object,
+        &liquid_object,
         user_parsed_input.template_values(),
         args,
     )?;
-    add_missing_provided_values(&mut liquid_object, user_parsed_input.template_values())?;
+    add_missing_provided_values(&liquid_object, user_parsed_input.template_values())?;
 
     // run pre-hooks
-    let liquid_object = execute_hooks(
+    execute_hooks(
         template_dir,
-        liquid_object,
+        &liquid_object,
         &config.get_pre_hooks(),
         user_parsed_input.allow_commands(),
         user_parsed_input.silent(),
@@ -523,25 +521,47 @@ fn expand_template(
     ignore_me::remove_unneeded_files(template_dir, &template_config.ignore, args.verbose)?;
     let mut pbar = progressbar::new();
 
+    let rhai_filter_files = Arc::new(Mutex::new(vec![]));
+    let rhai_engine = create_liquid_engine(
+        template_dir.to_owned(),
+        liquid_object.clone(),
+        user_parsed_input.allow_commands(),
+        user_parsed_input.silent(),
+        rhai_filter_files.clone(),
+    );
     template::walk_dir(
-        template_dir,
-        &liquid_object,
         &mut template_config,
+        template_dir,
         &all_hook_files,
+        &liquid_object,
+        rhai_engine,
+        &rhai_filter_files,
         &mut pbar,
     )?;
 
     // run post-hooks
     execute_hooks(
         template_dir,
-        liquid_object,
+        &liquid_object,
         &config.get_post_hooks(),
         user_parsed_input.allow_commands(),
         user_parsed_input.silent(),
     )?;
 
-    // remove all hook files as they are never part of the template output
-    remove_dir_files(all_hook_files, false);
+    // remove all hook and filter files as they are never part of the template output
+    let rhai_filter_files = rhai_filter_files
+        .lock()
+        .unwrap()
+        .iter()
+        .cloned()
+        .collect::<Vec<_>>();
+    remove_dir_files(
+        all_hook_files
+            .into_iter()
+            .map(PathBuf::from)
+            .chain(rhai_filter_files),
+        false,
+    );
 
     config.template.replace(template_config);
     Ok(destination.as_ref().to_owned())
@@ -552,11 +572,11 @@ fn expand_template(
 /// ## Note:
 /// Values for which a placeholder exists, should already be filled by `fill_project_variables`
 pub(crate) fn add_missing_provided_values(
-    liquid_object: &mut liquid::Object,
+    liquid_object: &LiquidObjectResource,
     template_values: &HashMap<String, toml::Value>,
 ) -> Result<(), anyhow::Error> {
     template_values.iter().try_for_each(|(k, v)| {
-        if liquid_object.contains_key(k.as_str()) {
+        if RefCell::borrow(&liquid_object.lock().unwrap()).contains_key(k.as_str()) {
             return Ok(());
         }
         // we have a value without a slot in the liquid object.
@@ -572,7 +592,11 @@ pub(crate) fn add_missing_provided_values(
                     .red(),
             )),
         };
-        liquid_object.insert(k.clone().into(), value);
+        liquid_object
+            .lock()
+            .unwrap()
+            .borrow_mut()
+            .insert(k.clone().into(), value);
         Ok(())
     })?;
     Ok(())
@@ -581,15 +605,15 @@ pub(crate) fn add_missing_provided_values(
 // Evaluate the configuration, adding defined placeholder variables to the liquid object.
 fn fill_placeholders_and_merge_conditionals(
     config: &mut Config,
-    mut liquid_object: liquid::Object,
+    liquid_object: &LiquidObjectResource,
     template_values: &HashMap<String, toml::Value>,
     args: &GenerateArgs,
-) -> Result<liquid::Object, anyhow::Error> {
+) -> Result<()> {
     let mut conditionals = config.conditional.take().unwrap_or_default();
 
     loop {
         // keep evaluating for placeholder variables as long new ones are added.
-        project_variables::fill_project_variables(&mut liquid_object, config, |slot| {
+        project_variables::fill_project_variables(liquid_object, config, |slot| {
             let provided_value = template_values.get(&slot.var_name).and_then(|v| match v {
                 toml::Value::String(s) => Some(s.clone()),
                 toml::Value::Integer(s) => Some(s.to_string()),
@@ -610,7 +634,7 @@ fn fill_placeholders_and_merge_conditionals(
             .iter_mut()
             // filter each conditional config block by trueness of the expression, given the known variables
             .filter_map(|(key, cfg)| {
-                evaluate_script::<bool>(liquid_object.clone(), key)
+                evaluate_script::<bool>(liquid_object, key)
                     .ok()
                     .filter(|&r| r)
                     .map(|_| cfg)
@@ -660,7 +684,7 @@ fn fill_placeholders_and_merge_conditionals(
         }
     }
 
-    Ok(liquid_object)
+    Ok(())
 }
 
 fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::Error> {
@@ -688,6 +712,21 @@ fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::
         }
     }
     Ok(())
+}
+
+#[derive(Debug)]
+struct ScopedWorkingDirectory(PathBuf);
+
+impl Default for ScopedWorkingDirectory {
+    fn default() -> Self {
+        Self(env::current_dir().unwrap())
+    }
+}
+
+impl Drop for ScopedWorkingDirectory {
+    fn drop(&mut self) {
+        env::set_current_dir(&self.0).unwrap();
+    }
 }
 
 #[cfg(test)]

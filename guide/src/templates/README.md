@@ -28,6 +28,20 @@ Only files that are **not** listed in the exclude settings will be templated.
 
 Following are filters that `cargo-generate` expands the `liquid` language with.
 
+* **`rhai`**
+
+  Tries to run the argument as a `rhai` script. Whatever the script returns will be the output of
+  the filter.
+  
+  Example Liquid:
+  ```liquid
+  Here we try to run a rhai script: {{"script_name.rhai" | rhai}}
+  ```
+  
+  > ⚠️ NOTE: `Liquid` does not support failing filters, thus if the script fails for any reason, 
+  > `cargo-generate` will simply print a warning message to stderr, and `Liquid` will leave 
+  > the substitution in its original form.
+
 * **`kebab_case`**
 
   `"We are going to inherit the earth."` => `"we-are-going-to-inherit-the-earth"`

@@ -1,0 +1,13 @@
+{% assign my_variable = "Any liquid variable created/assigned in a file" -%}
+
+This is an example of how to use the VERY cool rhai filter feature.
+We use a Liquid filter to run a Rhai script:
+
+{{"rhai-example.rhai"|rhai}}
+
+{{liquid_variable_from_rhai}}
+
+Though after liquid itself has used the value, or processing the next file has begun, any changes
+to the variable by a rhai filter will be ignored (by liquid) until the next liquid file!
+
+{{ my_variable }} is not carried over to other files, but the ones from Rhai are!

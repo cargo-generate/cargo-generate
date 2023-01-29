@@ -1,22 +1,21 @@
-use liquid::{Object, ValueView};
+use liquid::ValueView;
 use liquid_core::Value;
 use regex::Regex;
 use rhai::{Array, Dynamic, Module};
-use std::cell::RefCell;
-use std::rc::Rc;
 
 use crate::interactive::prompt_and_check_variable;
 use crate::project_variables::{StringEntry, TemplateSlots, VarInfo};
+use crate::template::LiquidObjectResource;
 
-use super::HookResult;
+use super::{HookResult, PoisonError};
 
-pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
+pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
     let mut module = Module::new();
 
     module.set_native_fn("is_set", {
         let liquid_object = liquid_object.clone();
         move |name: &str| -> HookResult<bool> {
-            match liquid_object.get_value(name) {
+            match liquid_object.get_value(name)? {
                 NamedValue::NonExistent => Ok(false),
                 _ => Ok(true),
             }
@@ -26,7 +25,7 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     module.set_native_fn("get", {
         let liquid_object = liquid_object.clone();
         move |name: &str| -> HookResult<Dynamic> {
-            match liquid_object.get_value(name) {
+            match liquid_object.get_value(name)? {
                 NamedValue::NonExistent => Ok(Dynamic::from(String::from(""))),
                 NamedValue::Bool(v) => Ok(Dynamic::from(v)),
                 NamedValue::String(v) => Ok(Dynamic::from(v)),
@@ -36,14 +35,17 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
 
     module.set_native_fn("set", {
         let liquid_object = liquid_object.clone();
-
         move |name: &str, value: &str| -> HookResult<()> {
-            match liquid_object.get_value(name) {
+            match liquid_object.get_value(name)? {
                 NamedValue::NonExistent | NamedValue::String(_) => {
-                    liquid_object.borrow_mut().insert(
-                        name.to_string().into(),
-                        Value::Scalar(value.to_string().into()),
-                    );
+                    liquid_object
+                        .lock()
+                        .map_err(|_| PoisonError::new_eval_alt_result())?
+                        .borrow_mut()
+                        .insert(
+                            name.to_string().into(),
+                            Value::Scalar(value.to_string().into()),
+                        );
                     Ok(())
                 }
                 _ => Err(format!("Variable {name} not a String").into()),
@@ -53,11 +55,12 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
 
     module.set_native_fn("set", {
         let liquid_object = liquid_object.clone();
-
         move |name: &str, value: bool| -> HookResult<()> {
-            match liquid_object.get_value(name) {
+            match liquid_object.get_value(name)? {
                 NamedValue::NonExistent | NamedValue::Bool(_) => {
                     liquid_object
+                        .lock()
+                        .map_err(|_| PoisonError::new_eval_alt_result())?
                         .borrow_mut()
                         .insert(name.to_string().into(), Value::Scalar(value.into()));
                     Ok(())
@@ -68,11 +71,14 @@ pub fn create_module(liquid_object: Rc<RefCell<Object>>) -> Module {
     });
 
     module.set_native_fn("set", {
+        let liquid_object = liquid_object.clone();
         move |name: &str, value: Array| -> HookResult<()> {
-            match liquid_object.get_value(name) {
+            match liquid_object.get_value(name)? {
                 NamedValue::NonExistent => {
                     let val = rhai_to_liquid_value(Dynamic::from(value))?;
                     liquid_object
+                        .lock()
+                        .map_err(|_| PoisonError::new_eval_alt_result())?
                         .borrow_mut()
                         .insert(name.to_string().into(), val);
                     Ok(())
@@ -213,12 +219,15 @@ enum NamedValue {
 }
 
 trait GetNamedValue {
-    fn get_value(&self, name: &str) -> NamedValue;
+    fn get_value(&self, name: &str) -> HookResult<NamedValue>;
 }
 
-impl GetNamedValue for Rc<RefCell<Object>> {
-    fn get_value(&self, name: &str) -> NamedValue {
-        self.borrow()
+impl GetNamedValue for LiquidObjectResource {
+    fn get_value(&self, name: &str) -> HookResult<NamedValue> {
+        let value = self
+            .lock()
+            .map_err(|_| PoisonError::new_eval_alt_result())?
+            .borrow()
             .get(name)
             .map_or(NamedValue::NonExistent, |value| {
                 value
@@ -233,7 +242,8 @@ impl GetNamedValue for Rc<RefCell<Object>> {
                         )
                     })
                     .unwrap_or_else(|| NamedValue::NonExistent)
-            })
+            });
+        Ok(value)
     }
 }
 
@@ -263,14 +273,21 @@ fn rhai_to_liquid_value(val: Dynamic) -> HookResult<Value> {
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        cell::RefCell,
+        sync::{Arc, Mutex},
+    };
+
+    use liquid::Object;
+
     use super::*;
 
     #[test]
     fn test_rhai_set() {
         let mut engine = rhai::Engine::new();
-        let liquid_object = Rc::new(RefCell::new(liquid::Object::new()));
+        let liquid_object = Arc::new(Mutex::new(RefCell::new(Object::new())));
 
-        let module = create_module(liquid_object.clone());
+        let module = create_module(&liquid_object);
         engine.register_static_module("variable", module.into());
 
         engine
@@ -283,7 +300,8 @@ mod tests {
             )
             .unwrap();
 
-        let liquid_object = liquid_object.borrow();
+        let ref_cell = liquid_object.lock().unwrap();
+        let liquid_object = ref_cell.borrow();
 
         assert_eq!(
             liquid_object.get("dependencies"),
