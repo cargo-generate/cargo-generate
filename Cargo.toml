@@ -53,7 +53,7 @@ features = ["derive"]
 [dev-dependencies]
 predicates = "2.1"
 assert_cmd = "2.0"
-indoc = "1.0"
+indoc = "2.0"
 url = "2.2"
 bstr = "1.0"
 
