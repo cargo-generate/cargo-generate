@@ -28,7 +28,7 @@ home = "0.5"
 sanitize-filename = "0.4"
 rhai = "1.8"
 path-absolutize = "3.0"
-git-config = "0.15"
+git-config = "0.16"
 paste = "1.0"
 names = { version = "0.14", default-features = false }
 
@@ -53,7 +53,7 @@ features = ["derive"]
 [dev-dependencies]
 predicates = "2.1"
 assert_cmd = "2.0"
-indoc = "1.0"
+indoc = "2.0"
 url = "2.2"
 bstr = "1.0"
 
