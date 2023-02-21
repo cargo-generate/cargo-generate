@@ -1,10 +1,14 @@
-use crate::Result;
+use crate::{template::LiquidObjectResource, Result};
 
 use crate::template::render_string_gracefully;
-use liquid::{Object, Parser};
+use liquid::Parser;
 use std::path::{Component, Path, PathBuf};
 
-pub fn substitute_filename(filepath: &Path, parser: &Parser, context: &Object) -> Result<PathBuf> {
+pub fn substitute_filename(
+    filepath: &Path,
+    parser: &Parser,
+    context: &LiquidObjectResource,
+) -> Result<PathBuf> {
     let mut path = PathBuf::new();
     for elem in filepath.components() {
         match elem {
@@ -34,42 +38,43 @@ fn sanitize_filename(filename: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use liquid::model::Value;
+    use liquid::{model::Value, Object};
+    use std::{
+        cell::RefCell,
+        sync::{Arc, Mutex},
+    };
 
     #[test]
     fn should_do_happy_path() {
         assert_eq!(
-            substitute_filename("{{author}}.rs", prepare_context("sassman")).unwrap(),
+            substitute_filename("{{author}}.rs", &prepare_context("sassman")).unwrap(),
             "sassman.rs"
         );
         #[cfg(unix)]
         assert_eq!(
-            substitute_filename("/tmp/project/{{author}}.rs", prepare_context("sassman")).unwrap(),
+            substitute_filename("/tmp/project/{{author}}.rs", &prepare_context("sassman")).unwrap(),
             "/tmp/project/sassman.rs"
         );
         #[cfg(unix)]
         assert_eq!(
             substitute_filename(
                 "/tmp/project/{{author}}/{{author}}.rs",
-                prepare_context("sassman")
+                &prepare_context("sassman")
             )
             .unwrap(),
             "/tmp/project/sassman/sassman.rs"
         );
         #[cfg(windows)]
         assert_eq!(
-            substitute_filename(
-                "C:\\tmp\\project\\{{author}}.rs",
-                prepare_context("sassman")
-            )
-            .unwrap(),
+            substitute_filename("C:/tmp/project/{{author}}.rs", &prepare_context("sassman"))
+                .unwrap(),
             "C:\\tmp\\project\\sassman.rs"
         );
         #[cfg(windows)]
         assert_eq!(
             substitute_filename(
-                "C:\\tmp\\project\\{{author}}\\{{author}}.rs",
-                prepare_context("sassman")
+                "C:/tmp/project/{{author}}/{{author}}.rs",
+                &prepare_context("sassman")
             )
             .unwrap(),
             "C:\\tmp\\project\\sassman\\sassman.rs"
@@ -80,32 +85,28 @@ mod tests {
     fn should_prevent_invalid_filenames() {
         #[cfg(unix)]
         assert_eq!(
-            substitute_filename("/tmp/project/{{author}}.rs", prepare_context("s/a/s")).unwrap(),
+            substitute_filename("/tmp/project/{{author}}.rs", &prepare_context("s/a/s")).unwrap(),
             "/tmp/project/s_a_s.rs"
         );
         #[cfg(unix)]
         assert_eq!(
             substitute_filename(
                 "/tmp/project/{{author}}/{{author}}.rs",
-                prepare_context("s/a/s")
+                &prepare_context("s/a/s")
             )
             .unwrap(),
             "/tmp/project/s_a_s/s_a_s.rs"
         );
         #[cfg(windows)]
         assert_eq!(
-            substitute_filename(
-                "C:\\tmp\\project\\{{author}}.rs",
-                prepare_context("s\\a\\s")
-            )
-            .unwrap(),
+            substitute_filename("C:/tmp/project/{{author}}.rs", &prepare_context("s/a/s")).unwrap(),
             "C:\\tmp\\project\\s_a_s.rs"
         );
         #[cfg(windows)]
         assert_eq!(
             substitute_filename(
-                "C:\\tmp\\project\\{{author}}\\{{author}}.rs",
-                prepare_context("s\\a\\s")
+                "C:/tmp/project/{{author}}/{{author}}.rs",
+                &prepare_context("s/a/s")
             )
             .unwrap(),
             "C:\\tmp\\project\\s_a_s\\s_a_s.rs"
@@ -118,7 +119,7 @@ mod tests {
         assert_eq!(
             substitute_filename(
                 "/tmp/project/{{author}}.rs",
-                prepare_context("../../etc/passwd")
+                &prepare_context("../../etc/passwd")
             )
             .unwrap(),
             "/tmp/project/.._.._etc_passwd.rs"
@@ -127,7 +128,7 @@ mod tests {
         assert_eq!(
             substitute_filename(
                 "/tmp/project/{{author}}/main.rs",
-                prepare_context("../../etc/passwd")
+                &prepare_context("../../etc/passwd")
             )
             .unwrap(),
             "/tmp/project/.._.._etc_passwd/main.rs"
@@ -135,8 +136,8 @@ mod tests {
         #[cfg(windows)]
         assert_eq!(
             substitute_filename(
-                "C:\\tmp\\project\\{{author}}.rs",
-                prepare_context("..\\..\\etc\\passwd")
+                "C:/tmp/project/{{author}}.rs",
+                &prepare_context("../../etc/passwd")
             )
             .unwrap(),
             "C:\\tmp\\project\\.._.._etc_passwd.rs"
@@ -144,8 +145,8 @@ mod tests {
         #[cfg(windows)]
         assert_eq!(
             substitute_filename(
-                "C:\\tmp\\project\\{{author}}\\main.rs",
-                prepare_context("..\\..\\etc\\passwd")
+                "C:/tmp/project/{{author}}/main.rs",
+                &prepare_context("../../etc/passwd")
             )
             .unwrap(),
             "C:\\tmp\\project\\.._.._etc_passwd\\main.rs"
@@ -153,18 +154,18 @@ mod tests {
     }
 
     //region wrapper helpers
-    fn prepare_context(value: &str) -> Object {
+    fn prepare_context(value: &str) -> LiquidObjectResource {
         let mut ctx = Object::default();
         ctx.entry("author")
             .or_insert(Value::scalar(value.to_string()));
 
-        ctx
+        Arc::new(Mutex::new(RefCell::new(ctx)))
     }
 
-    fn substitute_filename(f: &str, ctx: Object) -> Result<String> {
+    fn substitute_filename(f: &str, ctx: &LiquidObjectResource) -> Result<String> {
         let parser = Parser::default();
 
-        super::substitute_filename(f.as_ref(), &parser, &ctx)
+        super::substitute_filename(f.as_ref(), &parser, ctx)
             .map(|p| p.to_str().unwrap().to_string())
     }
     //endregion

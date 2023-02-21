@@ -1,15 +1,21 @@
 use anyhow::{Context, Result};
 use console::style;
 use indicatif::{MultiProgress, ProgressBar};
-use liquid::Parser;
+use liquid::model::KString;
+use liquid::{Parser, ParserBuilder};
 use liquid_core::{Object, Value};
-use std::fs;
-use std::path::Path;
+use std::sync::{Arc, Mutex};
+use std::{
+    cell::RefCell,
+    fs,
+    path::{Path, PathBuf},
+};
 use walkdir::{DirEntry, WalkDir};
 
 use crate::config::TemplateConfig;
 use crate::emoji;
 use crate::filenames::substitute_filename;
+use crate::hooks::PoisonError;
 use crate::include_exclude::*;
 use crate::progressbar::spinner;
 use crate::template_filters::*;
@@ -18,8 +24,16 @@ use crate::template_variables::{
 };
 use crate::user_parsed_input::UserParsedInput;
 
-fn engine() -> liquid::Parser {
-    liquid::ParserBuilder::with_stdlib()
+pub type LiquidObjectResource = Arc<Mutex<RefCell<Object>>>;
+
+pub fn create_liquid_engine(
+    template_dir: PathBuf,
+    liquid_object: LiquidObjectResource,
+    allow_commands: bool,
+    silent: bool,
+    rhai_filter_files: Arc<Mutex<Vec<PathBuf>>>,
+) -> Parser {
+    ParserBuilder::with_stdlib()
         .filter(KebabCaseFilterParser)
         .filter(LowerCamelCaseFilterParser)
         .filter(PascalCaseFilterParser)
@@ -28,12 +42,19 @@ fn engine() -> liquid::Parser {
         .filter(SnakeCaseFilterParser)
         .filter(TitleCaseFilterParser)
         .filter(UpperCamelCaseFilterParser)
+        .filter(RhaiFilterParser::new(
+            template_dir,
+            liquid_object,
+            allow_commands,
+            silent,
+            rhai_filter_files,
+        ))
         .build()
         .expect("can't fail due to no partials support")
 }
 
 /// create liquid object for the template, and pre-fill it with all known variables
-pub fn create_liquid_object(user_parsed_input: &UserParsedInput) -> Result<Object> {
+pub fn create_liquid_object(user_parsed_input: &UserParsedInput) -> Result<LiquidObjectResource> {
     let authors: Authors = get_authors()?;
     let os_arch = get_os_arch();
 
@@ -56,19 +77,23 @@ pub fn create_liquid_object(user_parsed_input: &UserParsedInput) -> Result<Objec
         Value::Scalar(user_parsed_input.init().into()),
     );
 
-    Ok(liquid_object)
+    Ok(Arc::new(Mutex::new(RefCell::new(liquid_object))))
 }
 
 pub fn set_project_name_variables(
-    liquid_object: &mut Object,
+    liquid_object: &LiquidObjectResource,
     project_dir: &ProjectDir,
     project_name: &ProjectName,
     crate_name: &CrateName,
 ) -> Result<()> {
+    let ref_cell = liquid_object.lock().map_err(|_| PoisonError)?;
+    let mut liquid_object = ref_cell.borrow_mut();
+
     liquid_object.insert(
         "project-name".into(),
         Value::Scalar(project_name.as_ref().to_owned().into()),
     );
+
     liquid_object.insert(
         "crate_name".into(),
         Value::Scalar(crate_name.as_ref().to_owned().into()),
@@ -89,10 +114,12 @@ fn is_within_cargo_project(project_dir: &Path) -> bool {
 }
 
 pub fn walk_dir(
-    project_dir: &Path,
-    liquid_object: &Object,
     template_config: &mut TemplateConfig,
+    project_dir: &Path,
     hook_files: &[String],
+    liquid_object: &LiquidObjectResource,
+    rhai_engine: Parser,
+    rhai_filter_files: &Arc<Mutex<Vec<PathBuf>>>,
     mp: &mut MultiProgress,
 ) -> Result<()> {
     fn is_git_metadata(entry: &DirEntry) -> bool {
@@ -101,8 +128,6 @@ pub fn walk_dir(
             .components()
             .any(|c| c == std::path::Component::Normal(".git".as_ref()))
     }
-
-    let engine = engine();
 
     let matcher = Matcher::new(template_config, project_dir, hook_files)?;
     let spinner_style = spinner();
@@ -129,8 +154,22 @@ pub fn walk_dir(
 
         let filename = entry.path();
         let relative_path = filename.strip_prefix(project_dir)?;
-        let f = relative_path.display();
-        pb.set_message(format!("Processing: {f}"));
+        let filename_display = relative_path.display();
+        // Attempt to NOT process files used as liquid rhai filters.
+        // Only works if filter file has been used before an attempt to process it!
+        if rhai_filter_files
+            .lock()
+            .map_err(|_| PoisonError)?
+            .iter()
+            .any(|rhai_filter| relative_path.eq(rhai_filter.as_path()))
+        {
+            pb.finish_with_message(format!(
+                "Skipped: {filename_display} - used as Rhai filter!"
+            ));
+            continue;
+        }
+
+        pb.set_message(format!("Processing: {filename_display}"));
 
         // todo(refactor): as parameter
         let verbose = false;
@@ -138,7 +177,7 @@ pub fn walk_dir(
         match matcher.should_include(relative_path) {
             ShouldInclude::Include => {
                 if entry.file_type().is_file() {
-                    match template_process_file(liquid_object, &engine, filename) {
+                    match template_process_file(liquid_object, &rhai_engine, filename) {
                         Err(e) => {
                             if verbose {
                                 files_with_errors.push((filename.display().to_string(), e.clone()));
@@ -146,7 +185,7 @@ pub fn walk_dir(
                         }
                         Ok(new_contents) => {
                             let new_filename =
-                                substitute_filename(filename, &engine, liquid_object)
+                                substitute_filename(filename, &rhai_engine, liquid_object)
                                     .with_context(|| {
                                         format!(
                                             "{} {} `{}`",
@@ -175,7 +214,7 @@ pub fn walk_dir(
                         }
                     }
                 } else {
-                    let new_filename = substitute_filename(filename, &engine, liquid_object)?;
+                    let new_filename = substitute_filename(filename, &rhai_engine, liquid_object)?;
                     let relative_path = new_filename.strip_prefix(project_dir)?;
                     let f = relative_path.display();
                     pb.inc(50);
@@ -187,10 +226,10 @@ pub fn walk_dir(
                 }
             }
             ShouldInclude::Exclude => {
-                pb.finish_with_message(format!("Skipped: {f}"));
+                pb.finish_with_message(format!("Skipped: {filename_display}"));
             }
             ShouldInclude::Ignore => {
-                pb.finish_with_message(format!("Ignored: {f}"));
+                pb.finish_with_message(format!("Ignored: {filename_display}"));
             }
         }
     }
@@ -203,7 +242,7 @@ pub fn walk_dir(
 }
 
 fn template_process_file(
-    context: &Object,
+    context: &LiquidObjectResource,
     parser: &Parser,
     file: &Path,
 ) -> liquid_core::Result<String> {
@@ -213,14 +252,30 @@ fn template_process_file(
 }
 
 pub fn render_string_gracefully(
-    context: &Object,
+    context: &LiquidObjectResource,
     parser: &Parser,
     content: &str,
 ) -> liquid_core::Result<String> {
     let template = parser.parse(content)?;
 
-    match template.render(context) {
-        Ok(content) => Ok(content),
+    // Liquid engine needs access to the context.
+    // At the same time, our own `rhai` liquid filter may also need it, but doesn't have access
+    // to the one provided to the liquid engine, thus it has it's own cloned `Arc` for it. These
+    // WILL collide and cause the `Mutex` to hang in case the user tries to modify any variable
+    // inside a rhai filter script - so we currently clone it, and let any rhai filter manipulate
+    // the original. Note that hooks do not run at the same time as liquid, thus they do not
+    // suffer these limitations.
+    let render_object_view = {
+        let ref_cell = context
+            .lock()
+            .map_err(|_| liquid_core::Error::with_msg(PoisonError.to_string()))?;
+        let object_view = ref_cell.borrow();
+        object_view.to_owned()
+    };
+    let render_result = template.render(&render_object_view);
+
+    match render_result {
+        ctx @ Ok(_) => ctx,
         Err(e) => {
             // handle it gracefully
             let msg = e.to_string();
@@ -229,15 +284,17 @@ pub fn render_string_gracefully(
                 let requested_var =
                     regex::Regex::new(r"(?P<p>.*requested\svariable=)(?P<v>.*)").unwrap();
                 let captures = requested_var.captures(msg.as_str()).unwrap();
-
                 if let Some(Some(req_var)) = captures.iter().last() {
-                    let missing_variable = req_var.as_str().to_string();
-                    // try again with this variable added to the context
-                    let mut context = context.clone();
-                    context.insert(missing_variable.into(), Value::scalar("".to_string()));
-
-                    // now let's parse again to see if we have all variables declared now
-                    return render_string_gracefully(&context, parser, content);
+                    let missing_variable = KString::from(req_var.as_str().to_string());
+                    // The missing variable might have been supplied by a rhai filter,
+                    // if not, substitute an empty string before retrying
+                    let _ = context
+                        .lock()
+                        .map_err(|_| liquid_core::Error::with_msg(PoisonError.to_string()))?
+                        .borrow_mut()
+                        .entry(missing_variable)
+                        .or_insert_with(|| Value::scalar("".to_string()));
+                    return render_string_gracefully(context, parser, content);
                 }
             }
             // todo: find nice way to have this happening outside of this fn

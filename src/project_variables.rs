@@ -1,13 +1,14 @@
-use std::collections::HashMap;
-
 use anyhow::Result;
-use liquid::Object;
 use liquid_core::model::map::Entry;
 use liquid_core::Value;
 use regex::Regex;
+use std::collections::HashMap;
 use thiserror::Error;
 
-use crate::config::{Config, TemplateSlotsTable};
+use crate::{
+    config::{Config, TemplateSlotsTable},
+    template::LiquidObjectResource,
+};
 
 #[derive(Debug)]
 pub struct TemplateSlots {
@@ -96,7 +97,7 @@ const RESERVED_NAMES: [&str; 7] = [
 
 /// For each defined placeholder, try to add it with value as a variable to the template_object.
 pub fn fill_project_variables(
-    template_object: &mut Object,
+    template_object: &LiquidObjectResource,
     config: &Config,
     value_provider: impl Fn(&TemplateSlots) -> Result<Value>,
 ) -> Result<()> {
@@ -107,7 +108,12 @@ pub fn fill_project_variables(
         .unwrap_or_else(|| Ok(HashMap::new()))?;
 
     for (&key, slot) in template_slots.iter() {
-        match template_object.entry(key.to_string()) {
+        match template_object
+            .lock()
+            .unwrap()
+            .borrow_mut()
+            .entry(key.to_string())
+        {
             Entry::Occupied(_) => (), // we already have the value from the config file
             Entry::Vacant(entry) => {
                 // we don't have the file from the config but we can ask for it

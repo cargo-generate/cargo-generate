@@ -2,20 +2,25 @@ use std::fmt::Display;
 
 use anyhow::anyhow;
 use console::style;
-use liquid::{Object, ValueView};
+use liquid::ValueView;
 
-use crate::{emoji, interactive, user_parsed_input::UserParsedInput, warn};
+use crate::{
+    emoji, interactive, template::LiquidObjectResource, user_parsed_input::UserParsedInput, warn,
+};
 
 #[derive(Debug)]
 pub struct ProjectNameInput(String);
 
-impl TryFrom<(&Object, &UserParsedInput)> for ProjectNameInput {
+impl TryFrom<(&LiquidObjectResource, &UserParsedInput)> for ProjectNameInput {
     type Error = anyhow::Error;
 
     fn try_from(
-        (liquid_object, user_parsed_input): (&Object, &UserParsedInput),
+        (liquid_object, user_parsed_input): (&LiquidObjectResource, &UserParsedInput),
     ) -> Result<Self, Self::Error> {
         let name = liquid_object
+            .lock()
+            .unwrap()
+            .borrow()
             .get("project-name")
             .map(|v| {
                 let v = v.as_scalar().to_kstr().into_string();

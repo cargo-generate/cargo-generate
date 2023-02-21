@@ -282,6 +282,7 @@ fn it_can_change_case() {
         .stdout(predicates::str::contains("Title Case"))
         .stdout(predicates::str::contains("UpperCamelCase"));
 }
+
 #[test]
 fn can_change_variables_from_pre_hook() {
     let template = tmp_dir()
@@ -449,4 +450,72 @@ fn init_hook_can_change_project_name_but_keeps_init_destination() {
 
     assert!(dir.exists("generated.txt"));
     assert!(dir.read("generated.txt").contains("bar"));
+}
+
+#[test]
+fn rhai_filter_invokes_rhai_script() {
+    let template = tmp_dir()
+        .file(
+            "filter-script.rhai",
+            indoc! {r#"
+                "content from RHAI"
+            "#},
+        )
+        .file(
+            "file_to_expand.txt",
+            indoc! {r#"
+                {{"filter-script.rhai"|rhai}}
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("filter-project")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done"));
+
+    assert!(dir
+        .read("filter-project/file_to_expand.txt")
+        .contains("content from RHAI"));
+}
+
+#[test]
+fn missing_rhai_filter_fails_prints_warnings() {
+    let template = tmp_dir()
+        .file(
+            "file_to_expand.txt",
+            indoc! {r#"
+                {{"filter-script.rhai"|rhai}}
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tmp_dir().build();
+
+    binary()
+        .arg("gen")
+        .arg("--git")
+        .arg(template.path())
+        .arg("-n")
+        .arg("filter-project")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stderr(predicates::str::contains(
+            "Filter script filter-script.rhai not found",
+        ));
+
+    assert!(dir
+        .read("filter-project/file_to_expand.txt")
+        .contains(r#"{{"filter-script.rhai"|rhai}}"#));
 }

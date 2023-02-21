@@ -6,11 +6,10 @@ use heck::{
 };
 use liquid::ValueView;
 use rhai::EvalAltResult;
-use std::cell::RefCell;
-use std::rc::Rc;
 use std::{env, path::Path};
 
 use crate::emoji;
+use crate::template::LiquidObjectResource;
 
 mod file_mod;
 mod system_mod;
@@ -34,15 +33,14 @@ impl<F: FnOnce()> Drop for CleanupJob<F> {
 
 pub fn execute_hooks(
     dir: &Path,
-    liquid_object: liquid::Object,
-    hooks: &[String],
+    liquid_object: &LiquidObjectResource,
+    scripts: &[String],
     allow_commands: bool,
     silent: bool,
-) -> Result<liquid::Object> {
-    let liquid_object = Rc::new(RefCell::new(liquid_object));
-    let engine = create_rhai_engine(dir, liquid_object.clone(), allow_commands, silent);
-    evaluate_scripts(dir, hooks, engine)?;
-    Ok(liquid_object.take())
+) -> Result<()> {
+    let engine = create_rhai_engine(dir, liquid_object, allow_commands, silent);
+    evaluate_scripts(dir, scripts, engine)?;
+    Ok(())
 }
 
 fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engine) -> Result<()> {
@@ -68,34 +66,40 @@ fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engin
 }
 
 pub fn evaluate_script<T: Clone + 'static>(
-    liquid_object: liquid::Object,
+    liquid_object: &LiquidObjectResource,
     script: &str,
-) -> Result<T, Box<rhai::EvalAltResult>> {
+) -> HookResult<T> {
     let mut conditional_evaluation_engine = rhai::Engine::new();
 
     #[allow(deprecated)]
     conditional_evaluation_engine.on_var({
+        let liquid_object = liquid_object.clone();
         move |name, _, _| {
-            liquid_object.get(name).map_or(Ok(None), |value| {
-                Ok(value.as_view().as_scalar().map(|scalar| {
-                    scalar.to_bool().map_or_else(
-                        || {
-                            let v = scalar.to_kstr();
-                            v.as_str().into()
-                        },
-                        |v| v.into(),
-                    )
-                }))
-            })
+            liquid_object
+                .lock()
+                .map_err(|_| PoisonError::new_eval_alt_result())?
+                .borrow()
+                .get(name)
+                .map_or(Ok(None), |value| {
+                    Ok(value.as_view().as_scalar().map(|scalar| {
+                        scalar.to_bool().map_or_else(
+                            || {
+                                let v = scalar.to_kstr();
+                                v.as_str().into()
+                            },
+                            |v| v.into(),
+                        )
+                    }))
+                })
         }
     });
 
     conditional_evaluation_engine.eval_expression::<T>(script)
 }
 
-fn create_rhai_engine(
+pub fn create_rhai_engine(
     dir: &Path,
-    liquid_object: Rc<RefCell<liquid::Object>>,
+    liquid_object: &LiquidObjectResource,
     allow_commands: bool,
     silent: bool,
 ) -> rhai::Engine {
@@ -131,4 +135,20 @@ fn create_rhai_engine(
     });
 
     engine
+}
+
+#[derive(thiserror::Error, Debug)]
+#[error("A lock was poisoned")]
+pub struct PoisonError;
+
+impl<E> From<std::sync::PoisonError<E>> for PoisonError {
+    fn from(_: std::sync::PoisonError<E>) -> Self {
+        Self
+    }
+}
+
+impl PoisonError {
+    pub fn new_eval_alt_result() -> EvalAltResult {
+        EvalAltResult::ErrorSystem("".into(), Box::new(Self))
+    }
 }
