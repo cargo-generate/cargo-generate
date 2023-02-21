@@ -1,26 +1,32 @@
 # Installation
 
-## Using `cargo` with system's OpenSSL
+## Using `cargo` with vendored libgit2 and OpenSSL
 
 ```sh
 cargo install cargo-generate
 ```
 
-See the [`openssl-sys` crate readme] on how to obtain the OpenSSL library for your system. Alternatively, use the `vendored-openssl` flag if you do not want to install OpenSSL.
+By default, cargo-generate uses vendored sources for libgit2 and OpenSSL,
+this would require the following dependencies on your system, as documented by the [`openssl` crate]:
 
-## Using `cargo` with vendored OpenSSL
+- A C compiler (gcc, for example)
+- perl (and perl-core)
+- make
 
-> ⚠️ NOTE: `vendored-openssl` requires the following packages to be installed:
-> - libssl-dev
-> - gcc
-> - m4
-> - ca-certificates
-> - make
-> - perl
+## Using `cargo` with system's libgit2 and OpenSSL
+
+You can opt-out of vendored libraries and use libgit2 and OpenSSL from your system
+by building cargo-generate without the default dependencies.
 
 ```sh
-cargo install cargo-generate --features vendored-openssl
+cargo install cargo-generate --no-default-features
 ```
+
+This will require the following dependencies on your system:
+
+- pkg-config
+- libgit2
+- libssl-dev (this could also be named openssl)
 
 ## Using `pacman` (Arch Linux)
 
@@ -35,6 +41,6 @@ pacman -S cargo-generate
 1. Download the binary tarball for your platform from our [releases page].
 2. Unpack the tarball and place the binary `cargo-generate` in `~/.cargo/bin/`
 
-[`openssl-sys` crate readme]: https://crates.io/crates/openssl-sys
+[`openssl` crate]: https://docs.rs/openssl
 [community repository]: https://archlinux.org/packages/community/x86_64/cargo-generate/
 [releases page]: https://github.com/cargo-generate/cargo-generate/releases
