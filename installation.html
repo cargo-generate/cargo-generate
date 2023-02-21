@@ -149,24 +149,27 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
-<h2 id="using-cargo-with-systems-openssl"><a class="header" href="#using-cargo-with-systems-openssl">Using <code>cargo</code> with system's OpenSSL</a></h2>
+<h2 id="using-cargo-with-vendored-libgit2-and-openssl"><a class="header" href="#using-cargo-with-vendored-libgit2-and-openssl">Using <code>cargo</code> with vendored libgit2 and OpenSSL</a></h2>
 <pre><code class="language-sh">cargo install cargo-generate
 </code></pre>
-<p>See the <a href="https://crates.io/crates/openssl-sys"><code>openssl-sys</code> crate readme</a> on how to obtain the OpenSSL library for your system. Alternatively, use the <code>vendored-openssl</code> flag if you do not want to install OpenSSL.</p>
-<h2 id="using-cargo-with-vendored-openssl"><a class="header" href="#using-cargo-with-vendored-openssl">Using <code>cargo</code> with vendored OpenSSL</a></h2>
-<blockquote>
-<p>⚠️ NOTE: <code>vendored-openssl</code> requires the following packages to be installed:</p>
+<p>By default, cargo-generate uses vendored sources for libgit2 and OpenSSL,
+this would require the following dependencies on your system, as documented by the <a href="https://docs.rs/openssl"><code>openssl</code> crate</a>:</p>
 <ul>
-<li>libssl-dev</li>
-<li>gcc</li>
-<li>m4</li>
-<li>ca-certificates</li>
+<li>A C compiler (gcc, for example)</li>
+<li>perl (and perl-core)</li>
 <li>make</li>
-<li>perl</li>
 </ul>
-</blockquote>
-<pre><code class="language-sh">cargo install cargo-generate --features vendored-openssl
+<h2 id="using-cargo-with-systems-libgit2-and-openssl"><a class="header" href="#using-cargo-with-systems-libgit2-and-openssl">Using <code>cargo</code> with system's libgit2 and OpenSSL</a></h2>
+<p>You can opt-out of vendored libraries and use libgit2 and OpenSSL from your system
+by building cargo-generate without the default dependencies.</p>
+<pre><code class="language-sh">cargo install cargo-generate --no-default-features
 </code></pre>
+<p>This will require the following dependencies on your system:</p>
+<ul>
+<li>pkg-config</li>
+<li>libgit2</li>
+<li>libssl-dev (this could also be named openssl)</li>
+</ul>
 <h2 id="using-pacman-arch-linux"><a class="header" href="#using-pacman-arch-linux">Using <code>pacman</code> (Arch Linux)</a></h2>
 <p><code>cargo-generate</code> can be installed from the <a href="https://archlinux.org/packages/community/x86_64/cargo-generate/">community repository</a> for Arch Linux:</p>
 <pre><code class="language-sh">pacman -S cargo-generate
