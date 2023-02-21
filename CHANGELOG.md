@@ -1,6 +1,26 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.17.6...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.18.0...HEAD)
+
+## [0.18.0] 2023-02-22
+[0.18.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.6...v0.18.0
+
+### ✨ Features
+- [liquid filter for running a Rhai script (#879)](https://github.com/cargo-generate/cargo-generate/pull/866)
+- [put vendored libraries behind features (#856)](https://github.com/cargo-generate/cargo-generate/pull/856)
+
+### 🛠️ Maintenance
+- [Update various dependencies](https://github.com/cargo-generate/cargo-generate/pull/878)
+
+### 🤕 Fixes
+- [update `git-config` to `gix-config` (#879)](https://github.com/cargo-generate/cargo-generate/pull/880)
+
+### Contributors
+- [Byron](https://github.com/Byron)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [sassman](https://github.com/sassman)
+- [taurr](https://github.com/taurr)
+- [figsoda](https://github.com/figsoda)
 
 ## [0.17.6] 2023-01-19
 [0.17.6]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.5...v0.17.6
