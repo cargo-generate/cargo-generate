@@ -32,6 +32,7 @@
 
     </head>
     <body>
+    <div id="body-container">
         <!-- Provide site root to javascript -->
         <script>
             var path_to_root = "../";
@@ -170,6 +171,19 @@ The <code>.genignore</code> file is always ignored, so there is no need to list 
 <p>Following are filters that <code>cargo-generate</code> expands the <code>liquid</code> language with.</p>
 <ul>
 <li>
+<p><strong><code>rhai</code></strong></p>
+<p>Tries to run the argument as a <code>rhai</code> script. Whatever the script returns will be the output of
+the filter.</p>
+<p>Example Liquid:</p>
+<pre><code class="language-liquid">Here we try to run a rhai script: {{&quot;script_name.rhai&quot; | rhai}}
+</code></pre>
+<blockquote>
+<p>⚠️ NOTE: <code>Liquid</code> does not support failing filters, thus if the script fails for any reason, 
+<code>cargo-generate</code> will simply print a warning message to stderr, and <code>Liquid</code> will leave 
+the substitution in its original form.</p>
+</blockquote>
+</li>
+<li>
 <p><strong><code>kebab_case</code></strong></p>
 <p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;we-are-going-to-inherit-the-earth&quot;</code></p>
 </li>
@@ -277,5 +291,6 @@ or use only the library version by passing <code>--lib</code> as a command line 
         <!-- Custom JS scripts -->
 
 
+    </div>
     </body>
 </html>
