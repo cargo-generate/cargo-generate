@@ -1,7 +1,7 @@
 use assert_cmd::prelude::*;
 use bstr::ByteSlice;
 use git2::Repository;
-use git_config::File as GitConfig;
+use gix_config::File as GitConfig;
 use predicates::prelude::*;
 use std::ops::Deref;
 

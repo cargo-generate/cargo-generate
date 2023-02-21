@@ -1,7 +1,7 @@
 use crate::git::utils::home;
 use anyhow::Context;
 use anyhow::Result;
-use git_config::{File as GitConfigParser, Source};
+use gix_config::{File as GitConfigParser, Source};
 use std::path::{Path, PathBuf};
 
 pub fn find_gitconfig() -> Result<Option<PathBuf>> {
