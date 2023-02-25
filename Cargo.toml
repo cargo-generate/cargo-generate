@@ -70,7 +70,7 @@ features = [
 [features]
 default = ["vendored-libgit2"]
 vendored-libgit2 = ["git2/vendored-libgit2"]
-vendored-openssl = ["dep:openssl", "openssl/vendored", "git2/vendored-openssl"]
+vendored-openssl = ["openssl/vendored", "git2/vendored-openssl"]
 
 [[bin]]
 path = "src/main.rs"
