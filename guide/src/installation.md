@@ -1,21 +1,30 @@
 # Installation
 
-## Using `cargo` with vendored libgit2 and OpenSSL
+## Using `cargo-generate` with vendored `libgit2` and system's OpenSSL
+By default, cargo-generate uses vendored sources for `libgit2` and OpenSSL that is installed on your system.
 
 ```sh
 cargo install cargo-generate
 ```
 
-By default, cargo-generate uses vendored sources for libgit2 and OpenSSL,
+This requires the following dependencies on your system:
+- `libssl-dev` (this could also be named openssl)
+
+## Using `cargo-generate` with vendored OpenSSL
+However, you can also opt in to use a vendored OpenSSL version.
+So that you don't have to have OpenSSL installed and built it on the spot.
+
 this would require the following dependencies on your system, as documented by the [`openssl` crate]:
+- A C compiler (`gcc`, for example)
+- `perl` and `perl-core`
+- `make`
 
-- A C compiler (gcc, for example)
-- perl (and perl-core)
-- make
+```sh
+cargo install cargo-generate --features vendored-openssl
+```
 
-## Using `cargo` with system's libgit2 and OpenSSL
-
-You can opt-out of vendored libraries and use libgit2 and OpenSSL from your system
+## Using `cargo-generate` with system's `libgit2` and system's OpenSSL
+You can opt-out of vendored libraries and use `libgit2` and OpenSSL from your system
 by building cargo-generate without the default dependencies.
 
 ```sh
@@ -23,10 +32,9 @@ cargo install cargo-generate --no-default-features
 ```
 
 This will require the following dependencies on your system:
-
-- pkg-config
-- libgit2
-- libssl-dev (this could also be named openssl)
+- `pkg-config`
+- `libgit2`
+- `libssl-dev` (this could also be named openssl)
 
 ## Using `pacman` (Arch Linux)
 
