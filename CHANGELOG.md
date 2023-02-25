@@ -1,6 +1,19 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.18.0...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.18.1...HEAD)
+
+## [0.18.1] 2023-02-25
+[0.18.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.18.0...v0.18.1
+
+### 🛠️ Maintenance
+- [chore(deps): bump remove_dir_all from 0.7.0 to 0.8.0](https://github.com/cargo-generate/cargo-generate/pull/886)
+
+### 🤕 Fixes
+- [make feature `vendored-openssl` opt in by default (#883)](https://github.com/cargo-generate/cargo-generate/pull/887)
+
+### Contributors
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [sassman](https://github.com/sassman)
 
 ## [0.18.0] 2023-02-22
 [0.18.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.6...v0.18.0
