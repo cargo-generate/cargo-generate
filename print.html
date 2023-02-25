@@ -164,26 +164,35 @@ author, truly wants the <code>.liquid</code> file-ending, you need to repeat it 
 <p>Here's an example of using <code>cargo-generate</code> with <a href="https://github.com/ashleygwilliams/wasm-pack-template">this template</a>:</p>
 <p><img src="./demo.gif" alt="demo.gif" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
-<h2 id="using-cargo-with-vendored-libgit2-and-openssl"><a class="header" href="#using-cargo-with-vendored-libgit2-and-openssl">Using <code>cargo</code> with vendored libgit2 and OpenSSL</a></h2>
+<h2 id="using-cargo-generate-with-vendored-libgit2-and-systems-openssl"><a class="header" href="#using-cargo-generate-with-vendored-libgit2-and-systems-openssl">Using <code>cargo-generate</code> with vendored <code>libgit2</code> and system's OpenSSL</a></h2>
+<p>By default, cargo-generate uses vendored sources for <code>libgit2</code> and OpenSSL that is installed on your system.</p>
 <pre><code class="language-sh">cargo install cargo-generate
 </code></pre>
-<p>By default, cargo-generate uses vendored sources for libgit2 and OpenSSL,
-this would require the following dependencies on your system, as documented by the <a href="https://docs.rs/openssl"><code>openssl</code> crate</a>:</p>
+<p>This requires the following dependencies on your system:</p>
 <ul>
-<li>A C compiler (gcc, for example)</li>
-<li>perl (and perl-core)</li>
-<li>make</li>
+<li><code>libssl-dev</code> (this could also be named openssl)</li>
 </ul>
-<h2 id="using-cargo-with-systems-libgit2-and-openssl"><a class="header" href="#using-cargo-with-systems-libgit2-and-openssl">Using <code>cargo</code> with system's libgit2 and OpenSSL</a></h2>
-<p>You can opt-out of vendored libraries and use libgit2 and OpenSSL from your system
+<h2 id="using-cargo-generate-with-vendored-openssl"><a class="header" href="#using-cargo-generate-with-vendored-openssl">Using <code>cargo-generate</code> with vendored OpenSSL</a></h2>
+<p>However, you can also opt in to use a vendored OpenSSL version.
+So that you don't have to have OpenSSL installed and built it on the spot.</p>
+<p>this would require the following dependencies on your system, as documented by the <a href="https://docs.rs/openssl"><code>openssl</code> crate</a>:</p>
+<ul>
+<li>A C compiler (<code>gcc</code>, for example)</li>
+<li><code>perl</code> and <code>perl-core</code></li>
+<li><code>make</code></li>
+</ul>
+<pre><code class="language-sh">cargo install cargo-generate --features vendored-openssl
+</code></pre>
+<h2 id="using-cargo-generate-with-systems-libgit2-and-systems-openssl"><a class="header" href="#using-cargo-generate-with-systems-libgit2-and-systems-openssl">Using <code>cargo-generate</code> with system's <code>libgit2</code> and system's OpenSSL</a></h2>
+<p>You can opt-out of vendored libraries and use <code>libgit2</code> and OpenSSL from your system
 by building cargo-generate without the default dependencies.</p>
 <pre><code class="language-sh">cargo install cargo-generate --no-default-features
 </code></pre>
 <p>This will require the following dependencies on your system:</p>
 <ul>
-<li>pkg-config</li>
-<li>libgit2</li>
-<li>libssl-dev (this could also be named openssl)</li>
+<li><code>pkg-config</code></li>
+<li><code>libgit2</code></li>
+<li><code>libssl-dev</code> (this could also be named openssl)</li>
 </ul>
 <h2 id="using-pacman-arch-linux"><a class="header" href="#using-pacman-arch-linux">Using <code>pacman</code> (Arch Linux)</a></h2>
 <p><code>cargo-generate</code> can be installed from the <a href="https://archlinux.org/packages/community/x86_64/cargo-generate/">community repository</a> for Arch Linux:</p>
