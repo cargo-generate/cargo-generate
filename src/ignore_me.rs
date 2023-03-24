@@ -1,4 +1,5 @@
 use ignore::WalkBuilder;
+use log::{info, warn};
 use remove_dir_all::*;
 use std::fs::remove_file;
 use std::{
@@ -85,15 +86,15 @@ pub fn remove_dir_files(files: impl IntoIterator<Item = impl Into<PathBuf>>, ver
         if item.is_dir() {
             remove_dir_all(&item).unwrap();
             if verbose {
-                println!("{ignore_message}");
+                info!("{ignore_message}");
             }
         } else if item.is_file() {
             remove_file(&item).unwrap();
             if verbose {
-                println!("{ignore_message}");
+                info!("{ignore_message}");
             }
         } else {
-            println!(
+            warn!(
                 "The given paths are neither files nor directories! {}",
                 &item.display()
             );

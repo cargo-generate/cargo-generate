@@ -7,6 +7,7 @@ use console::style;
 use dialoguer::Input;
 use dialoguer::{theme::ColorfulTheme, Select};
 use liquid_core::Value;
+use log::warn;
 use std::{ops::Index, str::FromStr};
 
 pub fn name() -> Result<String> {
@@ -105,7 +106,7 @@ fn handle_string_input(
                     if regex.is_match(&user_entry) {
                         break Ok(user_entry);
                     }
-                    eprintln!(
+                    warn!(
                         "{} {} \"{}\" {}",
                         emoji::WARN,
                         style("Sorry,").bold().red(),

@@ -5,11 +5,9 @@ use std::{io, ops::Sub, thread::sleep, time::Duration};
 
 use anyhow::Result;
 use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository, RepositoryInitOptions};
+use log::warn;
 use remove_dir_all::remove_dir_all;
-
 pub use utils::clone_git_template_into_temp;
-
-use crate::warn;
 
 mod creds;
 mod gitconfig;
@@ -17,6 +15,8 @@ mod identity_path;
 mod utils;
 
 pub use utils::try_get_branch_from_path;
+
+use crate::emoji;
 
 // cargo-generate (as application) want from git module:
 // 1. cloning remote
@@ -175,7 +175,7 @@ pub fn remove_history(project_dir: &Path) -> io::Result<()> {
 
                 if e.to_string().contains("The process cannot access the file because it is being used by another process.") {
                     let wait_for = Duration::from_secs(2_u64.pow(attempt.sub(1).into()));
-                    warn!("Git history cleanup failed with a windows process blocking error. [Retry in {:?}]", wait_for);
+                    warn!("{} Git history cleanup failed with a windows process blocking error. [Retry in {:?}]", emoji::WARN, wait_for);
                     sleep(wait_for);
                 } else {
                     return Err(e);

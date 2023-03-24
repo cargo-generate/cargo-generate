@@ -9,7 +9,8 @@ use std::{
 use console::style;
 use regex::Regex;
 
-use crate::{app_config::AppConfig, template_variables::CrateType, warn, GenerateArgs, Vcs};
+use crate::{app_config::AppConfig, emoji, template_variables::CrateType, GenerateArgs, Vcs};
+use log::warn;
 
 // Contains parsed information from user.
 #[derive(Debug)]
@@ -235,7 +236,8 @@ impl UserParsedInput {
             }
         };
         warn!(
-            "Favorite `{}` not found in config, using it as a {}",
+            "{} Favorite `{}` not found in config, using it as a {}",
+            emoji::WARN,
             style(&fav_name).bold(),
             location_msg
         );

@@ -10,6 +10,7 @@ use crate::{emoji, GenerateArgs};
 
 use anyhow::Result;
 use console::style;
+use log::info;
 use regex::Regex;
 use serde::Deserialize;
 use std::{collections::HashMap, fmt::Display, fs, path::Path};
@@ -96,7 +97,7 @@ fn read_template_values_from_definitions(
                 |cap| {
                     let key = cap.get(1).unwrap().as_str().to_string();
                     let value = cap.get(2).unwrap().as_str().to_string();
-                    println!("{key} => '{value}'");
+                    info!("{key} => '{value}'");
                     template_values.insert(key, Value::from(value));
                     Ok(template_values)
                 },

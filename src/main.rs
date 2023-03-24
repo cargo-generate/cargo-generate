@@ -5,6 +5,16 @@ use cargo_generate::{generate, list_favorites, Cli};
 use clap::Parser;
 
 fn main() -> Result<()> {
+    env_logger::builder()
+        .filter_level(log::LevelFilter::Info)
+        .parse_default_env()
+        .format_timestamp(None)
+        .format_target(false)
+        .format_module_path(false)
+        .format_level(false)
+        .target(env_logger::Target::Stdout)
+        .init();
+
     let args = resolve_args();
 
     if args.list_favorites {

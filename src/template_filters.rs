@@ -10,6 +10,7 @@ use heck::{
 use liquid::model;
 use liquid_core::{parser::FilterArguments, Filter, ParseFilter, Runtime, Value, ValueView};
 use liquid_derive::FilterReflection;
+use log::warn;
 use std::{
     path::PathBuf,
     sync::{Arc, Mutex},
@@ -152,7 +153,7 @@ impl Filter for RhaiFilter {
         );
         let file_path = PathBuf::from(input.to_kstr().to_string());
         if !file_path.exists() {
-            eprintln!(
+            warn!(
                 "{} {} {} {}",
                 emoji::WARN,
                 style("Filter script").bold().yellow(),
@@ -173,7 +174,7 @@ impl Filter for RhaiFilter {
         match result {
             Ok(r) => Ok(Value::Scalar(model::Scalar::from(r))),
             Err(err) => {
-                eprintln!(
+                warn!(
                     "{} {} {} {} {}",
                     emoji::WARN,
                     style("Filter script").bold().yellow(),

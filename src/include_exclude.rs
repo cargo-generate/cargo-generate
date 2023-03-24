@@ -4,6 +4,7 @@ use crate::{
 };
 use anyhow::Result;
 use ignore::gitignore::{Gitignore, GitignoreBuilder};
+use log::warn;
 use std::path::Path;
 
 #[derive(Default)]
@@ -28,7 +29,7 @@ impl Matcher {
     ) -> Result<Self> {
         if template_config.include.is_some() && template_config.exclude.is_some() {
             template_config.exclude = None;
-            println!(
+            warn!(
                 "{0} Your {1} contains both an include and exclude list. \
                     Only the include list will be considered. \
                     You should remove the exclude list for clarity. {0}",

@@ -4,6 +4,7 @@ use indicatif::{MultiProgress, ProgressBar};
 use liquid::model::KString;
 use liquid::{Parser, ParserBuilder};
 use liquid_core::{Object, Value};
+use log::warn;
 use std::sync::{Arc, Mutex};
 use std::{
     cell::RefCell,
@@ -113,6 +114,7 @@ fn is_within_cargo_project(project_dir: &Path) -> bool {
         .any(|folder| folder.join("Cargo.toml").exists())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn walk_dir(
     template_config: &mut TemplateConfig,
     project_dir: &Path,
@@ -121,6 +123,7 @@ pub fn walk_dir(
     rhai_engine: Parser,
     rhai_filter_files: &Arc<Mutex<Vec<PathBuf>>>,
     mp: &mut MultiProgress,
+    verbose: bool,
 ) -> Result<()> {
     fn is_git_metadata(entry: &DirEntry) -> bool {
         entry
@@ -152,6 +155,10 @@ pub fn walk_dir(
             width = total.len()
         ));
 
+        if !verbose {
+            pb.set_draw_target(indicatif::ProgressDrawTarget::hidden());
+        }
+
         let filename = entry.path();
         let relative_path = filename.strip_prefix(project_dir)?;
         let filename_display = relative_path.display();
@@ -170,9 +177,6 @@ pub fn walk_dir(
         }
 
         pb.set_message(format!("Processing: {filename_display}"));
-
-        // todo(refactor): as parameter
-        let verbose = false;
 
         match matcher.should_include(relative_path) {
             ShouldInclude::Include => {
@@ -298,7 +302,7 @@ pub fn render_string_gracefully(
                 }
             }
             // todo: find nice way to have this happening outside of this fn
-            // println!(
+            // error!(
             //     "{} {} `{}`",
             //     emoji::ERROR,
             //     style("Error rendering template, file has been copied without rendering.")
@@ -331,5 +335,5 @@ fn print_files_with_errors_warning(files_with_errors: Vec<(String, liquid_core::
         "Learn more: https://github.com/cargo-generate/cargo-generate#include--exclude.\n\n";
     let hint = style("Consider adding these files to a `cargo-generate.toml` in the template repo to skip substitution on these files.").bold();
 
-    println!("{msg}\n{hint}\n\n{read_more}");
+    warn!("{msg}\n{hint}\n\n{read_more}");
 }
