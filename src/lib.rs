@@ -48,9 +48,11 @@ pub use args::*;
 use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
+use env_logger::fmt::Formatter;
 use hooks::execute_hooks;
 use ignore_me::remove_dir_files;
 use interactive::prompt_and_check_variable;
+use log::Record;
 use log::{info, warn};
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::{
@@ -58,12 +60,12 @@ use std::{
     cell::RefCell,
     collections::HashMap,
     env, fs,
+    io::Write,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
-use user_parsed_input::{TemplateLocation, UserParsedInput};
-
 use tempfile::TempDir;
+use user_parsed_input::{TemplateLocation, UserParsedInput};
 
 use crate::template_variables::{
     load_env_and_args_template_values, CrateName, ProjectDir, ProjectNameInput,
@@ -74,6 +76,20 @@ use self::config::TemplateConfig;
 use self::git::try_get_branch_from_path;
 use self::hooks::evaluate_script;
 use self::template::{create_liquid_object, set_project_name_variables, LiquidObjectResource};
+
+/// Logging formatter function
+pub fn log_formatter(
+    buf: &mut Formatter,
+    record: &Record,
+) -> std::result::Result<(), std::io::Error> {
+    let prefix = match record.level() {
+        log::Level::Error => format!("{} ", emoji::ERROR),
+        log::Level::Warn => format!("{} ", emoji::WARN),
+        _ => "".to_string(),
+    };
+
+    writeln!(buf, "{}{}", prefix, record.args())
+}
 
 /// # Panics
 pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
@@ -104,8 +120,7 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
         && !user_parsed_input.init
     {
         warn!(
-            "{} {}",
-            emoji::WARN,
+            "{}",
             style("Template specifies --init, while not specified on the command line. Output location is affected!").bold().red(),
         );
 
@@ -382,8 +397,7 @@ pub(crate) fn copy_dir_all(
                     }
                     (true, true) => {
                         warn!(
-                            "{} {} {}",
-                            emoji::WARN,
+                            "{} {}",
                             style("Overwriting file:").bold().red(),
                             style(dst_path.display()).bold().red(),
                         );

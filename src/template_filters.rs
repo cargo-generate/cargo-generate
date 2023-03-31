@@ -17,7 +17,6 @@ use std::{
 };
 
 use crate::{
-    emoji,
     hooks::{create_rhai_engine, PoisonError},
     template::LiquidObjectResource,
 };
@@ -154,8 +153,7 @@ impl Filter for RhaiFilter {
         let file_path = PathBuf::from(input.to_kstr().to_string());
         if !file_path.exists() {
             warn!(
-                "{} {} {} {}",
-                emoji::WARN,
+                "{} {} {}",
                 style("Filter script").bold().yellow(),
                 style(file_path.display()).bold().red(),
                 style("not found").bold().yellow(),
@@ -175,8 +173,7 @@ impl Filter for RhaiFilter {
             Ok(r) => Ok(Value::Scalar(model::Scalar::from(r))),
             Err(err) => {
                 warn!(
-                    "{} {} {} {} {}",
-                    emoji::WARN,
+                    "{} {} {} {}",
                     style("Filter script").bold().yellow(),
                     style(file_path.display()).bold().red(),
                     style("contained error").bold().yellow(),

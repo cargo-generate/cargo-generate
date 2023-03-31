@@ -107,8 +107,7 @@ fn handle_string_input(
                         break Ok(user_entry);
                     }
                     warn!(
-                        "{} {} \"{}\" {}",
-                        emoji::WARN,
+                        "{} \"{}\" {}",
                         style("Sorry,").bold().red(),
                         style(&user_entry).bold().yellow(),
                         style(format!("is not a valid value for {var_name}"))

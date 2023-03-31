@@ -28,8 +28,7 @@ impl TryFrom<(&LiquidObjectResource, &UserParsedInput)> for ProjectNameInput {
                 if let Some(n) = user_parsed_input.name() {
                     if n != v {
                         warn!(
-                            "{} {} `{}` {} `{}`{}",
-                            emoji::WARN,
+                            "{} `{}` {} `{}`{}",
                             style("Project name changed by template, from").bold(),
                             style(n).bold().yellow(),
                             style("to").bold(),

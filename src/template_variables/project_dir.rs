@@ -51,8 +51,7 @@ impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
                 let renamed_project_name = name.to_kebab_case();
                 if renamed_project_name != name {
                     warn!(
-                        "{} {} `{}` {} `{}`{}",
-                        emoji::WARN,
+                        "{} `{}` {} `{}`{}",
                         style("Renaming project called").bold(),
                         style(name).bold().yellow(),
                         style("to").bold(),

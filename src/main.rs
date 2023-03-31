@@ -6,6 +6,7 @@ use clap::Parser;
 
 fn main() -> Result<()> {
     env_logger::builder()
+        .format(cargo_generate::log_formatter)
         .filter_level(log::LevelFilter::Info)
         .parse_default_env()
         .format_timestamp(None)

@@ -303,8 +303,7 @@ pub fn render_string_gracefully(
             }
             // todo: find nice way to have this happening outside of this fn
             // error!(
-            //     "{} {} `{}`",
-            //     emoji::ERROR,
+            //     "{} `{}`",
             //     style("Error rendering template, file has been copied without rendering.")
             //         .bold()
             //         .red(),
@@ -320,8 +319,7 @@ pub fn render_string_gracefully(
 
 fn print_files_with_errors_warning(files_with_errors: Vec<(String, liquid_core::Error)>) {
     let mut msg = format!(
-        "\n{} {}",
-        emoji::WARN,
+        "\n{}",
         style("Substitution skipped, found invalid syntax in\n")
             .bold()
             .red(),
