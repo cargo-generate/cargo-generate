@@ -319,7 +319,7 @@ pub fn render_string_gracefully(
 
 fn print_files_with_errors_warning(files_with_errors: Vec<(String, liquid_core::Error)>) {
     let mut msg = format!(
-        "\n{}",
+        "{}",
         style("Substitution skipped, found invalid syntax in\n")
             .bold()
             .red(),
@@ -333,5 +333,6 @@ fn print_files_with_errors_warning(files_with_errors: Vec<(String, liquid_core::
         "Learn more: https://github.com/cargo-generate/cargo-generate#include--exclude.\n\n";
     let hint = style("Consider adding these files to a `cargo-generate.toml` in the template repo to skip substitution on these files.").bold();
 
+    warn!("");
     warn!("{msg}\n{hint}\n\n{read_more}");
 }
