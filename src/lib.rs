@@ -220,8 +220,18 @@ fn get_source_template_into_temp(
 ) -> Result<(TempDir, Option<String>)> {
     match template_location {
         TemplateLocation::Git(git) => {
-            git::clone_git_template_into_temp(git.url(), git.branch(), git.tag(), git.identity())
-                .map(|(dir, branch)| (dir, Some(branch)))
+            let result = git::clone_git_template_into_temp(
+                git.url(),
+                git.branch(),
+                git.tag(),
+                git.identity(),
+            )
+            .map(|(dir, branch)| (dir, Some(branch)));
+            if let Ok((ref temp_dir, _)) = result {
+                git::remove_history(temp_dir.path())?;
+                strip_liquid_suffixes(temp_dir.path())?;
+            };
+            result
         }
         TemplateLocation::Path(path) => {
             let temp_dir = tempfile::tempdir()?;
@@ -230,6 +240,24 @@ fn get_source_template_into_temp(
             Ok((temp_dir, try_get_branch_from_path(path)))
         }
     }
+}
+
+/// remove .liquid suffixes from git templates for parity with path templates
+fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        let entry_type = entry.file_type()?;
+
+        if entry_type.is_dir() {
+            strip_liquid_suffixes(entry.path())?;
+        } else if entry_type.is_file() {
+            let path = entry.path().to_string_lossy().to_string();
+            if let Some(new_path) = path.clone().strip_suffix(".liquid") {
+                fs::rename(path, new_path)?;
+            }
+        }
+    }
+    Ok(())
 }
 
 /// resolve the template location for the actual template to expand
