@@ -9,7 +9,8 @@ use std::{
 use console::style;
 use regex::Regex;
 
-use crate::{app_config::AppConfig, template_variables::CrateType, warn, GenerateArgs, Vcs};
+use crate::{app_config::AppConfig, template_variables::CrateType, GenerateArgs, Vcs};
+use log::warn;
 
 // Contains parsed information from user.
 #[derive(Debug)]

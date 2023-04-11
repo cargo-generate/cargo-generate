@@ -6,6 +6,7 @@ use crate::{
 };
 use anyhow::Result;
 use console::style;
+use log::info;
 
 pub fn list_favorites(args: &GenerateArgs) -> Result<()> {
     let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
@@ -29,7 +30,7 @@ pub fn list_favorites(args: &GenerateArgs) -> Result<()> {
     };
 
     if data.is_empty() {
-        println!(
+        info!(
             "{} {}",
             emoji::WARN,
             style("No favorites defined").bold().red()
@@ -37,11 +38,11 @@ pub fn list_favorites(args: &GenerateArgs) -> Result<()> {
         return Ok(());
     }
 
-    println!("{} {}", emoji::WRENCH, style("Possible favorites:").bold());
+    info!("{} {}", emoji::WRENCH, style("Possible favorites:").bold());
     let longest_key = data.iter().map(|(k, _)| k.len()).max().unwrap_or(0);
     let longest_key = ((longest_key + 5) / 4) * 4;
     data.iter().for_each(|(key, conf)| {
-        println!(
+        info!(
             "    {} {}:{}{}",
             emoji::DIAMOND,
             style(key).bold(),
@@ -52,7 +53,7 @@ pub fn list_favorites(args: &GenerateArgs) -> Result<()> {
                 .unwrap_or_else(|| "no description".into())
         );
     });
-    println!("{} {}", emoji::SPARKLE, style("Done").bold().green());
+    info!("{} {}", emoji::SPARKLE, style("Done").bold().green());
 
     Ok(())
 }

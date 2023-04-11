@@ -5,8 +5,9 @@ use console::style;
 use liquid::ValueView;
 
 use crate::{
-    emoji, interactive, template::LiquidObjectResource, user_parsed_input::UserParsedInput, warn,
+    emoji, interactive, template::LiquidObjectResource, user_parsed_input::UserParsedInput,
 };
+use log::warn;
 
 #[derive(Debug)]
 pub struct ProjectNameInput(String);
