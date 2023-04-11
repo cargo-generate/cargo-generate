@@ -205,8 +205,13 @@ fn get_source_template_into_temp(
 ) -> Result<(TempDir, Option<String>)> {
     match template_location {
         TemplateLocation::Git(git) => {
-            let result = git::clone_git_template_into_temp(git.url(), git.branch(), git.tag(), git.identity())
-                .map(|(dir, branch)| (dir, Some(branch)));
+            let result = git::clone_git_template_into_temp(
+                git.url(),
+                git.branch(),
+                git.tag(),
+                git.identity(),
+            )
+            .map(|(dir, branch)| (dir, Some(branch)));
             if let Ok((ref temp_dir, _)) = result {
                 git::remove_history(temp_dir.path())?;
                 strip_liquid_suffixes(temp_dir.path())?;
