@@ -5,11 +5,9 @@ use std::{io, ops::Sub, thread::sleep, time::Duration};
 
 use anyhow::Result;
 use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository, RepositoryInitOptions};
+use log::warn;
 use remove_dir_all::remove_dir_all;
-
 pub use utils::clone_git_template_into_temp;
-
-use crate::warn;
 
 mod creds;
 mod gitconfig;

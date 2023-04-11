@@ -511,7 +511,7 @@ fn missing_rhai_filter_fails_prints_warnings() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stderr(predicates::str::contains(
+        .stdout(predicates::str::contains(
             "Filter script filter-script.rhai not found",
         ));
 

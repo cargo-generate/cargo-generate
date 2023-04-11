@@ -33,7 +33,6 @@ mod hooks;
 mod ignore_me;
 mod include_exclude;
 mod interactive;
-mod log;
 mod progressbar;
 mod project_variables;
 mod template;
@@ -49,21 +48,24 @@ pub use args::*;
 use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
+use env_logger::fmt::Formatter;
 use hooks::execute_hooks;
 use ignore_me::remove_dir_files;
 use interactive::prompt_and_check_variable;
+use log::Record;
+use log::{info, warn};
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::{
     borrow::Borrow,
     cell::RefCell,
     collections::HashMap,
     env, fs,
+    io::Write,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
-use user_parsed_input::{TemplateLocation, UserParsedInput};
-
 use tempfile::TempDir;
+use user_parsed_input::{TemplateLocation, UserParsedInput};
 
 use crate::template_variables::{
     load_env_and_args_template_values, CrateName, ProjectDir, ProjectNameInput,
@@ -74,6 +76,20 @@ use self::config::TemplateConfig;
 use self::git::try_get_branch_from_path;
 use self::hooks::evaluate_script;
 use self::template::{create_liquid_object, set_project_name_variables, LiquidObjectResource};
+
+/// Logging formatter function
+pub fn log_formatter(
+    buf: &mut Formatter,
+    record: &Record,
+) -> std::result::Result<(), std::io::Error> {
+    let prefix = match record.level() {
+        log::Level::Error => format!("{} ", emoji::ERROR),
+        log::Level::Warn => format!("{} ", emoji::WARN),
+        _ => "".to_string(),
+    };
+
+    writeln!(buf, "{}{}", prefix, record.args())
+}
 
 /// # Panics
 pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
@@ -103,9 +119,8 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
         .unwrap_or(false)
         && !user_parsed_input.init
     {
-        eprintln!(
-            "{} {}",
-            emoji::WARN,
+        warn!(
+            "{}",
             style("Template specifies --init, while not specified on the command line. Output location is affected!").bold().red(),
         );
 
@@ -136,7 +151,7 @@ fn copy_expanded_template(
     config: Config,
     branch: Option<&str>,
 ) -> Result<PathBuf> {
-    println!(
+    info!(
         "{} {} `{}`{}",
         emoji::WRENCH,
         style("Moving generated files into:").bold(),
@@ -152,7 +167,7 @@ fn copy_expanded_template(
         info!("{}", style("Initializing a fresh Git repository").bold());
         vcs.initialize(&project_dir, branch, user_parsed_input.force_git_init())?;
     }
-    println!(
+    info!(
         "{} {} {} {}",
         emoji::SPARKLE,
         style("Done!").bold().green(),
@@ -163,7 +178,7 @@ fn copy_expanded_template(
 }
 
 fn test_expanded_template(template_dir: &PathBuf, args: Option<Vec<String>>) -> Result<PathBuf> {
-    println!(
+    info!(
         "{} {}{}{}",
         emoji::WRENCH,
         style("Running \"").bold(),
@@ -409,9 +424,8 @@ pub(crate) fn copy_dir_all(
                         )
                     }
                     (true, true) => {
-                        eprintln!(
-                            "{} {} {}",
-                            emoji::WARN,
+                        warn!(
+                            "{} {}",
                             style("Overwriting file:").bold().red(),
                             style(dst_path.display()).bold().red(),
                         );
@@ -505,19 +519,19 @@ fn expand_template(
     let crate_name = CrateName::from(&project_name_input);
     set_project_name_variables(&liquid_object, &destination, &project_name, &crate_name)?;
 
-    println!(
+    info!(
         "{} {} {}",
         emoji::WRENCH,
         style(format!("Destination: {destination}")).bold(),
         style("...").bold()
     );
-    println!(
+    info!(
         "{} {} {}",
         emoji::WRENCH,
         style(format!("project-name: {project_name}")).bold(),
         style("...").bold()
     );
-    println!(
+    info!(
         "{} {} {}",
         emoji::WRENCH,
         style("Generating template").bold(),
@@ -565,6 +579,7 @@ fn expand_template(
         rhai_engine,
         &rhai_filter_files,
         &mut pbar,
+        args.verbose,
     )?;
 
     // run post-hooks

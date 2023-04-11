@@ -7,7 +7,8 @@ use anyhow::bail;
 use console::style;
 use heck::ToKebabCase;
 
-use crate::{emoji, user_parsed_input::UserParsedInput, warn};
+use crate::{emoji, user_parsed_input::UserParsedInput};
+use log::warn;
 
 use super::project_name_input::ProjectNameInput;
 
