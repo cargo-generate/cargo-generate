@@ -53,7 +53,7 @@ version = "~1.0"
 features = ["derive"]
 
 [dev-dependencies]
-predicates = "~2.1"
+predicates = "~3.0"
 assert_cmd = "~2.0"
 indoc = "~2.0"
 url = "~2.3"
