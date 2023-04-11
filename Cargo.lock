@@ -119,7 +119,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-generate"
-version = "0.18.1"
+version = "0.18.2"
 dependencies = [
  "anyhow",
  "assert_cmd",

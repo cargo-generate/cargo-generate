@@ -1,6 +1,22 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.18.1...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.18.2...HEAD)
+
+## [0.18.2] 2023-04-11
+[0.18.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.18.1...v0.18.2
+
+### 🤕 Fixes
+- [fix: `.liquid` suffixes not stripped when cloning git templates](https://github.com/cargo-generate/cargo-generate/pull/916)
+- [Migrate from println! to log+env_logger](https://github.com/cargo-generate/cargo-generate/pull/907)
+
+### 🛠️ Maintenance
+- [Update various dependencies](https://github.com/cargo-generate/cargo-generate/pull/919)
+
+### Contributors
+- [KaitlynEthylia](https://github.com/KaitlynEthylia)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [mothran](https://github.com/mothran)
+- [sassman](https://github.com/sassman)
 
 ## [0.18.1] 2023-02-25
 [0.18.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.18.0...v0.18.1
