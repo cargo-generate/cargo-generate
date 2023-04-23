@@ -13,7 +13,6 @@ clap = { version = "~4.2", features = ["derive", "std", "help"], default-feature
 git2 = { version = "~0.17", features = ["ssh", "https"], default-features = false }
 console = "~0.15"
 dialoguer = "~0.10"
-dirs = "~5.0"
 indicatif = "~0.17"
 tempfile = "~3.5"
 regex = "~1.7"
