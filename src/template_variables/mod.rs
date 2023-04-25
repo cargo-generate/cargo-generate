@@ -97,7 +97,12 @@ fn read_template_values_from_definitions(
                 |cap| {
                     let key = cap.get(1).unwrap().as_str().to_string();
                     let value = cap.get(2).unwrap().as_str().to_string();
-                    info!("{key} => '{value}'");
+
+                    info!(
+                        "{} {} (variable provided via CLI)",
+                        emoji::WRENCH,
+                        style(format!("{key}: {value:?}")).bold(),
+                    );
                     template_values.insert(key, Value::from(value));
                     Ok(template_values)
                 },

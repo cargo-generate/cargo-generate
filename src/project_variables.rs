@@ -1,8 +1,8 @@
 use anyhow::Result;
+use indexmap::IndexMap;
 use liquid_core::model::map::Entry;
 use liquid_core::Value;
 use regex::Regex;
-use std::collections::HashMap;
 use thiserror::Error;
 
 use crate::{
@@ -105,7 +105,7 @@ pub fn fill_project_variables(
         .placeholders
         .as_ref()
         .map(try_into_template_slots)
-        .unwrap_or_else(|| Ok(HashMap::new()))?;
+        .unwrap_or_else(|| Ok(IndexMap::new()))?;
 
     for (&key, slot) in template_slots.iter() {
         match template_object
@@ -114,7 +114,9 @@ pub fn fill_project_variables(
             .borrow_mut()
             .entry(key.to_string())
         {
-            Entry::Occupied(_) => (), // we already have the value from the config file
+            Entry::Occupied(_) => {
+                // we already have the value from the config file
+            }
             Entry::Vacant(entry) => {
                 // we don't have the file from the config but we can ask for it
                 let value = value_provider(slot)?;
@@ -127,8 +129,8 @@ pub fn fill_project_variables(
 
 fn try_into_template_slots(
     TemplateSlotsTable(table): &TemplateSlotsTable,
-) -> Result<HashMap<&str, TemplateSlots>, ConversionError> {
-    let mut slots = HashMap::with_capacity(table.len());
+) -> Result<IndexMap<&str, TemplateSlots>, ConversionError> {
+    let mut slots = IndexMap::with_capacity(table.len());
     for (key, values) in table.iter() {
         slots.insert(key.as_str(), try_key_value_into_slot(key, values)?);
     }

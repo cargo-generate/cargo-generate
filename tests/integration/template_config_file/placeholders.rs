@@ -6,7 +6,6 @@ use crate::helpers::project_builder::tmp_dir;
 use assert_cmd::prelude::*;
 use indoc::indoc;
 
-#[ignore]
 #[test]
 fn it_prompts_for_placeholders_in_the_config_file_defined_order() {
     let template = tmp_dir()
@@ -47,9 +46,9 @@ fn it_prompts_for_placeholders_in_the_config_file_defined_order() {
         .success()
         .stdout(
             predicates::str::contains(indoc! {r#"
-            ✔ 🤷   Which MCU to target? · esp32
-            ✔ 🤷   Use template default values? · false
-            "#})
+                🔧   mcu: "esp32" (variable provided via CLI)
+                🔧   defaults: "true" (variable provided via CLI)
+                "#})
             .from_utf8(),
         );
 }
