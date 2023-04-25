@@ -9,3 +9,4 @@ mod git;
 mod hooks_and_rhai;
 mod library;
 mod online;
+mod template_config_file;

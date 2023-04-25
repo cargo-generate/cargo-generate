@@ -684,11 +684,12 @@ fn it_always_removes_cargo_ok_file() {
     let template = tmp_dir()
         .file(
             "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "A wonderful project"
+                version = "0.1.0"
+            "#},
         )
         .file(".genignore", r#"farts"#)
         .init_git()
@@ -717,11 +718,12 @@ fn it_removes_genignore_files_before_substitution() {
     let template = tmp_dir()
         .file(
             "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "A wonderful project"
+                version = "0.1.0"
+            "#},
         )
         .file(".cicd_workflow", "i contain a ${{ github }} var")
         .file(".genignore", r#".cicd_workflow"#)
@@ -751,11 +753,12 @@ fn it_does_not_remove_files_from_outside_project_dir() {
     let template = tmp_dir()
         .file(
             "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "A wonderful project"
+                version = "0.1.0"
+            "#},
         )
         .file(
             ".genignore",
@@ -803,11 +806,12 @@ fn errant_ignore_entry_doesnt_affect_template_files() {
     let template = tmp_dir()
         .file(
             "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "A wonderful project"
+                version = "0.1.0"
+            "#},
         )
         .file(
             ".genignore",
@@ -853,11 +857,12 @@ fn it_loads_a_submodule() {
     let template = tmp_dir()
         .file(
             "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
+            indoc! { r#"
+                [package]
+                name = "{{project-name}}"
+                description = "A wonderful project"
+                version = "0.1.0"
+            "#},
         )
         .init_git()
         .add_submodule("./submodule/", submodule_url.as_str())
@@ -890,11 +895,12 @@ fn it_allows_relative_paths() {
     let template = tmp_dir()
         .file(
             "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
+            indoc! { r#"
+                [package]
+                name = "{{project-name}}"
+                description = "A wonderful project"
+                version = "0.1.0"
+            "#},
         )
         .init_git()
         .build();
@@ -958,210 +964,6 @@ fn it_respects_template_branch_name() {
         .assert()
         .success()
         .stdout(predicates::str::contains("On branch gh-pages").from_utf8());
-}
-
-#[test]
-fn it_only_processes_include_files_in_config() {
-    let template = tmp_dir()
-        .file(
-            "cargo-generate.toml",
-            r#"[template]
-include = ["included"]
-exclude = ["excluded2"]
-"#,
-        )
-        .file("included", "{{project-name}}")
-        .file("excluded1", "{{should-not-process}}")
-        .file("excluded2", "{{should-not-process}}")
-        .init_git()
-        .build();
-
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
-        .current_dir(dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    assert!(dir
-        .read("foobar-project/included")
-        .contains("foobar-project"));
-    assert!(dir
-        .read("foobar-project/excluded1")
-        .contains("{{should-not-process}}"));
-    assert!(dir
-        .read("foobar-project/excluded2")
-        .contains("{{should-not-process}}"));
-}
-
-#[test]
-fn it_doesnt_process_excluded_files_in_config() {
-    let template = tmp_dir()
-        .file(
-            "cargo-generate.toml",
-            r#"[template]
-exclude = ["excluded"]
-"#,
-        )
-        .file("included1", "{{project-name}}")
-        .file("included2", "{{project-name}}")
-        .file("excluded", "{{should-not-process}}")
-        .init_git()
-        .build();
-
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
-        .current_dir(dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    assert!(dir
-        .read("foobar-project/excluded")
-        .contains("{{should-not-process}}"));
-    assert!(dir
-        .read("foobar-project/included1")
-        .contains("foobar-project"));
-    assert!(dir
-        .read("foobar-project/included2")
-        .contains("foobar-project"));
-}
-
-#[test]
-fn it_warns_on_include_and_exclude_in_config() {
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        )
-        .file("not-actually-excluded", "{{project-name}}")
-        .file(
-            "cargo-generate.toml",
-            r#"[template]
-include = ["Cargo.toml", "not-actually-excluded"]
-exclude = ["not-actually-excluded"]
-"#,
-        )
-        .init_git()
-        .build();
-
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
-        .current_dir(dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("both").from_utf8())
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    assert!(dir
-        .read("foobar-project/Cargo.toml")
-        .contains("foobar-project"));
-    assert!(dir
-        .read("foobar-project/not-actually-excluded")
-        .contains("foobar-project"));
-}
-
-#[test]
-fn it_always_removes_config_file() {
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        )
-        .file(
-            "cargo-generate.toml",
-            r#"[template]
-"#,
-        )
-        .init_git()
-        .build();
-
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
-        .current_dir(dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    assert!(dir.exists("foobar-project/cargo-generate.toml").not());
-}
-
-//https://github.com/ashleygwilliams/cargo-generate/issues/181
-#[test]
-fn it_doesnt_warn_on_config_with_no_ignore() {
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        )
-        .file(
-            "cargo-generate.toml",
-            r#"[template]
-"#,
-        )
-        .init_git()
-        .build();
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
-        .current_dir(dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("neither").count(0).from_utf8())
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    assert!(dir.exists("foobar-project/cargo-generate.toml").not());
 }
 
 #[test]
@@ -1346,46 +1148,6 @@ version = "0.1.0"
 }
 
 #[test]
-fn vsc_none_can_be_specified_in_the_template() {
-    // Build and commit on branch named 'main'
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project"
-version = "0.1.0"
-"#,
-        )
-        .file(
-            "cargo-generate.toml",
-            r#"[template]
-vcs = "None"
-"#,
-        )
-        .init_git()
-        .build();
-
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .current_dir(dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    assert!(dir
-        .read("foobar-project/Cargo.toml")
-        .contains("foobar-project"));
-    assert!(Repository::open(dir.path().join("foobar-project")).is_err());
-}
-
-#[test]
 fn it_provides_crate_type_lib() {
     // Build and commit on branch named 'main'
     let template = tmp_dir()
@@ -1542,46 +1304,4 @@ fn error_message_for_invalid_repo_or_user() {
             predicates::str::contains(r#"Error: Please check if the Git user / repository exists"#)
                 .from_utf8(),
         );
-}
-
-#[test]
-fn a_template_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            indoc! {r#"
-                [package]
-                name = "{{project-name}}"
-                description = "A wonderful project"
-                version = "0.1.0"
-                "#},
-        )
-        .file(
-            "cargo-generate.toml",
-            indoc! {r#"
-                [template]
-                init = true
-                "#},
-        )
-        .init_git()
-        .build();
-
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
-        .current_dir(dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    assert!(dir.exists("Cargo.toml"));
-    assert!(!dir.path().join(".git").exists());
-    Ok(())
 }
