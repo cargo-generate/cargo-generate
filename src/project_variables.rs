@@ -1,9 +1,14 @@
 use anyhow::Result;
 use indexmap::IndexMap;
 use liquid_core::model::map::Entry;
-use liquid_core::Value;
+use liquid_core::{Value, ValueView};
+use log::info;
 use regex::Regex;
+use std::cell::RefCell;
 use thiserror::Error;
+
+use crate::emoji;
+use console::style;
 
 use crate::{
     config::{Config, TemplateSlotsTable},
@@ -94,6 +99,41 @@ const RESERVED_NAMES: [&str; 7] = [
     "within_cargo_project",
     "is_init",
 ];
+
+pub fn show_project_variables_with_value(template_object: &LiquidObjectResource, config: &Config) {
+    let template_slots = config
+        .placeholders
+        .as_ref()
+        .map(try_into_template_slots)
+        .unwrap_or_else(|| Ok(IndexMap::new()))
+        .unwrap_or_default();
+
+    template_slots
+        .iter()
+        .inspect(|(k, v)| {
+            let k = **k;
+            if RefCell::borrow(&template_object.lock().unwrap()).contains_key(k) {
+                dbg!(k, RefCell::borrow(&template_object.lock().unwrap()).get(k));
+            }
+        })
+        .filter(|(k, _)| template_object.lock().unwrap().borrow().contains_key(**k))
+        .for_each(|(k, v)| {
+            let name = v.var_name.as_str();
+            let value = template_object
+                .lock()
+                .unwrap()
+                .borrow()
+                .get(*k)
+                .unwrap()
+                .to_kstr()
+                .to_string();
+            info!(
+                "{} {} (placeholder provided by cli argument)",
+                emoji::WRENCH,
+                style(format!("{name}: {value:?}")).bold(),
+            )
+        });
+}
 
 /// For each defined placeholder, try to add it with value as a variable to the template_object.
 pub fn fill_project_variables(

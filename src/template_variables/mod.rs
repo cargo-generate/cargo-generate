@@ -10,6 +10,7 @@ use crate::{emoji, GenerateArgs};
 
 use anyhow::Result;
 use console::style;
+use indexmap::IndexMap;
 use log::info;
 use regex::Regex;
 use serde::Deserialize;
@@ -24,7 +25,7 @@ pub use project_dir::ProjectDir;
 pub use project_name::ProjectName;
 pub use project_name_input::ProjectNameInput;
 
-fn load_env_template_values() -> Result<HashMap<String, toml::Value>> {
+fn load_env_template_values() -> Result<IndexMap<String, toml::Value>> {
     //FIXME: use this variable to be in sync with args
     let mut values = std::env::var("CARGO_GENERATE_TEMPLATE_VALUES_FILE")
         .ok()
@@ -40,7 +41,7 @@ fn load_env_template_values() -> Result<HashMap<String, toml::Value>> {
     Ok(values)
 }
 
-fn load_args_template_values(args: &GenerateArgs) -> Result<HashMap<String, toml::Value>> {
+fn load_args_template_values(args: &GenerateArgs) -> Result<IndexMap<String, toml::Value>> {
     let mut values = args
         .template_values_file
         .as_ref()
@@ -55,13 +56,13 @@ fn load_args_template_values(args: &GenerateArgs) -> Result<HashMap<String, toml
 
 pub fn load_env_and_args_template_values(
     args: &GenerateArgs,
-) -> Result<HashMap<String, toml::Value>> {
+) -> Result<IndexMap<String, toml::Value>> {
     let mut template_variables = load_env_template_values()?;
     template_variables.extend(load_args_template_values(args)?);
     Ok(template_variables)
 }
 
-fn read_template_values_file(path: &Path) -> Result<HashMap<String, Value>> {
+fn read_template_values_file(path: &Path) -> Result<IndexMap<String, Value>> {
     match fs::read_to_string(path) {
         Ok(ref contents) => toml::from_str::<TemplateValuesToml>(contents)
             .map(|v| v.values)
@@ -113,7 +114,7 @@ fn read_template_values_from_definitions(
 
 #[derive(Deserialize, Debug, PartialEq)]
 struct TemplateValuesToml {
-    pub(crate) values: HashMap<String, toml::Value>,
+    pub(crate) values: IndexMap<String, toml::Value>,
 }
 
 #[cfg(test)]
