@@ -478,7 +478,7 @@ fn locate_template_file(
     let template_base_folder = template_base_folder.as_ref();
     let mut search_folder = template_folder.as_ref().to_path_buf();
     loop {
-        let file_path = search_folder.join(name.borrow());
+        let file_path = search_folder.join::<&str>(name.borrow());
         if file_path.exists() {
             return Ok(file_path);
         }
