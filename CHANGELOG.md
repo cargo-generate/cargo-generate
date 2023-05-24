@@ -2,6 +2,29 @@
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.18.2...HEAD)
 
+## [0.18.3] 2023-05-24
+[0.18.3]: https://github.com/cargo-generate/cargo-generate/compare/v0.18.2...v0.18.3
+
+### 🤕 Fixes
+
+- [Add type annotation to avoid ambiguity introduced in bstr 1.5.0 (#942)](https://github.com/cargo-generate/cargo-generate/pull/946)
+- [fix: Move to the smaller, cargo-team maintained `home` crate](https://github.com/cargo-generate/cargo-generate/pull/925)
+
+### 🛠️ Maintenance
+
+- [chore(deps): bump openssl from 0.10.50 to 0.10.52](https://github.com/cargo-generate/cargo-generate/pull/929)
+- [chore(deps): bump clap from 4.2.1 to 4.2.4](https://github.com/cargo-generate/cargo-generate/pull/928)
+- [chore(deps): bump regex from 1.7.3 to 1.8.1](https://github.com/cargo-generate/cargo-generate/pull/927)
+- [chore(deps): bump assert_cmd from 2.0.10 to 2.0.11](https://github.com/cargo-generate/cargo-generate/pull/924)
+- [chore(deps): bump predicates from 3.0.2 to 3.0.3](https://github.com/cargo-generate/cargo-generate/pull/923)
+
+### Contributors
+
+- [Jacob640](https://github.com/Jacob640)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [utkarshgupta137](https://github.com/utkarshgupta137)
+
+
 ## [0.18.2] 2023-04-11
 [0.18.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.18.1...v0.18.2
 
