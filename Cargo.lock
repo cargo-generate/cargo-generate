@@ -956,9 +956,9 @@ checksum = "ef53942eb7bf7ff43a617b3e2c1c4a5ecf5944a7c1bc12d7ee39bbb15e5c1519"
 
 [[package]]
 name = "liquid"
-version = "0.26.1"
+version = "0.26.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9dfb833f0d41ed59a6c8d28e2f36d0362557c43fa83e9e096dd74e6e9517858f"
+checksum = "eefc214b0f57977e0036be6646a7ef9799b14456ae77a84808ddbe0c4cf326fb"
 dependencies = [
  "doc-comment",
  "liquid-core",
@@ -969,9 +969,9 @@ dependencies = [
 
 [[package]]
 name = "liquid-core"
-version = "0.26.1"
+version = "0.26.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca2b58598eeb2cd39ea0e0b6c666bab002b4f58ebbeedcc649d164d6dec4b886"
+checksum = "cf5bf9a2ede54bdea60a387ded9bc9236d594210afb73ab55f4cbd53599711d3"
 dependencies = [
  "anymap2",
  "itertools",
@@ -987,20 +987,20 @@ dependencies = [
 
 [[package]]
 name = "liquid-derive"
-version = "0.26.1"
+version = "0.26.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "611c6adfb96294233bd6f20125684a6e3dd28c3f0d057d50a65adf2426ed3f47"
+checksum = "2438da425fd380eb2719a2a5880149697eea32a160e83b63e7848c1bee300406"
 dependencies = [
  "proc-macro2",
- "proc-quote",
- "syn 1.0.109",
+ "quote",
+ "syn 2.0.16",
 ]
 
 [[package]]
 name = "liquid-lib"
-version = "0.26.1"
+version = "0.26.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3ffe1daafef416a71da31385dd3764906cbde22349767a8458d30c96644a512"
+checksum = "4feb5c6363bdac5b5238725e296ed9efbe88576f07819970519f29ee29d0b11e"
 dependencies = [
  "itertools",
  "liquid-core",
@@ -1352,34 +1352,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "proc-quote"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e84ab161de78c915302ca325a19bee6df272800e2ae1a43fe3ef430bab2a100"
-dependencies = [
- "proc-macro-hack",
- "proc-macro2",
- "proc-quote-impl",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "proc-quote-impl"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fb3ec628b063cdbcf316e06a8b8c1a541d28fa6c0a8eacd2bfb2b7f49e88aa0"
-dependencies = [
- "proc-macro-hack",
- "proc-macro2",
- "quote",
-]
-
-[[package]]
 name = "quote"
-version = "1.0.27"
+version = "1.0.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f4f29d145265ec1c483c7c654450edde0bfe043d3938d6972630663356d9500"
+checksum = "1b9ab9c7eadfd8df19006f1cf1a4aed13540ed5cbc047010ece5826e10825488"
 dependencies = [
  "proc-macro2",
 ]
