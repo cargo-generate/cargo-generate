@@ -34,7 +34,9 @@ pub fn clone_git_template_into_temp(
     tag: Option<&str>,
     identity: Option<&Path>,
 ) -> anyhow::Result<(TempDir, String)> {
-    let git_clone_dir = tempfile::tempdir()?;
+    let git_clone_dir = tempfile::Builder::new()
+        .prefix("cargo-generate")
+        .tempdir()?;
 
     let builder = RepoCloneBuilder::new_with(git, branch, identity)?;
 
