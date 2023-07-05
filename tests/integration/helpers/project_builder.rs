@@ -3,7 +3,7 @@ use std::io::Write;
 use std::str;
 
 use crate::helpers::project::Project;
-use tempfile::{tempdir, TempDir};
+use tempfile::TempDir;
 
 pub struct ProjectBuilder {
     files: Vec<(String, String)>,
@@ -18,7 +18,10 @@ pub fn tmp_dir() -> ProjectBuilder {
     ProjectBuilder {
         files: Vec::new(),
         submodules: Vec::new(),
-        root: tempdir().unwrap(),
+        root: tempfile::Builder::new()
+            .prefix("cargo-generate-test")
+            .tempdir()
+            .unwrap(),
         git: false,
         branch: None,
         tag: None,

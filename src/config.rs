@@ -138,8 +138,13 @@ mod tests {
     use std::fs::File;
     use std::io::Write;
     use std::str::FromStr;
-    use tempfile::tempdir;
     use toml::Value;
+
+    fn tempdir() -> std::io::Result<tempfile::TempDir> {
+        tempfile::Builder::new()
+            .prefix("cargo-generate-test")
+            .tempdir()
+    }
 
     #[test]
     fn locate_configs_returns_empty_upon_failure() -> anyhow::Result<()> {

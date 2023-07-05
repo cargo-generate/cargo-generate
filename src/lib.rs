@@ -234,7 +234,9 @@ fn get_source_template_into_temp(
             result
         }
         TemplateLocation::Path(path) => {
-            let temp_dir = tempfile::tempdir()?;
+            let temp_dir = tempfile::Builder::new()
+                .prefix("cargo-generate")
+                .tempdir()?;
             copy_dir_all(path, temp_dir.path(), false)?;
             git::remove_history(temp_dir.path())?;
             Ok((temp_dir, try_get_branch_from_path(path)))
@@ -268,7 +270,7 @@ fn resolve_template_dir(template_base_dir: &TempDir, subfolder: Option<&str>) ->
     })
 }
 
-/// join the base-dir and the sufolder, ensuring that we stay within the template directory
+/// join the base-dir and the subfolder, ensuring that we stay within the template directory
 fn resolve_template_dir_subfolder(
     template_base_dir: &Path,
     subfolder: Option<impl AsRef<str>>,
@@ -781,7 +783,13 @@ mod tests {
         io::Write,
         path::{Path, PathBuf},
     };
-    use tempfile::{tempdir, TempDir};
+    use tempfile::TempDir;
+
+    fn tempdir() -> std::io::Result<tempfile::TempDir> {
+        tempfile::Builder::new()
+            .prefix("cargo-generate-test")
+            .tempdir()
+    }
 
     #[test]
     fn auto_locate_template_returns_base_when_no_cargo_generate_is_found() -> anyhow::Result<()> {

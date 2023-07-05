@@ -50,13 +50,19 @@ pub fn resolve_instead_url(
 mod test {
     use super::*;
 
+    fn tempdir() -> std::io::Result<tempfile::TempDir> {
+        tempfile::Builder::new()
+            .prefix("cargo-generate-test")
+            .tempdir()
+    }
+
     #[test]
     fn should_resolve_instead_url() {
         let sample_config = r#"
 [url "ssh://git@github.com:"]
     insteadOf = https://github.com/
 "#;
-        let where_gitconfig_lives = tempfile::tempdir().unwrap();
+        let where_gitconfig_lives = tempdir().unwrap();
         let gitconfig = where_gitconfig_lives.path().join(".gitconfig");
         std::fs::write(&gitconfig, sample_config).unwrap();
 
