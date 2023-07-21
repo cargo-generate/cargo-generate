@@ -611,7 +611,7 @@ include = [&quot;Cargo.toml&quot;]
 exclude = [&quot;*.c&quot;]
 </code></pre>
 <blockquote>
-<p>⚠️ NOTE: <code>exclude</code> only makes <code>cargo-generate</code> ignore any <code>liquid</code> tags in the file. In order to exclude a file from being copied to the final dir, see <a href="templates/include_exclude.html#Ignoring-files">ignoring files</a>.</p>
+<p>⚠️ NOTE: <code>exclude</code> only makes <code>cargo-generate</code> ignore any <code>liquid</code> tags in the file. In order to exclude a file from being copied to the final dir, see <a href="templates/ignoring.html">ignoring files</a>.</p>
 </blockquote>
 <p>The <code>cargo-generate.toml</code> file should be placed in the root of the template. If using the <code>subfolder</code> feature, the root is the <code>subfolder</code> inside the repository, though <code>cargo-generate</code> will look for the file in all parent folders until it reaches the repository root.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="require-cargo-generate-version-from-template"><a class="header" href="#require-cargo-generate-version-from-template">Require <code>cargo-generate</code> version from template</a></h1>
