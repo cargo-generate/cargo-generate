@@ -20,7 +20,7 @@ enum MatcherKind {
 
 impl Matcher {
     pub(crate) fn new(
-        mut template_config: &mut TemplateConfig,
+        template_config: &mut TemplateConfig,
         project_dir: &Path,
         permanent_excluded: &[String],
     ) -> Result<Self> {
