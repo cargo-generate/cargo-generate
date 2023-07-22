@@ -4,7 +4,6 @@ use liquid_core::model::map::Entry;
 use liquid_core::{Value, ValueView};
 use log::info;
 use regex::Regex;
-use std::cell::RefCell;
 use thiserror::Error;
 
 use crate::emoji;
@@ -110,12 +109,6 @@ pub fn show_project_variables_with_value(template_object: &LiquidObjectResource,
 
     template_slots
         .iter()
-        .inspect(|(k, v)| {
-            let k = **k;
-            if RefCell::borrow(&template_object.lock().unwrap()).contains_key(k) {
-                dbg!(k, RefCell::borrow(&template_object.lock().unwrap()).get(k));
-            }
-        })
         .filter(|(k, _)| template_object.lock().unwrap().borrow().contains_key(**k))
         .for_each(|(k, v)| {
             let name = v.var_name.as_str();

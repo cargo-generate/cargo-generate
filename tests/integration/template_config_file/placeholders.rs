@@ -45,10 +45,10 @@ fn it_prompts_for_placeholders_in_the_config_file_defined_order() {
         .assert()
         .success()
         .stdout(
-            predicates::str::contains(indoc! {r#"
-                🔧   mcu: "esp32" (variable provided via CLI)
-                🔧   defaults: "true" (variable provided via CLI)
-                "#})
+            predicates::str::contains(indoc! { r#"
+            🔧   defaults: "true" (variable provided via CLI)
+            🔧   mcu: "esp32" (variable provided via CLI)
+        "#})
             .from_utf8(),
         );
 }
