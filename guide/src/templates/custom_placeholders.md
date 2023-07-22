@@ -143,7 +143,7 @@ For the file format, see above.
 
 #### Default values
 
-Default values may be specified in the config file (specified with the `--config` flag, or in the default config file `$CARGO_HOME/cargo-generate`)
+Default values may be specified in the config file (specified with the `--config` flag, or in the default config file `$CARGO_HOME/cargo-generate.toml`)
 
 **Example config file:**
 
