@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 use git2::Repository;
 use tempfile::TempDir;
 
+use crate::tmp_dir;
+
 use super::RepoCloneBuilder;
 
 /// deals with `~/` and `$HOME/` prefixes
@@ -34,9 +36,7 @@ pub fn clone_git_template_into_temp(
     tag: Option<&str>,
     identity: Option<&Path>,
 ) -> anyhow::Result<(TempDir, String)> {
-    let git_clone_dir = tempfile::Builder::new()
-        .prefix("cargo-generate")
-        .tempdir()?;
+    let git_clone_dir = tmp_dir()?;
 
     let builder = RepoCloneBuilder::new_with(git, branch, identity)?;
 

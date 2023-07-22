@@ -19,7 +19,7 @@ pub fn tmp_dir() -> ProjectBuilder {
         files: Vec::new(),
         submodules: Vec::new(),
         root: tempfile::Builder::new()
-            .prefix("cargo-generate-test")
+            .prefix("cargo-generate")
             .tempdir()
             .unwrap(),
         git: false,
