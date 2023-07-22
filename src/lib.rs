@@ -67,6 +67,7 @@ use std::{
 use tempfile::TempDir;
 use user_parsed_input::{TemplateLocation, UserParsedInput};
 
+use crate::git::tmp_dir;
 use crate::template_variables::{
     load_env_and_args_template_values, CrateName, ProjectDir, ProjectNameInput,
 };
@@ -755,10 +756,6 @@ fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::
         }
     }
     Ok(())
-}
-
-pub(crate) fn tmp_dir() -> std::io::Result<tempfile::TempDir> {
-    tempfile::Builder::new().prefix("cargo-generate").tempdir()
 }
 
 #[derive(Debug)]

@@ -5,9 +5,11 @@ use std::path::{Path, PathBuf};
 use git2::Repository;
 use tempfile::TempDir;
 
-use crate::tmp_dir;
-
 use super::RepoCloneBuilder;
+
+pub fn tmp_dir() -> std::io::Result<tempfile::TempDir> {
+    tempfile::Builder::new().prefix("cargo-generate").tempdir()
+}
 
 /// deals with `~/` and `$HOME/` prefixes
 pub fn canonicalize_path(p: impl AsRef<Path>) -> Result<PathBuf> {
