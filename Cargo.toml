@@ -9,7 +9,7 @@ edition = "2021"
 include = ["src/**/*", "LICENSE-*", "*.md"]
 
 [dependencies]
-clap = { version = "~4.2", features = ["derive", "std", "help"], default-features = false }
+clap = { version = "~4.3", features = ["derive", "std", "help"], default-features = false }
 git2 = { version = "~0.17", features = ["ssh", "https"], default-features = false }
 console = "~0.15"
 dialoguer = "~0.10"
