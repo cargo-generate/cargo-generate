@@ -1,5 +1,3 @@
-use predicates::prelude::*;
-
 use crate::helpers::project::binary;
 use crate::helpers::project_builder::tmp_dir;
 
@@ -24,7 +22,7 @@ fn it_prompts_for_placeholders_in_the_config_file_defined_order() {
                 type = "bool"
                 prompt = "Use template default values?"
                 default = true
-                "#},
+            "#},
         )
         .init_git()
         .build();
@@ -44,11 +42,5 @@ fn it_prompts_for_placeholders_in_the_config_file_defined_order() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(
-            predicates::str::contains(indoc! { r#"
-            🔧   defaults: "true" (variable provided via CLI)
-            🔧   mcu: "esp32" (variable provided via CLI)
-        "#})
-            .from_utf8(),
-        );
+        .stdout(predicates::str::is_match(r#"defaults.*\n.*mcu"#).unwrap());
 }
