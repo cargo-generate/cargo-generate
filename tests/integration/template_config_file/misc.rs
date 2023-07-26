@@ -22,13 +22,10 @@ fn it_always_removes_config_file() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
+        .arg_name("foobar-project")
+        .arg_branch("main")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -52,13 +49,10 @@ fn it_doesnt_warn_on_config_with_no_ignore() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
+        .arg_name("foobar-project")
+        .arg_branch("main")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -85,13 +79,10 @@ fn a_template_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
+        .arg_name("foobar-project")
+        .arg_branch("main")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -120,11 +111,9 @@ fn vsc_none_can_be_specified_in_the_template() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("generate")
         .arg("--git")
         .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
+        .arg_name("foobar-project")
         .current_dir(dir.path())
         .assert()
         .success()

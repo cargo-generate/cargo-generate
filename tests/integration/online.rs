@@ -19,9 +19,8 @@ fn git_flag_can_be_skipped_and_cargo_will_use_correct_implementation() {
     // with --git
     let dir = tmp_dir().build();
     binary()
-        .arg("generate")
-        .arg("--name")
-        .arg("my-proj")
+
+        .arg_name("my-proj")
         .arg("--init")
         .arg("git://github.com/ashleygwilliams/wasm-pack-template")
         .current_dir(dir.path())
@@ -46,11 +45,10 @@ fn plain_git_repo_works() {
     for remote in possible_urls {
         let dir = tmp_dir().build();
         binary()
-            .arg("generate")
+
             .arg("--git")
             .arg(remote)
-            .arg("--name")
-            .arg("my-proj")
+            .arg_name("my-proj")
             .arg("--init")
             .current_dir(dir.path())
             .assert()
@@ -64,9 +62,8 @@ fn plain_git_repo_works() {
 fn abbreviation_for_github_works() {
     let dir = tmp_dir().build();
     binary()
-        .arg("generate")
-        .arg("--name")
-        .arg("my-proj")
+
+        .arg_name("my-proj")
         .arg("ashleygwilliams/wasm-pack-template")
         .current_dir(dir.path())
         .assert()
@@ -89,11 +86,10 @@ mod ssh_remote {
         let dir = tmp_dir().build();
 
         binary()
-            .arg("generate")
+
             .arg("--git")
             .arg("git@github.com:ashleygwilliams/wasm-pack-template.git")
-            .arg("--name")
-            .arg("foobar-project")
+            .arg_name("foobar-project")
             .current_dir(dir.path())
             .assert()
             .success()
@@ -110,11 +106,10 @@ mod ssh_remote {
         let dir = tmp_dir().build();
 
         binary()
-            .arg("generate")
+
             .arg("--git")
             .arg("git@github.com:cargo-generate/wasm-pack-template.git")
-            .arg("--name")
-            .arg("foobar-project")
+            .arg_name("foobar-project")
             .current_dir(dir.path())
             .assert()
             .success()
@@ -131,13 +126,12 @@ mod ssh_remote {
         let dir = tmp_dir().build();
 
         binary()
-            .arg("generate")
+
             .arg("-i")
             .arg("~/workspaces/rust/cargo-generate-org/.env/id_rsa_ci")
             .arg("--git")
             .arg("git@github.com:cargo-generate/wasm-pack-template.git")
-            .arg("--name")
-            .arg("foobar-project")
+            .arg_name("foobar-project")
             .current_dir(dir.path())
             .assert()
             .success()

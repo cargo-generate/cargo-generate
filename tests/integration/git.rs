@@ -14,13 +14,10 @@ fn it_allows_a_git_branch_to_be_specified() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("generate")
-        .arg("--branch")
-        .arg("bak")
+        .arg_branch("bak")
         .arg("--git")
         .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
+        .arg_name("foobar-project")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -37,13 +34,11 @@ fn it_allows_a_git_tag_to_be_specified() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("generate")
         .arg("--tag")
         .arg("v1.0")
         .arg("--git")
         .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
+        .arg_name("foobar-project")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -60,11 +55,9 @@ fn it_removes_git_history() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("generate")
         .arg("--git")
         .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
+        .arg_name("foobar-project")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -81,11 +74,9 @@ fn it_removes_git_history_also_on_local_templates() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("generate")
         .arg("--path")
         .arg(template.path())
-        .arg("--name")
-        .arg("xyz")
+        .arg_name("xyz")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -102,12 +93,10 @@ fn it_should_init_an_empty_git_repo_even_when_starting_from_a_repo_when_forced()
     let target_path = template.path();
 
     binary()
-        .arg("generate")
         .arg("--force-git-init")
         .arg("--git")
         .arg(template.path())
-        .arg("--name")
-        .arg("foo")
+        .arg_name("foo")
         .current_dir(target_path)
         .assert()
         .success()

@@ -48,11 +48,9 @@ fn favorite_with_git_becomes_subfolder() {
     let working_dir = tmp_dir().build();
 
     binary()
-        .arg("generate")
         .arg("--config")
         .arg(config_path)
-        .arg("--name")
-        .arg("foobar-project")
+        .arg_name("foobar-project")
         .arg("--git")
         .arg(git_template.path())
         .arg("test")
@@ -79,9 +77,7 @@ fn favorite_subfolder_must_be_valid() {
     let working_dir = tmp_dir().build();
 
     binary()
-        .arg("generate")
-        .arg("-n")
-        .arg("outer")
+        .arg_name("outer")
         .arg(template.path())
         .arg("Cargo.toml")
         .current_dir(working_dir.path())
@@ -90,9 +86,7 @@ fn favorite_subfolder_must_be_valid() {
         .stderr(predicates::str::contains("must be a valid folder").from_utf8());
 
     binary()
-        .arg("generate")
-        .arg("-n")
-        .arg("outer")
+        .arg_name("outer")
         .arg(template.path())
         .arg("non-existent")
         .current_dir(working_dir.path())
@@ -100,9 +94,7 @@ fn favorite_subfolder_must_be_valid() {
         .failure(); // Error text is OS specific
 
     binary()
-        .arg("generate")
-        .arg("-n")
-        .arg("outer")
+        .arg_name("outer")
         .arg(template.path())
         .arg(working_dir.path().parent().unwrap())
         .current_dir(working_dir.path())
@@ -129,9 +121,7 @@ fn favorite_with_subfolder() -> anyhow::Result<()> {
 
     let working_dir = tmp_dir().build();
     binary()
-        .arg("generate")
-        .arg("-n")
-        .arg("outer")
+        .arg_name("outer")
         .arg(template.path())
         .arg("inner")
         .current_dir(working_dir.path())
@@ -150,11 +140,9 @@ fn it_can_use_favorites() {
     let working_dir = tmp_dir().build();
 
     binary()
-        .arg("generate")
         .arg("--config")
         .arg(config_path)
-        .arg("--name")
-        .arg("favorite-project")
+        .arg_name("favorite-project")
         .arg("test")
         .current_dir(working_dir.path())
         .assert()
@@ -175,11 +163,9 @@ fn a_favorite_can_set_vcs_to_none_by_default() {
     let working_dir = tmp_dir().build();
 
     binary()
-        .arg("generate")
         .arg("--config")
         .arg(config_path)
-        .arg("--name")
-        .arg("favorite-project")
+        .arg_name("favorite-project")
         .arg("test")
         .current_dir(working_dir.path())
         .assert()
@@ -196,11 +182,9 @@ fn favorites_default_to_git_if_not_defined() {
     let working_dir = tmp_dir().build();
 
     binary()
-        .arg("generate")
         .arg("--config")
         .arg(config_path)
-        .arg("--name")
-        .arg("favorite-project")
+        .arg_name("favorite-project")
         .arg("dummy")
         .current_dir(working_dir.path())
         .assert()
@@ -249,11 +233,9 @@ fn favorites_can_use_default_values() {
     let working_dir = tmp_dir().build();
 
     binary()
-        .arg("generate")
         .arg("--config")
         .arg(config_dir.path().join("cargo-generate.toml"))
-        .arg("--name")
-        .arg("my-project")
+        .arg_name("my-project")
         .arg("favorite")
         .current_dir(working_dir.path())
         .assert()
@@ -313,11 +295,9 @@ fn favorites_default_value_can_be_overridden_by_environment() {
     let working_dir = tmp_dir().build();
 
     binary()
-        .arg("generate")
         .arg("--config")
         .arg(config_dir.path().join("cargo-generate.toml"))
-        .arg("--name")
-        .arg("my-project")
+        .arg_name("my-project")
         .arg("favorite")
         .current_dir(working_dir.path())
         .env(
@@ -363,11 +343,9 @@ fn favorite_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
 
     let dir = tmp_dir().build();
     binary()
-        .arg("generate")
         .arg("--config")
         .arg(config_dir.path().join("config.toml"))
-        .arg("--name")
-        .arg("my-proj")
+        .arg_name("my-proj")
         .arg("favorite")
         .current_dir(dir.path())
         .assert()

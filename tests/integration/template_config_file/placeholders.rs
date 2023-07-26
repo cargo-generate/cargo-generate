@@ -30,13 +30,10 @@ fn it_prompts_for_placeholders_in_the_config_file_defined_order() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
+        .arg_name("foobar-project")
+        .arg_branch("main")
         .args(["--define", "defaults=true"])
         .args(["--define", "mcu=esp32"])
         .current_dir(dir.path())

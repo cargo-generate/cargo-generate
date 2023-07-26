@@ -62,11 +62,9 @@ fn it_runs_all_hook_types() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_name("script-project")
         .arg("-d")
         .arg("pre=hello")
         .arg("-d")
@@ -109,11 +107,9 @@ fn it_runs_system_commands() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_name("script-project")
         .arg("--allow-commands")
         .current_dir(dir.path())
         .assert()
@@ -145,11 +141,9 @@ fn it_fails_to_prompt_for_system_commands_in_silent_mode() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_name("script-project")
         .arg("--silent")
         .current_dir(dir.path())
         .assert()
@@ -180,11 +174,9 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_name("script-project")
         .arg("--allow-commands")
         .current_dir(dir.path())
         .assert()
@@ -219,11 +211,9 @@ fn it_fails_when_it_cant_execute_system_command() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_name("script-project")
         .arg("--allow-commands")
         .current_dir(dir.path())
         .assert()
@@ -265,11 +255,9 @@ fn it_can_change_case() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_name("script-project")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -311,11 +299,9 @@ fn can_change_variables_from_pre_hook() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_name("script-project")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -353,7 +339,6 @@ fn init_hook_can_set_project_name() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
         .current_dir(dir.path())
@@ -395,11 +380,9 @@ fn init_hook_can_change_project_name_but_keeps_cli_name_for_destination() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("--name")
-        .arg("foo")
+        .arg_name("foo")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -437,11 +420,9 @@ fn init_hook_can_change_project_name_but_keeps_init_destination() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("--name")
-        .arg("foo")
+        .arg_name("foo")
         .arg("--init")
         .current_dir(dir.path())
         .assert()
@@ -473,11 +454,9 @@ fn rhai_filter_invokes_rhai_script() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("filter-project")
+        .arg_name("filter-project")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -503,11 +482,9 @@ fn missing_rhai_filter_fails_prints_warnings() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("gen")
         .arg("--git")
         .arg(template.path())
-        .arg("-n")
-        .arg("filter-project")
+        .arg_name("filter-project")
         .current_dir(dir.path())
         .assert()
         .success()

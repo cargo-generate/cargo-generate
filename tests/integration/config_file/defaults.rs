@@ -27,11 +27,10 @@ fn it_uses_ssh_identity_from_defaults_config() {
     let some_template = create_template("some-template");
 
     binary()
-        .arg("generate")
+
         .arg("--config")
         .arg(config_dir.path().join("cargo-generate.toml"))
-        .arg("--name")
-        .arg("foo")
+        .arg_name("foo")
         .arg("--git")
         .arg(some_template.path())
         .current_dir(working_dir.path())
