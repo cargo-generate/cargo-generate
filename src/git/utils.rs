@@ -7,6 +7,10 @@ use tempfile::TempDir;
 
 use super::RepoCloneBuilder;
 
+pub fn tmp_dir() -> std::io::Result<tempfile::TempDir> {
+    tempfile::Builder::new().prefix("cargo-generate").tempdir()
+}
+
 /// deals with `~/` and `$HOME/` prefixes
 pub fn canonicalize_path(p: impl AsRef<Path>) -> Result<PathBuf> {
     let p = p.as_ref();
@@ -34,7 +38,7 @@ pub fn clone_git_template_into_temp(
     tag: Option<&str>,
     identity: Option<&Path>,
 ) -> anyhow::Result<(TempDir, String)> {
-    let git_clone_dir = tempfile::tempdir()?;
+    let git_clone_dir = tmp_dir()?;
 
     let builder = RepoCloneBuilder::new_with(git, branch, identity)?;
 

@@ -133,17 +133,17 @@ pub fn locate_template_configs(base_dir: &Path) -> Result<Vec<PathBuf>> {
 #[cfg(test)]
 mod tests {
     use crate::tests::create_file;
+    use crate::tmp_dir;
 
     use super::*;
     use std::fs::File;
     use std::io::Write;
     use std::str::FromStr;
-    use tempfile::tempdir;
     use toml::Value;
 
     #[test]
     fn locate_configs_returns_empty_upon_failure() -> anyhow::Result<()> {
-        let tmp = tempdir().unwrap();
+        let tmp = tmp_dir().unwrap();
         create_file(&tmp, "dir1/Cargo.toml", "")?;
         create_file(&tmp, "dir2/dir2_1/Cargo.toml", "")?;
         create_file(&tmp, "dir3/Cargo.toml", "")?;
@@ -155,7 +155,7 @@ mod tests {
 
     #[test]
     fn locate_configs_can_locate_paths_with_cargo_generate() -> anyhow::Result<()> {
-        let tmp = tempdir().unwrap();
+        let tmp = tmp_dir().unwrap();
         create_file(&tmp, "dir1/Cargo.toml", "")?;
         create_file(&tmp, "dir2/dir2_1/Cargo.toml", "")?;
         create_file(&tmp, "dir2/dir2_2/cargo-generate.toml", "")?;
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn locate_configs_doesnt_look_past_cargo_generate() -> anyhow::Result<()> {
-        let tmp = tempdir().unwrap();
+        let tmp = tmp_dir().unwrap();
         create_file(&tmp, "dir1/cargo-generate.toml", "")?;
         create_file(&tmp, "dir1/dir2/cargo-generate.toml", "")?;
 
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn test_deserializes_config() {
-        let test_dir = tempdir().unwrap();
+        let test_dir = tmp_dir().unwrap();
         let config_path = test_dir.path().join(CONFIG_FILE_NAME);
         let mut file = File::create(&config_path).unwrap();
 

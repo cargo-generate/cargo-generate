@@ -14,7 +14,7 @@ mod gitconfig;
 mod identity_path;
 mod utils;
 
-pub use utils::try_get_branch_from_path;
+pub use utils::{tmp_dir, try_get_branch_from_path};
 
 // cargo-generate (as application) want from git module:
 // 1. cloning remote

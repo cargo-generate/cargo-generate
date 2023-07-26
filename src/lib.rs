@@ -67,6 +67,7 @@ use std::{
 use tempfile::TempDir;
 use user_parsed_input::{TemplateLocation, UserParsedInput};
 
+use crate::git::tmp_dir;
 use crate::template_variables::{
     load_env_and_args_template_values, CrateName, ProjectDir, ProjectNameInput,
 };
@@ -234,7 +235,7 @@ fn get_source_template_into_temp(
             result
         }
         TemplateLocation::Path(path) => {
-            let temp_dir = tempfile::tempdir()?;
+            let temp_dir = tmp_dir()?;
             copy_dir_all(path, temp_dir.path(), false)?;
             git::remove_history(temp_dir.path())?;
             Ok((temp_dir, try_get_branch_from_path(path)))
@@ -268,7 +269,7 @@ fn resolve_template_dir(template_base_dir: &TempDir, subfolder: Option<&str>) ->
     })
 }
 
-/// join the base-dir and the sufolder, ensuring that we stay within the template directory
+/// join the base-dir and the subfolder, ensuring that we stay within the template directory
 fn resolve_template_dir_subfolder(
     template_base_dir: &Path,
     subfolder: Option<impl AsRef<str>>,
@@ -774,18 +775,18 @@ impl Drop for ScopedWorkingDirectory {
 
 #[cfg(test)]
 mod tests {
-    use crate::{auto_locate_template_dir, project_variables::VarInfo};
+    use crate::{auto_locate_template_dir, project_variables::VarInfo, tmp_dir};
     use anyhow::anyhow;
     use std::{
         fs,
         io::Write,
         path::{Path, PathBuf},
     };
-    use tempfile::{tempdir, TempDir};
+    use tempfile::TempDir;
 
     #[test]
     fn auto_locate_template_returns_base_when_no_cargo_generate_is_found() -> anyhow::Result<()> {
-        let tmp = tempdir().unwrap();
+        let tmp = tmp_dir().unwrap();
         create_file(&tmp, "dir1/Cargo.toml", "")?;
         create_file(&tmp, "dir2/dir2_1/Cargo.toml", "")?;
         create_file(&tmp, "dir3/Cargo.toml", "")?;
@@ -802,7 +803,7 @@ mod tests {
     #[test]
     fn auto_locate_template_returns_path_when_single_cargo_generate_is_found() -> anyhow::Result<()>
     {
-        let tmp = tempdir().unwrap();
+        let tmp = tmp_dir().unwrap();
         create_file(&tmp, "dir1/Cargo.toml", "")?;
         create_file(&tmp, "dir2/dir2_1/Cargo.toml", "")?;
         create_file(&tmp, "dir2/dir2_2/cargo-generate.toml", "")?;
@@ -819,7 +820,7 @@ mod tests {
 
     #[test]
     fn auto_locate_template_can_resolve_configured_subtemplates() -> anyhow::Result<()> {
-        let tmp = tempdir().unwrap();
+        let tmp = tmp_dir().unwrap();
         create_file(
             &tmp,
             "cargo-generate.toml",
@@ -854,7 +855,7 @@ mod tests {
 
     #[test]
     fn auto_locate_template_recurses_to_resolve_subtemplates() -> anyhow::Result<()> {
-        let tmp = tempdir().unwrap();
+        let tmp = tmp_dir().unwrap();
         create_file(
             &tmp,
             "cargo-generate.toml",
@@ -917,7 +918,7 @@ mod tests {
 
     #[test]
     fn auto_locate_template_prompts_when_multiple_cargo_generate_is_found() -> anyhow::Result<()> {
-        let tmp = tempdir().unwrap();
+        let tmp = tmp_dir().unwrap();
         create_file(&tmp, "dir1/Cargo.toml", "")?;
         create_file(&tmp, "dir2/dir2_1/Cargo.toml", "")?;
         create_file(&tmp, "dir2/dir2_2/cargo-generate.toml", "")?;

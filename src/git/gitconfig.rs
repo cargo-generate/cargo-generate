@@ -48,6 +48,8 @@ pub fn resolve_instead_url(
 
 #[cfg(test)]
 mod test {
+    use crate::tmp_dir;
+
     use super::*;
 
     #[test]
@@ -56,7 +58,7 @@ mod test {
 [url "ssh://git@github.com:"]
     insteadOf = https://github.com/
 "#;
-        let where_gitconfig_lives = tempfile::tempdir().unwrap();
+        let where_gitconfig_lives = tmp_dir().unwrap();
         let gitconfig = where_gitconfig_lives.path().join(".gitconfig");
         std::fs::write(&gitconfig, sample_config).unwrap();
 
