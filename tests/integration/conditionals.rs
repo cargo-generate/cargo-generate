@@ -29,8 +29,7 @@ ignore = ["included"]
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg("-d")
         .arg("foo=false")
@@ -67,8 +66,7 @@ ignore = ["included"]
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg("-d")
         .arg("foo=true")
@@ -113,8 +111,7 @@ ignore = ["included"]
 
     binary()
         .arg("--silent")
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg("-d")
         .arg("v1=true")
@@ -148,8 +145,7 @@ ignore = ["included"]
 
     binary()
         .arg("--silent")
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg("-d")
         .arg("v1=true")

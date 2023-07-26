@@ -19,7 +19,6 @@ fn git_flag_can_be_skipped_and_cargo_will_use_correct_implementation() {
     // with --git
     let dir = tmp_dir().build();
     binary()
-
         .arg_name("my-proj")
         .arg("--init")
         .arg("git://github.com/ashleygwilliams/wasm-pack-template")
@@ -45,9 +44,7 @@ fn plain_git_repo_works() {
     for remote in possible_urls {
         let dir = tmp_dir().build();
         binary()
-
-            .arg("--git")
-            .arg(remote)
+            .arg_git(remote)
             .arg_name("my-proj")
             .arg("--init")
             .current_dir(dir.path())
@@ -86,9 +83,7 @@ mod ssh_remote {
         let dir = tmp_dir().build();
 
         binary()
-
-            .arg("--git")
-            .arg("git@github.com:ashleygwilliams/wasm-pack-template.git")
+            .arg_git("git@github.com:ashleygwilliams/wasm-pack-template.git")
             .arg_name("foobar-project")
             .current_dir(dir.path())
             .assert()
@@ -106,9 +101,7 @@ mod ssh_remote {
         let dir = tmp_dir().build();
 
         binary()
-
-            .arg("--git")
-            .arg("git@github.com:cargo-generate/wasm-pack-template.git")
+            .arg_git("git@github.com:cargo-generate/wasm-pack-template.git")
             .arg_name("foobar-project")
             .current_dir(dir.path())
             .assert()
@@ -126,11 +119,9 @@ mod ssh_remote {
         let dir = tmp_dir().build();
 
         binary()
-
             .arg("-i")
             .arg("~/workspaces/rust/cargo-generate-org/.env/id_rsa_ci")
-            .arg("--git")
-            .arg("git@github.com:cargo-generate/wasm-pack-template.git")
+            .arg_git("git@github.com:cargo-generate/wasm-pack-template.git")
             .arg_name("foobar-project")
             .current_dir(dir.path())
             .assert()

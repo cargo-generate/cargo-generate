@@ -30,8 +30,7 @@ fn it_prompts_for_placeholders_in_the_config_file_defined_order() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .args(["--define", "defaults=true"])

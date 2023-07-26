@@ -22,8 +22,7 @@ fn it_always_removes_config_file() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -49,8 +48,7 @@ fn it_doesnt_warn_on_config_with_no_ignore() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -79,8 +77,7 @@ fn a_template_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -111,8 +108,7 @@ fn vsc_none_can_be_specified_in_the_template() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .current_dir(dir.path())
         .assert()

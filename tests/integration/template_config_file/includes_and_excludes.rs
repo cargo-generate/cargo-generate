@@ -26,8 +26,7 @@ fn it_only_processes_include_files_in_config() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -65,8 +64,7 @@ fn it_doesnt_process_excluded_files_in_config() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -112,8 +110,7 @@ fn it_warns_on_include_and_exclude_in_config() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())

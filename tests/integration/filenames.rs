@@ -22,8 +22,7 @@ fn it_substitutes_filename() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .current_dir(dir.path())
         .assert()

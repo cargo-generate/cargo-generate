@@ -92,8 +92,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -124,8 +123,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -160,8 +158,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -184,8 +181,7 @@ fn it_substitutes_os_arch() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -217,8 +213,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar_project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -246,8 +241,7 @@ extern crate {{crate_name}};
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -277,8 +271,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -306,8 +299,7 @@ version = "0.1.0"
         .build();
     let dir = tmp_dir().build();
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("outer")
         .current_dir(dir.path())
         .assert()
@@ -318,8 +310,7 @@ version = "0.1.0"
     let outer_repo = git2::Repository::discover(&outer_project_dir)?;
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("inner")
         .current_dir(&outer_project_dir)
         .assert()
@@ -347,8 +338,7 @@ version = "0.1.0"
         .build();
     let dir = tmp_dir().build();
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("my-proj")
         .arg("--init")
         .current_dir(dir.path())
@@ -375,8 +365,7 @@ version = "0.1.0"
         .build();
     let dir = tmp_dir().file(".git/config", "foobar").build();
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("my-proj")
         .arg("--init")
         .current_dir(dir.path())
@@ -405,8 +394,7 @@ version = "0.1.0"
     let dest = dir.path().join("destination");
     fs::create_dir(&dest).expect("can create directory");
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("my-proj")
         .arg("--destination")
         .arg(&dest)
@@ -435,15 +423,13 @@ version = "0.1.0"
         .build();
     let dir = tmp_dir().build();
     let _ = binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("my-proj")
         .arg("--init")
         .current_dir(dir.path())
         .status();
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("overwritten-proj")
         .arg("--init")
         .current_dir(dir.path())
@@ -468,15 +454,13 @@ version = "0.1.0"
         .build();
     let dir = tmp_dir().build();
     let _ = binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("my-proj")
         .arg("--init")
         .current_dir(dir.path())
         .status();
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("overwritten-proj")
         .arg("--init")
         .arg("--overwrite")
@@ -504,8 +488,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar_project")
         .arg_branch("main")
         .arg("--force")
@@ -545,8 +528,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -583,8 +565,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .arg("--verbose")
@@ -612,8 +593,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -643,8 +623,7 @@ fn it_always_removes_cargo_ok_file() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -675,8 +654,7 @@ fn it_removes_genignore_files_before_substitution() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -722,8 +700,7 @@ fn it_does_not_remove_files_from_outside_project_dir() {
     });
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -761,8 +738,7 @@ fn errant_ignore_entry_doesnt_affect_template_files() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -803,8 +779,7 @@ fn it_loads_a_submodule() {
 
     let dir = tmp_dir().build();
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -844,8 +819,7 @@ fn it_allows_relative_paths() {
 
     let dir = tmp_dir().build();
     binary()
-        .arg("--git")
-        .arg(relative_path)
+        .arg_git(relative_path)
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -873,8 +847,7 @@ fn it_respects_template_branch_name() {
 
     let dir = tmp_dir().build();
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("gh-pages")
         .current_dir(dir.path())
@@ -906,8 +879,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -940,8 +912,7 @@ without_suffix = {{crate_name | split: "_" | first}}
     // without_suffix = {{crate_name | split "_project" | first}}
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -970,8 +941,7 @@ fn it_processes_dot_github_directory_files() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -1006,8 +976,7 @@ _This README was generated with [cargo-readme](https://github.com/livioribeiro/c
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -1041,8 +1010,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg("--vcs")
         .arg("nONE")
@@ -1075,8 +1043,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg("--lib")
         .current_dir(dir.path())
@@ -1106,8 +1073,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .current_dir(dir.path())
         .assert()
@@ -1135,8 +1101,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -1165,8 +1130,7 @@ version = "0.1.0"
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
         .current_dir(dir.path())
@@ -1192,8 +1156,7 @@ fn error_message_for_invalid_repo_or_user() {
     let dir = tmp_dir().build();
 
     binary()
-        .arg("--git")
-        .arg("sassman/cli-template-rs-xx")
+        .arg_git("sassman/cli-template-rs-xx")
         .arg_name("favorite-project")
         .current_dir(dir.path())
         .assert()

@@ -36,8 +36,7 @@ fn it_accepts_default_template_values() {
         .arg("--config")
         .arg(config_dir.path().join("cargo-generate"))
         .arg_name("my-project")
-        .arg("--git")
-        .arg(template_dir.path())
+        .arg_git(template_dir.path())
         .current_dir(working_dir.path())
         .assert()
         .success()
@@ -83,8 +82,7 @@ fn it_accepts_template_values_file_from_environment() {
         .arg("--config")
         .arg(config_dir.path().join("cargo-generate.toml"))
         .arg_name("foobar-project")
-        .arg("--git")
-        .arg(template_dir.path())
+        .arg_git(template_dir.path())
         .current_dir(dir.path())
         .env(
             "CARGO_GENERATE_TEMPLATE_VALUES_FILE",
@@ -130,8 +128,7 @@ ignore = ["included"]
 
     binary()
         .arg("--silent")
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg_name("foobar-project")
         .arg("--template-values-file")
         .arg(template.path().join("my-values.toml"))
@@ -165,8 +162,7 @@ fn it_accepts_individual_template_values_from_environment() {
 
     binary()
         .arg_name("foobar-project")
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .current_dir(dir.path())
         .env(
             "CARGO_GENERATE_TEMPLATE_VALUES_FILE",
@@ -204,8 +200,7 @@ fn it_accepts_template_values_file_via_flag() {
 
     binary()
         .arg_name("foobar-project")
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg("--template-values-file")
         .arg(template.path().join("my-values.toml"))
         .current_dir(dir.path())
@@ -241,8 +236,7 @@ fn it_accepts_individual_template_values_via_flag() {
 
     binary()
         .arg_name("foobar-project")
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .arg("--template-values-file")
         .arg(template.path().join("my-values.toml"))
         .arg("--define")
