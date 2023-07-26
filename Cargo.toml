@@ -57,7 +57,7 @@ predicates = "~3.0"
 assert_cmd = "~2.0"
 indoc = "~2.0"
 url = "~2.3"
-bstr = "~1.4"
+bstr = "~1.6"
 
 [dev-dependencies.cargo-husky]
 version = "~1.5"
