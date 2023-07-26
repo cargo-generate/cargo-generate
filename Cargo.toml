@@ -21,7 +21,7 @@ walkdir = "~2.3"
 remove_dir_all = "~0.8"
 ignore = "~0.4"
 anyhow = "~1.0"
-toml = "~0.7"
+toml = { version = "~0.7", features = ["preserve_order"] }
 thiserror = "~1.0"
 home = "~0.5"
 sanitize-filename = "~0.4"
@@ -32,6 +32,7 @@ paste = "~1.0"
 names = { version = "~0.14", default-features = false }
 log = "~0.4"
 env_logger = "~0.10"
+indexmap = { version = "~1.9", features = ["serde"] }
 
 # liquid
 liquid = "~0.26"

@@ -165,7 +165,11 @@ fn copy_expanded_template(
         .and_then(|t| t.vcs)
         .unwrap_or_else(|| user_parsed_input.vcs());
     if !vcs.is_none() && (!user_parsed_input.init || user_parsed_input.force_git_init()) {
-        info!("{}", style("Initializing a fresh Git repository").bold());
+        info!(
+            "{} {}",
+            emoji::WRENCH,
+            style("Initializing a fresh Git repository").bold()
+        );
         vcs.initialize(&project_dir, branch, user_parsed_input.force_git_init())?;
     }
     info!(
@@ -532,6 +536,8 @@ fn expand_template(
         style(format!("project-name: {project_name}")).bold(),
         style("...").bold()
     );
+    project_variables::show_project_variables_with_value(&liquid_object, config);
+
     info!(
         "{} {} {}",
         emoji::WRENCH,

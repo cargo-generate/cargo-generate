@@ -1,9 +1,13 @@
 use anyhow::Result;
+use indexmap::IndexMap;
 use liquid_core::model::map::Entry;
-use liquid_core::Value;
+use liquid_core::{Value, ValueView};
+use log::info;
 use regex::Regex;
-use std::collections::HashMap;
 use thiserror::Error;
+
+use crate::emoji;
+use console::style;
 
 use crate::{
     config::{Config, TemplateSlotsTable},
@@ -95,6 +99,35 @@ const RESERVED_NAMES: [&str; 7] = [
     "is_init",
 ];
 
+pub fn show_project_variables_with_value(template_object: &LiquidObjectResource, config: &Config) {
+    let template_slots = config
+        .placeholders
+        .as_ref()
+        .map(try_into_template_slots)
+        .unwrap_or_else(|| Ok(IndexMap::new()))
+        .unwrap_or_default();
+
+    template_slots
+        .iter()
+        .filter(|(k, _)| template_object.lock().unwrap().borrow().contains_key(**k))
+        .for_each(|(k, v)| {
+            let name = v.var_name.as_str();
+            let value = template_object
+                .lock()
+                .unwrap()
+                .borrow()
+                .get(*k)
+                .unwrap()
+                .to_kstr()
+                .to_string();
+            info!(
+                "{} {} (placeholder provided by cli argument)",
+                emoji::WRENCH,
+                style(format!("{name}: {value:?}")).bold(),
+            )
+        });
+}
+
 /// For each defined placeholder, try to add it with value as a variable to the template_object.
 pub fn fill_project_variables(
     template_object: &LiquidObjectResource,
@@ -105,7 +138,7 @@ pub fn fill_project_variables(
         .placeholders
         .as_ref()
         .map(try_into_template_slots)
-        .unwrap_or_else(|| Ok(HashMap::new()))?;
+        .unwrap_or_else(|| Ok(IndexMap::new()))?;
 
     for (&key, slot) in template_slots.iter() {
         match template_object
@@ -114,7 +147,9 @@ pub fn fill_project_variables(
             .borrow_mut()
             .entry(key.to_string())
         {
-            Entry::Occupied(_) => (), // we already have the value from the config file
+            Entry::Occupied(_) => {
+                // we already have the value from the config file
+            }
             Entry::Vacant(entry) => {
                 // we don't have the file from the config but we can ask for it
                 let value = value_provider(slot)?;
@@ -127,8 +162,8 @@ pub fn fill_project_variables(
 
 fn try_into_template_slots(
     TemplateSlotsTable(table): &TemplateSlotsTable,
-) -> Result<HashMap<&str, TemplateSlots>, ConversionError> {
-    let mut slots = HashMap::with_capacity(table.len());
+) -> Result<IndexMap<&str, TemplateSlots>, ConversionError> {
+    let mut slots = IndexMap::with_capacity(table.len());
     for (key, values) in table.iter() {
         slots.insert(key.as_str(), try_key_value_into_slot(key, values)?);
     }

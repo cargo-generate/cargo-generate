@@ -1,4 +1,5 @@
 use anyhow::Result;
+use indexmap::IndexMap;
 use semver::VersionReq;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
@@ -44,8 +45,8 @@ pub struct ConditionalConfig {
     pub placeholders: Option<TemplateSlotsTable>,
 }
 
-#[derive(Deserialize, Debug, PartialEq, Clone)]
-pub struct TemplateSlotsTable(pub HashMap<String, toml::Value>);
+#[derive(Deserialize, Debug, PartialEq, Clone, Default)]
+pub struct TemplateSlotsTable(pub IndexMap<String, toml::Value>);
 
 impl TryFrom<String> for Config {
     type Error = toml::de::Error;
