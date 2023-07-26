@@ -55,23 +55,17 @@ impl CargoGenerateArgBuilder {
 
     /// wrapper for `--name <name>` cli argument
     pub fn arg_name(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
-        self.0.arg("--name").arg(name);
-
-        self
+        self.arg("--name").arg(name)
     }
 
     /// wrapper for `--branch <name>` cli argument
     pub fn arg_branch(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
-        self.0.arg("--branch").arg(name);
-
-        self
+        self.arg("--branch").arg(name)
     }
 
     /// wrapper for `--git <name>` cli argument
     pub fn arg_git(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
-        self.0.arg("--git").arg(name);
-
-        self
+        self.arg("--git").arg(name)
     }
 
     /// proxy for `Command::arg`
