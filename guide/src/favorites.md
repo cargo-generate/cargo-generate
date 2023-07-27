@@ -10,7 +10,7 @@ Each favorite template is specified in its own section, e.g.:
 ```toml
 [favorites.demo]
 description = "<optional description, visible with --list-favorites>"
-git = "https://github.com/ashleygwilliams/wasm-pack-template"
+git = "https://github.com/rustwasm/wasm-pack-template"
 branch = "<optional-branch>"
 subfolder = "<optional-subfolder>"
 vcs = "<optional: None|Git>"

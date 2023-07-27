@@ -22,5 +22,5 @@ Here's an example of using `cargo-generate` with [this template]:
 
 ![demo.gif](./demo.gif)
 
-[this template]: https://github.com/ashleygwilliams/wasm-pack-template
+[this template]: https://github.com/rustwasm/wasm-pack-template
 [Shopify's Liquid]: http://liquidmarkup.org/

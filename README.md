@@ -22,7 +22,7 @@ project by leveraging a pre-existing git repository as a template.
 Here's an example of using `cargo-generate` with [this template]:
 ![demo.gif](./demo.gif)
 
-[this template]: https://github.com/ashleygwilliams/wasm-pack-template
+[this template]: https://github.com/rustwasm/wasm-pack-template
 
 ## Documentation
 

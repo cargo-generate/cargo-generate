@@ -15,7 +15,7 @@ fn git_flag_can_be_skipped_and_cargo_will_use_correct_implementation() {
     binary()
         .arg_name("my-proj")
         .flag_init()
-        .arg("git://github.com/ashleygwilliams/wasm-pack-template")
+        .arg("git://github.com/rustwasm/wasm-pack-template")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -26,12 +26,12 @@ fn git_flag_can_be_skipped_and_cargo_will_use_correct_implementation() {
 #[ignore]
 fn plain_git_repo_works() {
     let possible_urls = vec![
-        "git://github.com/ashleygwilliams/wasm-pack-template",
-        "git://github.com/ashleygwilliams/wasm-pack-template.git",
-        "https://github.com/ashleygwilliams/wasm-pack-template.git",
-        "https://github.com/ashleygwilliams/wasm-pack-template",
-        "http://github.com/ashleygwilliams/wasm-pack-template.git",
-        "http://github.com/ashleygwilliams/wasm-pack-template",
+        "git://github.com/rustwasm/wasm-pack-template",
+        "git://github.com/rustwasm/wasm-pack-template.git",
+        "https://github.com/rustwasm/wasm-pack-template.git",
+        "https://github.com/rustwasm/wasm-pack-template",
+        "http://github.com/rustwasm/wasm-pack-template.git",
+        "http://github.com/rustwasm/wasm-pack-template",
     ];
 
     // with --git
@@ -55,13 +55,13 @@ fn abbreviation_for_github_works() {
     binary()
 
         .arg_name("my-proj")
-        .arg("ashleygwilliams/wasm-pack-template")
+        .arg("rustwasm/wasm-pack-template")
         .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").and(
             predicates::str::contains(
-                "Favorite `ashleygwilliams/wasm-pack-template` not found in config, using it as a git repository: https://github.com/ashleygwilliams/wasm-pack-template.git"
+                "Favorite `rustwasm/wasm-pack-template` not found in config, using it as a git repository: https://github.com/rustwasm/wasm-pack-template.git"
             )).from_utf8());
 }
 
@@ -77,7 +77,7 @@ mod ssh_remote {
         let dir = tempdir().build();
 
         binary()
-            .arg_git("git@github.com:ashleygwilliams/wasm-pack-template.git")
+            .arg_git("git@github.com:rustwasm/wasm-pack-template.git")
             .arg_name("foobar-project")
             .current_dir(dir.path())
             .assert()
