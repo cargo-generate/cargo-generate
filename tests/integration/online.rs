@@ -5,19 +5,13 @@
 //! ```
 //! cargo test -- --include-ignored
 //! ````
-
-use predicates::prelude::*;
-
-use crate::helpers::project::binary;
-use crate::helpers::project_builder::tmp_dir;
-
-use assert_cmd::prelude::*;
+use crate::helpers::prelude::*;
 
 #[test]
 #[ignore]
 fn git_flag_can_be_skipped_and_cargo_will_use_correct_implementation() {
     // with --git
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
     binary()
         .arg_name("my-proj")
         .arg("--init")
@@ -42,7 +36,7 @@ fn plain_git_repo_works() {
 
     // with --git
     for remote in possible_urls {
-        let dir = tmp_dir().build();
+        let dir = tempdir().build();
         binary()
             .arg_git(remote)
             .arg_name("my-proj")
@@ -57,7 +51,7 @@ fn plain_git_repo_works() {
 #[test]
 #[ignore]
 fn abbreviation_for_github_works() {
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
     binary()
 
         .arg_name("my-proj")
@@ -80,7 +74,7 @@ mod ssh_remote {
     #[ignore]
     // for now only locally working
     fn it_should_support_a_public_repo() {
-        let dir = tmp_dir().build();
+        let dir = tempdir().build();
 
         binary()
             .arg_git("git@github.com:ashleygwilliams/wasm-pack-template.git")
@@ -98,7 +92,7 @@ mod ssh_remote {
     #[ignore]
     // for now only locally working
     fn it_should_support_a_private_repo() {
-        let dir = tmp_dir().build();
+        let dir = tempdir().build();
 
         binary()
             .arg_git("git@github.com:cargo-generate/wasm-pack-template.git")
@@ -116,7 +110,7 @@ mod ssh_remote {
     #[ignore]
     // for now only locally working
     fn it_should_support_a_custom_ssh_key() {
-        let dir = tmp_dir().build();
+        let dir = tempdir().build();
 
         binary()
             .arg("-i")

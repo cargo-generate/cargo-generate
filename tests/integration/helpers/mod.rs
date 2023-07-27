@@ -1,12 +1,13 @@
 use crate::helpers::project::Project;
-use crate::helpers::project_builder::tmp_dir;
+use crate::helpers::project_builder::tempdir;
 use indoc::indoc;
 
+pub mod prelude;
 pub mod project;
 pub mod project_builder;
 
 pub fn create_template(description: &str) -> Project {
-    tmp_dir()
+    tempdir()
         .file(
             "Cargo.toml",
             format!(

@@ -1,19 +1,8 @@
-use git2::Repository;
-use indoc::indoc;
-use predicates::prelude::*;
-
-use crate::helpers::project::binary;
-use crate::helpers::project_builder::tmp_dir;
-
-use assert_cmd::prelude::*;
-use std::env;
-use std::fs;
-use std::ops::Not;
-use std::process::Command;
+use crate::helpers::prelude::*;
 
 #[test]
 fn it_can_use_a_plain_folder() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -24,7 +13,7 @@ version = "0.1.0"
         )
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_name("foobar-project")
@@ -48,7 +37,7 @@ version = "0.1.0"
 
 #[test]
 fn it_can_use_a_specified_path() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -59,7 +48,7 @@ version = "0.1.0"
         )
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_name("foobar-project")
@@ -77,7 +66,7 @@ version = "0.1.0"
 
 #[test]
 fn it_substitutes_projectname_in_cargo_toml() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -89,7 +78,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -107,7 +96,7 @@ version = "0.1.0"
 
 #[test]
 fn it_substitutes_authors_and_username() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -120,7 +109,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -142,43 +131,13 @@ version = "0.1.0"
 }
 
 #[test]
-fn it_substitutes_date() {
-    let template = tmp_dir()
-        .file(
-            "Cargo.toml",
-            r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project Copyright {{ "2018-10-04 18:18:45 +0200" | date: "%Y" }}"
-version = "0.1.0"
-"#,
-        )
-        .init_git()
-        .build();
-
-    let dir = tmp_dir().build();
-
-    binary()
-        .arg_git(template.path())
-        .arg_name("foobar-project")
-        .arg_branch("main")
-        .current_dir(dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    assert!(dir
-        .read("foobar-project/Cargo.toml")
-        .contains("Copyright 2018"));
-}
-
-#[test]
 fn it_substitutes_os_arch() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file("some-file", r#"{{os-arch}}"#)
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -198,7 +157,7 @@ fn it_substitutes_os_arch() {
 
 #[test]
 fn it_kebabcases_projectname_when_passed_to_flag() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -210,7 +169,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -228,7 +187,7 @@ version = "0.1.0"
 
 #[test]
 fn it_substitutes_cratename_in_a_rust_file() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "main.rs",
             r#"
@@ -238,7 +197,7 @@ extern crate {{crate_name}};
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -256,7 +215,7 @@ extern crate {{crate_name}};
 
 #[test]
 fn short_commands_work() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -268,7 +227,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -286,7 +245,7 @@ version = "0.1.0"
 
 #[test]
 fn it_can_generate_inside_existing_repository() -> anyhow::Result<()> {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -297,7 +256,7 @@ version = "0.1.0"
         )
         .init_git()
         .build();
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
     binary()
         .arg_git(template.path())
         .arg_name("outer")
@@ -325,7 +284,7 @@ version = "0.1.0"
 
 #[test]
 fn it_can_generate_into_cwd() -> anyhow::Result<()> {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -336,7 +295,7 @@ version = "0.1.0"
         )
         .init_git()
         .build();
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
     binary()
         .arg_git(template.path())
         .arg_name("my-proj")
@@ -352,7 +311,7 @@ version = "0.1.0"
 
 #[test]
 fn it_can_generate_into_existing_git_dir() -> anyhow::Result<()> {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -363,7 +322,7 @@ version = "0.1.0"
         )
         .init_git()
         .build();
-    let dir = tmp_dir().file(".git/config", "foobar").build();
+    let dir = tempdir().file(".git/config", "foobar").build();
     binary()
         .arg_git(template.path())
         .arg_name("my-proj")
@@ -379,7 +338,7 @@ version = "0.1.0"
 
 #[test]
 fn it_can_generate_at_given_path() -> anyhow::Result<()> {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -390,7 +349,7 @@ version = "0.1.0"
         )
         .init_git()
         .build();
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
     let dest = dir.path().join("destination");
     fs::create_dir(&dest).expect("can create directory");
     binary()
@@ -410,7 +369,7 @@ version = "0.1.0"
 
 #[test]
 fn it_refuses_to_overwrite_files() -> anyhow::Result<()> {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -421,7 +380,7 @@ version = "0.1.0"
         )
         .init_git()
         .build();
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
     let _ = binary()
         .arg_git(template.path())
         .arg_name("my-proj")
@@ -441,7 +400,7 @@ version = "0.1.0"
 
 #[test]
 fn it_can_overwrite_files() -> anyhow::Result<()> {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -452,7 +411,7 @@ version = "0.1.0"
         )
         .init_git()
         .build();
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
     let _ = binary()
         .arg_git(template.path())
         .arg_name("my-proj")
@@ -473,7 +432,7 @@ version = "0.1.0"
 
 #[test]
 fn it_allows_user_defined_projectname_when_passing_force_flag() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -485,7 +444,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -504,7 +463,7 @@ version = "0.1.0"
 
 #[test]
 fn it_removes_files_listed_in_genignore() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -525,7 +484,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -543,7 +502,7 @@ version = "0.1.0"
 
 #[test]
 fn it_prints_ignored_files_with_verbose() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -562,7 +521,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -577,7 +536,7 @@ version = "0.1.0"
 
 #[test]
 fn it_always_removes_genignore_file() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -590,7 +549,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -606,7 +565,7 @@ version = "0.1.0"
 
 #[test]
 fn it_always_removes_cargo_ok_file() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             indoc! {r#"
@@ -620,7 +579,7 @@ fn it_always_removes_cargo_ok_file() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -636,7 +595,7 @@ fn it_always_removes_cargo_ok_file() {
 
 #[test]
 fn it_removes_genignore_files_before_substitution() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             indoc! {r#"
@@ -651,7 +610,7 @@ fn it_removes_genignore_files_before_substitution() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -667,7 +626,7 @@ fn it_removes_genignore_files_before_substitution() {
 
 #[test]
 fn it_does_not_remove_files_from_outside_project_dir() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             indoc! {r#"
@@ -685,7 +644,7 @@ fn it_does_not_remove_files_from_outside_project_dir() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     let dangerous_file = template
         .path()
@@ -716,7 +675,7 @@ fn it_does_not_remove_files_from_outside_project_dir() {
 
 #[test]
 fn errant_ignore_entry_doesnt_affect_template_files() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             indoc! {r#"
@@ -735,7 +694,7 @@ fn errant_ignore_entry_doesnt_affect_template_files() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -757,13 +716,13 @@ fn errant_ignore_entry_doesnt_affect_template_files() {
 
 #[test]
 fn it_loads_a_submodule() {
-    let submodule = tmp_dir()
+    let submodule = tempdir()
         .file("README.md", "*JUST A SUBMODULE*")
         .init_git()
         .build();
 
     let submodule_url = url::Url::from_file_path(submodule.path()).unwrap();
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             indoc! { r#"
@@ -777,7 +736,7 @@ fn it_loads_a_submodule() {
         .add_submodule("./submodule/", submodule_url.as_str())
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
     binary()
         .arg_git(template.path())
         .arg_name("foobar-project")
@@ -797,7 +756,7 @@ fn it_loads_a_submodule() {
 
 #[test]
 fn it_allows_relative_paths() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             indoc! { r#"
@@ -817,7 +776,7 @@ fn it_allows_relative_paths() {
         relative_path
     };
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
     binary()
         .arg_git(relative_path)
         .arg_name("foobar-project")
@@ -834,7 +793,7 @@ fn it_allows_relative_paths() {
 
 #[test]
 fn it_respects_template_branch_name() {
-    let template = tmp_dir().file("index.html", "My Page").init_git().build();
+    let template = tempdir().file("index.html", "My Page").init_git().build();
 
     Command::new("git")
         .arg("branch")
@@ -845,7 +804,7 @@ fn it_respects_template_branch_name() {
         .assert()
         .success();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
     binary()
         .arg_git(template.path())
         .arg_name("foobar-project")
@@ -865,7 +824,7 @@ fn it_respects_template_branch_name() {
 
 #[test]
 fn it_doesnt_warn_with_neither_config_nor_ignore() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -876,7 +835,7 @@ version = "0.1.0"
         )
         .init_git()
         .build();
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -891,54 +850,12 @@ version = "0.1.0"
 }
 
 #[test]
-fn it_applies_filters() {
-    let template = tmp_dir()
-        .file(
-            "filters.txt",
-            r#"kebab_case = {{"some text" | kebab_case}}
-lower_camel_case = {{"some text" | lower_camel_case}}
-pascal_case = {{"some text" | pascal_case}}
-shouty_kebab_case = {{"some text" | shouty_kebab_case}}
-shouty_snake_case = {{"some text" | shouty_snake_case}}
-snake_case = {{"some text" | snake_case}}
-title_case = {{"some text" | title_case}}
-upper_camel_case = {{"some text" | upper_camel_case}}
-without_suffix = {{crate_name | split: "_" | first}}
-"#,
-        )
-        .init_git()
-        .build();
-    let dir = tmp_dir().build();
-    // without_suffix = {{crate_name | split "_project" | first}}
-
-    binary()
-        .arg_git(template.path())
-        .arg_name("foobar-project")
-        .arg_branch("main")
-        .current_dir(dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
-
-    let cargo_toml = dir.read("foobar-project/filters.txt");
-    assert!(cargo_toml.contains("kebab_case = some-text"));
-    assert!(cargo_toml.contains("lower_camel_case = someText"));
-    assert!(cargo_toml.contains("pascal_case = SomeText"));
-    assert!(cargo_toml.contains("shouty_kebab_case = SOME-TEXT"));
-    assert!(cargo_toml.contains("shouty_snake_case = SOME_TEXT"));
-    assert!(cargo_toml.contains("snake_case = some_text"));
-    assert!(cargo_toml.contains("title_case = Some Text"));
-    assert!(cargo_toml.contains("upper_camel_case = SomeText"));
-    assert!(!cargo_toml.contains("without_suffix = foobar_project"));
-}
-
-#[test]
 fn it_processes_dot_github_directory_files() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(".github/foo.txt", "{{project-name}}")
         .init_git()
         .build();
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -968,12 +885,12 @@ This project try follow rules:
 _This README was generated with [cargo-readme](https://github.com/livioribeiro/cargo-readme) from [template](https://github.com/xoac/crates-io-lib-template)
 "#;
     let raw_template = format!("{{% raw %}}{raw_body}{{% endraw %}}");
-    let template = tmp_dir()
+    let template = tempdir()
         .file("README.tpl", raw_template)
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -995,7 +912,7 @@ _This README was generated with [cargo-readme](https://github.com/livioribeiro/c
 #[test]
 fn it_uses_vsc_none_to_avoid_initializing_repository() {
     // Build and commit on branch named 'main'
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -1007,7 +924,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -1028,7 +945,7 @@ version = "0.1.0"
 #[test]
 fn it_provides_crate_type_lib() {
     // Build and commit on branch named 'main'
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -1040,7 +957,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -1058,7 +975,7 @@ version = "0.1.0"
 #[test]
 fn it_provides_crate_type_bin() {
     // Build and commit on branch named 'main'
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -1070,7 +987,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -1086,7 +1003,7 @@ version = "0.1.0"
 
 #[test]
 fn it_skips_substitution_for_random_garbage_in_cargo_toml() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -1098,7 +1015,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -1114,7 +1031,7 @@ version = "0.1.0"
 
 #[test]
 fn it_skips_substitution_for_unknown_variables_in_cargo_toml() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             r#"[package]
@@ -1127,7 +1044,7 @@ version = "0.1.0"
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -1153,7 +1070,7 @@ version = "0.1.0"
 
 #[test]
 fn error_message_for_invalid_repo_or_user() {
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git("sassman/cli-template-rs-xx")

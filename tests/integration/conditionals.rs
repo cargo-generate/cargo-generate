@@ -1,12 +1,10 @@
 use std::ops::Not;
 
-use crate::helpers::{project::binary, project_builder::tmp_dir};
-use assert_cmd::assert::OutputAssertExt;
-use predicates::str::PredicateStrExt;
+use crate::helpers::prelude::*;
 
 #[test]
 fn it_can_conditionally_include_files() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "cargo-generate.toml",
             r#"
@@ -26,7 +24,7 @@ ignore = ["included"]
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -43,7 +41,7 @@ ignore = ["included"]
 
 #[test]
 fn it_can_conditionally_include_files2() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "cargo-generate.toml",
             r#"
@@ -63,7 +61,7 @@ ignore = ["included"]
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -89,7 +87,7 @@ ignore = ["included"]
 
 #[test]
 fn it_can_ask_placeholders_in_multiple_levels() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "cargo-generate.toml",
             r#"
@@ -107,7 +105,7 @@ ignore = ["included"]
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg("--silent")
@@ -123,7 +121,7 @@ ignore = ["included"]
 
 #[test]
 fn it_supports_conditions_in_multiple_levels() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "cargo-generate.toml",
             r#"
@@ -141,7 +139,7 @@ ignore = ["included"]
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg("--silent")

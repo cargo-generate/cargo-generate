@@ -1,17 +1,10 @@
-use predicates::prelude::*;
-
-use crate::helpers::create_template;
-use crate::helpers::project::binary;
-use crate::helpers::project_builder::tmp_dir;
-
-use assert_cmd::prelude::*;
-use indoc::indoc;
+use crate::helpers::prelude::*;
 
 #[test]
 fn it_uses_ssh_identity_from_defaults_config() {
-    let working_dir = tmp_dir().file("fake_ssh_identity", "fake stuff").build();
+    let working_dir = tempdir().file("fake_ssh_identity", "fake stuff").build();
     let fake_ssh_id = working_dir.path().join("fake_ssh_identity");
-    let config_dir = tmp_dir()
+    let config_dir = tempdir()
         .file(
             "cargo-generate.toml",
             format!(

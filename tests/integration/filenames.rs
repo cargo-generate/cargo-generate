@@ -1,12 +1,8 @@
-use crate::helpers::project::binary;
-use crate::helpers::project_builder::tmp_dir;
-
-use assert_cmd::prelude::*;
-use predicates::prelude::*;
+use crate::helpers::prelude::*;
 
 #[test]
 fn it_substitutes_filename() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file("main.rs", r#"extern crate {{crate_name}};"#)
         .file(
             "{{project-name}}.rs",
@@ -19,7 +15,7 @@ fn it_substitutes_filename() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())

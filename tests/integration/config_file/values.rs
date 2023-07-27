@@ -1,16 +1,7 @@
-use std::ops::Not;
-
-use predicates::prelude::*;
-
-use crate::helpers::project::binary;
-use crate::helpers::project_builder::tmp_dir;
-
-use assert_cmd::prelude::*;
-use indoc::indoc;
-
+use crate::helpers::prelude::*;
 #[test]
 fn it_accepts_default_template_values() {
-    let config_dir = tmp_dir()
+    let config_dir = tempdir()
         .file(
             "cargo-generate",
             indoc! {r#"
@@ -20,7 +11,7 @@ fn it_accepts_default_template_values() {
         )
         .build();
 
-    let template_dir = tmp_dir()
+    let template_dir = tempdir()
         .file(
             "random.toml",
             indoc! {r#"
@@ -30,7 +21,7 @@ fn it_accepts_default_template_values() {
         .init_git()
         .build();
 
-    let working_dir = tmp_dir().build();
+    let working_dir = tempdir().build();
 
     binary()
         .arg("--config")
@@ -49,7 +40,7 @@ fn it_accepts_default_template_values() {
 
 #[test]
 fn it_accepts_template_values_file_from_environment() {
-    let config_dir = tmp_dir()
+    let config_dir = tempdir()
         .file(
             "cargo-generate.toml",
             indoc! {r#"
@@ -59,7 +50,7 @@ fn it_accepts_template_values_file_from_environment() {
         )
         .build();
 
-    let template_dir = tmp_dir()
+    let template_dir = tempdir()
         .file(
             "my-env-values.toml",
             indoc! {r#"
@@ -76,7 +67,7 @@ fn it_accepts_template_values_file_from_environment() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg("--config")
@@ -98,7 +89,7 @@ fn it_accepts_template_values_file_from_environment() {
 
 #[test]
 fn it_accepts_bool_in_file() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "my-values.toml",
             indoc! {r#"
@@ -124,7 +115,7 @@ ignore = ["included"]
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg("--silent")
@@ -141,7 +132,7 @@ ignore = ["included"]
 
 #[test]
 fn it_accepts_individual_template_values_from_environment() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "my-env-values.toml",
             indoc! {r#"
@@ -158,7 +149,7 @@ fn it_accepts_individual_template_values_from_environment() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_name("foobar-project")
@@ -179,7 +170,7 @@ fn it_accepts_individual_template_values_from_environment() {
 
 #[test]
 fn it_accepts_template_values_file_via_flag() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "my-values.toml",
             indoc! {r#"
@@ -196,7 +187,7 @@ fn it_accepts_template_values_file_via_flag() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_name("foobar-project")
@@ -215,7 +206,7 @@ fn it_accepts_template_values_file_via_flag() {
 
 #[test]
 fn it_accepts_individual_template_values_via_flag() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "my-values.toml",
             indoc! {r#"
@@ -232,7 +223,7 @@ fn it_accepts_individual_template_values_via_flag() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_name("foobar-project")
@@ -252,7 +243,7 @@ fn it_accepts_individual_template_values_via_flag() {
 
 #[test]
 fn it_accepts_values_via_long_option() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             indoc! {r#"
@@ -265,7 +256,7 @@ fn it_accepts_values_via_long_option() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_name("foobar-project")
@@ -283,7 +274,7 @@ fn it_accepts_values_via_long_option() {
 
 #[test]
 fn it_accepts_values_via_short_option() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             indoc! {r#"
@@ -296,7 +287,7 @@ fn it_accepts_values_via_short_option() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_name("foobar-project")
@@ -314,7 +305,7 @@ fn it_accepts_values_via_short_option() {
 
 #[test]
 fn cli_value_overrides_others() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "my-values.toml",
             indoc! {r#"
@@ -334,7 +325,7 @@ fn cli_value_overrides_others() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_name("foobar-project")
@@ -354,7 +345,7 @@ fn cli_value_overrides_others() {
 
 #[test]
 fn cli_values_are_checked_via_regex() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             indoc! {r#"
@@ -376,7 +367,7 @@ fn cli_values_are_checked_via_regex() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_name("foobar-project")

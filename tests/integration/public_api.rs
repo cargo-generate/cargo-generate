@@ -1,13 +1,14 @@
-use crate::helpers::project_builder::tmp_dir;
+use crate::helpers::prelude::*;
+
 use cargo_generate::{generate, GenerateArgs, TemplatePath};
 
 #[test]
 fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
     let cwd_before = std::env::current_dir().unwrap();
 
-    let template = tmp_dir().init_default_template().init_git().build();
+    let template = tempdir().init_default_template().init_git().build();
 
-    let dir = tmp_dir().build().root.into_path();
+    let dir = tempdir().build().root.into_path();
 
     let args_exposed: GenerateArgs = GenerateArgs {
         template_path: TemplatePath {

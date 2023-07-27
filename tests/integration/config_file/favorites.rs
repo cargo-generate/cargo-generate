@@ -1,20 +1,13 @@
+use crate::helpers::prelude::*;
+
 use cargo_generate::Vcs;
-use git2::Repository;
-use predicates::prelude::*;
-
-use crate::helpers::project::binary;
-use crate::helpers::{create_template, project::Project, project_builder::tmp_dir};
-
-use assert_cmd::prelude::*;
-use indoc::indoc;
-use std::path::PathBuf;
 
 fn create_favorite_config(
     name: &str,
     template_path: &Project,
     vcs: Option<Vcs>,
 ) -> (Project, PathBuf) {
-    let project = tmp_dir()
+    let project = tempdir()
         .file(
             "cargo-generate",
             format!(
@@ -45,7 +38,7 @@ fn favorite_with_git_becomes_subfolder() {
     let favorite_template = create_template("favorite-template");
     let git_template = create_template("git-template");
     let (_config, config_path) = create_favorite_config("test", &favorite_template, None);
-    let working_dir = tmp_dir().build();
+    let working_dir = tempdir().build();
 
     binary()
         .arg("--config")
@@ -60,7 +53,7 @@ fn favorite_with_git_becomes_subfolder() {
 
 #[test]
 fn favorite_subfolder_must_be_valid() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file("Cargo.toml", "")
         .file(
             "inner/Cargo.toml",
@@ -73,7 +66,7 @@ fn favorite_subfolder_must_be_valid() {
         )
         .init_git()
         .build();
-    let working_dir = tmp_dir().build();
+    let working_dir = tempdir().build();
 
     binary()
         .arg_name("outer")
@@ -104,7 +97,7 @@ fn favorite_subfolder_must_be_valid() {
 
 #[test]
 fn favorite_with_subfolder() -> anyhow::Result<()> {
-    let template = tmp_dir()
+    let template = tempdir()
         .file("Cargo.toml", "")
         .file(
             "inner/Cargo.toml",
@@ -118,7 +111,7 @@ fn favorite_with_subfolder() -> anyhow::Result<()> {
         .init_git()
         .build();
 
-    let working_dir = tmp_dir().build();
+    let working_dir = tempdir().build();
     binary()
         .arg_name("outer")
         .arg(template.path())
@@ -136,7 +129,7 @@ fn favorite_with_subfolder() -> anyhow::Result<()> {
 fn it_can_use_favorites() {
     let favorite_template = create_template("favorite-template");
     let (_config, config_path) = create_favorite_config("test", &favorite_template, None);
-    let working_dir = tmp_dir().build();
+    let working_dir = tempdir().build();
 
     binary()
         .arg("--config")
@@ -159,7 +152,7 @@ fn a_favorite_can_set_vcs_to_none_by_default() {
     let favorite_template = create_template("favorite-template");
     let (_config, config_path) =
         create_favorite_config("test", &favorite_template, Some(Vcs::None));
-    let working_dir = tmp_dir().build();
+    let working_dir = tempdir().build();
 
     binary()
         .arg("--config")
@@ -178,7 +171,7 @@ fn a_favorite_can_set_vcs_to_none_by_default() {
 fn favorites_default_to_git_if_not_defined() {
     let favorite_template = create_template("favorite-template");
     let (_config, config_path) = create_favorite_config("test", &favorite_template, None);
-    let working_dir = tmp_dir().build();
+    let working_dir = tempdir().build();
 
     binary()
         .arg("--config")
@@ -196,7 +189,7 @@ fn favorites_default_to_git_if_not_defined() {
 
 #[test]
 fn favorites_can_use_default_values() {
-    let favorite_template_dir = tmp_dir()
+    let favorite_template_dir = tempdir()
         .file(
             "Cargo.toml",
             indoc! {r#"
@@ -209,7 +202,7 @@ fn favorites_can_use_default_values() {
         .init_git()
         .build();
 
-    let config_dir = tmp_dir()
+    let config_dir = tempdir()
         .file(
             "cargo-generate.toml",
             format!(
@@ -229,7 +222,7 @@ fn favorites_can_use_default_values() {
         )
         .build();
 
-    let working_dir = tmp_dir().build();
+    let working_dir = tempdir().build();
 
     binary()
         .arg("--config")
@@ -248,7 +241,7 @@ fn favorites_can_use_default_values() {
 
 #[test]
 fn favorites_default_value_can_be_overridden_by_environment() {
-    let values_dir = tmp_dir()
+    let values_dir = tempdir()
         .file(
             "values_file.toml",
             indoc! {r#"
@@ -258,7 +251,7 @@ fn favorites_default_value_can_be_overridden_by_environment() {
         )
         .build();
 
-    let favorite_template_dir = tmp_dir()
+    let favorite_template_dir = tempdir()
         .file(
             "Cargo.toml",
             indoc! {r#"
@@ -271,7 +264,7 @@ fn favorites_default_value_can_be_overridden_by_environment() {
         .init_git()
         .build();
 
-    let config_dir = tmp_dir()
+    let config_dir = tempdir()
         .file(
             "cargo-generate.toml",
             format!(
@@ -291,7 +284,7 @@ fn favorites_default_value_can_be_overridden_by_environment() {
         )
         .build();
 
-    let working_dir = tmp_dir().build();
+    let working_dir = tempdir().build();
 
     binary()
         .arg("--config")
@@ -314,7 +307,7 @@ fn favorites_default_value_can_be_overridden_by_environment() {
 
 #[test]
 fn favorite_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             indoc! {r#"
@@ -326,7 +319,7 @@ fn favorite_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
         )
         .init_git()
         .build();
-    let config_dir = tmp_dir()
+    let config_dir = tempdir()
         .file(
             "config.toml",
             format!(
@@ -340,7 +333,7 @@ fn favorite_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
         )
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
     binary()
         .arg("--config")
         .arg(config_dir.path().join("config.toml"))

@@ -1,17 +1,13 @@
-use assert_cmd::prelude::*;
 use bstr::ByteSlice;
-use git2::Repository;
 use gix_config::File as GitConfig;
-use predicates::prelude::*;
 use std::ops::Deref;
 
-use crate::helpers::project::binary;
-use crate::helpers::project_builder::tmp_dir;
+use crate::helpers::prelude::*;
 
 #[test]
 fn it_allows_a_git_branch_to_be_specified() {
-    let template = tmp_dir().init_default_template().branch("bak").build();
-    let dir = tmp_dir().build();
+    let template = tempdir().init_default_template().branch("bak").build();
+    let dir = tempdir().build();
 
     binary()
         .arg_branch("bak")
@@ -29,8 +25,8 @@ fn it_allows_a_git_branch_to_be_specified() {
 
 #[test]
 fn it_allows_a_git_tag_to_be_specified() {
-    let template = tmp_dir().init_default_template().tag("v1.0").build();
-    let dir = tmp_dir().build();
+    let template = tempdir().init_default_template().tag("v1.0").build();
+    let dir = tempdir().build();
 
     binary()
         .arg("--tag")
@@ -49,8 +45,8 @@ fn it_allows_a_git_tag_to_be_specified() {
 
 #[test]
 fn it_removes_git_history() {
-    let template = tmp_dir().init_default_template().build();
-    let dir = tmp_dir().build();
+    let template = tempdir().init_default_template().build();
+    let dir = tempdir().build();
 
     binary()
         .arg_git(template.path())
@@ -67,8 +63,8 @@ fn it_removes_git_history() {
 
 #[test]
 fn it_removes_git_history_also_on_local_templates() {
-    let template = tmp_dir().init_default_template().build();
-    let dir = tmp_dir().build();
+    let template = tempdir().init_default_template().build();
+    let dir = tempdir().build();
 
     binary()
         .arg("--path")
@@ -86,7 +82,7 @@ fn it_removes_git_history_also_on_local_templates() {
 
 #[test]
 fn it_should_init_an_empty_git_repo_even_when_starting_from_a_repo_when_forced() {
-    let template = tmp_dir().init_default_template().build();
+    let template = tempdir().init_default_template().build();
     let target_path = template.path();
 
     binary()

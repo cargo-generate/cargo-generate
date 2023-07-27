@@ -15,7 +15,7 @@ pub struct ProjectBuilder {
     tag: Option<String>,
 }
 
-pub fn tmp_dir() -> ProjectBuilder {
+pub fn tempdir() -> ProjectBuilder {
     ProjectBuilder {
         files: Vec::new(),
         submodules: Vec::new(),
