@@ -17,6 +17,11 @@ impl CargoGenerateArgBuilder {
         builder
     }
 
+    /// wrapper for `--init` cli flag
+    pub fn flag_init(&mut self) -> &mut Self {
+        self.arg("--init")
+    }
+
     /// wrapper for `--name <name>` cli argument
     pub fn arg_name(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
         self.arg("--name").arg(name)

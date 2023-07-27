@@ -408,7 +408,7 @@ fn init_hook_can_change_project_name_but_keeps_init_destination() {
     binary()
         .arg_git(template.path())
         .arg_name("foo")
-        .arg("--init")
+        .flag_init()
         .current_dir(dir.path())
         .assert()
         .success()

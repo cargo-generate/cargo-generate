@@ -14,7 +14,7 @@ fn git_flag_can_be_skipped_and_cargo_will_use_correct_implementation() {
     let dir = tempdir().build();
     binary()
         .arg_name("my-proj")
-        .arg("--init")
+        .flag_init()
         .arg("git://github.com/ashleygwilliams/wasm-pack-template")
         .current_dir(dir.path())
         .assert()
@@ -40,7 +40,7 @@ fn plain_git_repo_works() {
         binary()
             .arg_git(remote)
             .arg_name("my-proj")
-            .arg("--init")
+            .flag_init()
             .current_dir(dir.path())
             .assert()
             .success()
