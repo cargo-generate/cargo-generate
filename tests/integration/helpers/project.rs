@@ -1,16 +1,9 @@
-use assert_cmd::prelude::*;
-use std::ffi::OsStr;
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::str;
 
 use tempfile::TempDir;
-
-pub fn binary() -> CargoGenerateArgBuilder {
-    CargoGenerateArgBuilder::new()
-}
 
 #[derive(Debug)]
 pub struct Project {
@@ -40,47 +33,5 @@ impl Project {
 
     pub fn exists(&self, path: &str) -> bool {
         self.path().join(path).exists()
-    }
-}
-
-pub struct CargoGenerateArgBuilder(Command);
-
-impl CargoGenerateArgBuilder {
-    pub fn new() -> Self {
-        let mut builder = Self(Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap());
-        builder.0.arg("generate");
-
-        builder
-    }
-
-    /// wrapper for `--name <name>` cli argument
-    pub fn arg_name(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
-        self.arg("--name").arg(name)
-    }
-
-    /// wrapper for `--branch <name>` cli argument
-    pub fn arg_branch(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
-        self.arg("--branch").arg(name)
-    }
-
-    /// wrapper for `--git <name>` cli argument
-    pub fn arg_git(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
-        self.arg("--git").arg(name)
-    }
-
-    /// proxy for `Command::arg`
-    pub fn arg(&mut self, arg: impl AsRef<OsStr>) -> &mut Self {
-        self.0.arg(arg);
-        self
-    }
-
-    pub fn args(&mut self, args: impl IntoIterator<Item = impl AsRef<OsStr>>) -> &mut Self {
-        self.0.args(args);
-        self
-    }
-
-    /// proxy for `Command::current_dir` also it consumes self and returns the inner Command
-    pub fn current_dir(&mut self, path: impl AsRef<Path>) -> &mut Command {
-        self.0.current_dir(path)
     }
 }
