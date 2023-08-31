@@ -14,7 +14,7 @@ git2 = { version = "~0.17", features = ["ssh", "https"], default-features = fals
 console = "~0.15"
 dialoguer = "~0.10"
 indicatif = "~0.17"
-tempfile = "~3.7"
+tempfile = "~3.8"
 regex = "~1.9"
 heck = "~0.4"
 walkdir = "~2.3"
