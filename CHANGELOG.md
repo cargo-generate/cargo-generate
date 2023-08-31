@@ -19,6 +19,7 @@
 
 ### 🛠️ Maintenance
 
+- [chore(deps): bump gix-config from 0.27.0 to 0.28.0 #1019](https://github.com/cargo-generate/cargo-generate/pull/1019)
 - [chore(deps): bump several versions #1017](https://github.com/cargo-generate/cargo-generate/pull/1017)
 - [chore(deps): bump url from 2.3.1 to 2.4.1](https://github.com/cargo-generate/cargo-generate/pull/1011)
 - [chore(deps): bump tempfile from 3.7.0 to 3.8.0](https://github.com/cargo-generate/cargo-generate/pull/1010)
