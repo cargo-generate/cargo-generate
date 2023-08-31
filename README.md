@@ -51,6 +51,7 @@ cargo generate username-on-github/mytemplate
 # templates on other git platforms
 cargo generate gl:username-on-gitlab/mytemplate
 cargo generate bb:username-on-bitbucket/mytemplate
+cargo generate sr:~username-on-sourcehut/mytemplate
 
 # this scheme is also available for github
 cargo generate gh:username-on-github/mytemplate
