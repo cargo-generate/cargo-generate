@@ -1,0 +1,13 @@
+[package]
+name = "how-to-use-cargo-gen-as-library"
+version = "0.1.0"
+edition = "2021"
+description = """
+This example show cases how cargo-generate can be used as library from within e.g. a binary project
+It generates a project called "my-project" based on the wasm-pack template.
+"""
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cargo-generate = { path = "../..", default-features = false }
