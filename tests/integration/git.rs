@@ -1,26 +1,18 @@
-use assert_cmd::prelude::*;
 use bstr::ByteSlice;
-use git2::Repository;
 use gix_config::File as GitConfig;
-use predicates::prelude::*;
 use std::ops::Deref;
 
-use crate::helpers::project::binary;
-use crate::helpers::project_builder::tmp_dir;
+use crate::helpers::prelude::*;
 
 #[test]
 fn it_allows_a_git_branch_to_be_specified() {
-    let template = tmp_dir().init_default_template().branch("bak").build();
-    let dir = tmp_dir().build();
+    let template = tempdir().init_default_template().branch("bak").build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("generate")
-        .arg("--branch")
-        .arg("bak")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
+        .arg_branch("bak")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -33,17 +25,14 @@ fn it_allows_a_git_branch_to_be_specified() {
 
 #[test]
 fn it_allows_a_git_tag_to_be_specified() {
-    let template = tmp_dir().init_default_template().tag("v1.0").build();
-    let dir = tmp_dir().build();
+    let template = tempdir().init_default_template().tag("v1.0").build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("generate")
         .arg("--tag")
         .arg("v1.0")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -56,15 +45,12 @@ fn it_allows_a_git_tag_to_be_specified() {
 
 #[test]
 fn it_removes_git_history() {
-    let template = tmp_dir().init_default_template().build();
-    let dir = tmp_dir().build();
+    let template = tempdir().init_default_template().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -77,15 +63,13 @@ fn it_removes_git_history() {
 
 #[test]
 fn it_removes_git_history_also_on_local_templates() {
-    let template = tmp_dir().init_default_template().build();
-    let dir = tmp_dir().build();
+    let template = tempdir().init_default_template().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("generate")
         .arg("--path")
         .arg(template.path())
-        .arg("--name")
-        .arg("xyz")
+        .arg_name("xyz")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -98,16 +82,13 @@ fn it_removes_git_history_also_on_local_templates() {
 
 #[test]
 fn it_should_init_an_empty_git_repo_even_when_starting_from_a_repo_when_forced() {
-    let template = tmp_dir().init_default_template().build();
+    let template = tempdir().init_default_template().build();
     let target_path = template.path();
 
     binary()
-        .arg("generate")
         .arg("--force-git-init")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foo")
+        .arg_git(template.path())
+        .arg_name("foo")
         .current_dir(target_path)
         .assert()
         .success()

@@ -7,6 +7,7 @@ mod config_file;
 mod filenames;
 mod git;
 mod hooks_and_rhai;
-mod library;
 mod online;
+mod public_api;
 mod template_config_file;
+mod template_filters;

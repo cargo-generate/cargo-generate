@@ -1,14 +1,8 @@
-use predicates::prelude::*;
-
-use crate::helpers::project::binary;
-use crate::helpers::project_builder::tmp_dir;
-
-use assert_cmd::prelude::*;
-use indoc::indoc;
+use crate::helpers::prelude::*;
 
 #[test]
 fn it_only_processes_include_files_in_config() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "cargo-generate.toml",
             indoc! {r#"
@@ -23,16 +17,12 @@ fn it_only_processes_include_files_in_config() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -51,7 +41,7 @@ fn it_only_processes_include_files_in_config() {
 
 #[test]
 fn it_doesnt_process_excluded_files_in_config() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "cargo-generate.toml",
             indoc! {r#"
@@ -65,16 +55,12 @@ fn it_doesnt_process_excluded_files_in_config() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -93,7 +79,7 @@ fn it_doesnt_process_excluded_files_in_config() {
 
 #[test]
 fn it_warns_on_include_and_exclude_in_config() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "Cargo.toml",
             indoc! {r#"
@@ -115,16 +101,12 @@ fn it_warns_on_include_and_exclude_in_config() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
         .current_dir(dir.path())
         .assert()
         .success()

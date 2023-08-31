@@ -1,13 +1,8 @@
-use indoc::indoc;
-
-use assert_cmd::assert::OutputAssertExt;
-use predicates::str::PredicateStrExt;
-
-use crate::helpers::{project::binary, project_builder::tmp_dir};
+use crate::helpers::prelude::*;
 
 #[test]
 fn it_runs_all_hook_types() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "init-script.rhai",
             indoc! {r#"
@@ -59,14 +54,11 @@ fn it_runs_all_hook_types() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_git(template.path())
+        .arg_name("script-project")
         .arg("-d")
         .arg("pre=hello")
         .arg("-d")
@@ -89,7 +81,7 @@ fn it_runs_all_hook_types() {
 
 #[test]
 fn it_runs_system_commands() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "system-script.rhai",
             indoc! {r#"
@@ -106,14 +98,11 @@ fn it_runs_system_commands() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_git(template.path())
+        .arg_name("script-project")
         .arg("--allow-commands")
         .current_dir(dir.path())
         .assert()
@@ -125,7 +114,7 @@ fn it_runs_system_commands() {
 
 #[test]
 fn it_fails_to_prompt_for_system_commands_in_silent_mode() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "system-script.rhai",
             indoc! {r#"
@@ -142,14 +131,11 @@ fn it_fails_to_prompt_for_system_commands_in_silent_mode() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_git(template.path())
+        .arg_name("script-project")
         .arg("--silent")
         .current_dir(dir.path())
         .assert()
@@ -160,7 +146,7 @@ fn it_fails_to_prompt_for_system_commands_in_silent_mode() {
 
 #[test]
 fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "system-script.rhai",
             indoc! {r#"
@@ -177,14 +163,11 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_git(template.path())
+        .arg_name("script-project")
         .arg("--allow-commands")
         .current_dir(dir.path())
         .assert()
@@ -199,7 +182,7 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
 
 #[test]
 fn it_fails_when_it_cant_execute_system_command() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "system-script.rhai",
             indoc! {r#"
@@ -216,14 +199,11 @@ fn it_fails_when_it_cant_execute_system_command() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_git(template.path())
+        .arg_name("script-project")
         .arg("--allow-commands")
         .current_dir(dir.path())
         .assert()
@@ -238,7 +218,7 @@ fn it_fails_when_it_cant_execute_system_command() {
 
 #[test]
 fn it_can_change_case() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "pre-script.rhai",
             indoc! {r#"
@@ -262,14 +242,11 @@ fn it_can_change_case() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_git(template.path())
+        .arg_name("script-project")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -285,7 +262,7 @@ fn it_can_change_case() {
 
 #[test]
 fn can_change_variables_from_pre_hook() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "cargo-generate.toml",
             indoc! {r#"
@@ -308,14 +285,11 @@ fn can_change_variables_from_pre_hook() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("script-project")
+        .arg_git(template.path())
+        .arg_name("script-project")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -327,7 +301,7 @@ fn can_change_variables_from_pre_hook() {
 
 #[test]
 fn init_hook_can_set_project_name() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "init.rhai",
             indoc! {r#"
@@ -350,12 +324,10 @@ fn init_hook_can_set_project_name() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
+        .arg_git(template.path())
         .current_dir(dir.path())
         .assert()
         .success()
@@ -369,7 +341,7 @@ fn init_hook_can_set_project_name() {
 
 #[test]
 fn init_hook_can_change_project_name_but_keeps_cli_name_for_destination() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "init.rhai",
             indoc! {r#"
@@ -392,14 +364,11 @@ fn init_hook_can_change_project_name_but_keeps_cli_name_for_destination() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foo")
+        .arg_git(template.path())
+        .arg_name("foo")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -411,7 +380,7 @@ fn init_hook_can_change_project_name_but_keeps_cli_name_for_destination() {
 
 #[test]
 fn init_hook_can_change_project_name_but_keeps_init_destination() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "init.rhai",
             indoc! {r#"
@@ -434,15 +403,12 @@ fn init_hook_can_change_project_name_but_keeps_init_destination() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foo")
-        .arg("--init")
+        .arg_git(template.path())
+        .arg_name("foo")
+        .flag_init()
         .current_dir(dir.path())
         .assert()
         .success()
@@ -454,7 +420,7 @@ fn init_hook_can_change_project_name_but_keeps_init_destination() {
 
 #[test]
 fn rhai_filter_invokes_rhai_script() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "filter-script.rhai",
             indoc! {r#"
@@ -470,14 +436,11 @@ fn rhai_filter_invokes_rhai_script() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("filter-project")
+        .arg_git(template.path())
+        .arg_name("filter-project")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -490,7 +453,7 @@ fn rhai_filter_invokes_rhai_script() {
 
 #[test]
 fn missing_rhai_filter_fails_prints_warnings() {
-    let template = tmp_dir()
+    let template = tempdir()
         .file(
             "file_to_expand.txt",
             indoc! {r#"
@@ -500,14 +463,11 @@ fn missing_rhai_filter_fails_prints_warnings() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("filter-project")
+        .arg_git(template.path())
+        .arg_name("filter-project")
         .current_dir(dir.path())
         .assert()
         .success()

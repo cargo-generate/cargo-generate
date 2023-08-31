@@ -1,15 +1,8 @@
-use predicates::prelude::*;
-
-use crate::helpers::project::binary;
-use crate::helpers::project_builder::tmp_dir;
-
-use assert_cmd::prelude::*;
-use git2::Repository;
-use indoc::indoc;
+use crate::helpers::prelude::*;
 
 #[test]
 fn it_always_removes_config_file() {
-    let template = tmp_dir()
+    let template = tempdir()
         .default_manifest()
         .file(
             "cargo-generate.toml",
@@ -19,16 +12,12 @@ fn it_always_removes_config_file() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -40,7 +29,7 @@ fn it_always_removes_config_file() {
 //https://github.com/ashleygwilliams/cargo-generate/issues/181
 #[test]
 fn it_doesnt_warn_on_config_with_no_ignore() {
-    let template = tmp_dir()
+    let template = tempdir()
         .default_manifest()
         .file(
             "cargo-generate.toml",
@@ -49,16 +38,12 @@ fn it_doesnt_warn_on_config_with_no_ignore() {
         )
         .init_git()
         .build();
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -70,7 +55,7 @@ fn it_doesnt_warn_on_config_with_no_ignore() {
 
 #[test]
 fn a_template_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
-    let template = tmp_dir()
+    let template = tempdir()
         .default_manifest()
         .file(
             "cargo-generate.toml",
@@ -82,16 +67,12 @@ fn a_template_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -105,7 +86,7 @@ fn a_template_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
 #[test]
 fn vsc_none_can_be_specified_in_the_template() {
     // Build and commit on branch named 'main'
-    let template = tmp_dir()
+    let template = tempdir()
         .default_manifest()
         .file(
             "cargo-generate.toml",
@@ -117,14 +98,11 @@ fn vsc_none_can_be_specified_in_the_template() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("generate")
-        .arg("--git")
-        .arg(template.path())
-        .arg("--name")
-        .arg("foobar-project")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
         .current_dir(dir.path())
         .assert()
         .success()

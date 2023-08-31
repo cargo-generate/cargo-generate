@@ -1,12 +1,8 @@
-use crate::helpers::project::binary;
-use crate::helpers::project_builder::tmp_dir;
-
-use assert_cmd::prelude::*;
-use indoc::indoc;
+use crate::helpers::prelude::*;
 
 #[test]
 fn it_prompts_for_placeholders_in_the_config_file_defined_order() {
-    let template = tmp_dir()
+    let template = tempdir()
         .default_manifest()
         .file(
             "cargo-generate.toml",
@@ -27,16 +23,12 @@ fn it_prompts_for_placeholders_in_the_config_file_defined_order() {
         .init_git()
         .build();
 
-    let dir = tmp_dir().build();
+    let dir = tempdir().build();
 
     binary()
-        .arg("gen")
-        .arg("--git")
-        .arg(template.path())
-        .arg("-n")
-        .arg("foobar-project")
-        .arg("--branch")
-        .arg("main")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
         .args(["--define", "defaults=true"])
         .args(["--define", "mcu=esp32"])
         .current_dir(dir.path())
