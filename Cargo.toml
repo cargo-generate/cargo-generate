@@ -24,15 +24,15 @@ anyhow = "~1.0"
 toml = { version = "~0.7", features = ["preserve_order"] }
 thiserror = "~1.0"
 home = "~0.5"
-sanitize-filename = "~0.4"
+sanitize-filename = "~0.5"
 rhai = "~1.15"
 path-absolutize = "~3.1"
-gix-config = "0.26"
+gix-config = "~0.27"
 paste = "~1.0"
 names = { version = "~0.14", default-features = false }
 log = "~0.4"
 env_logger = "~0.10"
-indexmap = { version = "~1.9", features = ["serde"] }
+indexmap = { version = "~2", features = ["serde"] }
 
 # liquid
 liquid = "~0.26"
