@@ -1,6 +1,48 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.18.2...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.18.4...HEAD)
+
+## [0.18.4] 2023-09-01
+
+[0.18.4]: https://github.com/cargo-generate/cargo-generate/compare/v0.18.3...v0.18.4
+
+### 🤕 Fixes
+
+- [refactor(tests): improve tests (fixes #107)](https://github.com/cargo-generate/cargo-generate/pull/994)
+- [fix: lints](https://github.com/cargo-generate/cargo-generate/pull/1016)
+- [fix: lints](https://github.com/cargo-generate/cargo-generate/pull/985)
+- [fix: use tempdir prefix](https://github.com/cargo-generate/cargo-generate/pull/978)
+- [fix: update license field following SPDX 2.1 license expression standard](https://github.com/cargo-generate/cargo-generate/pull/984)
+- [fix: -Z option build failures](https://github.com/cargo-generate/cargo-generate/pull/956)
+- [fix: link to 'ignoring files'](https://github.com/cargo-generate/cargo-generate/pull/955)
+- [fix: prompt order (#885)](https://github.com/cargo-generate/cargo-generate/pull/930)
+
+### 🛠️ Maintenance
+
+- [chore(deps): bump several versions #1017](https://github.com/cargo-generate/cargo-generate/pull/1017)
+- [chore(deps): bump url from 2.3.1 to 2.4.1](https://github.com/cargo-generate/cargo-generate/pull/1011)
+- [chore(deps): bump tempfile from 3.7.0 to 3.8.0](https://github.com/cargo-generate/cargo-generate/pull/1010)
+- [chore(deps): bump tempfile from ~3.5 to ~3.7](https://github.com/cargo-generate/cargo-generate/pull/992)
+- [chore(deps): bump gix-config from 0.20.1 to 0.26.1](https://github.com/cargo-generate/cargo-generate/pull/991)
+- [chore(deps): bump clap from 4.2.7 to 4.3.19](https://github.com/cargo-generate/cargo-generate/pull/990)
+- [chore(deps): bump regex from 1.8.2 to 1.9.1](https://github.com/cargo-generate/cargo-generate/pull/982)
+- [chore(deps): bump bstr from 1.4.0 to 1.6.0](https://github.com/cargo-generate/cargo-generate/pull/981)
+- [chore(deps): bump rhai from 1.13.0 to 1.15.1](https://github.com/cargo-generate/cargo-generate/pull/972)
+- [chore(deps): bump path-absolutize from 3.0.14 to 3.1.0](https://github.com/cargo-generate/cargo-generate/pull/938)
+
+### ✨ Features
+
+- [feat: show case how cargo-generate can be used as a library](https://github.com/cargo-generate/cargo-generate/pull/1015)
+
+### Contributors
+
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [ealmloff](https://github.com/ealmloff)
+- [frisoft](https://github.com/frisoft)
+- [jonaro00](https://github.com/jonaro00)
+- [sassman](https://github.com/sassman)
+- [sshine](https://github.com/sshine)
+
 
 ## [0.18.3] 2023-05-24
 [0.18.3]: https://github.com/cargo-generate/cargo-generate/compare/v0.18.2...v0.18.3
