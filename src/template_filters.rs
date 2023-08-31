@@ -46,6 +46,7 @@ macro_rules! create_case_filter {
                         .as_scalar()
                         .ok_or_else(|| liquid_core::error::Error::with_msg("String expected"))?;
 
+                    #[allow(clippy::redundant_closure_call)]
                     let input = $expr(input.into_string().to_string());
                     Ok(liquid_core::model::Value::scalar(input))
                 }
