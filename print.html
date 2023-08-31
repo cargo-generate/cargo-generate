@@ -185,7 +185,7 @@ project by leveraging a pre-existing git repository as a template.</p>
 <code>.liquid</code>, by simply removing the file-ending when processing the files. If you, as a template 
 author, truly wants the <code>.liquid</code> file-ending, you need to repeat it twice!</p>
 <p>An Example: the file <code>main.rs.liquid</code> will be renamed after templating to <code>main.rs</code></p>
-<p>Here's an example of using <code>cargo-generate</code> with <a href="https://github.com/ashleygwilliams/wasm-pack-template">this template</a>:</p>
+<p>Here's an example of using <code>cargo-generate</code> with <a href="https://github.com/rustwasm/wasm-pack-template">this template</a>:</p>
 <p><img src="./demo.gif" alt="demo.gif" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
 <h2 id="using-cargo-generate-with-vendored-libgit2-and-systems-openssl"><a class="header" href="#using-cargo-generate-with-vendored-libgit2-and-systems-openssl">Using <code>cargo-generate</code> with vendored <code>libgit2</code> and system's OpenSSL</a></h2>
@@ -326,7 +326,7 @@ To specify an alternate configuration file, use the <code>--config &lt;config-fi
 <p>Each favorite template is specified in its own section, e.g.:</p>
 <pre><code class="language-toml">[favorites.demo]
 description = &quot;&lt;optional description, visible with --list-favorites&gt;&quot;
-git = &quot;https://github.com/ashleygwilliams/wasm-pack-template&quot;
+git = &quot;https://github.com/rustwasm/wasm-pack-template&quot;
 branch = &quot;&lt;optional-branch&gt;&quot;
 subfolder = &quot;&lt;optional-subfolder&gt;&quot;
 vcs = &quot;&lt;optional: None|Git&gt;&quot;
