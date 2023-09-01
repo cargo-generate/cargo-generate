@@ -22,7 +22,7 @@ cargo generate bb:username-on-bitbucket/mytemplate
 # or for github.com 
 cargo generate gh:username-on-github/mytemplate
 # or for git.sr.ht
-cargo generate sr:~username-on-sourcehut/mytemplate
+cargo generate sr:username-on-sourcehut/mytemplate
 ```
 
 Both will expand to the `https` urls of the repo with the suffix `.git` in the URL.

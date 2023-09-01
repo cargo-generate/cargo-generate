@@ -332,7 +332,7 @@ pub fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> Option<String
             "gl:" => Some(format!("https://gitlab.com/{}.git", &git[3..])),
             "bb:" => Some(format!("https://bitbucket.org/{}.git", &git[3..])),
             "gh:" => Some(format!("https://github.com/{}.git", &git[3..])),
-            "sr:" => Some(format!("https://git.sr.ht/{}", &git[3..])),
+            "sr:" => Some(format!("https://git.sr.ht/~{}", &git[3..])),
             short_cut_maybe if is_abbreviated_github(short_cut_maybe) => {
                 Some(format!("https://github.com/{short_cut_maybe}.git"))
             }
@@ -454,7 +454,7 @@ mod tests {
             "https://gitlab.com/foo/bar.git"
         );
         assert_eq!(
-            &abbreviated_git_url_to_full_remote("sr:~foo/bar").unwrap(),
+            &abbreviated_git_url_to_full_remote("sr:foo/bar").unwrap(),
             "https://git.sr.ht/~foo/bar"
         );
         assert!(&abbreviated_git_url_to_full_remote("foo/bar").is_none());
