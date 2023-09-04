@@ -16,13 +16,13 @@ If you have your templates not GitHub then you can leverage the lazy abbreviatio
 
 ```sh
 # for gitlab.com
-cargo generate gl:username-on-gitlab/mytemplate
+cargo generate gl:username-on-gitlab/mytemplate # translates to https://gitlab.com/username-on-gitlab/mytemplate.git
 # or for bitbucket.org
-cargo generate bb:username-on-bitbucket/mytemplate
+cargo generate bb:username-on-bitbucket/mytemplate # translates to https://bitbucket.org/username-on-bitbucket/mytemplate.git
 # or for github.com 
-cargo generate gh:username-on-github/mytemplate
+cargo generate gh:username-on-github/mytemplate # translates to https://github.com/username-on-github/mytemplate.git
 # or for git.sr.ht
-cargo generate sr:username-on-sourcehut/mytemplate
+cargo generate sr:username-on-sourcehut/mytemplate # translates to https://git.sr.ht/~username-on-sourcehut/mytemplate (note the tilde)
 ```
 
 Both will expand to the `https` urls of the repo with the suffix `.git` in the URL.

@@ -49,12 +49,12 @@ cargo generate --git https://github.com/username-on-github/mytemplate.git
 cargo generate username-on-github/mytemplate
 
 # templates on other git platforms
-cargo generate gl:username-on-gitlab/mytemplate
-cargo generate bb:username-on-bitbucket/mytemplate
-cargo generate sr:username-on-sourcehut/mytemplate
+cargo generate gl:username-on-gitlab/mytemplate # translates to https://gitlab.com/username-on-gitlab/mytemplate.git
+cargo generate bb:username-on-bitbucket/mytemplate # translates to https://bitbucket.org/username-on-bitbucket/mytemplate.git
+cargo generate sr:username-on-sourcehut/mytemplate # translates to https://git.sr.ht/~username-on-sourcehut/mytemplate (note the tilde)
 
 # this scheme is also available for github
-cargo generate gh:username-on-github/mytemplate
+cargo generate gh:username-on-github/mytemplate # translates to https://github.com/username-on-github/mytemplate.git
 
 # for a complete list of arguments and options
 cargo help generate
