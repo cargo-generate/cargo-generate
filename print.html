@@ -240,11 +240,13 @@ cargo generate --git https://github.com/username-on-github/mytemplate.git
 </code></pre>
 <p>If you have your templates not GitHub then you can leverage the lazy abbreviation prefixes:</p>
 <pre><code class="language-sh"># for gitlab.com
-cargo generate gl:username-on-gitlab/mytemplate
+cargo generate gl:username-on-gitlab/mytemplate # translates to https://gitlab.com/username-on-gitlab/mytemplate.git
 # or for bitbucket.org
-cargo generate bb:username-on-bitbucket/mytemplate
+cargo generate bb:username-on-bitbucket/mytemplate # translates to https://bitbucket.org/username-on-bitbucket/mytemplate.git
 # or for github.com 
-cargo generate gh:username-on-github/mytemplate
+cargo generate gh:username-on-github/mytemplate # translates to https://github.com/username-on-github/mytemplate.git
+# or for git.sr.ht
+cargo generate sr:username-on-sourcehut/mytemplate # translates to https://git.sr.ht/~username-on-sourcehut/mytemplate (note the tilde)
 </code></pre>
 <p>Both will expand to the <code>https</code> urls of the repo with the suffix <code>.git</code> in the URL.</p>
 <p>You can also pass the name of your project to the tool using the <code>--name</code> or <code>-n</code> flag:</p>
