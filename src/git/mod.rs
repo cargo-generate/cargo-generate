@@ -111,13 +111,28 @@ impl<'cb> RepoCloneBuilder<'cb> {
     }
 
     pub fn clone_with_submodules(self, dest_path: &Path) -> Result<Repository> {
-        self.clone(dest_path).and_then(|repo| {
-            for mut sub in repo.submodules()? {
-                sub.update(true, None)?;
-            }
+        let authenticator = Clone::clone(&self.authenticator);
+        let repo = self.clone(dest_path)?;
 
-            Ok(repo)
-        })
+        let config = repo.config()?;
+
+        for mut sub in repo.submodules()? {
+            let mut proxy_options = ProxyOptions::new();
+            proxy_options.auto();
+
+            let mut callbacks = git2::RemoteCallbacks::new();
+            callbacks.credentials(authenticator.credentials(&config));
+
+            let mut fetch_options = FetchOptions::new();
+            fetch_options.proxy_options(proxy_options);
+            fetch_options.remote_callbacks(callbacks);
+
+            let mut update_options = git2::SubmoduleUpdateOptions::new();
+            update_options.fetch(fetch_options);
+            sub.update(true, Some(&mut update_options))?;
+        }
+
+        Ok(repo)
     }
 }
 
