@@ -1,17 +1,17 @@
 //! Handle `--git` and related flags
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::{io, ops::Sub, thread::sleep, time::Duration};
 
 use anyhow::Result;
+use auth_git2::GitAuthenticator;
+use console::style;
 use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository, RepositoryInitOptions};
 use log::warn;
 use remove_dir_all::remove_dir_all;
 pub use utils::clone_git_template_into_temp;
 
-mod creds;
 mod gitconfig;
-mod identity_path;
 mod utils;
 
 pub use utils::{tmp_dir, try_get_branch_from_path};
@@ -35,18 +35,12 @@ type Git2Result<T> = Result<T, git2::Error>;
 
 struct RepoCloneBuilder<'cb> {
     builder: RepoBuilder<'cb>,
-    fetch_options: FetchOptions<'cb>,
-    identity: Option<PathBuf>,
+    authenticator: GitAuthenticator,
     url: String,
 }
 
 impl<'cb> RepoCloneBuilder<'cb> {
     pub fn new(url: &str) -> Result<Self> {
-        let mut po = ProxyOptions::new();
-        po.auto();
-        let mut fo = FetchOptions::new();
-        fo.proxy_options(po);
-
         let url = gitconfig::find_gitconfig()?.map_or_else(
             || url.to_owned(),
             |gitcfg| {
@@ -58,8 +52,7 @@ impl<'cb> RepoCloneBuilder<'cb> {
 
         Ok(Self {
             builder: RepoBuilder::new(),
-            fetch_options: fo,
-            identity: None,
+            authenticator: GitAuthenticator::default(),
             url,
         })
     }
@@ -71,52 +64,48 @@ impl<'cb> RepoCloneBuilder<'cb> {
         }
 
         if let Some(identity_path) = identity_path {
-            builder.set_identity(identity_path);
+            builder.set_identity(identity_path)?;
         }
 
         Ok(builder)
     }
 
-    pub fn set_identity(&mut self, identity_path: &Path) {
-        self.identity = Some(PathBuf::from(identity_path));
+    pub fn set_identity(&mut self, identity_path: &Path) -> Result<()> {
+        let identity_path = utils::canonicalize_path(identity_path)?;
+        log::info!(
+            "{} `{}` {}",
+            style("Using private key:").bold(),
+            style(format_args!("{}", identity_path.display()))
+                .bold()
+                .yellow(),
+            style("for git-ssh checkout").bold()
+        );
+        self.authenticator =
+            GitAuthenticator::new_empty().add_ssh_key_from_file(identity_path, None);
+        Ok(())
     }
 
     pub fn set_branch(&mut self, branch: &str) {
         self.builder.branch(branch);
     }
 
-    fn clone(mut self, dest_path: &Path) -> Result<Repository> {
-        #[cfg(not(windows))]
-        {
-            if self.identity.is_some() {
-                if let Some(callbacks) = creds::git_ssh_credentials_callback(self.identity)? {
-                    self.fetch_options.remote_callbacks(callbacks);
-                } else {
-                    self.fetch_options
-                        .remote_callbacks(creds::git_ssh_agent_callback());
-                }
-            } else {
-                self.fetch_options
-                    .remote_callbacks(creds::git_ssh_agent_callback());
-            }
-        }
-        #[cfg(windows)]
-        {
-            use crate::info;
-            use console::style;
+    fn clone(self, dest_path: &Path) -> Result<Repository> {
+        let config = git2::Config::open_default()?;
 
-            if self.identity.is_some() {
-                info!(
-                    "{} {}",
-                    style("HEADS UP!").bold(),
-                    style("The `--identity` argument is not supported on windows, trying to use ssh-agent instead.").bold().yellow(),
-                );
-            }
-            self.fetch_options
-                .remote_callbacks(creds::git_ssh_agent_callback());
-        }
-        self.builder.fetch_options(self.fetch_options);
-        self.builder
+        let mut proxy_options = ProxyOptions::new();
+        proxy_options.auto();
+
+        let mut callbacks = git2::RemoteCallbacks::new();
+        callbacks.credentials(self.authenticator.credentials(&config));
+
+        let mut fetch_options = FetchOptions::new();
+        fetch_options.proxy_options(proxy_options);
+        fetch_options.remote_callbacks(callbacks);
+
+        let mut builder = self.builder;
+        builder.fetch_options(fetch_options);
+
+        builder
             .clone(&self.url, dest_path)
             .map_err(anyhow::Error::from)
     }
