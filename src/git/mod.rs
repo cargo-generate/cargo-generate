@@ -80,8 +80,9 @@ impl<'cb> RepoCloneBuilder<'cb> {
                 .yellow(),
             style("for git-ssh checkout").bold()
         );
-        self.authenticator =
-            GitAuthenticator::new_empty().add_ssh_key_from_file(identity_path, None);
+        self.authenticator = GitAuthenticator::new_empty()
+            .add_ssh_key_from_file(identity_path, None)
+            .prompt_ssh_key_password(true);
         Ok(())
     }
 
