@@ -77,9 +77,9 @@ dependencies = [
 
 [[package]]
 name = "auth-git2"
-version = "0.5.0"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "281984fb591424b18f7eb7219afca511633787955a15f30433a670e4871cc753"
+checksum = "41e7771d4ab6635cbd685ce8db215b29c78a468098126de77c57f3b2e6eb3757"
 dependencies = [
  "dirs",
  "git2",
