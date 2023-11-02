@@ -56,7 +56,6 @@ use log::Record;
 use log::{info, warn};
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::{
-    borrow::Borrow,
     cell::RefCell,
     collections::HashMap,
     env, fs,
@@ -483,7 +482,7 @@ fn locate_template_file(
     let template_base_folder = template_base_folder.as_ref();
     let mut search_folder = template_folder.as_ref().to_path_buf();
     loop {
-        let file_path = search_folder.join::<&str>(name.borrow());
+        let file_path = search_folder.join::<&str>(name);
         if file_path.exists() {
             return Ok(file_path);
         }
