@@ -1,6 +1,37 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.18.4...HEAD)
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.18.5...HEAD)
+
+## [0.18.5] 2023-11-11
+
+[0.18.5]: https://github.com/cargo-generate/cargo-generate/compare/v0.18.4...v0.18.5
+
+### 🤕 Fixes
+
+- [fix(ci): fix clippy lint](https://github.com/cargo-generate/cargo-generate/pull/1052)
+- [fix typo in readme](https://github.com/cargo-generate/cargo-generate/pull/1042)
+
+### 🛠️ Maintenance
+
+- [chore(deps): bump some deps](https://github.com/cargo-generate/cargo-generate/pull/1059)
+- [chore(deps): bump git2 from 0.17.2 to 0.18.0](https://github.com/cargo-generate/cargo-generate/pull/1022)
+- [chore(deps): bump clap from 4.3.24 to 4.4.2](https://github.com/cargo-generate/cargo-generate/pull/1021)
+
+### ✨ Features
+
+- [feat: support abbreviation for sourcehut](https://github.com/cargo-generate/cargo-generate/pull/1014)
+- [Use auth-git2 for git authentication](https://github.com/cargo-generate/cargo-generate/pull/1025)
+- [feat(error): use `fs_err` instead of `std::fs` to provide actionable error messages](https://github.com/cargo-generate/cargo-generate/pull/1055)
+
+### Contributors
+
+- [LukeMathWalker](https://github.com/LukeMathWalker)
+- [de-vri-es](https://github.com/de-vri-es)
+- [dependabot[bot]](https://github.com/apps/dependabot)
+- [n8henrie](https://github.com/n8henrie)
+- [sassman](https://github.com/sassman)
+- [sgeisenh](https://github.com/sgeisenh)
+
 
 ## [0.18.4] 2023-09-01
 
