@@ -49,6 +49,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
 use env_logger::fmt::Formatter;
+use fs_err as fs;
 use hooks::execute_hooks;
 use ignore_me::remove_dir_files;
 use interactive::prompt_and_check_variable;
@@ -58,7 +59,7 @@ use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::{
     cell::RefCell,
     collections::HashMap,
-    env, fs,
+    env,
     io::Write,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
@@ -248,7 +249,7 @@ fn get_source_template_into_temp(
 
 /// remove .liquid suffixes from git templates for parity with path templates
 fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
-    for entry in fs::read_dir(dir)? {
+    for entry in fs::read_dir(dir.as_ref())? {
         let entry = entry?;
         let entry_type = entry.file_type()?;
 
@@ -404,7 +405,7 @@ pub(crate) fn copy_dir_all(
             return Ok(());
         }
 
-        for src_entry in fs::read_dir(src)? {
+        for src_entry in fs::read_dir(src.as_ref())? {
             let src_entry = src_entry?;
             let filename = src_entry.file_name().to_string_lossy().to_string();
             let entry_type = src_entry.file_type()?;
@@ -448,7 +449,7 @@ pub(crate) fn copy_dir_all(
     }
     fn copy_all(src: impl AsRef<Path>, dst: impl AsRef<Path>, overwrite: bool) -> Result<()> {
         fs::create_dir_all(&dst)?;
-        for src_entry in fs::read_dir(src)? {
+        for src_entry in fs::read_dir(src.as_ref())? {
             let src_entry = src_entry?;
             let filename = src_entry.file_name().to_string_lossy().to_string();
             let entry_type = src_entry.file_type()?;
