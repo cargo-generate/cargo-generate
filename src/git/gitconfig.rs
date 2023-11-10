@@ -19,7 +19,7 @@ pub fn resolve_instead_url(
     remote: impl AsRef<str>,
     gitconfig: impl AsRef<Path>,
 ) -> Result<Option<String>> {
-    let gitconfig = gitconfig.as_ref();
+    let gitconfig = gitconfig.as_ref().to_path_buf();
     let remote = remote.as_ref().to_string();
     let config = GitConfigParser::from_path_no_includes(gitconfig, Source::User)
         .context("Cannot read or parse .gitconfig")?;
