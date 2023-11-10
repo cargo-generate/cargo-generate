@@ -27,10 +27,9 @@ pub fn name() -> Result<String> {
 }
 
 pub fn user_question(prompt: &str, default: &Option<String>) -> Result<String> {
-    let mut i = Input::<String>::new();
-    i.with_prompt(prompt.to_string());
+    let mut i = Input::<String>::new().with_prompt(prompt);
     if let Some(s) = default {
-        i.default(s.to_owned());
+        i = i.default(s.to_owned());
     }
     i.interact().map_err(Into::<anyhow::Error>::into)
 }
