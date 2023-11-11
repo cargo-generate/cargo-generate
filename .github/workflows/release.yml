@@ -5,7 +5,7 @@
 name: Release
 on:
   push:
-    tags: 
+    tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
       - 'v[0-9]+.[0-9]+.[0-9]-alpha.[0-9]+'
       - 'v[0-9]+.[0-9]+.[0-9]-beta.[0-9]+'
@@ -24,7 +24,7 @@ jobs:
     needs: doing-a-build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -41,7 +41,7 @@ jobs:
     needs: publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -64,7 +64,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.CI_CARGO_GENERATE_RELEASE_GH_PAT }}
         with:
           # This pulls from the "Get Changelog Entry" step above, referencing it's ID to get its outputs object.
           # See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
