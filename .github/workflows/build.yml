@@ -117,6 +117,10 @@ jobs:
           default: true
           profile: minimal
           components: clippy, rustfmt
+      - name: git test setup preparation
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
       - name: coverage test
         run: cargo +nightly test --verbose --all --locked
         env:
