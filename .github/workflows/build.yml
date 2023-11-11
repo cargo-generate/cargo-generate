@@ -20,7 +20,7 @@ jobs:
     name: typos
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: crate-ci/typos@master
         with:
           config: ./typos.toml
@@ -33,7 +33,7 @@ jobs:
         version: [ 'macos-latest', 'ubuntu-latest', 'windows-latest']
     runs-on: ${{ matrix.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -56,7 +56,7 @@ jobs:
           - clippy --all-targets --all-features -- -D warnings
     runs-on: ${{ matrix.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -78,7 +78,7 @@ jobs:
     runs-on: ${{ matrix.version }}
     continue-on-error: ${{ matrix.rust == 'nightly' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -103,8 +103,21 @@ jobs:
         run: |
           cargo run -- --version
           cargo run -- --help
+
+  coverage:
+    name: code coverage
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup | rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          default: true
+          profile: minimal
+          components: clippy, rustfmt
       - name: coverage test
-        if: matrix.os == 'ubuntu-latest'
         run: cargo +nightly test --verbose --all --locked
         env:
           CARGO_INCREMENTAL: '0'
@@ -132,7 +145,7 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -150,7 +163,7 @@ jobs:
     name: publish dry run
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:
@@ -164,7 +177,7 @@ jobs:
     name: docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup | rust
         uses: actions-rs/toolchain@v1
         with:

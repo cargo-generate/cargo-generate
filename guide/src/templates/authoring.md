@@ -38,7 +38,7 @@ jobs:
     env:
       PROJECT_NAME: mytemplate
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: cargo-generate/cargo-generate-action@v0.17
         with:
           name: ${{ env.PROJECT_NAME }}
