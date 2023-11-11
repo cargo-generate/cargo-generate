@@ -99,14 +99,17 @@ jobs:
 #          if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
       - name: cargo test
         run: cargo test --verbose --all --locked
-        env:
-          CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-          RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
       - name: smoke tests
         run: |
           cargo run -- --version
           cargo run -- --help
+      - name: coverage test
+        if: matrix.os == 'ubuntu-latest'
+        run: cargo +nightly test --verbose --all --locked
+        env:
+          CARGO_INCREMENTAL: '0'
+          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+          RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
       - name: rust-grcov
         # You may pin to the exact commit or the version.
         # uses: actions-rs/grcov@bb47b1ed7883a1502fa6875d562727ace2511248
