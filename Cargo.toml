@@ -34,7 +34,7 @@ names = { version = "~0.14", default-features = false }
 log = "~0.4"
 env_logger = "~0.10"
 indexmap = { version = "~2", features = ["serde"] }
-fs-err = "2.9"
+fs-err = "2.11"
 
 # liquid
 liquid = "~0.26"
