@@ -32,6 +32,11 @@ impl CargoGenerateArgBuilder {
         self.arg("--branch").arg(name)
     }
 
+    /// wrapper for `--revision <name>` cli argument
+    pub fn arg_revision(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
+        self.arg("--rev").arg(name)
+    }
+
     /// wrapper for `--git <name>` cli argument
     pub fn arg_git(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
         self.arg("--git").arg(name)

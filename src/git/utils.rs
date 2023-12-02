@@ -36,6 +36,7 @@ pub fn clone_git_template_into_temp(
     git: &str,
     branch: Option<&str>,
     tag: Option<&str>,
+    revision: Option<&str>,
     identity: Option<&Path>,
 ) -> anyhow::Result<(TempDir, String)> {
     let git_clone_dir = tmp_dir()?;
@@ -47,8 +48,8 @@ pub fn clone_git_template_into_temp(
         .context("Please check if the Git user / repository exists.")?;
     let branch = get_branch_name_repo(&repo)?;
 
-    if let Some(tag) = tag {
-        let (object, reference) = repo.revparse_ext(tag)?;
+    if let Some(spec) = tag.or(revision) {
+        let (object, reference) = repo.revparse_ext(spec)?;
         repo.checkout_tree(&object, None)?;
         reference.map_or_else(
             || repo.set_head_detached(object.id()),

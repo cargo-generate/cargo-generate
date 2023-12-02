@@ -82,6 +82,7 @@ impl UserParsedInput {
                 git_url,
                 args.template_path.branch(),
                 args.template_path.tag(),
+                args.template_path.revision(),
                 ssh_identity,
                 args.force_git_init,
             );
@@ -148,10 +149,16 @@ impl UserParsedInput {
                         .tag()
                         .map(|s| s.as_ref().to_owned())
                         .or_else(|| fav_cfg.tag.clone());
+                    let revision = args
+                        .template_path
+                        .revision()
+                        .map(|s| s.as_ref().to_owned())
+                        .or_else(|| fav_cfg.revision.clone());
                     let git_user_input = GitUserInput::new(
                         git_url,
                         branch.as_ref(),
                         tag.as_ref(),
+                        revision.as_ref(),
                         ssh_identity,
                         args.force_git_init,
                     );
@@ -221,6 +228,7 @@ impl UserParsedInput {
                 &fav_name,
                 args.template_path.branch(),
                 args.template_path.tag(),
+                args.template_path.revision(),
                 ssh_identity,
                 args.force_git_init,
             );
@@ -365,6 +373,7 @@ pub struct GitUserInput {
     url: String,
     branch: Option<String>,
     tag: Option<String>,
+    revision: Option<String>,
     identity: Option<PathBuf>,
     _force_init: bool,
 }
@@ -374,6 +383,7 @@ impl GitUserInput {
         url: &impl AsRef<str>,
         branch: Option<&impl AsRef<str>>,
         tag: Option<&impl AsRef<str>>,
+        revision: Option<&impl AsRef<str>>,
         identity: Option<PathBuf>,
         force_init: bool,
     ) -> Self {
@@ -381,6 +391,7 @@ impl GitUserInput {
             url: url.as_ref().to_owned(),
             branch: branch.map(|s| s.as_ref().to_owned()),
             tag: tag.map(|s| s.as_ref().to_owned()),
+            revision: revision.map(|s| s.as_ref().to_owned()),
             identity,
             _force_init: force_init,
         }
@@ -392,6 +403,7 @@ impl GitUserInput {
             url,
             args.template_path.branch(),
             args.template_path.tag(),
+            args.template_path.revision(),
             args.ssh_identity.clone(),
             args.force_git_init,
         )
@@ -407,6 +419,10 @@ impl GitUserInput {
 
     pub fn tag(&self) -> Option<&str> {
         self.tag.as_deref()
+    }
+
+    pub fn revision(&self) -> Option<&str> {
+        self.revision.as_deref()
     }
 
     pub fn identity(&self) -> Option<&Path> {
