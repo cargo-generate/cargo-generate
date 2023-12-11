@@ -44,6 +44,26 @@ fn it_allows_a_git_tag_to_be_specified() {
 }
 
 #[test]
+fn it_allows_a_git_revision_to_be_specified() {
+    let template = tempdir().init_default_template().build();
+    let commit_sha = template.commit_shas().first().unwrap().to_string();
+    let dir = tempdir().build();
+
+    binary()
+        .arg_revision(commit_sha)
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
+}
+
+#[test]
 fn it_removes_git_history() {
     let template = tempdir().init_default_template().build();
     let dir = tempdir().build();

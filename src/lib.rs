@@ -229,6 +229,7 @@ fn get_source_template_into_temp(
                 git.url(),
                 git.branch(),
                 git.tag(),
+                git.revision(),
                 git.identity(),
             )
             .map(|(dir, branch)| (dir, Some(branch)));
