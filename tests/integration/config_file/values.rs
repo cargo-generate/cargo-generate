@@ -242,6 +242,43 @@ fn it_accepts_individual_template_values_via_flag() {
 }
 
 #[test]
+fn it_accepts_empty_define_variables() {
+    let template = tempdir()
+        .file(
+            "my-values.toml",
+            indoc! {r#"
+                [values]
+                my_value = "abc"
+            "#},
+        )
+        .file(
+            "random.toml",
+            indoc! {r#"
+                value = "{{my_value}}"
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_name("foobar-project")
+        .arg_git(template.path())
+        .arg("--template-values-file")
+        .arg(template.path().join("my-values.toml"))
+        .arg("--define")
+        .arg("my_value=")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    let random_toml = dbg!(dir.read("foobar-project/random.toml"));
+    assert!(random_toml.contains("value = \"\""));
+}
+
+#[test]
 fn it_accepts_values_via_long_option() {
     let template = tempdir()
         .file(

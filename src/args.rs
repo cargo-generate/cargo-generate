@@ -95,7 +95,7 @@ pub struct GenerateArgs {
     #[arg(short = 'i', long = "identity", value_parser)]
     pub ssh_identity: Option<PathBuf>,
 
-    /// Define a value for use during template expansion
+    /// Define a value for use during template expansion. E.g `--define foo=bar`
     #[arg(long, short, number_of_values = 1, value_parser)]
     pub define: Vec<String>,
 
