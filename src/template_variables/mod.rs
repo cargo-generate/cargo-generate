@@ -81,7 +81,7 @@ fn read_template_values_from_definitions(
     definitions: &[impl AsRef<str> + Display],
 ) -> Result<HashMap<String, toml::Value>> {
     let mut values = HashMap::with_capacity(definitions.len());
-    let key_value_regex = Regex::new(r"^([a-zA-Z]+[a-zA-Z0-9\-_]*)\s*=\s*(.+)$").unwrap();
+    let key_value_regex = Regex::new(r"^([a-zA-Z]+[a-zA-Z0-9\-_]*)\s*=\s*((.+))?$").unwrap();
 
     definitions
         .iter()
@@ -97,7 +97,7 @@ fn read_template_values_from_definitions(
                 },
                 |cap| {
                     let key = cap.get(1).unwrap().as_str().to_string();
-                    let value = cap.get(2).unwrap().as_str().to_string();
+                    let value = cap.get(2).map(|s| s.as_str()).unwrap_or("").to_owned();
 
                     info!(
                         "{} {} (variable provided via CLI)",
