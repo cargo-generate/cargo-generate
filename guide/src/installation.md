@@ -38,7 +38,7 @@ This will require the following dependencies on your system:
 
 ## Using `pacman` (Arch Linux)
 
-`cargo-generate` can be installed from the [community repository] for Arch Linux:
+`cargo-generate` can be installed from the [extra repository] for Arch Linux:
 
 ```sh
 pacman -S cargo-generate
@@ -50,5 +50,5 @@ pacman -S cargo-generate
 2. Unpack the tarball and place the binary `cargo-generate` in `~/.cargo/bin/`
 
 [`openssl` crate]: https://docs.rs/openssl
-[community repository]: https://archlinux.org/packages/community/x86_64/cargo-generate/
+[extra repository]: https://archlinux.org/packages/extra/x86_64/cargo-generate/
 [releases page]: https://github.com/cargo-generate/cargo-generate/releases
