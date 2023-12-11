@@ -917,7 +917,7 @@ jobs:
       - uses: cargo-generate/cargo-generate-action@v0.17
         with:
           name: ${{ env.PROJECT_NAME }}
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
       # we need to move the generated project to a temp folder, away from the template project
