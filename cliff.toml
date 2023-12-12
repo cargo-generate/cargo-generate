@@ -15,7 +15,7 @@ body = """
 
     [{{ version | trim_start_matches(pat="v") }}]: <REPO>/compare/{{ previous.version }}...{{ version }}
 {% else %}\
-    ## [Unreleased](<REPO>/compare/{{ previous.version }}...HEAD)
+    ## [Unreleased]
 {% endif %}\
 {% for group, commits in commits | group_by(attribute="group") %}
     ### {{ group | upper_first }}
