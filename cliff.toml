@@ -1,21 +1,23 @@
 [changelog]
 # changelog header
 header = """
-# Changelog\n
+# Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 """
 # template for the changelog body
 # https://keats.github.io/tera/docs/#introduction
 body = """
 {% if version %}\
+    ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/{{ version }}...HEAD)
+
     ## [{{ version | trim_start_matches(pat="v") }}] {{ timestamp | date(format="%Y-%m-%d") }}
 
-    [{{ version | trim_start_matches(pat="v") }}]: <REPO>/compare/{{ previous.version }}...{{ version }}
-{% else %}\
-    ## [Unreleased]
+    [{{ version | trim_start_matches(pat="v") }}]: https://github.com/cargo-generate/cargo-generate/compare/{{ previous.version }}...{{ version }}
 {% endif %}\
 {% for group, commits in commits | group_by(attribute="group") %}
     ### {{ group | upper_first }}
