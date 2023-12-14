@@ -1,5 +1,36 @@
 # Changelog
 
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.19.0...HEAD)
+
+## [0.19.0] 2023-12-13
+
+[0.19.0]: https://github.com/cargo-generate/cargo-generate/compare/0.18.5...0.19.0
+
+### ✨ Features
+
+- Add support for generating from a specific git revision of a git template ([#1070](https://github.com/cargo-generate/cargo-generate/pull/1070))
+- Add release-plz pr ([#1076](https://github.com/cargo-generate/cargo-generate/pull/1076))
+- Add cliff.toml config file to release-plz config
+
+### 🛠️  Maintenance
+
+- Bump fs-err from 2.9.0 to 2.11.0 ([#1063](https://github.com/cargo-generate/cargo-generate/pull/1063))
+- Update Arch Linux package URL in installation.md ([#1064](https://github.com/cargo-generate/cargo-generate/pull/1064))
+- Fine tune git-cliff config
+- Fix git-cliff error on ci
+
+### 🤕 Fixes
+
+- Use a new token for creating the release and coverage data ([#1061](https://github.com/cargo-generate/cargo-generate/pull/1061))
+- Convert destination to absolute path ([#1072](https://github.com/cargo-generate/cargo-generate/pull/1072))
+- Fix gh-pages deploy token issue
+- Fix empty define values ([#1078](https://github.com/cargo-generate/cargo-generate/pull/1078))
+- Release-plz does not take the config file
+- Hand release-plz config file over explicitly
+- Extend the changelog config for git-cliff
+- Reconfigure git-cliff a bit further
+- Fix git-cliff changelog diff
+
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.18.5...HEAD)
 
 ## [0.18.5] 2023-11-11
