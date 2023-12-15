@@ -31,8 +31,6 @@
 - Reconfigure git-cliff a bit further
 - Fix git-cliff changelog diff
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.18.5...HEAD)
-
 ## [0.18.5] 2023-11-11
 
 [0.18.5]: https://github.com/cargo-generate/cargo-generate/compare/v0.18.4...v0.18.5
