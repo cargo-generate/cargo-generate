@@ -29,4 +29,4 @@ jobs:
           command: release-pr
           config: release-plz.toml
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CI_CARGO_GENERATE_RELEASE_GH_PAT }}
