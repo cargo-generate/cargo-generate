@@ -1,14 +1,19 @@
 use crate::{
     emoji,
-    project_variables::{StringEntry, TemplateSlots, VarInfo},
+    project_variables::{Prompt, StringEntry, StringType, TemplateSlots, VarInfo},
 };
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 use console::style;
-use dialoguer::Input;
 use dialoguer::{theme::ColorfulTheme, Select};
+use dialoguer::{Editor, Input};
 use liquid_core::Value;
 use log::warn;
-use std::{ops::Index, str::FromStr};
+use std::{
+    borrow::Cow,
+    io::{stdin, Read},
+    ops::Index,
+    str::FromStr,
+};
 
 pub fn name() -> Result<String> {
     let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;
@@ -18,7 +23,7 @@ pub fn name() -> Result<String> {
         var_info: VarInfo::String {
             entry: Box::new(StringEntry {
                 default: None,
-                choices: None,
+                string_type: StringType::String,
                 regex: Some(valid_ident),
             }),
         },
@@ -26,27 +31,56 @@ pub fn name() -> Result<String> {
     prompt_and_check_variable(&project_var, None)
 }
 
-pub fn user_question(prompt: &str, default: &Option<String>) -> Result<String> {
-    let mut i = Input::<String>::new().with_prompt(prompt);
-    if let Some(s) = default {
-        i = i.default(s.to_owned());
+pub fn user_question(
+    prompt: &Prompt,
+    default: &Option<String>,
+    string_type: &StringType,
+) -> Result<String> {
+    match string_type {
+        StringType::String => {
+            let mut i = Input::<String>::new().with_prompt(&prompt.styled_with_default);
+            if let Some(s) = default {
+                i = i.default(s.to_owned());
+            }
+            i.interact().map_err(Into::<anyhow::Error>::into)
+        }
+        StringType::Editor => {
+            println!("{} (in Editor)", prompt.styled_with_default);
+            Editor::new()
+                .edit(&prompt.with_default)?
+                .or_else(|| default.clone())
+                .ok_or(anyhow!("Aborted Editor without saving !"))
+        }
+        StringType::Text => {
+            println!(
+                "{} (press Ctrl+d to stop reading)",
+                prompt.styled_with_default
+            );
+            let mut buffer = String::new();
+            stdin().read_to_string(&mut buffer)?;
+            Ok(buffer)
+        }
+        _ => unreachable!("StringType::Choices should be handled in the parent"),
     }
-    i.interact().map_err(Into::<anyhow::Error>::into)
 }
 
 pub fn prompt_and_check_variable(
     variable: &TemplateSlots,
     provided_value: Option<String>,
 ) -> Result<String> {
-    let prompt = format!("{} {}", emoji::SHRUG, style(&variable.prompt).bold(),);
-
     match &variable.var_info {
-        VarInfo::Bool { default } => handle_bool_input(provided_value, &prompt, default),
-        VarInfo::String { entry } => match &entry.choices {
-            Some(choices) => {
-                handle_choice_input(provided_value, &variable.var_name, choices, entry, &prompt)
+        VarInfo::Bool { default } => handle_bool_input(provided_value, &variable.prompt, default),
+        VarInfo::String { entry } => match &entry.string_type {
+            StringType::Choices(choices) => handle_choice_input(
+                provided_value,
+                &variable.var_name,
+                choices,
+                entry,
+                &variable.prompt,
+            ),
+            StringType::String | StringType::Text | StringType::Editor => {
+                handle_string_input(provided_value, &variable.var_name, entry, &variable.prompt)
             }
-            None => handle_string_input(provided_value, &variable.var_name, entry, &prompt),
         },
     }
 }
@@ -66,45 +100,48 @@ fn handle_string_input(
     provided_value: Option<String>,
     var_name: &str,
     entry: &StringEntry,
-    prompt: &str,
+    prompt: &Prompt,
 ) -> Result<String> {
-    match provided_value {
-        Some(value) => {
-            if entry
-                .regex
-                .as_ref()
-                .map(|ex| ex.is_match(&value))
-                .unwrap_or(true)
-            {
-                Ok(value)
-            } else {
-                bail!(
-                    "{} {} \"{}\" {}",
-                    emoji::WARN,
-                    style("Sorry,").bold().red(),
-                    style(&value).bold().yellow(),
-                    style(format!("is not a valid value for {var_name}"))
-                        .bold()
-                        .red()
-                )
-            }
+    if let Some(value) = provided_value {
+        if entry
+            .regex
+            .as_ref()
+            .map(|ex| ex.is_match(&value))
+            .unwrap_or(true)
+        {
+            return Ok(value);
         }
-        None => {
-            let default = entry.default.as_ref().map(|v| v.to_owned());
-            let prompt = format!(
-                "{prompt}{}",
-                default
-                    .as_ref()
-                    .map(|default| format!(" [default: {}]", style(default).bold()))
-                    .unwrap_or_else(|| "".to_owned())
-            );
-
-            match &entry.regex {
-                Some(regex) => loop {
-                    let user_entry = user_question(prompt.as_str(), &default)?;
-                    if regex.is_match(&user_entry) {
-                        break Ok(user_entry);
-                    }
+        bail!(
+            "{} {} \"{}\" {}",
+            emoji::WARN,
+            style("Sorry,").bold().red(),
+            style(&value).bold().yellow(),
+            style(format!("is not a valid value for {var_name}"))
+                .bold()
+                .red()
+        )
+    };
+    let mut prompt: Cow<'_, Prompt> = Cow::Borrowed(prompt);
+    match &entry.regex {
+        Some(regex) => loop {
+            let user_entry = user_question(&prompt, &entry.default, &entry.string_type)?;
+            if regex.is_match(&user_entry) {
+                break Ok(user_entry);
+            }
+            // the user won't see the error in stdout if in a editor
+            match entry.string_type {
+                StringType::Editor => {
+                    // Editor use with_default
+                    prompt.to_mut().with_default = format!(
+                        "{}: \"{user_entry}\" is not a valid value for `{var_name}`",
+                        prompt
+                            .with_default
+                            .split_once(':')
+                            .map(|t| t.0)
+                            .unwrap_or(&prompt.with_default)
+                    );
+                }
+                _ => {
                     warn!(
                         "{} \"{}\" {}",
                         style("Sorry,").bold().red(),
@@ -113,10 +150,10 @@ fn handle_string_input(
                             .bold()
                             .red()
                     );
-                },
-                None => Ok(user_question(prompt.as_str(), &default)?),
-            }
-        }
+                }
+            };
+        },
+        None => Ok(user_question(&prompt, &entry.default, &entry.string_type)?),
     }
 }
 
@@ -125,7 +162,7 @@ fn handle_choice_input(
     var_name: &str,
     choices: &Vec<String>,
     entry: &StringEntry,
-    prompt: &str,
+    prompt: &Prompt,
 ) -> Result<String> {
     match provided_value {
         Some(value) => {
@@ -150,7 +187,7 @@ fn handle_choice_input(
                 .map_or(0, |default| choices.binary_search(default).unwrap_or(0));
             let chosen = Select::with_theme(&ColorfulTheme::default())
                 .items(choices)
-                .with_prompt(prompt)
+                .with_prompt(&prompt.styled)
                 .default(default)
                 .interact()?;
 
@@ -161,7 +198,7 @@ fn handle_choice_input(
 
 fn handle_bool_input(
     provided_value: Option<String>,
-    prompt: &str,
+    prompt: &Prompt,
     default: &Option<bool>,
 ) -> Result<String> {
     match provided_value {
@@ -173,7 +210,7 @@ fn handle_bool_input(
             let choices = [false.to_string(), true.to_string()];
             let chosen = Select::with_theme(&ColorfulTheme::default())
                 .items(&choices)
-                .with_prompt(prompt)
+                .with_prompt(&prompt.styled)
                 .default(usize::from(default.unwrap_or(false)))
                 .interact()?;
 
