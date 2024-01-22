@@ -4,7 +4,7 @@ use regex::Regex;
 use rhai::{Array, Dynamic, Module};
 
 use crate::interactive::prompt_and_check_variable;
-use crate::project_variables::{StringEntry, TemplateSlots, VarInfo};
+use crate::project_variables::{StringEntry, StringType, TemplateSlots, VarInfo};
 use crate::template::LiquidObjectResource;
 
 use super::{HookResult, PoisonError};
@@ -117,7 +117,7 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
                     var_info: VarInfo::String {
                         entry: Box::new(StringEntry {
                             default: None,
-                            choices: None,
+                            string_type: StringType::String,
                             regex: None,
                         }),
                     },
@@ -141,7 +141,7 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
                     var_info: VarInfo::String {
                         entry: Box::new(StringEntry {
                             default: Some(default_value.into()),
-                            choices: None,
+                            string_type: StringType::String,
                             regex: None,
                         }),
                     },
@@ -165,7 +165,7 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
                     var_info: VarInfo::String {
                         entry: Box::new(StringEntry {
                             default: Some(default_value.into()),
-                            choices: None,
+                            string_type: StringType::String,
                             regex: Some(Regex::new(regex).map_err(|_| "Invalid regex")?),
                         }),
                     },
@@ -189,7 +189,7 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
                     var_info: VarInfo::String {
                         entry: Box::new(StringEntry {
                             default: Some(default_value.into()),
-                            choices: Some(
+                            string_type: StringType::Choices(
                                 choices
                                     .iter()
                                     .map(|d| d.to_owned().into_string().unwrap())

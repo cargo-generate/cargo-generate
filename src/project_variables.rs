@@ -18,10 +18,51 @@ use crate::{
 pub struct TemplateSlots {
     pub(crate) var_name: String,
     pub(crate) var_info: VarInfo,
-    pub(crate) prompt: String,
+    pub(crate) prompt: Prompt,
 }
 
-// Information needed to prompt for a typed value
+#[derive(Debug, Clone)]
+pub struct Prompt {
+    pub(crate) _raw: String,
+    pub(crate) styled: String,
+    pub(crate) styled_with_default: String,
+    pub(crate) with_default: String,
+}
+impl Prompt {
+    pub(crate) fn new(prompt: impl Into<String>, default: Option<String>) -> Self {
+        let prompt = prompt.into();
+        let styled = format!("{} {}", emoji::SHRUG, style(&prompt).bold(),);
+        let styled_with_default = format!(
+            "{styled}{}",
+            default
+                .as_ref()
+                .map(|default| format!(" [default: {}]", style(default).bold()))
+                .unwrap_or_default()
+        );
+        let with_default = format!(
+            "{prompt}{}",
+            default
+                .as_ref()
+                .map(|default| format!(" [default: {default}]"))
+                .unwrap_or_default()
+        );
+        Self {
+            _raw: prompt,
+            styled,
+            styled_with_default,
+            with_default,
+        }
+    }
+}
+
+impl<T: AsRef<str>> From<T> for Prompt {
+    fn from(value: T) -> Self {
+        Self::new(value.as_ref(), None)
+    }
+}
+
+/// Information needed to prompt for a typed value
+/// Editor will never have choices
 #[derive(Debug, Clone)]
 pub enum VarInfo {
     Bool { default: Option<bool> },
@@ -31,8 +72,16 @@ pub enum VarInfo {
 #[derive(Debug, Clone)]
 pub struct StringEntry {
     pub(crate) default: Option<String>,
-    pub(crate) choices: Option<Vec<String>>,
+    pub(crate) string_type: StringType,
     pub(crate) regex: Option<Regex>,
+}
+
+#[derive(Debug, Clone)]
+pub enum StringType {
+    Choices(Vec<String>),
+    String,
+    Editor,
+    Text,
 }
 
 #[derive(Error, Debug, PartialEq)]
@@ -59,8 +108,8 @@ pub enum ConversionError {
         "invalid type for variable `{var_name}`: `{value}` possible values are `bool` and `string`"
     )]
     InvalidVariableType { var_name: String, value: String },
-    #[error("bool type does not support `choices` field")]
-    ChoicesOnBool { var_name: String },
+    #[error("{var_type} type does not support `choices` field")]
+    UnsupportedChoices { var_type: String },
     #[error("bool type does not support `regex` field")]
     RegexOnBool { var_name: String },
     #[error("variable `{var_name}` was missing in config file running on silent mode")]
@@ -87,6 +136,8 @@ enum SupportedVarValue {
 enum SupportedVarType {
     Bool,
     String,
+    Editor,
+    Text,
 }
 
 const RESERVED_NAMES: [&str; 7] = [
@@ -198,31 +249,52 @@ fn try_key_value_into_slot(
         choices.as_ref(),
     )?;
 
-    let var_info = match (var_type, default_choice) {
-        (SupportedVarType::Bool, Some(SupportedVarValue::Bool(value))) => VarInfo::Bool {
-            default: Some(value),
+    let var_info = match var_type {
+        SupportedVarType::Bool => VarInfo::Bool {
+            default: if let Some(SupportedVarValue::Bool(value)) = default_choice {
+                Some(value)
+            } else {
+                None
+            },
         },
-        (SupportedVarType::String, Some(SupportedVarValue::String(value))) => VarInfo::String {
+        SupportedVarType::String => VarInfo::String {
             entry: Box::new(StringEntry {
-                default: Some(value),
-                choices,
+                default: if let Some(SupportedVarValue::String(value)) = default_choice {
+                    Some(value)
+                } else {
+                    None
+                },
+                string_type: choices.map_or(StringType::String, StringType::Choices),
                 regex,
             }),
         },
-        (SupportedVarType::Bool, None) => VarInfo::Bool { default: None },
-        (SupportedVarType::String, None) => VarInfo::String {
+        SupportedVarType::Editor => VarInfo::String {
             entry: Box::new(StringEntry {
-                default: None,
-                choices,
+                default: if let Some(SupportedVarValue::String(value)) = default_choice {
+                    Some(value)
+                } else {
+                    None
+                },
+                string_type: StringType::Editor,
                 regex,
             }),
         },
-        _ => unreachable!("It should not have come to this..."),
+        SupportedVarType::Text => VarInfo::String {
+            entry: Box::new(StringEntry {
+                default: if let Some(SupportedVarValue::String(value)) = default_choice {
+                    Some(value)
+                } else {
+                    None
+                },
+                string_type: StringType::Text,
+                regex,
+            }),
+        },
     };
     Ok(TemplateSlots {
         var_name: key.to_string(),
         var_info,
-        prompt,
+        prompt: prompt.into(),
     })
 }
 
@@ -235,7 +307,10 @@ fn extract_regex(
         (SupportedVarType::Bool, Some(_)) => Err(ConversionError::RegexOnBool {
             var_name: var_name.into(),
         }),
-        (SupportedVarType::String, Some(toml::Value::String(value))) => match Regex::new(value) {
+        (
+            SupportedVarType::String | SupportedVarType::Editor | SupportedVarType::Text,
+            Some(toml::Value::String(value)),
+        ) => match Regex::new(value) {
             Ok(regex) => Ok(Some(regex)),
             Err(e) => Err(ConversionError::InvalidRegex {
                 var_name: var_name.into(),
@@ -243,11 +318,13 @@ fn extract_regex(
                 error: e,
             }),
         },
-        (SupportedVarType::String, Some(_)) => Err(ConversionError::WrongTypeParameter {
-            var_name: var_name.into(),
-            parameter: "regex".to_string(),
-            correct_type: "String".to_string(),
-        }),
+        (SupportedVarType::String | SupportedVarType::Editor | SupportedVarType::Text, Some(_)) => {
+            Err(ConversionError::WrongTypeParameter {
+                var_name: var_name.into(),
+                parameter: "regex".to_string(),
+                correct_type: "String".to_string(),
+            })
+        }
         (_, None) => Ok(None),
     }
 }
@@ -259,6 +336,8 @@ fn extract_type(
     match table_entry {
         None => Ok(SupportedVarType::String),
         Some(toml::Value::String(value)) if value == "string" => Ok(SupportedVarType::String),
+        Some(toml::Value::String(value)) if value == "editor" => Ok(SupportedVarType::Editor),
+        Some(toml::Value::String(value)) if value == "text" => Ok(SupportedVarType::Text),
         Some(toml::Value::String(value)) if value == "bool" => Ok(SupportedVarType::Bool),
         Some(toml::Value::String(value)) => Err(ConversionError::InvalidVariableType {
             var_name: var_name.into(),
@@ -303,7 +382,11 @@ fn extract_default(
         (Some(toml::Value::Boolean(value)), _, SupportedVarType::Bool) => {
             Ok(Some(SupportedVarValue::Bool(*value)))
         }
-        (Some(toml::Value::String(value)), None, SupportedVarType::String) => {
+        (
+            Some(toml::Value::String(value)),
+            None,
+            SupportedVarType::String | SupportedVarType::Editor | SupportedVarType::Text,
+        ) => {
             if let Some(reg) = regex {
                 if !reg.is_match(value) {
                     return Err(ConversionError::RegexDoesntMatchField {
@@ -317,7 +400,11 @@ fn extract_default(
 
         // default and choices set
         // No need to check bool because it always has a choices vec with two values
-        (Some(toml::Value::String(value)), Some(choices), SupportedVarType::String) => {
+        (
+            Some(toml::Value::String(value)),
+            Some(choices),
+            SupportedVarType::String | SupportedVarType::Editor | SupportedVarType::Text,
+        ) => {
             if !choices.contains(value) {
                 Err(ConversionError::InvalidDefault {
                     var_name: var_name.into(),
@@ -344,6 +431,8 @@ fn extract_default(
             correct_type: match type_name {
                 SupportedVarType::Bool => "bool".to_string(),
                 SupportedVarType::String => "string".to_string(),
+                SupportedVarType::Editor => "editor".to_string(),
+                SupportedVarType::Text => "text".to_string(),
             },
         }),
     }
@@ -356,10 +445,14 @@ fn extract_choices(
     table_entry: Option<&toml::Value>,
 ) -> Result<Option<Vec<String>>, ConversionError> {
     match (table_entry, var_type) {
-        (None, SupportedVarType::Bool) => Ok(None),
-        (Some(_), SupportedVarType::Bool) => Err(ConversionError::ChoicesOnBool {
-            var_name: var_name.into(),
-        }),
+        (None, SupportedVarType::Bool | SupportedVarType::Editor | SupportedVarType::Text) => {
+            Ok(None)
+        }
+        (Some(_), SupportedVarType::Bool | SupportedVarType::Editor | SupportedVarType::Text) => {
+            Err(ConversionError::UnsupportedChoices {
+                var_type: format!("{var_type:?}"),
+            })
+        }
         (Some(toml::Value::Array(arr)), SupportedVarType::String) if arr.is_empty() => {
             Err(ConversionError::EmptyChoices {
                 var_name: var_name.into(),
@@ -420,6 +513,20 @@ mod tests {
     }
 
     #[test]
+    fn no_choices_editor() {
+        let result = extract_choices("foo", SupportedVarType::Editor, None, None);
+
+        assert_eq!(result, Ok(None));
+    }
+
+    #[test]
+    fn no_choices_text() {
+        let result = extract_choices("foo", SupportedVarType::Text, None, None);
+
+        assert_eq!(result, Ok(None));
+    }
+
+    #[test]
     fn boolean_cant_have_choices() {
         let result = extract_choices(
             "foo",
@@ -433,8 +540,47 @@ mod tests {
 
         assert_eq!(
             result,
-            Err(ConversionError::ChoicesOnBool {
-                var_name: "foo".into()
+            Err(ConversionError::UnsupportedChoices {
+                var_type: "Bool".into()
+            })
+        );
+    }
+
+    #[test]
+    fn text_cant_have_choices() {
+        let result = extract_choices(
+            "foo",
+            SupportedVarType::Text,
+            None,
+            Some(&toml::Value::Array(vec![
+                toml::Value::Boolean(true),
+                toml::Value::Boolean(false),
+            ])),
+        );
+
+        assert_eq!(
+            result,
+            Err(ConversionError::UnsupportedChoices {
+                var_type: "Text".into()
+            })
+        );
+    }
+
+    #[test]
+    fn editor_cant_have_choices() {
+        let result = extract_choices(
+            "foo",
+            SupportedVarType::Editor,
+            None,
+            Some(&toml::Value::Array(vec![
+                toml::Value::Boolean(true),
+                toml::Value::Boolean(false),
+            ])),
+        );
+        assert_eq!(
+            result,
+            Err(ConversionError::UnsupportedChoices {
+                var_type: "Editor".into()
             })
         );
     }
