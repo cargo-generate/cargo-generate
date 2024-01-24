@@ -121,6 +121,10 @@ pub struct GenerateArgs {
     #[arg(short, long, action)]
     pub overwrite: bool,
 
+    /// Download git submodules (if there are any)
+    #[arg(long, action)]
+    pub skip_submodules: bool,
+
     /// All args after "--" on the command line.
     #[arg(skip)]
     pub other_args: Option<Vec<String>>,
@@ -147,6 +151,7 @@ impl Default for GenerateArgs {
             force_git_init: false,
             allow_commands: false,
             overwrite: false,
+            skip_submodules: false,
             other_args: None,
         }
     }

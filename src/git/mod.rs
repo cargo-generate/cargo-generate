@@ -23,13 +23,14 @@ pub use utils::{tmp_dir, try_get_branch_from_path};
 
 // Assumptions:
 // * `--git <url>` should only be parse in the same way as `git clone <url>` would
-// * submodules should be clone by default
+// * submodules can be cloned by setting the submodules field to true.
 // * `.git` should be removed to make clear repository
 // * if `<url>` is the local path on system the clone should also be done the same way as `git clone` there is `--path`
 //    for different behavior
 
 // basically we want to call:
 // git clone --recurse-submodules --depth 1 --branch <branch> <url> <tmp_dir>
+// with --recurse-submodules being optional.
 
 type Git2Result<T> = Result<T, git2::Error>;
 
@@ -37,10 +38,11 @@ struct RepoCloneBuilder<'cb> {
     builder: RepoBuilder<'cb>,
     authenticator: GitAuthenticator,
     url: String,
+    skip_submodules: bool,
 }
 
 impl<'cb> RepoCloneBuilder<'cb> {
-    pub fn new(url: &str) -> Result<Self> {
+    pub fn new(url: &str, skip_submodules: bool) -> Result<Self> {
         let url = gitconfig::find_gitconfig()?.map_or_else(
             || url.to_owned(),
             |gitcfg| {
@@ -54,11 +56,17 @@ impl<'cb> RepoCloneBuilder<'cb> {
             builder: RepoBuilder::new(),
             authenticator: GitAuthenticator::default(),
             url,
+            skip_submodules,
         })
     }
 
-    pub fn new_with(url: &str, branch: Option<&str>, identity_path: Option<&Path>) -> Result<Self> {
-        let mut builder = Self::new(url)?;
+    pub fn new_with(
+        url: &str,
+        branch: Option<&str>,
+        identity_path: Option<&Path>,
+        submodules: bool,
+    ) -> Result<Self> {
+        let mut builder = Self::new(url, submodules)?;
         if let Some(branch) = branch {
             builder.set_branch(branch);
         }
@@ -113,7 +121,11 @@ impl<'cb> RepoCloneBuilder<'cb> {
 
     pub fn clone_with_submodules(self, dest_path: &Path) -> Result<Repository> {
         let authenticator = Clone::clone(&self.authenticator);
+        let skip_submodules = self.skip_submodules;
         let repo = self.clone(dest_path)?;
+        if skip_submodules {
+            return Ok(repo);
+        }
 
         let config = repo.config()?;
 
