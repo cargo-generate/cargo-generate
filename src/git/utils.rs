@@ -1,74 +1,21 @@
-use anyhow::Context;
-use anyhow::Result;
-use std::path::{Path, PathBuf};
-
-use git2::Repository;
-use tempfile::TempDir;
-
-use super::RepoCloneBuilder;
-
-pub fn tmp_dir() -> std::io::Result<tempfile::TempDir> {
-    tempfile::Builder::new().prefix("cargo-generate").tempdir()
-}
-
-/// deals with `~/` and `$HOME/` prefixes
-pub fn canonicalize_path(p: impl AsRef<Path>) -> Result<PathBuf> {
-    let p = p.as_ref();
-    let p = if p.starts_with("~/") {
-        home()?.join(p.strip_prefix("~/")?)
-    } else if p.starts_with("$HOME/") {
-        home()?.join(p.strip_prefix("$HOME/")?)
-    } else {
-        p.to_path_buf()
-    };
-
-    p.canonicalize()
-        .with_context(|| format!("path does not exist: {}", p.display()))
-}
-
-/// home path wrapper
-pub fn home() -> Result<PathBuf> {
-    home::home_dir().context("$HOME was not set")
-}
-
-// clone git repository into temp using libgit2
-pub fn clone_git_template_into_temp(
-    git: &str,
-    branch: Option<&str>,
-    tag: Option<&str>,
-    revision: Option<&str>,
-    identity: Option<&Path>,
-) -> anyhow::Result<(TempDir, String)> {
-    let git_clone_dir = tmp_dir()?;
-
-    let builder = RepoCloneBuilder::new_with(git, branch, identity)?;
-
-    let repo = builder
-        .clone_with_submodules(git_clone_dir.path())
-        .context("Please check if the Git user / repository exists.")?;
-    let branch = get_branch_name_repo(&repo)?;
-
-    if let Some(spec) = tag.or(revision) {
-        let (object, reference) = repo.revparse_ext(spec)?;
-        repo.checkout_tree(&object, None)?;
-        reference.map_or_else(
-            || repo.set_head_detached(object.id()),
-            |gref| repo.set_head(gref.name().unwrap()),
-        )?
-    }
-
-    Ok((git_clone_dir, branch))
-}
+use anyhow::{bail, Result};
+use log::warn;
+use remove_dir_all::remove_dir_all;
+use std::io;
+use std::ops::Sub;
+use std::path::Path;
+use std::thread::sleep;
+use std::time::Duration;
 
 pub fn try_get_branch_from_path(git: impl AsRef<Path>) -> Option<String> {
-    Repository::open(git)
+    git2::Repository::open(git)
         .ok()
         .and_then(|repo| get_branch_name_repo(&repo).ok())
 }
 
 /// thanks to @extrawurst for pointing this out
 /// <https://github.com/extrawurst/gitui/blob/master/asyncgit/src/sync/branch/mod.rs#L38>
-fn get_branch_name_repo(repo: &Repository) -> anyhow::Result<String> {
+fn get_branch_name_repo(repo: &git2::Repository) -> Result<String> {
     let iter = repo.branches(None)?;
 
     for b in iter {
@@ -80,35 +27,36 @@ fn get_branch_name_repo(repo: &Repository) -> anyhow::Result<String> {
         }
     }
 
-    anyhow::bail!("A repo has no Head")
+    bail!("A repo has no Head")
 }
 
-#[test]
-fn should_canonicalize() {
-    #[cfg(target_os = "macos")]
-    {
-        assert!(canonicalize_path(PathBuf::from("../"))
-            .unwrap()
-            .starts_with("/Users/"));
+/// remove context of repository by removing `.git` from filesystem
+pub fn remove_history(project_dir: &Path) -> io::Result<()> {
+    let git_dir = project_dir.join(".git");
+    if git_dir.exists() && git_dir.is_dir() {
+        let mut attempt = 0_u8;
 
-        assert!(canonicalize_path(PathBuf::from("$HOME/"))
-            .unwrap()
-            .starts_with("/Users/"));
+        loop {
+            attempt += 1;
+            if let Err(e) = remove_dir_all(&git_dir) {
+                if attempt == 5 {
+                    return Err(e);
+                }
+
+                if e.to_string().contains("The process cannot access the file because it is being used by another process.") {
+                    let wait_for = Duration::from_secs(2_u64.pow(attempt.sub(1).into()));
+                    warn!("Git history cleanup failed with a windows process blocking error. [Retry in {:?}]", wait_for);
+                    sleep(wait_for);
+                } else {
+                    return Err(e);
+                }
+            } else {
+                return Ok(());
+            }
+        }
+    } else {
+        //FIXME should we assume this is expected by caller?
+        // panic!("tmp panic");
+        Ok(())
     }
-    #[cfg(target_os = "linux")]
-    assert_eq!(
-        canonicalize_path(PathBuf::from("../")).ok(),
-        std::env::current_dir()
-            .unwrap()
-            .parent()
-            .map(|p| p.to_path_buf())
-    );
-    #[cfg(windows)]
-    assert!(canonicalize_path(PathBuf::from("../"))
-        .unwrap()
-        // not a bug, a feature:
-        // https://stackoverflow.com/questions/41233684/why-does-my-canonicalized-path-get-prefixed-with
-        .to_str()
-        .unwrap()
-        .starts_with("\\\\?\\"));
 }

@@ -39,6 +39,7 @@ mod template;
 mod template_filters;
 mod template_variables;
 mod user_parsed_input;
+mod utils;
 
 pub use crate::app_config::{app_config_path, AppConfig};
 pub use crate::favorites::list_favorites;
@@ -67,14 +68,13 @@ use std::{
 use tempfile::TempDir;
 use user_parsed_input::{TemplateLocation, UserParsedInput};
 
-use crate::git::tmp_dir;
 use crate::template_variables::{
     load_env_and_args_template_values, CrateName, ProjectDir, ProjectNameInput,
 };
+use crate::utils::tmp_dir;
 use crate::{project_variables::ConversionError, template_variables::ProjectName};
 
 use self::config::TemplateConfig;
-use self::git::try_get_branch_from_path;
 use self::hooks::evaluate_script;
 use self::template::{create_liquid_object, set_project_name_variables, LiquidObjectResource};
 
@@ -234,16 +234,15 @@ fn get_source_template_into_temp(
             )
             .map(|(dir, branch)| (dir, Some(branch)));
             if let Ok((ref temp_dir, _)) = result {
-                git::remove_history(temp_dir.path())?;
                 strip_liquid_suffixes(temp_dir.path())?;
             };
             result
         }
         TemplateLocation::Path(path) => {
             let temp_dir = tmp_dir()?;
-            copy_dir_all(path, temp_dir.path(), false)?;
-            git::remove_history(temp_dir.path())?;
-            Ok((temp_dir, try_get_branch_from_path(path)))
+            let branch = git::clone_local_path_as_if_it_was_a_repo(path, temp_dir.path(), false)?;
+
+            Ok((temp_dir, branch))
         }
     }
 }
@@ -396,6 +395,7 @@ fn resolve_configured_sub_templates(
         )
 }
 
+// todo: refactor this fn to utils
 pub(crate) fn copy_dir_all(
     src: impl AsRef<Path>,
     dst: impl AsRef<Path>,

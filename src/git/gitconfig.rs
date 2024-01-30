@@ -1,16 +1,13 @@
-use crate::git::utils::home;
-use anyhow::Context;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use gix_config::{File as GitConfigParser, Source};
 use std::path::{Path, PathBuf};
 
-pub fn find_gitconfig() -> Result<Option<PathBuf>> {
-    let gitconfig = home().map(|home| home.join(".gitconfig"))?;
-    if gitconfig.exists() {
-        return Ok(Some(gitconfig));
-    }
+use crate::utils::home;
 
-    Ok(None)
+pub fn find_gitconfig() -> Result<Option<PathBuf>> {
+    home()
+        .map(|home| home.join(".gitconfig"))
+        .map(|c| if c.exists() { Some(c) } else { None })
 }
 
 /// trades urls, to replace a given repo remote url with the right on based
@@ -49,15 +46,16 @@ pub fn resolve_instead_url(
 #[cfg(test)]
 mod test {
     use crate::tmp_dir;
+    use indoc::indoc;
 
     use super::*;
 
     #[test]
     fn should_resolve_instead_url() {
-        let sample_config = r#"
-[url "ssh://git@github.com:"]
-    insteadOf = https://github.com/
-"#;
+        let sample_config = indoc! {r#"
+            [url "ssh://git@github.com:"]
+            insteadOf = https://github.com/
+        "#};
         let where_gitconfig_lives = tmp_dir().unwrap();
         let gitconfig = where_gitconfig_lives.path().join(".gitconfig");
         std::fs::write(&gitconfig, sample_config).unwrap();
