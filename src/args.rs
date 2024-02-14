@@ -283,7 +283,7 @@ impl Vcs {
     }
 }
 
-#[cfg(tests)]
+#[cfg(test)]
 mod cli_tests {
     use super::*;
 
