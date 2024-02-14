@@ -183,7 +183,7 @@
 <h2 id="placeholders"><a class="header" href="#placeholders">Placeholders</a></h2>
 <p>Templates are git repositories whose files can contain placeholders. A placeholder can be seen as
 a variable that is substituted by another value upon expansion of the template.</p>
-<p><code>cargo-generate</code> supports both builtin variables/placeholders and custom defined ones. </p>
+<p><code>cargo-generate</code> supports both builtin variables/placeholders and custom defined ones.</p>
 <p>Additionally, <strong>all filters and tags</strong> of the liquid template language are supported.
 For more information, check out the <a href="https://shopify.github.io/liquid">Liquid Documentation on <code>Tags</code> and <code>Filters</code></a>.</p>
 <p>You can use those placeholders in the file and directory names of the generated project.
@@ -206,21 +206,21 @@ The <code>.genignore</code> file is always ignored, so there is no need to list 
 <p>Tries to run the argument as a <code>rhai</code> script. Whatever the script returns will be the output of
 the filter.</p>
 <p>Example Liquid:</p>
-<pre><code class="language-liquid">Here we try to run a rhai script: {{&quot;script_name.rhai&quot; | rhai}}
+<pre><code class="language-liquid">Here we try to run a rhai script: {{"script_name.rhai" | rhai}}
 </code></pre>
 <blockquote>
-<p>⚠️ NOTE: <code>Liquid</code> does not support failing filters, thus if the script fails for any reason, 
-<code>cargo-generate</code> will simply print a warning message to stderr, and <code>Liquid</code> will leave 
+<p>⚠️ NOTE: <code>Liquid</code> does not support failing filters, thus if the script fails for any reason,
+<code>cargo-generate</code> will simply print a warning message to stderr, and <code>Liquid</code> will leave
 the substitution in its original form.</p>
 </blockquote>
 </li>
 <li>
 <p><strong><code>kebab_case</code></strong></p>
-<p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;we-are-going-to-inherit-the-earth&quot;</code></p>
+<p><code>"We are going to inherit the earth."</code> =&gt; <code>"we-are-going-to-inherit-the-earth"</code></p>
 </li>
 <li>
 <p><strong><code>lower_camel_case</code></strong></p>
-<p><code>&quot;It is we who built these palaces and cities.&quot;</code> =&gt; <code>&quot;itIsWeWhoBuiltThesePalacesAndCities&quot;</code></p>
+<p><code>"It is we who built these palaces and cities."</code> =&gt; <code>"itIsWeWhoBuiltThesePalacesAndCities"</code></p>
 </li>
 <li>
 <p><strong><code>pascal_case</code></strong></p>
@@ -228,23 +228,23 @@ the substitution in its original form.</p>
 </li>
 <li>
 <p><strong><code>shouty_kebab_case</code></strong></p>
-<p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;WE-ARE-GOING-TO-INHERIT-THE-EARTH&quot;</code></p>
+<p><code>"We are going to inherit the earth."</code> =&gt; <code>"WE-ARE-GOING-TO-INHERIT-THE-EARTH"</code></p>
 </li>
 <li>
 <p><strong><code>shouty_snake_case</code></strong></p>
-<p><code>&quot;That world is growing in this minute.&quot;</code> =&gt; <code>&quot;THAT_WORLD_IS_GROWING_IN_THIS_MINUTE&quot;</code></p>
+<p><code>"That world is growing in this minute."</code> =&gt; <code>"THAT_WORLD_IS_GROWING_IN_THIS_MINUTE"</code></p>
 </li>
 <li>
 <p><strong><code>snake_case</code></strong></p>
-<p><code>&quot;We carry a new world here, in our hearts.&quot;</code> =&gt; <code>&quot;we_carry_a_new_world_here_in_our_hearts&quot;</code></p>
+<p><code>"We carry a new world here, in our hearts."</code> =&gt; <code>"we_carry_a_new_world_here_in_our_hearts"</code></p>
 </li>
 <li>
 <p><strong><code>title_case</code></strong></p>
-<p><code>&quot;We have always lived in slums and holes in the wall.&quot;</code> =&gt; <code>&quot;We Have Always Lived In Slums And Holes In The Wall&quot;</code></p>
+<p><code>"We have always lived in slums and holes in the wall."</code> =&gt; <code>"We Have Always Lived In Slums And Holes In The Wall"</code></p>
 </li>
 <li>
 <p><strong><code>upper_camel_case</code></strong></p>
-<p><code>&quot;We are not in the least afraid of ruins.&quot;</code> =&gt; <code>&quot;WeAreNotInTheLeastAfraidOfRuins&quot;</code></p>
+<p><code>"We are not in the least afraid of ruins."</code> =&gt; <code>"WeAreNotInTheLeastAfraidOfRuins"</code></p>
 </li>
 </ul>
 <h2 id="templates-by-the-community"><a class="header" href="#templates-by-the-community">Templates by the community</a></h2>
@@ -260,15 +260,15 @@ the substitution in its original form.</p>
 # the usual stuff
 
 [dependencies]
-{% if crate_type == &quot;bin&quot; %}
-structopt = &quot;0.3.21&quot;
+{% if crate_type == "bin" %}
+structopt = "0.3.21"
 {% endif %}
 # other general dependencies
 
-{% if crate_type == &quot;bin&quot; %}
+{% if crate_type == "bin" %}
 [[bin]]
-path = &quot;src/main.rs&quot;
-name = &quot;{{crate_name}}-cli&quot;
+path = "src/main.rs"
+name = "{{crate_name}}-cli"
 {% endif %}
 </code></pre>
 <p>Now a user of this template could decide weather they want the binary version by passing <code>--bin</code>

@@ -182,42 +182,42 @@
                         <h2 id="mini-example"><a class="header" href="#mini-example">Mini Example</a></h2>
 <p>In <code>cargo-generate.toml</code> write a <code>[hooks]</code> section:</p>
 <pre><code class="language-toml">[template]
-cargo_generate_version = &quot;0.10.0&quot;
+cargo_generate_version = "0.10.0"
 
 [hooks]
 #init = [...]
-pre = [&quot;pre-script.rhai&quot;]
+pre = ["pre-script.rhai"]
 #post = [...]
 
 [placeholders]
-license = { type = &quot;string&quot;, prompt = &quot;What license to use?&quot;, choices = [&quot;APACHE&quot;, &quot;MIT&quot;], default = &quot;MIT&quot; }
+license = { type = "string", prompt = "What license to use?", choices = ["APACHE", "MIT"], default = "MIT" }
 </code></pre>
 <p>Now, write the script in <a href="https://rhai.rs/book/"><code>Rhai</code></a>, utilizing the <code>cargo-generate</code> <a href="#Rhai-extensions">provided extensions</a>:</p>
 <pre><code class="language-rhai">// we can see existing variables.
 // note that template and Rhai variables are separate!
-let crate_type = variable::get(&quot;crate_type&quot;)
+let crate_type = variable::get("crate_type")
 debug(`crate_type: ${crate_type}`);
 
-let license = variable::get(&quot;license&quot;).to_upper();
+let license = variable::get("license").to_upper();
 while switch license {
-  &quot;APACHE&quot; =&gt; {
-    file::delete(&quot;LICENSE-MIT&quot;);
-    file::rename(&quot;LICENSE-APACHE&quot;, &quot;LICENSE&quot;);
+  "APACHE" =&gt; {
+    file::delete("LICENSE-MIT");
+    file::rename("LICENSE-APACHE", "LICENSE");
     false
   }
-  &quot;MIT&quot; =&gt; {
-    file::delete(&quot;LICENSE-APACHE&quot;);
-    file::rename(&quot;LICENSE-MIT&quot;, &quot;LICENSE&quot;);
+  "MIT" =&gt; {
+    file::delete("LICENSE-APACHE");
+    file::rename("LICENSE-MIT", "LICENSE");
     false
   }
   _ =&gt; true,
 } {
-  license = variable::prompt(&quot;Select license?&quot;, &quot;MIT&quot;, [
-    &quot;APACHE&quot;,
-    &quot;MIT&quot;,
+  license = variable::prompt("Select license?", "MIT", [
+    "APACHE",
+    "MIT",
   ]);
 }
-variable::set(&quot;license&quot;, license);
+variable::set("license", license);
 </code></pre>
 
                     </main>

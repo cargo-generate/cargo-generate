@@ -189,7 +189,7 @@ project by leveraging a pre-existing git repository as a template.</p>
 <p>cargo-generate uses <a href="http://liquidmarkup.org/">Shopify's Liquid</a> template language,
 <a href="https://docs.rs/rhai/latest/rhai/">Rhai</a> for hook scripts and <a href="https://docs.rs/regex/latest/regex/">regex</a> for placeholders.</p>
 <p>Due to the use of <a href="http://liquidmarkup.org/">Shopify's Liquid</a>, <code>cargo-generate</code> special cases files with the file-ending
-<code>.liquid</code>, by simply removing the file-ending when processing the files. If you, as a template 
+<code>.liquid</code>, by simply removing the file-ending when processing the files. If you, as a template
 author, truly want the <code>.liquid</code> file-ending, you need to repeat it twice!</p>
 <p>An Example: the file <code>main.rs.liquid</code> will be renamed after templating to <code>main.rs</code></p>
 <p>Here's an example of using <code>cargo-generate</code> with <a href="https://github.com/rustwasm/wasm-pack-template">this template</a>:</p>
@@ -263,7 +263,7 @@ cargo generate sr:username-on-sourcehut/mytemplate # translates to https://git.s
 <p>If the repository or path specified for the template contains multiple templates (Any sub-folder that contains a <code>cargo-generate.toml</code> file), <code>cargo-generate</code> will ask for the specific folder to be used as the template.</p>
 <p>Multiple <em>sub-templates</em> can also be configured in the <code>cargo-generate.toml</code> file like this:</p>
 <pre><code class="language-toml">[template]
-sub_templates = [&quot;folder1&quot;, &quot;folder2&quot;]
+sub_templates = ["folder1", "folder2"]
 </code></pre>
 <p>Doing so also sets the order when <code>cargo-generate</code> asks what to expand, while the first option will be the default.</p>
 <p>The specific subfolder in the git repository may be specified on the command line like this:</p>
@@ -308,17 +308,17 @@ Please follow <a href="https://github.com/cargo-generate/cargo-generate/discussi
 <h3 id="ssh-identity-file-private-key"><a class="header" href="#ssh-identity-file-private-key">ssh identity file (private key)</a></h3>
 <p>However, if you use a different file, you can pass a custom ssh identity with via <code>-i | --identity</code> like <code>-i ~/.ssh/id_rsa_other</code> as argument.</p>
 <blockquote>
-<p>⚠️ NOTE: password protected private keys are <strong>NOT</strong> supported, you have to use <code>ssh-agent</code> and omit the <code>-i</code> argument (see above). </p>
+<p>⚠️ NOTE: password protected private keys are <strong>NOT</strong> supported, you have to use <code>ssh-agent</code> and omit the <code>-i</code> argument (see above).</p>
 </blockquote>
 <p>If you permanently want to use a custom identity file, you can configure it in the cargo-generate config file like this:</p>
 <pre><code class="language-toml"># an extract of ~/.cargo/cargo-generate.toml
 [defaults]
 # note that `~/` and `$HOME/` are going to be expanded to the full path seamlessly
-ssh_identity = &quot;~/.ssh/id_rsa_other&quot;
+ssh_identity = "~/.ssh/id_rsa_other"
 # that is equivalent to 
-ssh_identity = &quot;$HOME/.ssh/id_rsa_other&quot;
+ssh_identity = "$HOME/.ssh/id_rsa_other"
 # that is equivalent to 
-ssh_identity = &quot;/home/john/.ssh/id_rsa_other&quot;
+ssh_identity = "/home/john/.ssh/id_rsa_other"
 </code></pre>
 <blockquote>
 <p>⚠️ NOTE: that the cli argument <code>-i</code> always overrules the <code>ssh_identity</code> from the config file.</p>
@@ -334,11 +334,11 @@ To specify an alternate configuration file, use the <code>--config &lt;config-fi
 </blockquote>
 <p>Each favorite template is specified in its own section, e.g.:</p>
 <pre><code class="language-toml">[favorites.demo]
-description = &quot;&lt;optional description, visible with --list-favorites&gt;&quot;
-git = &quot;https://github.com/rustwasm/wasm-pack-template&quot;
-branch = &quot;&lt;optional-branch&gt;&quot;
-subfolder = &quot;&lt;optional-subfolder&gt;&quot;
-vcs = &quot;&lt;optional: None|Git&gt;&quot;
+description = "&lt;optional description, visible with --list-favorites&gt;"
+git = "https://github.com/rustwasm/wasm-pack-template"
+branch = "&lt;optional-branch&gt;"
+subfolder = "&lt;optional-subfolder&gt;"
+vcs = "&lt;optional: None|Git&gt;"
 init = optional true|false
 overwrite = optional true|false
 </code></pre>
@@ -359,7 +359,7 @@ commandline, as there is no counter-option!</p>
 <h2 id="placeholders"><a class="header" href="#placeholders">Placeholders</a></h2>
 <p>Templates are git repositories whose files can contain placeholders. A placeholder can be seen as
 a variable that is substituted by another value upon expansion of the template.</p>
-<p><code>cargo-generate</code> supports both builtin variables/placeholders and custom defined ones. </p>
+<p><code>cargo-generate</code> supports both builtin variables/placeholders and custom defined ones.</p>
 <p>Additionally, <strong>all filters and tags</strong> of the liquid template language are supported.
 For more information, check out the <a href="https://shopify.github.io/liquid">Liquid Documentation on <code>Tags</code> and <code>Filters</code></a>.</p>
 <p>You can use those placeholders in the file and directory names of the generated project.
@@ -382,21 +382,21 @@ The <code>.genignore</code> file is always ignored, so there is no need to list 
 <p>Tries to run the argument as a <code>rhai</code> script. Whatever the script returns will be the output of
 the filter.</p>
 <p>Example Liquid:</p>
-<pre><code class="language-liquid">Here we try to run a rhai script: {{&quot;script_name.rhai&quot; | rhai}}
+<pre><code class="language-liquid">Here we try to run a rhai script: {{"script_name.rhai" | rhai}}
 </code></pre>
 <blockquote>
-<p>⚠️ NOTE: <code>Liquid</code> does not support failing filters, thus if the script fails for any reason, 
-<code>cargo-generate</code> will simply print a warning message to stderr, and <code>Liquid</code> will leave 
+<p>⚠️ NOTE: <code>Liquid</code> does not support failing filters, thus if the script fails for any reason,
+<code>cargo-generate</code> will simply print a warning message to stderr, and <code>Liquid</code> will leave
 the substitution in its original form.</p>
 </blockquote>
 </li>
 <li>
 <p><strong><code>kebab_case</code></strong></p>
-<p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;we-are-going-to-inherit-the-earth&quot;</code></p>
+<p><code>"We are going to inherit the earth."</code> =&gt; <code>"we-are-going-to-inherit-the-earth"</code></p>
 </li>
 <li>
 <p><strong><code>lower_camel_case</code></strong></p>
-<p><code>&quot;It is we who built these palaces and cities.&quot;</code> =&gt; <code>&quot;itIsWeWhoBuiltThesePalacesAndCities&quot;</code></p>
+<p><code>"It is we who built these palaces and cities."</code> =&gt; <code>"itIsWeWhoBuiltThesePalacesAndCities"</code></p>
 </li>
 <li>
 <p><strong><code>pascal_case</code></strong></p>
@@ -404,23 +404,23 @@ the substitution in its original form.</p>
 </li>
 <li>
 <p><strong><code>shouty_kebab_case</code></strong></p>
-<p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;WE-ARE-GOING-TO-INHERIT-THE-EARTH&quot;</code></p>
+<p><code>"We are going to inherit the earth."</code> =&gt; <code>"WE-ARE-GOING-TO-INHERIT-THE-EARTH"</code></p>
 </li>
 <li>
 <p><strong><code>shouty_snake_case</code></strong></p>
-<p><code>&quot;That world is growing in this minute.&quot;</code> =&gt; <code>&quot;THAT_WORLD_IS_GROWING_IN_THIS_MINUTE&quot;</code></p>
+<p><code>"That world is growing in this minute."</code> =&gt; <code>"THAT_WORLD_IS_GROWING_IN_THIS_MINUTE"</code></p>
 </li>
 <li>
 <p><strong><code>snake_case</code></strong></p>
-<p><code>&quot;We carry a new world here, in our hearts.&quot;</code> =&gt; <code>&quot;we_carry_a_new_world_here_in_our_hearts&quot;</code></p>
+<p><code>"We carry a new world here, in our hearts."</code> =&gt; <code>"we_carry_a_new_world_here_in_our_hearts"</code></p>
 </li>
 <li>
 <p><strong><code>title_case</code></strong></p>
-<p><code>&quot;We have always lived in slums and holes in the wall.&quot;</code> =&gt; <code>&quot;We Have Always Lived In Slums And Holes In The Wall&quot;</code></p>
+<p><code>"We have always lived in slums and holes in the wall."</code> =&gt; <code>"We Have Always Lived In Slums And Holes In The Wall"</code></p>
 </li>
 <li>
 <p><strong><code>upper_camel_case</code></strong></p>
-<p><code>&quot;We are not in the least afraid of ruins.&quot;</code> =&gt; <code>&quot;WeAreNotInTheLeastAfraidOfRuins&quot;</code></p>
+<p><code>"We are not in the least afraid of ruins."</code> =&gt; <code>"WeAreNotInTheLeastAfraidOfRuins"</code></p>
 </li>
 </ul>
 <h2 id="templates-by-the-community"><a class="header" href="#templates-by-the-community">Templates by the community</a></h2>
@@ -436,15 +436,15 @@ the substitution in its original form.</p>
 # the usual stuff
 
 [dependencies]
-{% if crate_type == &quot;bin&quot; %}
-structopt = &quot;0.3.21&quot;
+{% if crate_type == "bin" %}
+structopt = "0.3.21"
 {% endif %}
 # other general dependencies
 
-{% if crate_type == &quot;bin&quot; %}
+{% if crate_type == "bin" %}
 [[bin]]
-path = &quot;src/main.rs&quot;
-name = &quot;{{crate_name}}-cli&quot;
+path = "src/main.rs"
+name = "{{crate_name}}-cli"
 {% endif %}
 </code></pre>
 <p>Now a user of this template could decide weather they want the binary version by passing <code>--bin</code>
@@ -452,7 +452,7 @@ or use only the library version by passing <code>--lib</code> as a command line 
 <div style="break-before: page; page-break-before: always;"></div><h1 id="builtin-placeholders"><a class="header" href="#builtin-placeholders">Builtin placeholders</a></h1>
 <p><code>cargo-generate</code> supports a number of builtin placeholders for use in templates.</p>
 <p>These placeholders can be used directly in files using the <a href="https://shopify.github.io/liquid">Liquid language</a>, or from
-<a href="https://rhai.rs/book/">Rhai scripts</a> using the syntax: <code>variable::get(&quot;placeholder name&quot;)</code>.</p>
+<a href="https://rhai.rs/book/">Rhai scripts</a> using the syntax: <code>variable::get("placeholder name")</code>.</p>
 <p>The current supported builtin placeholders are:</p>
 <ul>
 <li>
@@ -481,7 +481,7 @@ or use only the library version by passing <code>--lib</code> as a command line 
 </li>
 <li>
 <p><code>{{within_cargo_project}}</code></p>
-<p>A boolean with the value <code>true</code> if the template is being expanded inside a <code>Cargo</code> project. It's 
+<p>A boolean with the value <code>true</code> if the template is being expanded inside a <code>Cargo</code> project. It's
 a simple matter of whether <code>Cargo.toml</code> is present in any parent folder.</p>
 </li>
 <li>
@@ -496,14 +496,14 @@ Also, it might be helpful to offer a reasonable default value that the user just
 <p>Since version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.6.0">0.6.0</a> it is possible to use placeholders in a <code>cargo-generate.toml</code> that is in the root folder of a template.
 Here <a href="https://github.com/sassman/hermit-template-rs">an example</a>:</p>
 <pre><code class="language-toml">[placeholders.hypervisor]
-type = &quot;string&quot;
-prompt = &quot;What hypervisor to use?&quot;
-choices = [&quot;uhyve&quot;, &quot;qemu&quot;]
-default = &quot;qemu&quot;
+type = "string"
+prompt = "What hypervisor to use?"
+choices = ["uhyve", "qemu"]
+default = "qemu"
 
 [placeholders.network_enabled]
-type = &quot;bool&quot;
-prompt = &quot;Want to enable network?&quot;
+type = "bool"
+prompt = "Want to enable network?"
 default = true
 </code></pre>
 <p>As you can see the <code>placeholders</code> configuration section accepts a table of keywords that will become the placeholder name.</p>
@@ -512,16 +512,16 @@ default = true
 use std::net::TcpListener;
 
 fn main() {
-    let listener = TcpListener::bind(&quot;0.0.0.0:8080&quot;).unwrap();
+    let listener = TcpListener::bind("0.0.0.0:8080").unwrap();
     loop {
         let (conn, addr) = listener.accept().unwrap();
-        println!(&quot;Incoming Connection from {}&quot;, addr);
+        println!("Incoming Connection from {}", addr);
         std::io::copy(&amp;mut &amp;conn, &amp;mut &amp;conn).unwrap();
     }
 }
 {% else %}
 fn main() {
-    println!(&quot;Hello Rusty Hermit 🦀&quot;);
+    println!("Hello Rusty Hermit 🦀");
 }
 {% endif %}
 </code></pre>
@@ -529,8 +529,8 @@ fn main() {
 <p>💡 Tip: similar to <code>dependencies</code> in the <code>Cargo.toml</code> file you can also list them as one liners:</p>
 </blockquote>
 <pre><code class="language-toml">[placeholders]
-hypervisor = { type = &quot;string&quot;, prompt = &quot;What hypervisor to use?&quot;, choices = [&quot;uhyve&quot;, &quot;qemu&quot;], default = &quot;qemu&quot; }
-network_enabled = { type = &quot;bool&quot;, prompt = &quot;Want to enable network?&quot;, default = true }
+hypervisor = { type = "string", prompt = "What hypervisor to use?", choices = ["uhyve", "qemu"], default = "qemu" }
+network_enabled = { type = "bool", prompt = "Want to enable network?", default = true }
 </code></pre>
 <h3 id="prompt-property"><a class="header" href="#prompt-property"><code>prompt</code> property</a></h3>
 <p>The <code>prompt</code> will be used to display a question / message for this very placeholder on the interactive dialog when using the template.</p>
@@ -541,7 +541,7 @@ network_enabled = { type = &quot;bool&quot;, prompt = &quot;Want to enable netwo
 <h3 id="choices-property-optional"><a class="header" href="#choices-property-optional"><code>choices</code> property (optional)</a></h3>
 <p>A placeholder can come with a list of choices that the user can choose from.
 It's further also validated at the time when a user generates a project from a template.</p>
-<pre><code class="language-toml">choices = [&quot;uhyve&quot;, &quot;qemu&quot;]
+<pre><code class="language-toml">choices = ["uhyve", "qemu"]
 </code></pre>
 <h3 id="default-property-optional"><a class="header" href="#default-property-optional"><code>default</code> property (optional)</a></h3>
 <p>A <code>default</code> property must mach the type (<code>string</code> | <code>bool</code>) and is optional. A default should be provided, to ease the interactive process.
@@ -554,7 +554,7 @@ until the user entered something that is allowed by this regex.</p>
 <h3 id="placeholder-examples"><a class="header" href="#placeholder-examples">Placeholder Examples</a></h3>
 <p>An example with a regex that allows only numbers</p>
 <pre><code class="language-toml">[placeholders]
-phone_number = { type = &quot;string&quot;, prompt = &quot;What's your phone number?&quot;, regex = &quot;^[0-9]+$&quot; }
+phone_number = { type = "string", prompt = "What's your phone number?", regex = "^[0-9]+$" }
 </code></pre>
 <h2 id="default-values-for-placeholders"><a class="header" href="#default-values-for-placeholders">Default values for placeholders</a></h2>
 <p>For automation purposes the user of the template may provide the values for the keys in the template using one or more of the following methods.</p>
@@ -570,7 +570,7 @@ phone_number = { type = &quot;string&quot;, prompt = &quot;What's your phone num
 </blockquote>
 <p>The file should be a toml file containing the following (for the example template provided above):</p>
 <pre><code class="language-toml">[values]
-hypervisor = &quot;qemu&quot;
+hypervisor = "qemu"
 network_enabled = true
 </code></pre>
 <h4 id="individual-values-via-environment-variables"><a class="header" href="#individual-values-via-environment-variables">Individual values via environment variables</a></h4>
@@ -589,35 +589,35 @@ cargo generate template-above
 <p>Default values may be specified in the config file (specified with the <code>--config</code> flag, or in the default config file <code>$CARGO_HOME/cargo-generate</code>)</p>
 <p><strong>Example config file:</strong></p>
 <pre><code class="language-toml">[values]
-placeholder1 = &quot;default value&quot;
+placeholder1 = "default value"
 
 [favorites.my_favorite]
-git = &quot;https://github.com/username-on-github/mytemplate.git&quot;
+git = "https://github.com/username-on-github/mytemplate.git"
 
 [favorites.my_favorite.values]
-placeholder1 = &quot;default value overriding the default&quot;
-placeholder2 = &quot;default value for favorite&quot;
+placeholder1 = "default value overriding the default"
+placeholder2 = "default value for favorite"
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ignoring-files"><a class="header" href="#ignoring-files">Ignoring files</a></h1>
 <p>The template author may choose to ignore files completely, by including an <code>ignore</code> list in the <code>cargo-generate.toml</code> file.</p>
 <p>Example:</p>
 <pre><code class="language-toml">[template]
 ignore = [ 
-  &quot;file&quot;,
-  &quot;or folder&quot;,
-  &quot;to be ignored&quot; 
+  "file",
+  "or folder",
+  "to be ignored" 
 ]
 </code></pre>
 <p>Both files and folders may be ignored using this method, but currently wildcards are <strong>not supported</strong>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="include--exclude"><a class="header" href="#include--exclude">Include / Exclude</a></h1>
-<p>Templates support a <code>cargo-generate.toml</code>, with a &quot;template&quot; section that allows you to configure the files that will be processed by <code>cargo-generate</code>.
+<p>Templates support a <code>cargo-generate.toml</code>, with a "template" section that allows you to configure the files that will be processed by <code>cargo-generate</code>.
 The behavior mirrors Cargo's Include / Exclude functionality, which is <a href="https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional">documented here</a>.
 If you are using placeholders in a file name, and also wish to use placeholders in the contents of that file,
 you should setup your globs to match on the pre-rename filename.</p>
 <pre><code class="language-toml">[template]
-include = [&quot;Cargo.toml&quot;]
+include = ["Cargo.toml"]
 # include and exclude are exclusive, if both appear we will use include
-exclude = [&quot;*.c&quot;]
+exclude = ["*.c"]
 </code></pre>
 <blockquote>
 <p>⚠️ NOTE: <code>exclude</code> only makes <code>cargo-generate</code> ignore any <code>liquid</code> tags in the file. In order to exclude a file from being copied to the final dir, see <a href="templates/ignoring.html">ignoring files</a>.</p>
@@ -629,7 +629,7 @@ exclude = [&quot;*.c&quot;]
 </blockquote>
 <p>Using the supported <code>cargo-generate.toml</code> file, the template author may setup version requirements towards <code>cargo-generate</code>.</p>
 <pre><code class="language-toml">[template]
-cargo_generate_version = &quot;&gt;=0.9.0&quot;
+cargo_generate_version = "&gt;=0.9.0"
 </code></pre>
 <p>The format for the version requirement is <a href="https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html">documented here</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="conditional-template-settings"><a class="header" href="#conditional-template-settings">Conditional template settings</a></h1>
@@ -638,10 +638,10 @@ cargo_generate_version = &quot;&gt;=0.9.0&quot;
 <p>Using the following example, <code>cargo-generate</code> will ask for the <code>license</code>, and depending on the <code>--lib</code> | <code>--bin</code> flags it'll as for the <code>hypervisor</code> and <code>network_enabled</code> values. It will then continue to expand the template, ignoring the <code>src/main.rs</code> file (and thus excluding it from the output) in case <code>--lib</code> was specified.</p>
 <p>The example is broken up in order to explain each section.</p>
 <pre><code class="language-toml">[template]
-cargo_generate_version = &quot;&gt;=0.10.0&quot;
-# ignore = [ &quot;...&quot; ]
-# include = [ &quot;...&quot; ]
-# exclude = [ &quot;...&quot; ]
+cargo_generate_version = "&gt;=0.10.0"
+# ignore = [ "..." ]
+# include = [ "..." ]
+# exclude = [ "..." ]
 ...
 </code></pre>
 <p>This first part declares that the template requires <code>cargo-generate</code> version 0.10 or higher. In this same section the template author may also specify the following 3 lists:</p>
@@ -652,25 +652,25 @@ cargo_generate_version = &quot;&gt;=0.10.0&quot;
 </ul>
 <pre><code class="language-toml">...
 [placeholders]
-license = { type = &quot;string&quot;, prompt = &quot;What license to use?&quot;, choices = [&quot;MIT&quot;, &quot;Unrestricted&quot;], default = &quot;MIT&quot; }
+license = { type = "string", prompt = "What license to use?", choices = ["MIT", "Unrestricted"], default = "MIT" }
 ...
 </code></pre>
 <p>This is the section for the <em>default</em> placeholders. These are variable definitions that <code>cargo-generate</code> knows about and will query for if they are not provided e.g. on the commandline (see [Default-values-for-placeholders]).</p>
 <p>The section should contain at least all variables used for any conditions (unless it's an automatic variable such as <code>crate_type</code>). All variables that are not specific to a condition are recommended to go here as well.</p>
 <p>Here we simply define a variable <code>license</code> for selecting the desired license type.</p>
 <pre><code class="language-toml">...
-[conditional.'crate_type == &quot;lib&quot;']
-ignore = [ &quot;src/main.rs&quot; ]
-# include = [ &quot;...&quot; ]
-# exclude = [ &quot;...&quot; ]
+[conditional.'crate_type == "lib"']
+ignore = [ "src/main.rs" ]
+# include = [ "..." ]
+# exclude = [ "..." ]
 ...
 </code></pre>
 <p>This is a conditional block.</p>
-<p>Here it has been chosen that the <code>src/main.rs</code> file must be ignored when the <code>crate_type</code> variable is equal to the string <code>&quot;lib&quot;</code>.</p>
+<p>Here it has been chosen that the <code>src/main.rs</code> file must be ignored when the <code>crate_type</code> variable is equal to the string <code>"lib"</code>.</p>
 <pre><code class="language-toml">...
-[conditional.'crate_type != &quot;lib&quot;'.placeholders]
-hypervisor = { type = &quot;string&quot;, prompt = &quot;What hypervisor to use?&quot;, choices = [&quot;uhyve&quot;, &quot;qemu&quot;], default = &quot;qemu&quot; }
-network_enabled = { type = &quot;bool&quot;, prompt = &quot;Want to enable network?&quot;, default = true }
+[conditional.'crate_type != "lib"'.placeholders]
+hypervisor = { type = "string", prompt = "What hypervisor to use?", choices = ["uhyve", "qemu"], default = "qemu" }
+network_enabled = { type = "bool", prompt = "Want to enable network?", default = true }
 ...
 </code></pre>
 <p>This block uses the same condition as the last, but it defines some extra placeholders - that is, is defines the variables <code>hypervisor</code> and <code>network_enabled</code>, so that <code>cargo-generate</code> may ask for their values.</p>
@@ -679,15 +679,15 @@ network_enabled = { type = &quot;bool&quot;, prompt = &quot;Want to enable netwo
 <p>Placeholder values defined in conditional sections <strong>cannot</strong> be used to enable/disable further conditional sections, they can however still be used in the actual template!</p>
 </blockquote>
 <pre><code class="language-toml">...
-[conditional.'license == &quot;MIT&quot;']
-ignore = [ &quot;LICENSE-UNRESTRICTED.txt&quot; ]
-# include = [ &quot;...&quot; ]
-# exclude = [ &quot;...&quot; ]
+[conditional.'license == "MIT"']
+ignore = [ "LICENSE-UNRESTRICTED.txt" ]
+# include = [ "..." ]
+# exclude = [ "..." ]
 
-[conditional.'license == &quot;Unrestricted&quot;']
-ignore = [ &quot;LICENSE-MIT.txt&quot; ]
-# include = [ &quot;...&quot; ]
-# exclude = [ &quot;...&quot; ]
+[conditional.'license == "Unrestricted"']
+ignore = [ "LICENSE-MIT.txt" ]
+# include = [ "..." ]
+# exclude = [ "..." ]
 </code></pre>
 <p>This last conditional block is simply to ignore the unneeded license files, based upon the users choice for the <code>license</code> variable.</p>
 <blockquote>
@@ -699,9 +699,9 @@ ignore = [ &quot;LICENSE-MIT.txt&quot; ]
 during template expansion.</p>
 <p>To configure the use of hooks, write a <code>hooks</code> section in the <code>cargo-generate.toml</code> file.</p>
 <pre><code class="language-toml">[hooks]
-#init = [&quot;init-script.rhai&quot;]
-#pre = [&quot;pre-script.rhai&quot;]
-#post = [&quot;post-script.rhai&quot;]
+#init = ["init-script.rhai"]
+#pre = ["pre-script.rhai"]
+#post = ["post-script.rhai"]
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h2 id="hook-types"><a class="header" href="#hook-types">Hook types</a></h2>
 <h3 id="init"><a class="header" href="#init">Init</a></h3>
@@ -810,11 +810,11 @@ in order not to confuse the user.</p>
 <ul>
 <li>
 <p><strong><code>to_kebab_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;we-are-going-to-inherit-the-earth&quot;</code></p>
+<p><code>"We are going to inherit the earth."</code> =&gt; <code>"we-are-going-to-inherit-the-earth"</code></p>
 </li>
 <li>
 <p><strong><code>to_lower_camel_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;It is we who built these palaces and cities.&quot;</code> =&gt; <code>&quot;itIsWeWhoBuiltThesePalacesAndCities&quot;</code></p>
+<p><code>"It is we who built these palaces and cities."</code> =&gt; <code>"itIsWeWhoBuiltThesePalacesAndCities"</code></p>
 </li>
 <li>
 <p><strong><code>to_pascal_case(str: &amp;str) -&gt; String</code></strong></p>
@@ -822,64 +822,64 @@ in order not to confuse the user.</p>
 </li>
 <li>
 <p><strong><code>to_shouty_kebab_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;We are going to inherit the earth.&quot;</code> =&gt; <code>&quot;WE-ARE-GOING-TO-INHERIT-THE-EARTH&quot;</code></p>
+<p><code>"We are going to inherit the earth."</code> =&gt; <code>"WE-ARE-GOING-TO-INHERIT-THE-EARTH"</code></p>
 </li>
 <li>
 <p><strong><code>to_shouty_snake_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;That world is growing in this minute.&quot;</code> =&gt; <code>&quot;THAT_WORLD_IS_GROWING_IN_THIS_MINUTE&quot;</code></p>
+<p><code>"That world is growing in this minute."</code> =&gt; <code>"THAT_WORLD_IS_GROWING_IN_THIS_MINUTE"</code></p>
 </li>
 <li>
 <p><strong><code>to_snake_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;We carry a new world here, in our hearts.&quot;</code> =&gt; <code>&quot;we_carry_a_new_world_here_in_our_hearts&quot;</code></p>
+<p><code>"We carry a new world here, in our hearts."</code> =&gt; <code>"we_carry_a_new_world_here_in_our_hearts"</code></p>
 </li>
 <li>
 <p><strong><code>to_title_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;We have always lived in slums and holes in the wall.&quot;</code> =&gt; <code>&quot;We Have Always Lived In Slums And Holes In The Wall&quot;</code></p>
+<p><code>"We have always lived in slums and holes in the wall."</code> =&gt; <code>"We Have Always Lived In Slums And Holes In The Wall"</code></p>
 </li>
 <li>
 <p><strong><code>to_upper_camel_case(str: &amp;str) -&gt; String</code></strong></p>
-<p><code>&quot;We are not in the least afraid of ruins.&quot;</code> =&gt; <code>&quot;WeAreNotInTheLeastAfraidOfRuins&quot;</code></p>
+<p><code>"We are not in the least afraid of ruins."</code> =&gt; <code>"WeAreNotInTheLeastAfraidOfRuins"</code></p>
 </li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h2 id="mini-example"><a class="header" href="#mini-example">Mini Example</a></h2>
 <p>In <code>cargo-generate.toml</code> write a <code>[hooks]</code> section:</p>
 <pre><code class="language-toml">[template]
-cargo_generate_version = &quot;0.10.0&quot;
+cargo_generate_version = "0.10.0"
 
 [hooks]
 #init = [...]
-pre = [&quot;pre-script.rhai&quot;]
+pre = ["pre-script.rhai"]
 #post = [...]
 
 [placeholders]
-license = { type = &quot;string&quot;, prompt = &quot;What license to use?&quot;, choices = [&quot;APACHE&quot;, &quot;MIT&quot;], default = &quot;MIT&quot; }
+license = { type = "string", prompt = "What license to use?", choices = ["APACHE", "MIT"], default = "MIT" }
 </code></pre>
 <p>Now, write the script in <a href="https://rhai.rs/book/"><code>Rhai</code></a>, utilizing the <code>cargo-generate</code> <a href="templates/scripting.mini-example.html#Rhai-extensions">provided extensions</a>:</p>
 <pre><code class="language-rhai">// we can see existing variables.
 // note that template and Rhai variables are separate!
-let crate_type = variable::get(&quot;crate_type&quot;)
+let crate_type = variable::get("crate_type")
 debug(`crate_type: ${crate_type}`);
 
-let license = variable::get(&quot;license&quot;).to_upper();
+let license = variable::get("license").to_upper();
 while switch license {
-  &quot;APACHE&quot; =&gt; {
-    file::delete(&quot;LICENSE-MIT&quot;);
-    file::rename(&quot;LICENSE-APACHE&quot;, &quot;LICENSE&quot;);
+  "APACHE" =&gt; {
+    file::delete("LICENSE-MIT");
+    file::rename("LICENSE-APACHE", "LICENSE");
     false
   }
-  &quot;MIT&quot; =&gt; {
-    file::delete(&quot;LICENSE-APACHE&quot;);
-    file::rename(&quot;LICENSE-MIT&quot;, &quot;LICENSE&quot;);
+  "MIT" =&gt; {
+    file::delete("LICENSE-APACHE");
+    file::rename("LICENSE-MIT", "LICENSE");
     false
   }
   _ =&gt; true,
 } {
-  license = variable::prompt(&quot;Select license?&quot;, &quot;MIT&quot;, [
-    &quot;APACHE&quot;,
-    &quot;MIT&quot;,
+  license = variable::prompt("Select license?", "MIT", [
+    "APACHE",
+    "MIT",
   ]);
 }
-variable::set(&quot;license&quot;, license);
+variable::set("license", license);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="template-authoring"><a class="header" href="#template-authoring">Template Authoring</a></h1>
 <blockquote>
@@ -904,8 +904,8 @@ on:
   push:
     branches: [ '*' ]
     paths-ignore:
-      - &quot;**/docs/**&quot;
-      - &quot;**.md&quot;
+      - "**/docs/**"
+      - "**.md"
 
 jobs:
   build:

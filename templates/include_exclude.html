@@ -180,14 +180,14 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="include--exclude"><a class="header" href="#include--exclude">Include / Exclude</a></h1>
-<p>Templates support a <code>cargo-generate.toml</code>, with a &quot;template&quot; section that allows you to configure the files that will be processed by <code>cargo-generate</code>.
+<p>Templates support a <code>cargo-generate.toml</code>, with a "template" section that allows you to configure the files that will be processed by <code>cargo-generate</code>.
 The behavior mirrors Cargo's Include / Exclude functionality, which is <a href="https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional">documented here</a>.
 If you are using placeholders in a file name, and also wish to use placeholders in the contents of that file,
 you should setup your globs to match on the pre-rename filename.</p>
 <pre><code class="language-toml">[template]
-include = [&quot;Cargo.toml&quot;]
+include = ["Cargo.toml"]
 # include and exclude are exclusive, if both appear we will use include
-exclude = [&quot;*.c&quot;]
+exclude = ["*.c"]
 </code></pre>
 <blockquote>
 <p>⚠️ NOTE: <code>exclude</code> only makes <code>cargo-generate</code> ignore any <code>liquid</code> tags in the file. In order to exclude a file from being copied to the final dir, see <a href="ignoring.html">ignoring files</a>.</p>

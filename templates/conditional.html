@@ -185,10 +185,10 @@
 <p>Using the following example, <code>cargo-generate</code> will ask for the <code>license</code>, and depending on the <code>--lib</code> | <code>--bin</code> flags it'll as for the <code>hypervisor</code> and <code>network_enabled</code> values. It will then continue to expand the template, ignoring the <code>src/main.rs</code> file (and thus excluding it from the output) in case <code>--lib</code> was specified.</p>
 <p>The example is broken up in order to explain each section.</p>
 <pre><code class="language-toml">[template]
-cargo_generate_version = &quot;&gt;=0.10.0&quot;
-# ignore = [ &quot;...&quot; ]
-# include = [ &quot;...&quot; ]
-# exclude = [ &quot;...&quot; ]
+cargo_generate_version = "&gt;=0.10.0"
+# ignore = [ "..." ]
+# include = [ "..." ]
+# exclude = [ "..." ]
 ...
 </code></pre>
 <p>This first part declares that the template requires <code>cargo-generate</code> version 0.10 or higher. In this same section the template author may also specify the following 3 lists:</p>
@@ -199,25 +199,25 @@ cargo_generate_version = &quot;&gt;=0.10.0&quot;
 </ul>
 <pre><code class="language-toml">...
 [placeholders]
-license = { type = &quot;string&quot;, prompt = &quot;What license to use?&quot;, choices = [&quot;MIT&quot;, &quot;Unrestricted&quot;], default = &quot;MIT&quot; }
+license = { type = "string", prompt = "What license to use?", choices = ["MIT", "Unrestricted"], default = "MIT" }
 ...
 </code></pre>
 <p>This is the section for the <em>default</em> placeholders. These are variable definitions that <code>cargo-generate</code> knows about and will query for if they are not provided e.g. on the commandline (see [Default-values-for-placeholders]).</p>
 <p>The section should contain at least all variables used for any conditions (unless it's an automatic variable such as <code>crate_type</code>). All variables that are not specific to a condition are recommended to go here as well.</p>
 <p>Here we simply define a variable <code>license</code> for selecting the desired license type.</p>
 <pre><code class="language-toml">...
-[conditional.'crate_type == &quot;lib&quot;']
-ignore = [ &quot;src/main.rs&quot; ]
-# include = [ &quot;...&quot; ]
-# exclude = [ &quot;...&quot; ]
+[conditional.'crate_type == "lib"']
+ignore = [ "src/main.rs" ]
+# include = [ "..." ]
+# exclude = [ "..." ]
 ...
 </code></pre>
 <p>This is a conditional block.</p>
-<p>Here it has been chosen that the <code>src/main.rs</code> file must be ignored when the <code>crate_type</code> variable is equal to the string <code>&quot;lib&quot;</code>.</p>
+<p>Here it has been chosen that the <code>src/main.rs</code> file must be ignored when the <code>crate_type</code> variable is equal to the string <code>"lib"</code>.</p>
 <pre><code class="language-toml">...
-[conditional.'crate_type != &quot;lib&quot;'.placeholders]
-hypervisor = { type = &quot;string&quot;, prompt = &quot;What hypervisor to use?&quot;, choices = [&quot;uhyve&quot;, &quot;qemu&quot;], default = &quot;qemu&quot; }
-network_enabled = { type = &quot;bool&quot;, prompt = &quot;Want to enable network?&quot;, default = true }
+[conditional.'crate_type != "lib"'.placeholders]
+hypervisor = { type = "string", prompt = "What hypervisor to use?", choices = ["uhyve", "qemu"], default = "qemu" }
+network_enabled = { type = "bool", prompt = "Want to enable network?", default = true }
 ...
 </code></pre>
 <p>This block uses the same condition as the last, but it defines some extra placeholders - that is, is defines the variables <code>hypervisor</code> and <code>network_enabled</code>, so that <code>cargo-generate</code> may ask for their values.</p>
@@ -226,15 +226,15 @@ network_enabled = { type = &quot;bool&quot;, prompt = &quot;Want to enable netwo
 <p>Placeholder values defined in conditional sections <strong>cannot</strong> be used to enable/disable further conditional sections, they can however still be used in the actual template!</p>
 </blockquote>
 <pre><code class="language-toml">...
-[conditional.'license == &quot;MIT&quot;']
-ignore = [ &quot;LICENSE-UNRESTRICTED.txt&quot; ]
-# include = [ &quot;...&quot; ]
-# exclude = [ &quot;...&quot; ]
+[conditional.'license == "MIT"']
+ignore = [ "LICENSE-UNRESTRICTED.txt" ]
+# include = [ "..." ]
+# exclude = [ "..." ]
 
-[conditional.'license == &quot;Unrestricted&quot;']
-ignore = [ &quot;LICENSE-MIT.txt&quot; ]
-# include = [ &quot;...&quot; ]
-# exclude = [ &quot;...&quot; ]
+[conditional.'license == "Unrestricted"']
+ignore = [ "LICENSE-MIT.txt" ]
+# include = [ "..." ]
+# exclude = [ "..." ]
 </code></pre>
 <p>This last conditional block is simply to ignore the unneeded license files, based upon the users choice for the <code>license</code> variable.</p>
 <blockquote>

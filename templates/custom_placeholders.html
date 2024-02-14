@@ -186,14 +186,14 @@ Also, it might be helpful to offer a reasonable default value that the user just
 <p>Since version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.6.0">0.6.0</a> it is possible to use placeholders in a <code>cargo-generate.toml</code> that is in the root folder of a template.
 Here <a href="https://github.com/sassman/hermit-template-rs">an example</a>:</p>
 <pre><code class="language-toml">[placeholders.hypervisor]
-type = &quot;string&quot;
-prompt = &quot;What hypervisor to use?&quot;
-choices = [&quot;uhyve&quot;, &quot;qemu&quot;]
-default = &quot;qemu&quot;
+type = "string"
+prompt = "What hypervisor to use?"
+choices = ["uhyve", "qemu"]
+default = "qemu"
 
 [placeholders.network_enabled]
-type = &quot;bool&quot;
-prompt = &quot;Want to enable network?&quot;
+type = "bool"
+prompt = "Want to enable network?"
 default = true
 </code></pre>
 <p>As you can see the <code>placeholders</code> configuration section accepts a table of keywords that will become the placeholder name.</p>
@@ -202,16 +202,16 @@ default = true
 use std::net::TcpListener;
 
 fn main() {
-    let listener = TcpListener::bind(&quot;0.0.0.0:8080&quot;).unwrap();
+    let listener = TcpListener::bind("0.0.0.0:8080").unwrap();
     loop {
         let (conn, addr) = listener.accept().unwrap();
-        println!(&quot;Incoming Connection from {}&quot;, addr);
+        println!("Incoming Connection from {}", addr);
         std::io::copy(&amp;mut &amp;conn, &amp;mut &amp;conn).unwrap();
     }
 }
 {% else %}
 fn main() {
-    println!(&quot;Hello Rusty Hermit 🦀&quot;);
+    println!("Hello Rusty Hermit 🦀");
 }
 {% endif %}
 </code></pre>
@@ -219,8 +219,8 @@ fn main() {
 <p>💡 Tip: similar to <code>dependencies</code> in the <code>Cargo.toml</code> file you can also list them as one liners:</p>
 </blockquote>
 <pre><code class="language-toml">[placeholders]
-hypervisor = { type = &quot;string&quot;, prompt = &quot;What hypervisor to use?&quot;, choices = [&quot;uhyve&quot;, &quot;qemu&quot;], default = &quot;qemu&quot; }
-network_enabled = { type = &quot;bool&quot;, prompt = &quot;Want to enable network?&quot;, default = true }
+hypervisor = { type = "string", prompt = "What hypervisor to use?", choices = ["uhyve", "qemu"], default = "qemu" }
+network_enabled = { type = "bool", prompt = "Want to enable network?", default = true }
 </code></pre>
 <h3 id="prompt-property"><a class="header" href="#prompt-property"><code>prompt</code> property</a></h3>
 <p>The <code>prompt</code> will be used to display a question / message for this very placeholder on the interactive dialog when using the template.</p>
@@ -231,7 +231,7 @@ network_enabled = { type = &quot;bool&quot;, prompt = &quot;Want to enable netwo
 <h3 id="choices-property-optional"><a class="header" href="#choices-property-optional"><code>choices</code> property (optional)</a></h3>
 <p>A placeholder can come with a list of choices that the user can choose from.
 It's further also validated at the time when a user generates a project from a template.</p>
-<pre><code class="language-toml">choices = [&quot;uhyve&quot;, &quot;qemu&quot;]
+<pre><code class="language-toml">choices = ["uhyve", "qemu"]
 </code></pre>
 <h3 id="default-property-optional"><a class="header" href="#default-property-optional"><code>default</code> property (optional)</a></h3>
 <p>A <code>default</code> property must mach the type (<code>string</code> | <code>bool</code>) and is optional. A default should be provided, to ease the interactive process.
@@ -244,7 +244,7 @@ until the user entered something that is allowed by this regex.</p>
 <h3 id="placeholder-examples"><a class="header" href="#placeholder-examples">Placeholder Examples</a></h3>
 <p>An example with a regex that allows only numbers</p>
 <pre><code class="language-toml">[placeholders]
-phone_number = { type = &quot;string&quot;, prompt = &quot;What's your phone number?&quot;, regex = &quot;^[0-9]+$&quot; }
+phone_number = { type = "string", prompt = "What's your phone number?", regex = "^[0-9]+$" }
 </code></pre>
 <h2 id="default-values-for-placeholders"><a class="header" href="#default-values-for-placeholders">Default values for placeholders</a></h2>
 <p>For automation purposes the user of the template may provide the values for the keys in the template using one or more of the following methods.</p>
@@ -260,7 +260,7 @@ phone_number = { type = &quot;string&quot;, prompt = &quot;What's your phone num
 </blockquote>
 <p>The file should be a toml file containing the following (for the example template provided above):</p>
 <pre><code class="language-toml">[values]
-hypervisor = &quot;qemu&quot;
+hypervisor = "qemu"
 network_enabled = true
 </code></pre>
 <h4 id="individual-values-via-environment-variables"><a class="header" href="#individual-values-via-environment-variables">Individual values via environment variables</a></h4>
@@ -279,14 +279,14 @@ cargo generate template-above
 <p>Default values may be specified in the config file (specified with the <code>--config</code> flag, or in the default config file <code>$CARGO_HOME/cargo-generate</code>)</p>
 <p><strong>Example config file:</strong></p>
 <pre><code class="language-toml">[values]
-placeholder1 = &quot;default value&quot;
+placeholder1 = "default value"
 
 [favorites.my_favorite]
-git = &quot;https://github.com/username-on-github/mytemplate.git&quot;
+git = "https://github.com/username-on-github/mytemplate.git"
 
 [favorites.my_favorite.values]
-placeholder1 = &quot;default value overriding the default&quot;
-placeholder2 = &quot;default value for favorite&quot;
+placeholder1 = "default value overriding the default"
+placeholder2 = "default value for favorite"
 </code></pre>
 
                     </main>

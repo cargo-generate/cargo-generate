@@ -182,7 +182,7 @@
                         <h1 id="builtin-placeholders"><a class="header" href="#builtin-placeholders">Builtin placeholders</a></h1>
 <p><code>cargo-generate</code> supports a number of builtin placeholders for use in templates.</p>
 <p>These placeholders can be used directly in files using the <a href="https://shopify.github.io/liquid">Liquid language</a>, or from
-<a href="https://rhai.rs/book/">Rhai scripts</a> using the syntax: <code>variable::get(&quot;placeholder name&quot;)</code>.</p>
+<a href="https://rhai.rs/book/">Rhai scripts</a> using the syntax: <code>variable::get("placeholder name")</code>.</p>
 <p>The current supported builtin placeholders are:</p>
 <ul>
 <li>
@@ -211,7 +211,7 @@
 </li>
 <li>
 <p><code>{{within_cargo_project}}</code></p>
-<p>A boolean with the value <code>true</code> if the template is being expanded inside a <code>Cargo</code> project. It's 
+<p>A boolean with the value <code>true</code> if the template is being expanded inside a <code>Cargo</code> project. It's
 a simple matter of whether <code>Cargo.toml</code> is present in any parent folder.</p>
 </li>
 <li>
