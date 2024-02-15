@@ -40,6 +40,7 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
         allow_commands: false,
         overwrite: false,
         other_args: None,
+        skip_submodules: false,
     };
 
     assert_eq!(

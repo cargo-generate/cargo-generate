@@ -85,6 +85,7 @@ impl UserParsedInput {
                 args.template_path.revision(),
                 ssh_identity,
                 args.force_git_init,
+                args.skip_submodules,
             );
             return Self {
                 name: args.name.clone(),
@@ -161,6 +162,7 @@ impl UserParsedInput {
                         revision.as_ref(),
                         ssh_identity,
                         args.force_git_init,
+                        args.skip_submodules,
                     );
 
                     TemplateLocation::from(git_user_input)
@@ -231,6 +233,7 @@ impl UserParsedInput {
                 args.template_path.revision(),
                 ssh_identity,
                 args.force_git_init,
+                args.skip_submodules,
             );
             TemplateLocation::from(git_user_in)
         });
@@ -376,6 +379,7 @@ pub struct GitUserInput {
     revision: Option<String>,
     identity: Option<PathBuf>,
     _force_init: bool,
+    pub skip_submodules: bool,
 }
 
 impl GitUserInput {
@@ -386,6 +390,7 @@ impl GitUserInput {
         revision: Option<&impl AsRef<str>>,
         identity: Option<PathBuf>,
         force_init: bool,
+        skip_submodules: bool,
     ) -> Self {
         Self {
             url: url.as_ref().to_owned(),
@@ -394,6 +399,7 @@ impl GitUserInput {
             revision: revision.map(|s| s.as_ref().to_owned()),
             identity,
             _force_init: force_init,
+            skip_submodules,
         }
     }
 
@@ -406,6 +412,7 @@ impl GitUserInput {
             args.template_path.revision(),
             args.ssh_identity.clone(),
             args.force_git_init,
+            args.skip_submodules,
         )
     }
 
