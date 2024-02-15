@@ -15,6 +15,11 @@ on:
   workflow_call:
   merge_group:
 
+env:
+  CARGO_INCREMENTAL: 0
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+
 jobs:
   typos:
     name: typos
@@ -41,7 +46,7 @@ jobs:
           default: true
           profile: minimal
           components: clippy, rustfmt
-      - uses: Swatinem/rust-cache@v1
+      - uses: mozilla-actions/sccache-action@v0.0.4
       - run: cargo check
 
   lint:
@@ -64,7 +69,7 @@ jobs:
           default: true
           profile: minimal
           components: clippy, rustfmt
-      - uses: Swatinem/rust-cache@v1
+      - uses: mozilla-actions/sccache-action@v0.0.4
       - run: cargo ${{ matrix['cargo-cmd'] }}
 
   tests:
@@ -85,7 +90,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           default: true
           profile: minimal
-      - uses: Swatinem/rust-cache@v1
+      - uses: mozilla-actions/sccache-action@v0.0.4
       - name: git test setup preparation
         run: |
           git config --global user.email "you@example.com"
@@ -121,6 +126,7 @@ jobs:
         run: |
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
+      - uses: mozilla-actions/sccache-action@v0.0.4
       - name: coverage test
         run: cargo +nightly test --verbose --all --locked
         env:
@@ -156,7 +162,7 @@ jobs:
           toolchain: stable
           default: true
           profile: minimal
-      - uses: Swatinem/rust-cache@v1
+      - uses: mozilla-actions/sccache-action@v0.0.4
       - name: audit
         uses: actions-rs/audit-check@v1
         continue-on-error: true
@@ -174,7 +180,7 @@ jobs:
           toolchain: stable
           default: true
           profile: minimal
-      - uses: Swatinem/rust-cache@v1
+      - uses: mozilla-actions/sccache-action@v0.0.4
       - run: cargo publish --dry-run
 
   docs:
@@ -188,7 +194,7 @@ jobs:
           toolchain: stable
           default: true
           profile: minimal
-      - uses: Swatinem/rust-cache@v1
+      - uses: mozilla-actions/sccache-action@v0.0.4
       - name: check documentation
         env:
           RUSTDOCFLAGS: -D warnings

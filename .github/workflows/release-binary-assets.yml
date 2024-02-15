@@ -46,7 +46,7 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
           override: true
-      - uses: Swatinem/rust-cache@v1
+      - uses: mozilla-actions/sccache-action@v0.0.4
       - name: Build
         uses: actions-rs/cargo@v1
         with:
