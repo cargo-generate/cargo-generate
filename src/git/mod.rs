@@ -23,7 +23,7 @@ pub use utils::{tmp_dir, try_get_branch_from_path};
 
 // Assumptions:
 // * `--git <url>` should only be parse in the same way as `git clone <url>` would
-// * submodules can be cloned by setting the submodules field to true.
+// * submodules are cloned by default, but can be skipped by `--skip-submodules`.
 // * `.git` should be removed to make clear repository
 // * if `<url>` is the local path on system the clone should also be done the same way as `git clone` there is `--path`
 //    for different behavior
