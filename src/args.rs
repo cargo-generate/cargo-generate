@@ -121,7 +121,7 @@ pub struct GenerateArgs {
     #[arg(short, long, action)]
     pub overwrite: bool,
 
-    /// Download git submodules (if there are any)
+    /// Skip downloading git submodules (if there are any)
     #[arg(long, action)]
     pub skip_submodules: bool,
 
