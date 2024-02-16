@@ -9,13 +9,13 @@ edition = "2021"
 include = ["src/**/*", "LICENSE-*", "*.md"]
 
 [dependencies]
-clap = { version = "~4.4", features = ["derive", "std", "help"], default-features = false }
+clap = { version = "~4.5", features = ["derive", "std", "help"], default-features = false }
 git2 = { version = "~0.18", features = ["ssh", "https"], default-features = false }
 auth-git2 = "~0.5"
 console = "~0.15"
 dialoguer = "~0.11"
 indicatif = "~0.17"
-tempfile = "~3.8"
+tempfile = "~3.10"
 regex = "~1.10"
 heck = "~0.4"
 walkdir = "~2.4"
@@ -26,9 +26,9 @@ toml = { version = "~0.8", features = ["preserve_order"] }
 thiserror = "~1.0"
 home = "~0.5"
 sanitize-filename = "~0.5"
-rhai = "~1.16"
+rhai = "~1.17"
 path-absolutize = "~3.1"
-gix-config = "~0.32"
+gix-config = "~0.34"
 paste = "~1.0"
 names = { version = "~0.14", default-features = false }
 log = "~0.4"
