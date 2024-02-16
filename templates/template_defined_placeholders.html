@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Custom Placeholders - Cargo Generate Documentation</title>
+        <title>Template Defined Placeholders - Cargo Generate Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -88,7 +88,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../usage.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li class="chapter-item expanded "><a href="../favorites.html"><strong aria-hidden="true">4.</strong> Favorites</a></li><li class="chapter-item expanded "><a href="../templates/index.html"><strong aria-hidden="true">5.</strong> Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/builtin_placeholders.html"><strong aria-hidden="true">5.1.</strong> Builtin Placeholders</a></li><li class="chapter-item expanded "><a href="../templates/custom_placeholders.html" class="active"><strong aria-hidden="true">5.2.</strong> Custom Placeholders</a></li><li class="chapter-item expanded "><a href="../templates/ignoring.html"><strong aria-hidden="true">5.3.</strong> Ignoring Files</a></li><li class="chapter-item expanded "><a href="../templates/include_exclude.html"><strong aria-hidden="true">5.4.</strong> Include/Exclude</a></li><li class="chapter-item expanded "><a href="../templates/require_version.html"><strong aria-hidden="true">5.5.</strong> Require Version</a></li><li class="chapter-item expanded "><a href="../templates/conditional.html"><strong aria-hidden="true">5.6.</strong> Conditionals</a></li><li class="chapter-item expanded "><a href="../templates/scripting.html"><strong aria-hidden="true">5.7.</strong> Hooks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/scripting.hook-types.html"><strong aria-hidden="true">5.7.1.</strong> Hook types</a></li><li class="chapter-item expanded "><a href="../templates/scripting.rhai-extensions.html"><strong aria-hidden="true">5.7.2.</strong> Rhai extensions</a></li><li class="chapter-item expanded "><a href="../templates/scripting.mini-example.html"><strong aria-hidden="true">5.7.3.</strong> Mini example</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/authoring.html"><strong aria-hidden="true">5.8.</strong> Authoring</a></li></ol></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../license.html"><strong aria-hidden="true">7.</strong> License</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../usage.html"><strong aria-hidden="true">3.</strong> Usage</a></li><li class="chapter-item expanded "><a href="../favorites.html"><strong aria-hidden="true">4.</strong> Favorites</a></li><li class="chapter-item expanded "><a href="../templates/index.html"><strong aria-hidden="true">5.</strong> Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/builtin_placeholders.html"><strong aria-hidden="true">5.1.</strong> Builtin Placeholders</a></li><li class="chapter-item expanded "><a href="../templates/template_defined_placeholders.html" class="active"><strong aria-hidden="true">5.2.</strong> Template Defined Placeholders</a></li><li class="chapter-item expanded "><a href="../templates/ignoring.html"><strong aria-hidden="true">5.3.</strong> Ignoring Files</a></li><li class="chapter-item expanded "><a href="../templates/include_exclude.html"><strong aria-hidden="true">5.4.</strong> Include/Exclude</a></li><li class="chapter-item expanded "><a href="../templates/require_version.html"><strong aria-hidden="true">5.5.</strong> Require Version</a></li><li class="chapter-item expanded "><a href="../templates/conditional.html"><strong aria-hidden="true">5.6.</strong> Conditionals</a></li><li class="chapter-item expanded "><a href="../templates/scripting.html"><strong aria-hidden="true">5.7.</strong> Hooks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/scripting.hook-types.html"><strong aria-hidden="true">5.7.1.</strong> Hook types</a></li><li class="chapter-item expanded "><a href="../templates/scripting.rhai-extensions.html"><strong aria-hidden="true">5.7.2.</strong> Rhai extensions</a></li><li class="chapter-item expanded "><a href="../templates/scripting.mini-example.html"><strong aria-hidden="true">5.7.3.</strong> Mini example</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/authoring.html"><strong aria-hidden="true">5.8.</strong> Authoring</a></li></ol></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">6.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../license.html"><strong aria-hidden="true">7.</strong> License</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -150,7 +150,7 @@
                         <a href="https://github.com/cargo-generate/cargo-generate/tree/main/guide" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        <a href="https://github.com/cargo-generate/cargo-generate/edit/main/guide/src/templates/custom_placeholders.md" title="Suggest an edit" aria-label="Suggest an edit">
+                        <a href="https://github.com/cargo-generate/cargo-generate/edit/main/guide/src/templates/template_defined_placeholders.md" title="Suggest an edit" aria-label="Suggest an edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
 
@@ -179,73 +179,46 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="template-defined-placeholders"><a class="header" href="#template-defined-placeholders">Template defined placeholders</a></h1>
-<p>Sometimes templates need to make decisions. For example one might want to conditionally include some code or not.
-Another use case might be that the user of a template should be able to choose out of provided options in an interactive way.
-Also, it might be helpful to offer a reasonable default value that the user just simply can use.</p>
-<p>Since version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.6.0">0.6.0</a> it is possible to use placeholders in a <code>cargo-generate.toml</code> that is in the root folder of a template.
-Here <a href="https://github.com/sassman/hermit-template-rs">an example</a>:</p>
-<pre><code class="language-toml">[placeholders.hypervisor]
-type = "string"
-prompt = "What hypervisor to use?"
-choices = ["uhyve", "qemu"]
-default = "qemu"
-
-[placeholders.network_enabled]
-type = "bool"
-prompt = "Want to enable network?"
-default = true
-</code></pre>
-<p>As you can see the <code>placeholders</code> configuration section accepts a table of keywords that will become the placeholder name.</p>
-<p>In this example the placeholder <code>hypervisor</code> and <code>network_enabled</code> will become template variables and can be used like this:</p>
-<pre><code class="language-rs">{% if network_enabled %}
-use std::net::TcpListener;
-
-fn main() {
-    let listener = TcpListener::bind("0.0.0.0:8080").unwrap();
-    loop {
-        let (conn, addr) = listener.accept().unwrap();
-        println!("Incoming Connection from {}", addr);
-        std::io::copy(&amp;mut &amp;conn, &amp;mut &amp;conn).unwrap();
-    }
-}
-{% else %}
-fn main() {
-    println!("Hello Rusty Hermit 🦀");
-}
-{% endif %}
-</code></pre>
-<blockquote>
-<p>💡 Tip: similar to <code>dependencies</code> in the <code>Cargo.toml</code> file you can also list them as one liners:</p>
-</blockquote>
+                        <h1 id="template-defined-placeholders"><a class="header" href="#template-defined-placeholders">Template Defined Placeholders</a></h1>
+<p>Template defined placeholders offer a powerful way for template authors to customize project templates and streamline project creation. In addition to defining placeholders directly within template files, users can also define placeholders in the <code>cargo-generate.toml</code> file, providing additional flexibility and customization options.</p>
+<h2 id="defining-placeholders-in-cargo-generatetoml"><a class="header" href="#defining-placeholders-in-cargo-generatetoml">Defining Placeholders in <code>cargo-generate.toml</code></a></h2>
+<p>To define placeholders in the <code>cargo-generate.toml</code> file, template authors can specify them under the <code>placeholders</code> section using the following syntax:</p>
 <pre><code class="language-toml">[placeholders]
-hypervisor = { type = "string", prompt = "What hypervisor to use?", choices = ["uhyve", "qemu"], default = "qemu" }
-network_enabled = { type = "bool", prompt = "Want to enable network?", default = true }
+placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], default = "Alice", type = "string" }
 </code></pre>
-<h3 id="prompt-property"><a class="header" href="#prompt-property"><code>prompt</code> property</a></h3>
-<p>The <code>prompt</code> will be used to display a question / message for this very placeholder on the interactive dialog when using the template.</p>
-<pre><code class="language-plain">🤷  What hypervisor to use? [uhyve, qemu] [default: qemu]:
-</code></pre>
-<h3 id="type-property"><a class="header" href="#type-property"><code>type</code> property</a></h3>
-<p>A placeholder can be of type <code>string</code> or <code>bool</code>. Boolean types are usually helpful for conditionally behaviour in templates.</p>
-<h3 id="choices-property-optional"><a class="header" href="#choices-property-optional"><code>choices</code> property (optional)</a></h3>
-<p>A placeholder can come with a list of choices that the user can choose from.
-It's further also validated at the time when a user generates a project from a template.</p>
-<pre><code class="language-toml">choices = ["uhyve", "qemu"]
-</code></pre>
-<h3 id="default-property-optional"><a class="header" href="#default-property-optional"><code>default</code> property (optional)</a></h3>
-<p>A <code>default</code> property must mach the type (<code>string</code> | <code>bool</code>) and is optional. A default should be provided, to ease the interactive process.
-As usual the user could press <code>enter</code> and the default value would simply be taken, it safes time and mental load.</p>
-<pre><code class="language-toml">default = 'qemu'
-</code></pre>
-<h3 id="regex-property-optional"><a class="header" href="#regex-property-optional"><code>regex</code> property (optional)</a></h3>
-<p>A <code>regex</code> property is a string, that can be used to enforce a certain validation rule. The input dialog will keep repeating
-until the user entered something that is allowed by this regex.</p>
-<h3 id="placeholder-examples"><a class="header" href="#placeholder-examples">Placeholder Examples</a></h3>
-<p>An example with a regex that allows only numbers</p>
+<ul>
+<li><code>placeholder_name</code>: The name of the placeholder.</li>
+<li><code>prompt</code>: The prompt message displayed to the user during project creation.</li>
+<li><code>choices</code> (optional): A list of predefined choices for the placeholder value.</li>
+<li><code>default</code> (optional): The default value for the placeholder if no user input is provided.</li>
+<li><code>regex</code> (optional and only for string-like types): The entered value is validated against this regex.</li>
+<li><code>type</code>: The data type of the placeholder value (e.g., <code>"string"</code>, <code>"text"</code>, <code>"editor"</code>, <code>"boolean"</code>).</li>
+</ul>
+<h2 id="prompt-choices-and-default-values"><a class="header" href="#prompt-choices-and-default-values">Prompt, Choices, and Default Values</a></h2>
+<ul>
+<li><strong>Prompt</strong>: With the <code>prompt</code> will be displayed it to the user during project creation, prompting them to provide a value for the placeholder.</li>
+<li><strong>Choices</strong>: If <code>choices</code> are specified, <code>cargo-generate</code> will present them as options to the user, restricting the input to the predefined choices and provide more convenience.</li>
+<li><strong>Default Value</strong>: If a <code>default</code> value is provided and the user does not provide input, <code>cargo-generate</code> will use the default value for the placeholder.</li>
+</ul>
+<h2 id="supported-types"><a class="header" href="#supported-types">Supported Types</a></h2>
+<p><code>cargo-generate</code> supports the following placeholder value types:</p>
+<ul>
+<li><code>"string"</code>: Represents a string value.</li>
+<li><code>"text"</code>: Represents a multiline string value. (terminated by hitting <CTRL-D>)</li>
+<li><code>"editor"</code>: Represents a multiline string value, collected from the user by a real terminal editor.</li>
+<li><code>"boolean"</code>: Represents a boolean value (<code>true</code> or <code>false</code>).</li>
+</ul>
+<h2 id="example"><a class="header" href="#example">Example</a></h2>
+<p>Consider the following <code>cargo-generate.toml</code> file:</p>
 <pre><code class="language-toml">[placeholders]
-phone_number = { type = "string", prompt = "What's your phone number?", regex = "^[0-9]+$" }
+project_name = { prompt = "Enter project name", default = "my_project", type = "string" }
+use_git = { prompt = "Initialize Git repository?", choices = ["Yes", "No"], default = "Yes", type = "boolean" }
+phone_number = { prompt = "What's your phone number?", type = "string", regex = "^[0-9]+$" }
 </code></pre>
+<p>During project creation, <code>cargo-generate</code> will prompt the user to provide values for <code>project_name</code>, <code>use_git</code> and <code>phone_number</code> using the specified prompts, choices, and default values.</p>
+<p>Further <code>phone_number</code> is validated against the provided regex, hence it can only contain digits.</p>
+<h3 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h3>
+<p>Template defined placeholders, defined in the <code>cargo-generate.toml</code> configuration file, offer powerful customization options for project templates. By specifying prompts, choices, default values, and supported types, template authors can create intuitive and flexible project scaffolding experiences, enhancing developer productivity and project consistency.</p>
 <h2 id="default-values-for-placeholders"><a class="header" href="#default-values-for-placeholders">Default values for placeholders</a></h2>
 <p>For automation purposes the user of the template may provide the values for the keys in the template using one or more of the following methods.</p>
 <p>The methods are listed by falling priority.</p>
@@ -258,7 +231,6 @@ phone_number = { type = "string", prompt = "What's your phone number?", regex = 
 <blockquote>
 <p>⚠️ NOTE: A relative path will be relative to current working dir, which is <em>not</em> inside the expanding template!</p>
 </blockquote>
-<p>The file should be a toml file containing the following (for the example template provided above):</p>
 <pre><code class="language-toml">[values]
 hypervisor = "qemu"
 network_enabled = true
@@ -288,6 +260,8 @@ git = "https://github.com/username-on-github/mytemplate.git"
 placeholder1 = "default value overriding the default"
 placeholder2 = "default value for favorite"
 </code></pre>
+<h2 id="further-examples"><a class="header" href="#further-examples">Further examples</a></h2>
+<p>You can find further examples in the <a href="./example-templates/">example-templates folder</a> you will find further examples that provide some template provided placeholders.</p>
 
                     </main>
 
