@@ -72,12 +72,12 @@ pub enum VarInfo {
 #[derive(Debug, Clone)]
 pub struct StringEntry {
     pub(crate) default: Option<String>,
-    pub(crate) string_type: StringType,
+    pub(crate) kind: StringKind,
     pub(crate) regex: Option<Regex>,
 }
 
 #[derive(Debug, Clone)]
-pub enum StringType {
+pub enum StringKind {
     Choices(Vec<String>),
     String,
     Editor,
@@ -264,7 +264,7 @@ fn try_key_value_into_slot(
                 } else {
                     None
                 },
-                string_type: choices.map_or(StringType::String, StringType::Choices),
+                kind: choices.map_or(StringKind::String, StringKind::Choices),
                 regex,
             }),
         },
@@ -275,7 +275,7 @@ fn try_key_value_into_slot(
                 } else {
                     None
                 },
-                string_type: StringType::Editor,
+                kind: StringKind::Editor,
                 regex,
             }),
         },
@@ -286,7 +286,7 @@ fn try_key_value_into_slot(
                 } else {
                     None
                 },
-                string_type: StringType::Text,
+                kind: StringKind::Text,
                 regex,
             }),
         },

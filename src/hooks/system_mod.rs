@@ -3,7 +3,7 @@ use std::process::Command;
 
 use crate::{
     interactive::prompt_and_check_variable,
-    project_variables::{StringEntry, StringType, TemplateSlots, VarInfo},
+    project_variables::{StringEntry, StringKind, TemplateSlots, VarInfo},
 };
 
 use super::HookResult;
@@ -52,7 +52,7 @@ fn run_command(
                     var_info: VarInfo::String {
                         entry: Box::new(StringEntry {
                             default: Some("no".into()),
-                            string_type: StringType::Choices(vec!["yes".into(), "no".into()]),
+                            kind: StringKind::Choices(vec!["yes".into(), "no".into()]),
                             regex: None,
                         }),
                     },

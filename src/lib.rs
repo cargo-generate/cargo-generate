@@ -55,7 +55,7 @@ use ignore_me::remove_dir_files;
 use interactive::prompt_and_check_variable;
 use log::Record;
 use log::{info, warn};
-use project_variables::{StringEntry, StringType, TemplateSlots, VarInfo};
+use project_variables::{StringEntry, StringKind, TemplateSlots, VarInfo};
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -343,7 +343,7 @@ fn auto_locate_template_dir(
                 var_info: VarInfo::String {
                     entry: Box::new(StringEntry {
                         default: Some(config_paths[0].display().to_string()),
-                        string_type: StringType::Choices(
+                        kind: StringKind::Choices(
                             config_paths
                                 .into_iter()
                                 .map(|p| p.display().to_string())
@@ -380,7 +380,7 @@ fn resolve_configured_sub_templates(
                     var_info: VarInfo::String {
                         entry: Box::new(StringEntry {
                             default: Some(sub_templates[0].clone()),
-                            string_type: StringType::Choices(sub_templates.clone()),
+                            kind: StringKind::Choices(sub_templates.clone()),
                             regex: None,
                         }),
                     },
@@ -785,7 +785,7 @@ impl Drop for ScopedWorkingDirectory {
 mod tests {
     use crate::{
         auto_locate_template_dir,
-        project_variables::{StringType, VarInfo},
+        project_variables::{StringKind, VarInfo},
         tmp_dir,
     };
     use anyhow::anyhow;
@@ -849,7 +849,7 @@ mod tests {
         {
             VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
-                if let StringType::Choices(choices) = entry.string_type.clone() {
+                if let StringKind::Choices(choices) = entry.kind.clone() {
                     let expected = vec!["sub1".to_string(), "sub2".to_string()];
                     assert_eq!(expected, choices);
                     Ok("sub2".to_string())
@@ -897,7 +897,7 @@ mod tests {
         {
             VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
-                if let StringType::Choices(choices) = entry.string_type.clone() {
+                if let StringKind::Choices(choices) = entry.kind.clone() {
                     let (expected, answer) = match prompt_num {
                         0 => (vec!["sub1", "sub2"], "sub1"),
                         1 => (vec!["sub11", "sub12"], "sub12"),
@@ -942,7 +942,7 @@ mod tests {
         {
             VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
-                if let StringType::Choices(choices) = entry.string_type.clone() {
+                if let StringKind::Choices(choices) = entry.kind.clone() {
                     let expected = vec![
                         Path::new("dir2").join("dir2_2").to_string(),
                         "dir4".to_string(),

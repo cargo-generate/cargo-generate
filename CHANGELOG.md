@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.19.0...HEAD)
+## Unreleased
 
 ## [0.19.0] 2023-12-13
 

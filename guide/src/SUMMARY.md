@@ -6,7 +6,7 @@
 - [Favorites](favorites.md)
 - [Templates](templates/README.md)
   - [Builtin Placeholders](templates/builtin_placeholders.md)
-  - [Custom Placeholders](templates/custom_placeholders.md)
+  - [Template Defined Placeholders](templates/template_defined_placeholders.md)
   - [Ignoring Files](templates/ignoring.md)
   - [Include/Exclude](templates/include_exclude.md)
   - [Require Version](templates/require_version.md)

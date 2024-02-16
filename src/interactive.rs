@@ -1,6 +1,6 @@
 use crate::{
     emoji,
-    project_variables::{Prompt, StringEntry, StringType, TemplateSlots, VarInfo},
+    project_variables::{Prompt, StringEntry, StringKind, TemplateSlots, VarInfo},
 };
 use anyhow::{anyhow, bail, Result};
 use console::style;
@@ -23,7 +23,7 @@ pub fn name() -> Result<String> {
         var_info: VarInfo::String {
             entry: Box::new(StringEntry {
                 default: None,
-                string_type: StringType::String,
+                kind: StringKind::String,
                 regex: Some(valid_ident),
             }),
         },
@@ -34,24 +34,24 @@ pub fn name() -> Result<String> {
 pub fn user_question(
     prompt: &Prompt,
     default: &Option<String>,
-    string_type: &StringType,
+    kind: &StringKind,
 ) -> Result<String> {
-    match string_type {
-        StringType::String => {
+    match kind {
+        StringKind::String => {
             let mut i = Input::<String>::new().with_prompt(&prompt.styled_with_default);
             if let Some(s) = default {
                 i = i.default(s.to_owned());
             }
             i.interact().map_err(Into::<anyhow::Error>::into)
         }
-        StringType::Editor => {
+        StringKind::Editor => {
             println!("{} (in Editor)", prompt.styled_with_default);
             Editor::new()
                 .edit(&prompt.with_default)?
                 .or_else(|| default.clone())
                 .ok_or(anyhow!("Aborted Editor without saving !"))
         }
-        StringType::Text => {
+        StringKind::Text => {
             println!(
                 "{} (press Ctrl+d to stop reading)",
                 prompt.styled_with_default
@@ -60,7 +60,9 @@ pub fn user_question(
             stdin().read_to_string(&mut buffer)?;
             Ok(buffer)
         }
-        _ => unreachable!("StringType::Choices should be handled in the parent"),
+        StringKind::Choices(_) => {
+            unreachable!("StringKind::Choices should be handled in the parent")
+        }
     }
 }
 
@@ -70,15 +72,15 @@ pub fn prompt_and_check_variable(
 ) -> Result<String> {
     match &variable.var_info {
         VarInfo::Bool { default } => handle_bool_input(provided_value, &variable.prompt, default),
-        VarInfo::String { entry } => match &entry.string_type {
-            StringType::Choices(choices) => handle_choice_input(
+        VarInfo::String { entry } => match &entry.kind {
+            StringKind::Choices(choices) => handle_choice_input(
                 provided_value,
                 &variable.var_name,
                 choices,
                 entry,
                 &variable.prompt,
             ),
-            StringType::String | StringType::Text | StringType::Editor => {
+            StringKind::String | StringKind::Text | StringKind::Editor => {
                 handle_string_input(provided_value, &variable.var_name, entry, &variable.prompt)
             }
         },
@@ -124,13 +126,13 @@ fn handle_string_input(
     let mut prompt: Cow<'_, Prompt> = Cow::Borrowed(prompt);
     match &entry.regex {
         Some(regex) => loop {
-            let user_entry = user_question(&prompt, &entry.default, &entry.string_type)?;
+            let user_entry = user_question(&prompt, &entry.default, &entry.kind)?;
             if regex.is_match(&user_entry) {
                 break Ok(user_entry);
             }
             // the user won't see the error in stdout if in a editor
-            match entry.string_type {
-                StringType::Editor => {
+            match entry.kind {
+                StringKind::Editor => {
                     // Editor use with_default
                     prompt.to_mut().with_default = format!(
                         "{}: \"{user_entry}\" is not a valid value for `{var_name}`",
@@ -153,7 +155,7 @@ fn handle_string_input(
                 }
             };
         },
-        None => Ok(user_question(&prompt, &entry.default, &entry.string_type)?),
+        None => Ok(user_question(&prompt, &entry.default, &entry.kind)?),
     }
 }
 
