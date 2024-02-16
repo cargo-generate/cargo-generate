@@ -100,16 +100,16 @@ fn it_accepts_bool_in_file() {
         )
         .file(
             "cargo-generate.toml",
-            r#"
-[placeholders]
-v1 = {type="bool", prompt="?"}
+            indoc! { r#"
+                [placeholders]
+                v1 = {type="bool", prompt="?"}
 
-[conditional.'v1'.placeholders]
-v2 = {type="bool", prompt="?"}
+                [conditional.'v1'.placeholders]
+                v2 = {type="bool", prompt="?"}
 
-[conditional.'v2']
-ignore = ["included"]
-"#,
+                [conditional.'v2']
+                ignore = ["included"]
+            "# },
         )
         .file("included", "{{project-name}}")
         .init_git()
