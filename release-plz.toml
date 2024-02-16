@@ -1,6 +1,5 @@
 [workspace]
 changelog_config = "cliff.toml"
 changelog_update = true
-changelog_path = "CHANGELOG.md"
 git_tag_enable = true
 publish = false
