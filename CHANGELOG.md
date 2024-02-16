@@ -23,7 +23,6 @@
 - Fix very strange old lint ([#1125](https://github.com/cargo-generate/cargo-generate/pull/1125))
 - Release-plz config file breaking changes ([#1128](https://github.com/cargo-generate/cargo-generate/pull/1128))
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.19.0...HEAD)
 
 ## [0.19.0] 2023-12-13
 
