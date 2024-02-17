@@ -1,5 +1,38 @@
 # Changelog
 
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.20.0...HEAD)
+
+## [0.20.0] 2024-02-17
+
+[0.20.0]: https://github.com/cargo-generate/cargo-generate/compare/0.19.0...0.20.0
+
+### ✨ Features
+
+- Add some more tests regarding conditionals see [#1119](https://github.com/cargo-generate/cargo-generate/pull/1119) ([#1133](https://github.com/cargo-generate/cargo-generate/pull/1133))
+
+### 📖 Documentation
+
+- Add docs about the new feature ([#1074](https://github.com/cargo-generate/cargo-generate/pull/1074)) ([#1132](https://github.com/cargo-generate/cargo-generate/pull/1132))
+
+### 🛠️  Maintenance
+
+- Bump home from 0.5.5 to 0.5.9 ([#1085](https://github.com/cargo-generate/cargo-generate/pull/1085))
+- Bump predicates from 3.0.4 to 3.1.0 ([#1103](https://github.com/cargo-generate/cargo-generate/pull/1103))
+- Bump assert_cmd from 2.0.12 to 2.0.13 ([#1102](https://github.com/cargo-generate/cargo-generate/pull/1102))
+- Bump bstr from 1.8.0 to 1.9.0 ([#1094](https://github.com/cargo-generate/cargo-generate/pull/1094))
+- Switch to sccache ([#1126](https://github.com/cargo-generate/cargo-generate/pull/1126))
+- Add Text and Editor type ([#1113](https://github.com/cargo-generate/cargo-generate/pull/1113))
+- Add --skip-submodules flag to optionalize cloning git submodules ([#1112](https://github.com/cargo-generate/cargo-generate/pull/1112))
+- Several versions ([#1130](https://github.com/cargo-generate/cargo-generate/pull/1130))
+- Ensure github-actions are updated by dependabot ([#1134](https://github.com/cargo-generate/cargo-generate/pull/1134))
+
+### 🤕 Fixes
+
+- Fix multiple `Unreleased` versions in CHANGELOG.md
+- Fix release pr should trigger builds
+- Fix very strange old lint ([#1125](https://github.com/cargo-generate/cargo-generate/pull/1125))
+- Release-plz config file breaking changes ([#1128](https://github.com/cargo-generate/cargo-generate/pull/1128))
+
 ## Unreleased
 
 ## [0.19.0] 2023-12-13
