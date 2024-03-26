@@ -98,7 +98,7 @@ pub enum ConversionError {
     MissingPrompt { var_name: String },
     #[error("choices array empty for `{var_name}`")]
     EmptyChoices { var_name: String },
-    #[error("default is `{default}`, but is not a valid value in choices array `{choices:?}` for  `{var_name}`")]
+    #[error("default is `{default}`, but is not a valid value in choices array `{choices:?}` for `{var_name}`")]
     InvalidDefault {
         var_name: String,
         default: String,
@@ -112,8 +112,10 @@ pub enum ConversionError {
     UnsupportedChoices { var_type: String },
     #[error("bool type does not support `regex` field")]
     RegexOnBool { var_name: String },
-    #[error("variable `{var_name}` was missing in config file running on silent mode")]
-    MissingPlaceholderVariable { var_name: String },
+    #[error(
+        "variable `{var_name}` is missing default value in config file running in silent mode"
+    )]
+    MissingDefaultValueForPlaceholderVariable { var_name: String },
     #[error("field `{field}` of variable `{var_name}` does not match configured regex")]
     RegexDoesntMatchField { var_name: String, field: String },
     #[error("regex of `{var_name}` is not a valid regex. {error}")]

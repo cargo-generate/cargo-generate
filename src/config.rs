@@ -76,21 +76,21 @@ impl Config {
     pub fn get_init_hooks(&self) -> Vec<String> {
         self.hooks
             .as_ref()
-            .map(|h| h.init.as_ref().map(Clone::clone).unwrap_or_default())
+            .map(|h| h.init.clone().unwrap_or_default())
             .unwrap_or_default()
     }
 
     pub fn get_pre_hooks(&self) -> Vec<String> {
         self.hooks
             .as_ref()
-            .map(|h| h.pre.as_ref().map(Clone::clone).unwrap_or_default())
+            .map(|h| h.pre.clone().unwrap_or_default())
             .unwrap_or_default()
     }
 
     pub fn get_post_hooks(&self) -> Vec<String> {
         self.hooks
             .as_ref()
-            .map(|h| h.post.as_ref().map(Clone::clone).unwrap_or_default())
+            .map(|h| h.post.clone().unwrap_or_default())
             .unwrap_or_default()
     }
 
