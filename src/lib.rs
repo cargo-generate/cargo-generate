@@ -654,6 +654,31 @@ pub(crate) fn add_missing_provided_values(
     Ok(())
 }
 
+fn read_default_variable_value_from_template(slot: &TemplateSlots) -> Result<String, ()> {
+    let default_value = match &slot.var_info {
+        VarInfo::Bool {
+            default: Some(default),
+        } => default.to_string(),
+        VarInfo::String {
+            entry: string_entry,
+        } => match *string_entry.clone() {
+            StringEntry {
+                default: Some(default),
+                ..
+            } => default.clone(),
+            _ => return Err(()),
+        },
+        _ => return Err(()),
+    };
+    let (key, value) = (&slot.var_name, &default_value);
+    info!(
+        "{} {} (default value from template)",
+        emoji::WRENCH,
+        style(format!("{key}: {value:?}")).bold(),
+    );
+    Ok(default_value)
+}
+
 // Evaluate the configuration, adding defined placeholder variables to the liquid object.
 fn fill_placeholders_and_merge_conditionals(
     config: &mut Config,
@@ -675,11 +700,18 @@ fn fill_placeholders_and_merge_conditionals(
                 toml::Value::Array(_) | toml::Value::Table(_) => None,
             });
             if provided_value.is_none() && args.silent {
-                anyhow::bail!(ConversionError::MissingPlaceholderVariable {
-                    var_name: slot.var_name.clone()
-                })
+                let default_value = match read_default_variable_value_from_template(slot) {
+                    Ok(string) => string,
+                    Err(()) => {
+                        anyhow::bail!(ConversionError::MissingDefaultValueForPlaceholderVariable {
+                            var_name: slot.var_name.clone()
+                        })
+                    }
+                };
+                interactive::variable(slot, Some(&default_value))
+            } else {
+                interactive::variable(slot, provided_value.as_ref())
             }
-            interactive::variable(slot, provided_value.as_ref())
         })?;
 
         let placeholders_changed = conditionals
