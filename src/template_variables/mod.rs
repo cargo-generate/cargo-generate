@@ -100,7 +100,7 @@ fn read_template_values_from_definitions(
                     let value = cap.get(2).map(|s| s.as_str()).unwrap_or("").to_owned();
 
                     info!(
-                        "{} {} (variable provided via CLI)",
+                        "{} {} (value from CLI)",
                         emoji::WRENCH,
                         style(format!("{key}: {value:?}")).bold(),
                     );
