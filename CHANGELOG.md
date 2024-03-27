@@ -38,7 +38,6 @@
 - Release-plz config file breaking changes ([#1128](https://github.com/cargo-generate/cargo-generate/pull/1128))
 - Default values are not ignored in silent mode ([#1153](https://github.com/cargo-generate/cargo-generate/pull/1153))
 
-## Unreleased
 
 ## [0.19.0] 2023-12-13
 
