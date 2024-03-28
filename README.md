@@ -39,6 +39,12 @@ GitHub.
 cargo install cargo-generate
 ```
 
+or if you have [no time, use cargo-binstall](https://github.com/cargo-bins/cargo-binstall):
+
+```sh
+cargo binstall cargo-generate
+```
+
 ### Usage
 
 ```sh
