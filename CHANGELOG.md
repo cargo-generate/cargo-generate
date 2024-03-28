@@ -1,5 +1,23 @@
 # Changelog
 
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.20.1...HEAD)
+
+## [0.20.1] 2024-03-28
+
+[0.20.1]: https://github.com/cargo-generate/cargo-generate/compare/0.20.0...0.20.1
+
+### ✨ Features
+
+- Add the cargo-binstall installation method
+
+### 🛠️  Maintenance
+
+- Small reformatting only
+
+### 🤕 Fixes
+
+- Release plz can now force push
+
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.20.0...HEAD)
 
 ## [0.20.0] 2024-03-26
