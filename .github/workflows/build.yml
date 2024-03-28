@@ -140,7 +140,7 @@ jobs:
       - name: Codecov
         # You may pin to the exact commit or the version.
         # uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378
-        uses: codecov/codecov-action@v4-beta
+        uses: codecov/codecov-action@v4.1.0
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
