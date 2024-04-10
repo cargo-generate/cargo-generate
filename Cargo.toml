@@ -61,16 +61,6 @@ indoc = "~2.0"
 url = "~2.5"
 bstr = "~1.9"
 
-[dev-dependencies.cargo-husky]
-version = "~1.5"
-default-features = false
-features = [
-    "prepush-hook",
-    "run-cargo-test",
-    "run-cargo-clippy",
-    "run-cargo-fmt",
-]
-
 [features]
 default = ["vendored-libgit2"]
 vendored-libgit2 = ["git2/vendored-libgit2"]
