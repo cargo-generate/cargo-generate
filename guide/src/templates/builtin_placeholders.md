@@ -16,9 +16,9 @@ Builtin placeholders are:
       Cargo's configuration. It will either be on the form `username <email>` or just plain `username`.
 * `project-name`
     * this is supplied by either passing the `--name` flag to the command or working with the interactive CLI to supply
-      a name. It can be in snake_case or dash-case. In other cases it is
-      converted to dash-case.
-      Note: the `--force` flag allows to use the project name as it is given, without adjusting. Pls use it with care.
+      a name. It can be provided in snake_case or dash-case, in all other cases it is converted to dash-case.
+    * it can also be supplied via the environment variable `CARGO_GENERATE_VALUE_PROJECT_NAME` when running in `--silent` mode 
+      > ⚠️ Note: the `--force` flag allows you to use the project name as it is given, without adjusting. Please use it carefully.
 * `crate_name`
     * the snake_case_version of `project-name`
 * `crate_type`
