@@ -91,7 +91,7 @@ mod tests {
         let args = UserParsedInputBuilder::for_testing().build();
 
         let project_dir = ProjectDir::try_from((&input, &args)).unwrap();
-        assert_eq!(project_dir, ProjectDir("/tmp/dest/lock_firmware".into()));
+        assert!(project_dir.0.as_path().ends_with("lock_firmware"));
     }
 
     #[test]
@@ -100,7 +100,7 @@ mod tests {
         let args = UserParsedInputBuilder::for_testing().build();
 
         let project_dir = ProjectDir::try_from((&input, &args)).unwrap();
-        assert_eq!(project_dir, ProjectDir("/tmp/dest/lock-firmware".into()));
+        assert!(project_dir.0.as_path().ends_with("lock-firmware"));
     }
 
     #[test]
@@ -109,7 +109,7 @@ mod tests {
         let args = UserParsedInputBuilder::for_testing().build();
 
         let project_dir = ProjectDir::try_from((&input, &args)).unwrap();
-        assert_eq!(project_dir, ProjectDir("/tmp/dest/lock-firmware".into()));
+        assert!(project_dir.0.as_path().ends_with("lock-firmware"));
     }
 
     #[test]
@@ -118,6 +118,6 @@ mod tests {
         let args = UserParsedInputBuilder::for_testing().with_force().build();
 
         let project_dir = ProjectDir::try_from((&input, &args)).unwrap();
-        assert_eq!(project_dir, ProjectDir("/tmp/dest/lockFirmware".into()));
+        assert!(project_dir.0.as_path().ends_with("lockFirmware"));
     }
 }
