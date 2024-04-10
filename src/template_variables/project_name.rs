@@ -53,7 +53,7 @@ mod tests {
         let input = ProjectNameInput("lock_firmware".to_string());
         let args = UserParsedInputBuilder::for_testing().build();
 
-        let project_name = ProjectName::try_from((&input, &args)).unwrap();
+        let project_name = ProjectName::from((&input, &args));
         assert_eq!(project_name, ProjectName("lock_firmware".into()));
     }
 
@@ -62,7 +62,7 @@ mod tests {
         let input = ProjectNameInput("lock-firmware".to_string());
         let args = UserParsedInputBuilder::for_testing().build();
 
-        let project_name = ProjectName::try_from((&input, &args)).unwrap();
+        let project_name = ProjectName::from((&input, &args));
         assert_eq!(project_name, ProjectName("lock-firmware".into()));
     }
 
@@ -71,7 +71,7 @@ mod tests {
         let input = ProjectNameInput("lockFirmware".to_string());
         let args = UserParsedInputBuilder::for_testing().build();
 
-        let project_name = ProjectName::try_from((&input, &args)).unwrap();
+        let project_name = ProjectName::from((&input, &args));
         assert_eq!(project_name, ProjectName("lock-firmware".into()));
     }
 
@@ -80,7 +80,7 @@ mod tests {
         let input = ProjectNameInput("lockFirmware".to_string());
         let args = UserParsedInputBuilder::for_testing().with_force().build();
 
-        let project_name = ProjectName::try_from((&input, &args)).unwrap();
+        let project_name = ProjectName::from((&input, &args));
         assert_eq!(project_name, ProjectName("lockFirmware".into()));
     }
 }

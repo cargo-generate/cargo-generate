@@ -39,7 +39,7 @@ impl UserParsedInputBuilder {
         }
     }
 
-    pub fn with_force(mut self) -> Self {
+    pub const fn with_force(mut self) -> Self {
         self.subject.force = true;
         self
     }
