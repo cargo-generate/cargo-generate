@@ -156,7 +156,7 @@ fn it_substitutes_os_arch() {
 }
 
 #[test]
-fn it_kebabcases_projectname_when_passed_to_flag() {
+fn it_keeps_snake_case_projectname() {
     let template = tempdir()
         .file(
             "Cargo.toml",
@@ -181,8 +181,8 @@ version = "0.1.0"
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
-        .read("foobar-project/Cargo.toml")
-        .contains("foobar-project"));
+        .read("foobar_project/Cargo.toml")
+        .contains("foobar_project"));
 }
 
 #[test]
