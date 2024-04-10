@@ -1,5 +1,24 @@
 # Changelog
 
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.21.0...HEAD)
+
+## [0.21.0] 2024-04-10
+
+[0.21.0]: https://github.com/cargo-generate/cargo-generate/compare/0.20.0...0.21.0
+
+### ✨ Features
+
+- Add the cargo-binstall installation method
+- Don't rename snake_case to hyphens in project name ([#1172](https://github.com/cargo-generate/cargo-generate/pull/1172))
+
+### 🛠️  Maintenance
+
+- Small reformatting only
+
+### 🤕 Fixes
+
+- Release plz can now force push
+
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.20.0...HEAD)
 
 ## [0.20.0] 2024-03-26
