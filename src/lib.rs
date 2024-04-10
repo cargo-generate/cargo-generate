@@ -522,7 +522,7 @@ fn expand_template(
 
     let project_name_input = ProjectNameInput::try_from((&liquid_object, user_parsed_input))?;
     let project_name = ProjectName::from((&project_name_input, user_parsed_input));
-    let destination = ProjectDir::try_from((&project_name, user_parsed_input))?;
+    let destination = ProjectDir::try_from((&project_name_input, user_parsed_input))?;
     let crate_name = CrateName::from(&project_name_input);
     set_project_name_variables(&liquid_object, &destination, &project_name, &crate_name)?;
 
