@@ -13,6 +13,42 @@ use regex::Regex;
 use crate::{app_config::AppConfig, template_variables::CrateType, GenerateArgs, Vcs};
 use log::warn;
 
+#[derive(Debug)]
+#[cfg(test)]
+pub struct UserParsedInputBuilder {
+    subject: UserParsedInput,
+}
+
+#[cfg(test)]
+impl UserParsedInputBuilder {
+    #[cfg(test)]
+    pub(crate) fn for_testing() -> Self {
+        use crate::TemplatePath;
+        Self {
+            subject: UserParsedInput::try_from_args_and_config(
+                AppConfig::default(),
+                &GenerateArgs {
+                    destination: Some(Path::new("/tmp/dest/").to_path_buf()),
+                    template_path: TemplatePath {
+                        path: Some("/tmp".to_string()),
+                        ..TemplatePath::default()
+                    },
+                    ..GenerateArgs::default()
+                },
+            ),
+        }
+    }
+
+    pub fn with_force(mut self) -> Self {
+        self.subject.force = true;
+        self
+    }
+
+    pub fn build(self) -> UserParsedInput {
+        self.subject
+    }
+}
+
 // Contains parsed information from user.
 #[derive(Debug)]
 pub struct UserParsedInput {

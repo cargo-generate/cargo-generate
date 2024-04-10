@@ -10,7 +10,7 @@ use crate::{
 use log::warn;
 
 #[derive(Debug)]
-pub struct ProjectNameInput(String);
+pub struct ProjectNameInput(pub(crate) String);
 
 impl TryFrom<(&LiquidObjectResource, &UserParsedInput)> for ProjectNameInput {
     type Error = anyhow::Error;

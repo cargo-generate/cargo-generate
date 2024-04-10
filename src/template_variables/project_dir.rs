@@ -5,15 +5,13 @@ use std::{
 
 use anyhow::bail;
 use console::style;
-use heck::ToKebabCase;
 
+use crate::template_variables::ProjectName;
 use crate::{emoji, user_parsed_input::UserParsedInput};
-use log::warn;
-
-use super::project_name_input::ProjectNameInput;
 
 /// Stores user inputted name and provides convenience methods
 /// for handling casing.
+#[derive(PartialOrd, PartialEq, Debug)]
 pub struct ProjectDir(PathBuf);
 
 impl AsRef<Path> for ProjectDir {
@@ -28,11 +26,11 @@ impl Display for ProjectDir {
     }
 }
 
-impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
+impl TryFrom<(&ProjectName, &UserParsedInput)> for ProjectDir {
     type Error = anyhow::Error;
 
     fn try_from(
-        (project_name_input, user_parsed_input): (&ProjectNameInput, &UserParsedInput),
+        (project_name, user_parsed_input): (&ProjectName, &UserParsedInput),
     ) -> Result<Self, Self::Error> {
         let base_path = user_parsed_input.destination();
 
@@ -40,29 +38,10 @@ impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
             return Ok(Self(base_path.to_owned()));
         }
 
-        let name = user_parsed_input
-            .name()
-            .map_or_else(|| project_name_input.as_ref().to_owned(), String::from);
-
-        let dir_name = user_parsed_input
-            .force()
-            .then(|| name.clone())
-            .unwrap_or_else(|| {
-                let renamed_project_name = name.to_kebab_case();
-                if renamed_project_name != name {
-                    warn!(
-                        "{} `{}` {} `{}`{}",
-                        style("Renaming project called").bold(),
-                        style(name).bold().yellow(),
-                        style("to").bold(),
-                        style(&renamed_project_name).bold().green(),
-                        style("...").bold()
-                    );
-                }
-                renamed_project_name
-            });
-
-        let project_dir = base_path.join(dir_name);
+        // let name = user_parsed_input
+        //     .name()
+        //     .map_or_else(|| project_name.as_ref().to_owned(), String::from);
+        let project_dir = base_path.join(project_name.as_ref());
 
         if project_dir.exists() {
             bail!(
@@ -75,5 +54,49 @@ impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
         }
 
         Ok(Self(project_dir))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::template_variables::ProjectNameInput;
+    use crate::user_parsed_input::UserParsedInputBuilder;
+
+    #[test]
+    fn test_snake_case_is_accepted() {
+        let input = ProjectName::from("lock_firmware");
+        let args = UserParsedInputBuilder::for_testing().build();
+
+        let project_dir = ProjectDir::try_from((&input, &args)).unwrap();
+        assert_eq!(project_dir, ProjectDir("/tmp/dest/lock_firmware".into()));
+    }
+
+    #[test]
+    fn test_dash_case_is_accepted() {
+        let input = ProjectName::from("lock-firmware");
+        let args = UserParsedInputBuilder::for_testing().build();
+
+        let project_dir = ProjectDir::try_from((&input, &args)).unwrap();
+        assert_eq!(project_dir, ProjectDir("/tmp/dest/lock-firmware".into()));
+    }
+
+    #[test]
+    fn test_converted_to_dash_case() {
+        let input = ProjectName::from("lockFirmware");
+        let args = UserParsedInputBuilder::for_testing().build();
+
+        let project_dir = ProjectDir::try_from((&input, &args)).unwrap();
+        assert_eq!(project_dir, ProjectDir("/tmp/dest/lock-firmware".into()));
+    }
+
+    #[test]
+    fn test_not_converted_to_dash_case_when_with_force() {
+        let input = ProjectNameInput("lockFirmware".to_string());
+        let args = UserParsedInputBuilder::for_testing().with_force().build();
+        let project_name = ProjectName::try_from((&input, &args)).unwrap();
+
+        let project_dir = ProjectDir::try_from((&project_name, &args)).unwrap();
+        assert_eq!(project_dir, ProjectDir("/tmp/dest/lockFirmware".into()));
     }
 }
