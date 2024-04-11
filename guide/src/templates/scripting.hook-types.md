@@ -2,7 +2,7 @@
 
 ### Init
 
-- Init hooks are run before anything else.
+- Init hooks are executed before anything else.
 - The variables `crate_type`/`authors`/`username`/`os-arch` and `is_init` are available.
 - The variable `project-name` *may* be available.
 
