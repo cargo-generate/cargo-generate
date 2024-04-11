@@ -19,7 +19,6 @@
 
 - Release plz can now force push
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.20.0...HEAD)
 
 ## [0.20.0] 2024-03-26
 
