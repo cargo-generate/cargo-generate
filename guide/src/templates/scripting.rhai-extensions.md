@@ -58,7 +58,7 @@ Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
 
   Create/overwrite a file inside the template folder
 
-* **`file::write(file: &str, content: Array)`*
+* **`file::write(file: &str, content: Array)`**
 
   Create/overwrite a file inside the template folder, each entry in the array on a new line
 
