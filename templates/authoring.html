@@ -183,10 +183,12 @@
 <blockquote>
 <p>Available since version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0">0.9.0</a></p>
 </blockquote>
-<p>As a template author you're probably concerned about successful builds of your template?</p>
-<p>Imagine a couple of months after your first template release, some new versions of any dependencies would break your template, and you would not even be aware of it?</p>
-<p>The answer to this question is a vital build pipeline for your template project. This challenge got now much simpler to solve with the new official <a href="https://github.com/marketplace/actions/cargo-generate">cargo-generate GitHub Action</a>.</p>
-<p>Here an example:</p>
+<p>As a template author you're probably concerned about successful builds of your template.</p>
+<p>Imagine a couple of months after your first template release, some new versions of any dependencies
+would break your template, and you would not even be aware of it?</p>
+<p>The answer to this question is a vital build pipeline for your template project. This challenge got now
+much simpler to solve with the new official <a href="https://github.com/marketplace/actions/cargo-generate">cargo-generate GitHub Action</a>.</p>
+<p>Here is an example:</p>
 <pre><code class="language-sh">tree .github
 .github
 └── workflows
@@ -212,7 +214,7 @@ jobs:
       PROJECT_NAME: mytemplate
     steps:
       - uses: actions/checkout@v4
-      - uses: cargo-generate/cargo-generate-action@v0.17
+      - uses: cargo-generate/cargo-generate-action@latest
         with:
           name: ${{ env.PROJECT_NAME }}
       - uses: dtolnay/rust-toolchain@stable
