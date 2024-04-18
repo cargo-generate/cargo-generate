@@ -1,0 +1,11 @@
+{
+  "context": "Workspace",
+  "bindings": {
+    "cmd-g": [
+      "task::Spawn",
+      {
+        "task_name": "echo current file's path"
+      }
+    ]
+  }
+}
