@@ -15,10 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix changelog creation config file, regarding the unreleased section
 
-# Changelog
-
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.20.0...HEAD)
-
 ## [0.20.0] 2024-03-26
 
 [0.20.0]: https://github.com/cargo-generate/cargo-generate/compare/0.19.0...0.20.0
