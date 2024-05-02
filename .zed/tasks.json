@@ -1,7 +1,0 @@
-[
-  {
-    "label": "echo current file's path",
-    "command": "echo $ZED_FILE",
-    "use_new_terminal": true
-  }
-]
