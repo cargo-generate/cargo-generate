@@ -5,9 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.20.1...HEAD)
+
 ## [0.21.0] 2024-05-02
 
-[0.21.0]: <REPO>/compare/0.20.0...0.21.0
+[0.21.0]: https://github.com/cargo-generate/cargo-generate/compare/0.20.0...0.21.0
 
 ### ✨ Features
 
@@ -25,10 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Release plz can now force push
 - Very minor markdown fix ([#1166](https://github.com/cargo-generate/cargo-generate/pull/1166))
 - Fix changelog creation config file, regarding the unreleased section
-
-# Changelog
-
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.20.0...HEAD)
 
 ## [0.20.0] 2024-03-26
 
