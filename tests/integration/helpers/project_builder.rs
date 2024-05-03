@@ -140,6 +140,7 @@ impl ProjectBuilder {
 
                 Command::new("git")
                     .arg("commit")
+                    .arg("--no-gpg-sign")
                     .arg("--message")
                     .arg("initial main commit")
                     .current_dir(path)
@@ -179,6 +180,7 @@ impl ProjectBuilder {
 
             Command::new("git")
                 .arg("commit")
+                .arg("--no-gpg-sign")
                 .arg("--message")
                 .arg("initial commit")
                 .current_dir(path)
@@ -212,6 +214,7 @@ impl ProjectBuilder {
 
                 Command::new("git")
                     .arg("commit")
+                    .arg("--no-gpg-sign")
                     .arg("--message")
                     .arg("dummy commit after tag")
                     .current_dir(path)

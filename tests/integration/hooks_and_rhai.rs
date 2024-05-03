@@ -351,15 +351,15 @@ fn init_hook_can_change_project_name_but_keeps_cli_name_for_destination() {
         .file(
             "cargo-generate.toml",
             indoc! {r#"
-            [hooks]
-            init = ["init.rhai"]
+                [hooks]
+                init = ["init.rhai"]
             "#},
         )
         .file(
             "generated.txt",
             indoc! {r#"
-            {{crate_name}}
-        "#},
+                {{crate_name}}
+            "#},
         )
         .init_git()
         .build();
