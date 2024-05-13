@@ -5,8 +5,8 @@ use std::{
 
 use anyhow::bail;
 use console::style;
-use heck::ToKebabCase;
 
+use crate::template_variables::project_name::sanitize_project_name;
 use crate::{emoji, user_parsed_input::UserParsedInput};
 use log::warn;
 
@@ -14,6 +14,7 @@ use super::project_name_input::ProjectNameInput;
 
 /// Stores user inputted name and provides convenience methods
 /// for handling casing.
+#[derive(Debug, PartialEq)]
 pub struct ProjectDir(PathBuf);
 
 impl AsRef<Path> for ProjectDir {
@@ -48,7 +49,7 @@ impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
             .force()
             .then(|| name.clone())
             .unwrap_or_else(|| {
-                let renamed_project_name = name.to_kebab_case();
+                let renamed_project_name = sanitize_project_name(name.as_str());
                 if renamed_project_name != name {
                     warn!(
                         "{} `{}` {} `{}`{}",
@@ -75,5 +76,48 @@ impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
         }
 
         Ok(Self(project_dir))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::template_variables::ProjectNameInput;
+    use crate::user_parsed_input::UserParsedInputBuilder;
+
+    #[test]
+    fn test_snake_case_is_accepted() {
+        let input = ProjectNameInput("lock_firmware".to_string());
+        let args = UserParsedInputBuilder::for_testing().build();
+
+        let project_dir = ProjectDir::try_from((&input, &args)).unwrap();
+        assert!(project_dir.0.as_path().ends_with("lock_firmware"));
+    }
+
+    #[test]
+    fn test_dash_case_is_accepted() {
+        let input = ProjectNameInput("lock-firmware".to_string());
+        let args = UserParsedInputBuilder::for_testing().build();
+
+        let project_dir = ProjectDir::try_from((&input, &args)).unwrap();
+        assert!(project_dir.0.as_path().ends_with("lock-firmware"));
+    }
+
+    #[test]
+    fn test_converted_to_dash_case() {
+        let input = ProjectNameInput("lockFirmware".to_string());
+        let args = UserParsedInputBuilder::for_testing().build();
+
+        let project_dir = ProjectDir::try_from((&input, &args)).unwrap();
+        assert!(project_dir.0.as_path().ends_with("lock-firmware"));
+    }
+
+    #[test]
+    fn test_not_converted_to_dash_case_when_with_force() {
+        let input = ProjectNameInput("lockFirmware".to_string());
+        let args = UserParsedInputBuilder::for_testing().with_force().build();
+
+        let project_dir = ProjectDir::try_from((&input, &args)).unwrap();
+        assert!(project_dir.0.as_path().ends_with("lockFirmware"));
     }
 }

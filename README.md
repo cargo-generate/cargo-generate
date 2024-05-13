@@ -1,5 +1,3 @@
-
-
 <div align="center">
 
 # cargo-generate
@@ -30,13 +28,21 @@ See the `cargo-generate` [guide](https://cargo-generate.github.io/cargo-generate
 
 ## Templates
 
-One place to find templates is to look for the [cargo-generate topic](https://github.com/topics/cargo-generate) on GitHub.
+One place to find templates is to look for the [cargo-generate topic](https://github.com/topics/cargo-generate) on
+GitHub.
 
 ## Quickstart
+
 ### Installation
 
 ```sh
 cargo install cargo-generate
+```
+
+or if you have [no time, use cargo-binstall](https://github.com/cargo-bins/cargo-binstall):
+
+```sh
+cargo binstall cargo-generate
 ```
 
 ### Usage
@@ -64,7 +70,8 @@ cargo help generate
 
 Licensed under either of
 
-* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or [apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0))
+* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE)
+  or [apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0))
 * MIT license ([LICENSE-MIT](LICENSE-MIT) or [opensource.org/licenses/MIT](https://opensource.org/licenses/MIT))
 
 at your option.
