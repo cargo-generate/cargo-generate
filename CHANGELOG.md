@@ -1,6 +1,32 @@
 # Changelog
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.20.0...HEAD)
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.20.1...HEAD)
+
+## [0.21.0] 2024-05-02
+
+[0.21.0]: https://github.com/cargo-generate/cargo-generate/compare/0.20.0...0.21.0
+
+### ✨ Features
+
+- Add the cargo-binstall installation method
+- Don't rename snake_case to hyphens in project name ([#1172](https://github.com/cargo-generate/cargo-generate/pull/1172))
+
+### 🛠️ Maintenance
+
+- Small reformatting only
+- Enable the sponsor button
+- Update locked dependencies + bump rhai from 1.17.1 to 1.18.0 ([#1182](https://github.com/cargo-generate/cargo-generate/pull/1182))
+
+### 🤕 Fixes
+
+- Release plz can now force push
+- Very minor markdown fix ([#1166](https://github.com/cargo-generate/cargo-generate/pull/1166))
+- Fix changelog creation config file, regarding the unreleased section
 
 ## [0.20.0] 2024-03-26
 
