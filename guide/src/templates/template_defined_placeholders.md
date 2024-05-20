@@ -29,7 +29,7 @@ placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], def
 `cargo-generate` supports the following placeholder value types:
 
 - `"string"`: Represents a string value.
-- `"text"`: Represents a multiline string value. (terminated by hitting <CTRL-D>)
+- `"text"`: Represents a multiline string value. (terminated by hitting CTRL-D)
 - `"editor"`: Represents a multiline string value, collected from the user by a real terminal editor.
 - `"bool"`: Represents a boolean value (`true` or `false`).
 
