@@ -16,7 +16,7 @@ placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], def
 - `choices` (optional): A list of predefined choices for the placeholder value.
 - `default` (optional): The default value for the placeholder if no user input is provided.
 - `regex` (optional and only for string-like types): The entered value is validated against this regex.
-- `type`: The data type of the placeholder value (e.g., `"string"`, `"text"`, `"editor"`, `"bool"`).
+- `type`: The data type of the placeholder value (see [Supported Types](#supported-types)).
 
 ## Prompt, Choices, and Default Values
 
