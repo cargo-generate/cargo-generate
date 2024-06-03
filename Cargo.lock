@@ -1047,9 +1047,9 @@ dependencies = [
 
 [[package]]
 name = "liquid-derive"
-version = "0.26.4"
+version = "0.26.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc2fb41a9bb4257a3803154bdf7e2df7d45197d1941c9b1a90ad815231630721"
+checksum = "915f6d0a2963a27cd5205c1902f32ddfe3bc035816afd268cf88c0fc0f8d287e"
 dependencies = [
  "proc-macro2",
  "quote",
