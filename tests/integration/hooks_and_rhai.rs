@@ -452,6 +452,54 @@ fn rhai_filter_invokes_rhai_script() {
 }
 
 #[test]
+fn date_works() {
+    let template = tempdir()
+        .file(
+            "init.rhai",
+            indoc! {r#"
+                let dt = system::date();
+                variable::set("year", `${dt.year}`);
+                variable::set("month", `${dt.month}`);
+                variable::set("day", `${dt.day}`);
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [hooks]
+                init = ["init.rhai"]
+            "#},
+        )
+        .file(
+            "generated.txt",
+            indoc! {r#"
+                {{year}}-{{month}}-{{day}}
+        "#},
+        )
+        .init_git()
+        .build();
+    let date = time::OffsetDateTime::now_utc();
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("foo")
+        .flag_init()
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.exists("generated.txt"), "generated.txt didn't exist");
+    let content = dir.read("generated.txt");
+    let expected = format!("{}-{}-{}", date.year(), u8::from(date.month()), date.day());
+    assert!(
+        content.contains(&expected),
+        "generated.txt didn't include `{expected}`:\n`{content}`"
+    );
+}
+
+#[test]
 fn missing_rhai_filter_fails_prints_warnings() {
     let template = tempdir()
         .file(
