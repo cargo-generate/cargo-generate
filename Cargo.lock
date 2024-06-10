@@ -914,9 +914,9 @@ dependencies = [
 
 [[package]]
 name = "itertools"
-version = "0.10.5"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
+checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
 dependencies = [
  "either",
 ]
@@ -1016,9 +1016,9 @@ checksum = "01cda141df6706de531b6c46c3a33ecca755538219bd484262fa09410c13539c"
 
 [[package]]
 name = "liquid"
-version = "0.26.4"
+version = "0.26.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69f68ae1011499ae2ef879f631891f21c78e309755f4a5e483c4a8f12e10b609"
+checksum = "10929f201279ba14da3297b957dcda1e0bf7a6f3bb5115688be684aa8864e9cc"
 dependencies = [
  "doc-comment",
  "liquid-core",
@@ -1029,9 +1029,9 @@ dependencies = [
 
 [[package]]
 name = "liquid-core"
-version = "0.26.4"
+version = "0.26.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79e0724dfcaad5cfb7965ea0f178ca0870b8d7315178f4a7179f5696f7f04d5f"
+checksum = "3aef4b2160791f456eb880c990a97746f693746f92302ef5f1d06111cf14b768"
 dependencies = [
  "anymap2",
  "itertools",
@@ -1047,9 +1047,9 @@ dependencies = [
 
 [[package]]
 name = "liquid-derive"
-version = "0.26.4"
+version = "0.26.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc2fb41a9bb4257a3803154bdf7e2df7d45197d1941c9b1a90ad815231630721"
+checksum = "915f6d0a2963a27cd5205c1902f32ddfe3bc035816afd268cf88c0fc0f8d287e"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1058,9 +1058,9 @@ dependencies = [
 
 [[package]]
 name = "liquid-lib"
-version = "0.26.4"
+version = "0.26.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2a17e273a6fb1fb6268f7a5867ddfd0bd4683c7e19b51084f3d567fad4348c0"
+checksum = "73f48fc446873f74d869582f5c4b8cbf3248c93395e410a67af5809b3731e44a"
 dependencies = [
  "itertools",
  "liquid-core",
