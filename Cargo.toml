@@ -22,6 +22,7 @@ walkdir = "~2.5"
 remove_dir_all = "~0.8"
 ignore = "~0.4"
 anyhow = "~1.0"
+time = "~0.3"
 toml = { version = "~0.8", features = ["preserve_order"] }
 thiserror = "~1.0"
 home = "~0.5"
