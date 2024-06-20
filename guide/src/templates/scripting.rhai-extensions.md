@@ -62,6 +62,26 @@ Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
 
   Create/overwrite a file inside the template folder, each entry in the array on a new line
 
+### System
+
+* **`system::command(cmd: &str, args: Array) -> value`**
+
+  Execute a command on the system generating the project from a template.
+
+  The user will be prompted with 
+
+  ```
+  The template is requesting to run the following command. Do you agree?
+  <command> <args>
+  ```
+
+  unless the user uses the flag `--allow-commands`. If the user attempts to use the
+  `--silent` flag without the `--allow-commands` flag will fail.
+
+* **`system::date() -> Date`**
+  
+  Get the date in UTC from the system as an object with the properties `year`, `month`, and `day`.
+
 ### Other
 
 * **`abort(reason: &str)`**: Aborts `cargo-generate` with a script error.
