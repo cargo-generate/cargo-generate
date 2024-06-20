@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.1] 2024-06-20
+
+[0.21.1]: <REPO>/compare/0.21.0...0.21.1
+
+### ✨ Features
+
+- Add a date API that provides year, month and day access ([#1201](https://github.com/cargo-generate/cargo-generate/pull/1201))
+
+### 📖 Documentation
+
+- Fix use of `bool` instead of `boolean` in the guide and add new types to error message ([#1203](https://github.com/cargo-generate/cargo-generate/pull/1203))
+
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.20.1...HEAD)
 
 ## [0.21.0] 2024-05-02
