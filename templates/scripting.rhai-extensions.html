@@ -243,6 +243,23 @@
 <p>Create/overwrite a file inside the template folder, each entry in the array on a new line</p>
 </li>
 </ul>
+<h3 id="system"><a class="header" href="#system">System</a></h3>
+<ul>
+<li>
+<p><strong><code>system::command(cmd: &amp;str, args: Array) -&gt; value</code></strong></p>
+<p>Execute a command on the system generating the project from a template.</p>
+<p>The user will be prompted with</p>
+<pre><code>The template is requesting to run the following command. Do you agree?
+&lt;command&gt; &lt;args&gt;
+</code></pre>
+<p>unless the user uses the flag <code>--allow-commands</code>. If the user attempts to use the
+<code>--silent</code> flag without the <code>--allow-commands</code> flag will fail.</p>
+</li>
+<li>
+<p><strong><code>system::date() -&gt; Date</code></strong></p>
+<p>Get the date in UTC from the system as an object with the properties <code>year</code>, <code>month</code>, and <code>day</code>.</p>
+</li>
+</ul>
 <h3 id="other"><a class="header" href="#other">Other</a></h3>
 <ul>
 <li><strong><code>abort(reason: &amp;str)</code></strong>: Aborts <code>cargo-generate</code> with a script error.</li>
