@@ -527,7 +527,7 @@ placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], def
 <li><code>choices</code> (optional): A list of predefined choices for the placeholder value.</li>
 <li><code>default</code> (optional): The default value for the placeholder if no user input is provided.</li>
 <li><code>regex</code> (optional and only for string-like types): The entered value is validated against this regex.</li>
-<li><code>type</code>: The data type of the placeholder value (e.g., <code>"string"</code>, <code>"text"</code>, <code>"editor"</code>, <code>"boolean"</code>).</li>
+<li><code>type</code>: The data type of the placeholder value (e.g., <code>"string"</code>, <code>"text"</code>, <code>"editor"</code>, <code>"bool"</code>).</li>
 </ul>
 <h2 id="prompt-choices-and-default-values"><a class="header" href="#prompt-choices-and-default-values">Prompt, Choices, and Default Values</a></h2>
 <ul>
@@ -541,13 +541,13 @@ placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], def
 <li><code>"string"</code>: Represents a string value.</li>
 <li><code>"text"</code>: Represents a multiline string value. (terminated by hitting <CTRL-D>)</li>
 <li><code>"editor"</code>: Represents a multiline string value, collected from the user by a real terminal editor.</li>
-<li><code>"boolean"</code>: Represents a boolean value (<code>true</code> or <code>false</code>).</li>
+<li><code>"bool"</code>: Represents a boolean value (<code>true</code> or <code>false</code>).</li>
 </ul>
 <h2 id="example"><a class="header" href="#example">Example</a></h2>
 <p>Consider the following <code>cargo-generate.toml</code> file:</p>
 <pre><code class="language-toml">[placeholders]
 project_name = { prompt = "Enter project name", default = "my_project", type = "string" }
-use_git = { prompt = "Initialize Git repository?", choices = ["Yes", "No"], default = "Yes", type = "boolean" }
+use_git = { prompt = "Initialize Git repository?", choices = ["Yes", "No"], default = "Yes", type = "bool" }
 phone_number = { prompt = "What's your phone number?", type = "string", regex = "^[0-9]+$" }
 </code></pre>
 <p>During project creation, <code>cargo-generate</code> will prompt the user to provide values for <code>project_name</code>, <code>use_git</code> and <code>phone_number</code> using the specified prompts, choices, and default values.</p>
