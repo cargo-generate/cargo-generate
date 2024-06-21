@@ -5,9 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.21.1...HEAD)
+
 ## [0.21.1] 2024-06-20
 
-[0.21.1]: <REPO>/compare/0.21.0...0.21.1
+[0.21.1]: https://github.com/cargo-generate/cargo-generate/compare/0.21.0...0.21.1
 
 ### ✨ Features
 
@@ -16,8 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 📖 Documentation
 
 - Fix use of `bool` instead of `boolean` in the guide and add new types to error message ([#1203](https://github.com/cargo-generate/cargo-generate/pull/1203))
-
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.20.1...HEAD)
 
 ## [0.21.0] 2024-05-02
 
@@ -307,7 +307,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Contributors
 - [taurr](https://github.com/taurr)
- 
+
 ## [0.17.2] 2022-11-09
 [0.17.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.1...v0.17.2
 
@@ -316,7 +316,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Contributors
 - [sassman](https://github.com/sassman)
- 
+
 ## [0.17.1] 2022-11-07
 [0.17.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.17.0...v0.17.1
 
@@ -325,7 +325,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🛠️ Maintenance
 - [chore(deps): bump clap from 4.0.19 to 4.0.22](https://github.com/cargo-generate/cargo-generate/pull/792)
- 
+
 ### Contributors
 - [sassman](https://github.com/sassman)
 
@@ -341,7 +341,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Remove `Smoke Test` step](https://github.com/cargo-generate/cargo-generate/pull/721)
 - [renaming files by using e.g. `{{project-name}}.yml` as filename doesn't remove the original file](https://github.com/cargo-generate/cargo-generate/pull/713)
 - [Support `--test` for running tests on the expanded template](https://github.com/cargo-generate/cargo-generate/pull/699)
- 
+
 ### 🤕 Fixes
 - [Variables set in pre scripts don't carry over to the template](https://github.com/cargo-generate/cargo-generate/pull/711)
 - [Git default branch is not honored when using --path](https://github.com/cargo-generate/cargo-generate/pull/712)
@@ -397,9 +397,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sub_templates = ["sub1", "sub2"]
   ```
   Doing so also sets the order when `cargo-generate` asks what to expand, while the first option will be the default.
-  
+
   If a selected template doesn't have a `cargo-generate.toml` file, but a parent one exists, any configured sub-templates will be ignored.
-  
+
   Further implication is that sub-templates no longer needs to have a `cargo-generate.toml` file.
 - [Test for file existance from rhai scripts](https://github.com/cargo-generate/cargo-generate/pull/690)
   Adds the `file::exists(path: &str)` method for use from hook scripts.
@@ -521,7 +521,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [v-n-suadicani-issuu](https://github.com/v-n-suadicani-issuu)
 
 
-## [0.13.1] 2022-04-11 
+## [0.13.1] 2022-04-11
 [0.13.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.13.0...v0.13.1
 
 ### 🛠️ Maintenance
@@ -664,7 +664,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ![demo](https://user-images.githubusercontent.com/7338549/132187949-befdcaf3-a9ba-426b-b530-e4d6046a8c3d.gif)
 
   by [@taurr](https://github.com/taurr)
-- [feat: Pre/Post hooks](https://github.com/cargo-generate/cargo-generate/pull/445), 
+- [feat: Pre/Post hooks](https://github.com/cargo-generate/cargo-generate/pull/445),
   [issue/18](https://github.com/cargo-generate/cargo-generate/issues/18)
 
   Support for template hooks written in [rhai](https://rhai.rs/book/about/index.html).
@@ -686,7 +686,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [README: Added --path documentation](https://github.com/cargo-generate/cargo-generate/pull/435)
 - [README: add installation instructions for Arch Linux](https://github.com/cargo-generate/cargo-generate/pull/436)
 - [README: add a little starter guide for template ci testing](https://github.com/cargo-generate/cargo-generate/pull/458)
-- 
+-
 ### Contributors
 - [MarcoIeni](https://github.com/MarcoIeni)
 - [dependabot[bot]](https://github.com/apps/dependabot)
@@ -695,11 +695,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [orhun](https://github.com/orhun)
 - [sassman](https://github.com/sassman)
 - [taurr](https://github.com/taurr)
-  
+
 ## [0.9.0] 2021-08-24
 ### ✨ Features
 - [enable paging for long choice lists](https://github.com/cargo-generate/cargo-generate/pull/423)
-  
+
   improving the handling of very long choice lists long
   [see #400](https://github.com/cargo-generate/cargo-generate/issues/400), by [@taurr](https://github.com/taurr)
 
@@ -732,10 +732,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [see #76](https://github.com/cargo-generate/cargo-generate/issues/76),
   by [@taurr](https://github.com/taurr)
 
-- [Allow cargo-generate.toml as alternative to cargo-generate.](https://github.com/cargo-generate/cargo-generate/pull/412), 
+- [Allow cargo-generate.toml as alternative to cargo-generate.](https://github.com/cargo-generate/cargo-generate/pull/412),
   by [@taurr](https://github.com/taurr)
 
-- [fix(tests:linux): use the current directory for canonicalize result](https://github.com/cargo-generate/cargo-generate/pull/411), 
+- [fix(tests:linux): use the current directory for canonicalize result](https://github.com/cargo-generate/cargo-generate/pull/411),
   by [@orhun](https://github.com/orhun)
 
 - [Introduce `--path` flag](https://github.com/cargo-generate/cargo-generate/pull/410)
@@ -752,7 +752,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Allow specification of default template values](https://github.com/cargo-generate/cargo-generate/pull/409)
 
   default values for template variables can now be defined on several levels, external file, in the favorites configuration and via environment variables, [read more..](https://github.com/cargo-generate/cargo-generate#default-values-for-placeholders-from-a-file)
-  
+
   [see #389](https://github.com/cargo-generate/cargo-generate/issues/389),
   [#46](https://github.com/cargo-generate/cargo-generate/issues/46),
   by [@taurr](https://github.com/taurr)
@@ -762,7 +762,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [#389](https://github.com/cargo-generate/cargo-generate/issues/389),
   by [@taurr](https://github.com/taurr)
 
-- [template variables in Directories](https://github.com/cargo-generate/cargo-generate/pull/397), 
+- [template variables in Directories](https://github.com/cargo-generate/cargo-generate/pull/397),
   [#396](https://github.com/cargo-generate/cargo-generate/issues/396)
 
   supporting now template variables as directory names like `{{project_name}}/{{project_name}}.rs`
@@ -773,9 +773,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Allow `--define` to specify values](https://github.com/cargo-generate/cargo-generate/pull/392)
   [#389](https://github.com/cargo-generate/cargo-generate/issues/389)
-  
+
   command line argument `--define` to define template variables
-  
+
   by [@taurr](https://github.com/taurr)
 
 - [Improve output of --list-favorites](https://github.com/cargo-generate/cargo-generate/pull/388)
@@ -802,7 +802,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
     solves [#159](https://github.com/cargo-generate/cargo-generate/issues/159)
 
-    A template author can use those placeholders in file names.  
+    A template author can use those placeholders in file names.
     For example, a project named `awesome`, with a file name `{{project_name}}.rs` will be transformed to `awesome.rs`
     during generation. [read more..](https://github.com/cargo-generate/cargo-generate#templates)
 
