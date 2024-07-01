@@ -27,7 +27,7 @@ toml = { version = "~0.8", features = ["preserve_order"] }
 thiserror = "~1.0"
 home = "~0.5"
 sanitize-filename = "~0.5"
-rhai = "~1.18"
+rhai = "~1.19"
 path-absolutize = "~3.1"
 gix-config = "~0.36"
 paste = "~1.0"
