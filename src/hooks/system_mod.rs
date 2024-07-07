@@ -1,5 +1,6 @@
 use rhai::{Dynamic, Module};
-use std::process::Command;
+use std::{collections::BTreeMap, process::Command};
+use time::OffsetDateTime;
 
 use crate::{
     interactive::prompt_and_check_variable,
@@ -16,6 +17,7 @@ pub fn create_module(allow_commands: bool, silent: bool) -> Module {
     module.set_native_fn("command", move |name: &str, commands_args: rhai::Array| {
         run_command(name, commands_args, allow_commands, silent)
     });
+    module.set_native_fn("date", get_utc_date);
 
     module
 }
@@ -87,4 +89,25 @@ fn run_command(
         }
         Err(e) => Err(format!("System command `{full_command}` failed to execute: {e}").into()),
     }
+}
+
+fn get_utc_date() -> HookResult<Dynamic> {
+    Ok(construct_date_map(OffsetDateTime::now_utc()))
+}
+
+fn construct_date_map(dt: OffsetDateTime) -> Dynamic {
+    let mut value = BTreeMap::new();
+    value.insert(
+        "year".parse().unwrap(),
+        Dynamic::from_int(i64::from(dt.year())),
+    );
+    value.insert(
+        "month".parse().unwrap(),
+        Dynamic::from_int(dt.month() as i64),
+    );
+    value.insert(
+        "day".parse().unwrap(),
+        Dynamic::from_int(i64::from(dt.day())),
+    );
+    Dynamic::from_map(value)
 }
