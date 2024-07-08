@@ -110,6 +110,7 @@ impl<'cb> RepoCloneBuilder<'cb> {
         let mut fetch_options = FetchOptions::new();
         fetch_options.proxy_options(proxy_options);
         fetch_options.remote_callbacks(callbacks);
+        fetch_options.depth(1);
 
         let mut builder = self.builder;
         builder.fetch_options(fetch_options);
