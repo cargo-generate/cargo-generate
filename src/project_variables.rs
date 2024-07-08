@@ -105,7 +105,7 @@ pub enum ConversionError {
         choices: Vec<String>,
     },
     #[error(
-        "invalid type for variable `{var_name}`: `{value}` possible values are `bool` and `string`"
+        "invalid type for variable `{var_name}`: `{value}` possible values are `bool`, `string`, `text` and `editor`"
     )]
     InvalidVariableType { var_name: String, value: String },
     #[error("{var_type} type does not support `choices` field")]
