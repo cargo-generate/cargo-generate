@@ -12,12 +12,7 @@ include = ["src/**/*", "LICENSE-*", "*.md"]
 anstyle = "1.0.7"
 anyhow = "~1.0"
 auth-git2 = "~0.5"
-clap = { version = "~4.5", default-features = true, features = [
-    "derive",
-    "std",
-    "help",
-    "wrap_help",
-] }
+clap = { version = "~4.5", features = ["derive", "wrap_help"] }
 console = "~0.15"
 dialoguer = "~0.11"
 env_logger = "~0.11"
