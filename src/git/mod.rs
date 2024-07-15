@@ -116,6 +116,7 @@ impl<'cb> RepoCloneBuilder<'cb> {
             || self.url.starts_with("https://")
         {
             fetch_options.depth(1);
+            fetch_options.download_tags(git2::AutotagOption::All);
         }
 
         let mut builder = self.builder;
