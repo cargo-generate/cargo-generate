@@ -9,7 +9,7 @@ use serde::Deserialize;
 
 use crate::git;
 
-/// Styles from https://github.com/rust-lang/cargo/blob/master/src/cargo/util/style.rs
+/// Styles from <https://github.com/rust-lang/cargo/blob/master/src/cargo/util/style.rs>
 mod style {
     use anstyle::*;
     use clap::builder::Styles;
