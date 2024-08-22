@@ -9,13 +9,47 @@ use serde::Deserialize;
 
 use crate::git;
 
+/// Styles from <https://github.com/rust-lang/cargo/blob/master/src/cargo/util/style.rs>
+mod style {
+    use anstyle::*;
+    use clap::builder::Styles;
+
+    const HEADER: Style = AnsiColor::Green.on_default().effects(Effects::BOLD);
+    const USAGE: Style = AnsiColor::Green.on_default().effects(Effects::BOLD);
+    const LITERAL: Style = AnsiColor::Cyan.on_default().effects(Effects::BOLD);
+    const PLACEHOLDER: Style = AnsiColor::Cyan.on_default();
+    const ERROR: Style = AnsiColor::Red.on_default().effects(Effects::BOLD);
+    const VALID: Style = AnsiColor::Cyan.on_default().effects(Effects::BOLD);
+    const INVALID: Style = AnsiColor::Yellow.on_default().effects(Effects::BOLD);
+
+    pub const STYLES: Styles = {
+        Styles::styled()
+            .header(HEADER)
+            .usage(USAGE)
+            .literal(LITERAL)
+            .placeholder(PLACEHOLDER)
+            .error(ERROR)
+            .valid(VALID)
+            .invalid(INVALID)
+            .error(ERROR)
+    };
+}
+
+mod heading {
+    pub const GIT_PARAMETERS: &str = "Git Parameters";
+    pub const TEMPLATE_SELECTION: &str = "Template Selection";
+    pub const OUTPUT_PARAMETERS: &str = "Output Parameters";
+}
+
 #[derive(Parser)]
 #[command(
     name = "cargo generate",
     bin_name = "cargo",
     arg_required_else_help(true),
     version,
-    about
+    about,
+    next_line_help(false),
+    styles(style::STYLES)
 )]
 pub enum Cli {
     #[command(name = "generate", visible_alias = "gen")]
@@ -52,77 +86,78 @@ pub struct GenerateArgs {
 
     /// Directory to create / project name; if the name isn't in kebab-case, it will be converted
     /// to kebab-case unless `--force` is given.
-    #[arg(long, short, value_parser)]
+    #[arg(long, short, value_parser, help_heading = heading::OUTPUT_PARAMETERS)]
     pub name: Option<String>,
 
-    /// Don't convert the project name to kebab-case before creating the directory.
-    /// Note that cargo generate won't overwrite an existing directory, even if `--force` is given.
-    #[arg(long, short, action)]
+    /// Don't convert the project name to kebab-case before creating the directory. Note that cargo
+    /// generate won't overwrite an existing directory, even if `--force` is given.
+    #[arg(long, short, action, help_heading = heading::OUTPUT_PARAMETERS)]
     pub force: bool,
 
     /// Enables more verbose output.
     #[arg(long, short, action)]
     pub verbose: bool,
 
-    /// Pass template values through a file
-    /// Values should be in the format `key=value`, one per line
-    #[arg(long, value_parser)]
+    /// Pass template values through a file. Values should be in the format `key=value`, one per
+    /// line
+    #[arg(long="values-file", value_parser, alias="template-values-file", value_name="FILE", help_heading = heading::OUTPUT_PARAMETERS)]
     pub template_values_file: Option<String>,
 
-    /// If silent mode is set all variables will be
-    /// extracted from the template_values_file.
-    /// If a value is missing the project generation will fail
+    /// If silent mode is set all variables will be extracted from the template_values_file. If a
+    /// value is missing the project generation will fail
     #[arg(long, short, requires("name"), action)]
     pub silent: bool,
 
-    /// Use specific configuration file. Defaults to $CARGO_HOME/cargo-generate or $HOME/.cargo/cargo-generate
+    /// Use specific configuration file. Defaults to $CARGO_HOME/cargo-generate or
+    /// $HOME/.cargo/cargo-generate
     #[arg(short, long, value_parser)]
     pub config: Option<PathBuf>,
 
     /// Specify the VCS used to initialize the generated template.
-    #[arg(long, value_parser)]
+    #[arg(long, value_parser, help_heading = heading::OUTPUT_PARAMETERS)]
     pub vcs: Option<Vcs>,
 
     /// Populates template variable `crate_type` with value `"lib"`
-    #[arg(long, conflicts_with = "bin", action)]
+    #[arg(long, conflicts_with = "bin", action, help_heading = heading::OUTPUT_PARAMETERS)]
     pub lib: bool,
 
     /// Populates a template variable `crate_type` with value `"bin"`
-    #[arg(long, conflicts_with = "lib", action)]
+    #[arg(long, conflicts_with = "lib", action, help_heading = heading::OUTPUT_PARAMETERS)]
     pub bin: bool,
 
     /// Use a different ssh identity
-    #[arg(short = 'i', long = "identity", value_parser)]
+    #[arg(short = 'i', long = "identity", value_parser, value_name="IDENTITY", help_heading = heading::GIT_PARAMETERS)]
     pub ssh_identity: Option<PathBuf>,
 
     /// Define a value for use during template expansion. E.g `--define foo=bar`
-    #[arg(long, short, number_of_values = 1, value_parser)]
+    #[arg(long, short, number_of_values = 1, value_parser, help_heading = heading::OUTPUT_PARAMETERS)]
     pub define: Vec<String>,
 
-    /// Generate the template directly into the current dir. No subfolder will be created and no vcs is initialized.
-    #[arg(long, action)]
+    /// Generate the template directly into the current dir. No subfolder will be created and no vcs
+    /// is initialized.
+    #[arg(long, action, help_heading = heading::OUTPUT_PARAMETERS)]
     pub init: bool,
 
     /// Generate the template directly at the given path.
-    #[arg(long, value_parser)]
+    #[arg(long, value_parser, value_name="PATH", help_heading = heading::OUTPUT_PARAMETERS)]
     pub destination: Option<PathBuf>,
 
     /// Will enforce a fresh git init on the generated project
-    #[arg(long, action)]
+    #[arg(long, action, help_heading = heading::OUTPUT_PARAMETERS)]
     pub force_git_init: bool,
 
-    /// Allows running system commands without being prompted.
-    /// Warning: Setting this flag will enable the template to run arbitrary system commands without user confirmation.
-    /// Use at your own risk and be sure to review the template code beforehand.
-    #[arg(short, long, action)]
+    /// Allows running system commands without being prompted. Warning: Setting this flag will
+    /// enable the template to run arbitrary system commands without user confirmation. Use at your
+    /// own risk and be sure to review the template code beforehand.
+    #[arg(short, long, action, help_heading = heading::OUTPUT_PARAMETERS)]
     pub allow_commands: bool,
 
     /// Allow the template to overwrite existing files in the destination.
-    #[arg(short, long, action)]
+    #[arg(short, long, action, help_heading = heading::OUTPUT_PARAMETERS)]
     pub overwrite: bool,
 
     /// Skip downloading git submodules (if there are any)
-    #[arg(long, action)]
+    #[arg(long, action, help_heading = heading::GIT_PARAMETERS)]
     pub skip_submodules: bool,
 
     /// All args after "--" on the command line.
@@ -159,18 +194,20 @@ impl Default for GenerateArgs {
 
 #[derive(Default, Debug, Clone, Args)]
 pub struct TemplatePath {
-    /// Auto attempt to use as either `--git` or `--favorite`.
-    /// If either is specified explicitly, use as subfolder.
+    /// Auto attempt to use as either `--git` or `--favorite`. If either is specified explicitly,
+    /// use as subfolder.
     #[arg(required_unless_present_any(&["SpecificPath"]))]
     pub auto_path: Option<String>,
 
-    /// Specifies a subfolder within the template repository to be used as the actual template.
+    /// Specifies the subfolder within the template repository to be used as the actual template.
     #[arg()]
     pub subfolder: Option<String>,
 
-    /// Expand $CWD as a template, then run `cargo test` on the expansion (set $CARGO_GENERATE_TEST_CMD to override test command).
+    /// Expand $CWD as a template, then run `cargo test` on the expansion (set
+    /// $CARGO_GENERATE_TEST_CMD to override test command).
     ///
-    /// Any arguments given after the `--test` argument, will be used as arguments for the test command.
+    /// Any arguments given after the `--test` argument, will be used as arguments for the test
+    /// command.
     #[arg(long, action, group("SpecificPath"))]
     pub test: bool,
 
@@ -180,28 +217,28 @@ pub struct TemplatePath {
     ///
     /// Note that cargo generate will first attempt to interpret the `owner/repo` form as a
     /// relative path and only try a GitHub URL if the local path doesn't exist.
-    #[arg(short, long, group("SpecificPath"))]
+    #[arg(short, long, group("SpecificPath"), help_heading = heading::TEMPLATE_SELECTION)]
     pub git: Option<String>,
 
     /// Branch to use when installing from git
-    #[arg(short, long, conflicts_with_all = ["revision", "tag"])]
+    #[arg(short, long, conflicts_with_all = ["revision", "tag"], help_heading = heading::GIT_PARAMETERS)]
     pub branch: Option<String>,
 
     /// Tag to use when installing from git
-    #[arg(short, long, conflicts_with_all = ["revision", "branch"])]
+    #[arg(short, long, conflicts_with_all = ["revision", "branch"], help_heading = heading::GIT_PARAMETERS)]
     pub tag: Option<String>,
 
     /// Git revision to use when installing from git (e.g. a commit hash)
-    #[arg(short, long, conflicts_with_all = ["tag", "branch"], alias = "rev")]
+    #[arg(short, long, conflicts_with_all = ["tag", "branch"], alias = "rev", help_heading = heading::GIT_PARAMETERS)]
     pub revision: Option<String>,
 
     /// Local path to copy the template from. Can not be specified together with --git.
-    #[arg(short, long, group("SpecificPath"))]
+    #[arg(short, long, group("SpecificPath"), help_heading = heading::TEMPLATE_SELECTION)]
     pub path: Option<String>,
 
     /// Generate a favorite template as defined in the config. In case the favorite is undefined,
     /// use in place of the `--git` option, otherwise specifies the subfolder
-    #[arg(long, group("SpecificPath"))]
+    #[arg(long, group("SpecificPath"), help_heading = heading::TEMPLATE_SELECTION)]
     pub favorite: Option<String>,
 }
 

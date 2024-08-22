@@ -110,6 +110,14 @@ impl<'cb> RepoCloneBuilder<'cb> {
         let mut fetch_options = FetchOptions::new();
         fetch_options.proxy_options(proxy_options);
         fetch_options.remote_callbacks(callbacks);
+        if self.url.starts_with("ssh://")
+            || self.url.starts_with("git@")
+            || self.url.starts_with("http://")
+            || self.url.starts_with("https://")
+        {
+            fetch_options.depth(1);
+            fetch_options.download_tags(git2::AutotagOption::All);
+        }
 
         let mut builder = self.builder;
         builder.fetch_options(fetch_options);

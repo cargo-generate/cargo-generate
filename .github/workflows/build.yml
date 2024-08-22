@@ -6,14 +6,18 @@
 name: Build
 on:
   push:
-    branches: [ '*' ]
+    branches: ["*"]
     paths-ignore:
       - "**/docs/**"
       - "**.md"
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_call:
   merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 env:
   CARGO_INCREMENTAL: 0
@@ -35,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [ 'macos-latest', 'ubuntu-latest', 'windows-latest']
+        version: ["macos-latest", "ubuntu-latest", "windows-latest"]
     runs-on: ${{ matrix.version }}
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +50,7 @@ jobs:
           default: true
           profile: minimal
           components: clippy, rustfmt
-      - uses: mozilla-actions/sccache-action@v0.0.4
+      - uses: mozilla-actions/sccache-action@v0.0.5
       - run: cargo check
 
   lint:
@@ -55,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [ 'macos-latest', 'ubuntu-latest', 'windows-latest']
+        version: ["macos-latest", "ubuntu-latest", "windows-latest"]
         cargo-cmd:
           - fmt --all -- --check
           - clippy --all-targets --all-features -- -D warnings
@@ -69,7 +73,7 @@ jobs:
           default: true
           profile: minimal
           components: clippy, rustfmt
-      - uses: mozilla-actions/sccache-action@v0.0.4
+      - uses: mozilla-actions/sccache-action@v0.0.5
       - run: cargo ${{ matrix['cargo-cmd'] }}
 
   tests:
@@ -78,8 +82,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [ 'macos-latest', 'ubuntu-latest', 'windows-latest']
-        rust: [ nightly, stable ]
+        version: ["macos-latest", "ubuntu-latest", "windows-latest"]
+        rust: [nightly, stable]
     runs-on: ${{ matrix.version }}
     continue-on-error: ${{ matrix.rust == 'nightly' }}
     steps:
@@ -90,18 +94,18 @@ jobs:
           toolchain: ${{ matrix.rust }}
           default: true
           profile: minimal
-      - uses: mozilla-actions/sccache-action@v0.0.4
+      - uses: mozilla-actions/sccache-action@v0.0.5
       - name: git test setup preparation
         run: |
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
-#      - name: Install SSH key
-#        uses: shimataro/ssh-key-action@v2
-#        with:
-#          key: ${{ secrets.CI_SSH_PRIVATE_KEY_TESTING }}
-#          # figured by `ssh-keyscan github.com`
-#          known_hosts: ${{ secrets.KNOWN_HOSTS }}
-#          if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
+      #      - name: Install SSH key
+      #        uses: shimataro/ssh-key-action@v2
+      #        with:
+      #          key: ${{ secrets.CI_SSH_PRIVATE_KEY_TESTING }}
+      #          # figured by `ssh-keyscan github.com`
+      #          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+      #          if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
       - name: cargo test
         run: cargo test --verbose --all --locked
       - name: smoke tests
@@ -126,13 +130,13 @@ jobs:
         run: |
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
-      - uses: mozilla-actions/sccache-action@v0.0.4
+      - uses: mozilla-actions/sccache-action@v0.0.5
       - name: coverage test
         run: cargo +nightly test --verbose --all --locked
         env:
-          CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-          RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+          CARGO_INCREMENTAL: "0"
+          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+          RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
       - name: rust-grcov
         # You may pin to the exact commit or the version.
         # uses: actions-rs/grcov@bb47b1ed7883a1502fa6875d562727ace2511248
@@ -140,7 +144,7 @@ jobs:
       - name: Codecov
         # You may pin to the exact commit or the version.
         # uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378
-        uses: codecov/codecov-action@v4.3.0
+        uses: codecov/codecov-action@v4.5.0
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
@@ -162,7 +166,7 @@ jobs:
           toolchain: stable
           default: true
           profile: minimal
-      - uses: mozilla-actions/sccache-action@v0.0.4
+      - uses: mozilla-actions/sccache-action@v0.0.5
       - name: audit
         uses: actions-rs/audit-check@v1
         continue-on-error: true
@@ -180,7 +184,7 @@ jobs:
           toolchain: stable
           default: true
           profile: minimal
-      - uses: mozilla-actions/sccache-action@v0.0.4
+      - uses: mozilla-actions/sccache-action@v0.0.5
       - run: cargo publish --dry-run
 
   docs:
@@ -194,7 +198,7 @@ jobs:
           toolchain: stable
           default: true
           profile: minimal
-      - uses: mozilla-actions/sccache-action@v0.0.4
+      - uses: mozilla-actions/sccache-action@v0.0.5
       - name: check documentation
         env:
           RUSTDOCFLAGS: -D warnings
