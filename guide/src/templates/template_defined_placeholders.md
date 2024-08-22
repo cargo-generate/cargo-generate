@@ -15,13 +15,13 @@ placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], def
 - `prompt`: The prompt message displayed to the user during project creation.
 - `choices` (optional): A list of predefined choices for the placeholder value.
 - `default` (optional): The default value for the placeholder if no user input is provided.
-- `regex` (optional and only for string-like types): The entered value is validated against this regex. 
-- `type`: The data type of the placeholder value (e.g., `"string"`, `"text"`, `"editor"`, `"bool"`).
+- `regex` (optional and only for string-like types): The entered value is validated against this regex.
+- `type`: The data type of the placeholder value (see [Supported Types](#supported-types)).
 
 ## Prompt, Choices, and Default Values
 
 - **Prompt**: With the `prompt` will be displayed it to the user during project creation, prompting them to provide a value for the placeholder.
-- **Choices**: If `choices` are specified, `cargo-generate` will present them as options to the user, restricting the input to the predefined choices and provide more convenience. 
+- **Choices**: If `choices` are specified, `cargo-generate` will present them as options to the user, restricting the input to the predefined choices and provide more convenience.
 - **Default Value**: If a `default` value is provided and the user does not provide input, `cargo-generate` will use the default value for the placeholder.
 
 ## Supported Types
@@ -29,7 +29,7 @@ placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], def
 `cargo-generate` supports the following placeholder value types:
 
 - `"string"`: Represents a string value.
-- `"text"`: Represents a multiline string value. (terminated by hitting <CTRL-D>)
+- `"text"`: Represents a multiline string value. (terminated by hitting CTRL-D)
 - `"editor"`: Represents a multiline string value, collected from the user by a real terminal editor.
 - `"bool"`: Represents a boolean value (`true` or `false`).
 
@@ -40,18 +40,18 @@ Consider the following `cargo-generate.toml` file:
 ```toml
 [placeholders]
 project_name = { prompt = "Enter project name", default = "my_project", type = "string" }
-use_git = { prompt = "Initialize Git repository?", choices = ["Yes", "No"], default = "Yes", type = "bool" }
+environment = { prompt = "Which environment?", choices = ["dev", "prod"], default = "dev", type = "string"}
+use_git = { prompt = "Initialize Git repository?", default = true, type = "bool" }
 phone_number = { prompt = "What's your phone number?", type = "string", regex = "^[0-9]+$" }
 ```
 
-During project creation, `cargo-generate` will prompt the user to provide values for `project_name`, `use_git` and `phone_number` using the specified prompts, choices, and default values. 
+During project creation, `cargo-generate` will prompt the user to provide values for `project_name`, `use_git` and `phone_number` using the specified prompts, choices, and default values.
 
 Further `phone_number` is validated against the provided regex, hence it can only contain digits.
 
 ### Conclusion
 
 Template defined placeholders, defined in the `cargo-generate.toml` configuration file, offer powerful customization options for project templates. By specifying prompts, choices, default values, and supported types, template authors can create intuitive and flexible project scaffolding experiences, enhancing developer productivity and project consistency.
-
 
 ## Default values for placeholders
 
@@ -117,4 +117,4 @@ placeholder2 = "default value for favorite"
 
 ## Further examples
 
-You can find further examples in the [example-templates folder](./example-templates/) you will find further examples that provide some template provided placeholders. 
+You can find further examples in the [example-templates folder](./example-templates/) you will find further examples that provide some template provided placeholders.
