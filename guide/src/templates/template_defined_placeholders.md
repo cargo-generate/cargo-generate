@@ -40,6 +40,7 @@ Consider the following `cargo-generate.toml` file:
 ```toml
 [placeholders]
 project_name = { prompt = "Enter project name", default = "my_project", type = "string" }
+environment = { prompt = "Which environment?", choices = ["dev", "prod"], default = "dev", type = "string"}
 use_git = { prompt = "Initialize Git repository?", default = true, type = "bool" }
 phone_number = { prompt = "What's your phone number?", type = "string", regex = "^[0-9]+$" }
 ```
