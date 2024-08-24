@@ -21,7 +21,7 @@ git2 = { version = "~0.19", default-features = false, features = [
     "ssh",
     "https",
 ] }
-gix-config = "~0.37"
+gix-config = "~0.40"
 heck = "~0.5"
 home = "~0.5"
 ignore = "~0.4"
