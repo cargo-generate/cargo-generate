@@ -127,11 +127,11 @@ fn should_retrieve_an_instead_of_url() {
 "#;
     let mut config = GitConfig::try_from(input).unwrap();
     let url = config
-        .string("url", Some("ssh://git@github.com:".into()), "insteadOf")
+        .string_by("url", Some("ssh://git@github.com:".into()), "insteadOf")
         .unwrap();
     assert_eq!(url.deref(), "https://github.com/");
     config
-        .set_raw_value(
+        .set_raw_value_by(
             "url",
             Some("ssh://git@github.com:".into()),
             "insteadOf",
