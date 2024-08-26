@@ -6,6 +6,7 @@ mod conditionals;
 mod config_file;
 mod filenames;
 mod git;
+mod git_instead_of;
 mod hooks_and_rhai;
 mod online;
 mod public_api;

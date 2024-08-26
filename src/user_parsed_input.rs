@@ -120,6 +120,7 @@ impl UserParsedInput {
                 args.template_path.tag(),
                 args.template_path.revision(),
                 ssh_identity,
+                args.gitconfig.clone(),
                 args.force_git_init,
                 args.skip_submodules,
             );
@@ -197,6 +198,7 @@ impl UserParsedInput {
                         tag.as_ref(),
                         revision.as_ref(),
                         ssh_identity,
+                        None,
                         args.force_git_init,
                         args.skip_submodules,
                     );
@@ -268,6 +270,7 @@ impl UserParsedInput {
                 args.template_path.tag(),
                 args.template_path.revision(),
                 ssh_identity,
+                args.gitconfig.clone(),
                 args.force_git_init,
                 args.skip_submodules,
             );
@@ -414,6 +417,7 @@ pub struct GitUserInput {
     tag: Option<String>,
     revision: Option<String>,
     identity: Option<PathBuf>,
+    gitconfig: Option<PathBuf>,
     _force_init: bool,
     pub skip_submodules: bool,
 }
@@ -425,6 +429,7 @@ impl GitUserInput {
         tag: Option<&impl AsRef<str>>,
         revision: Option<&impl AsRef<str>>,
         identity: Option<PathBuf>,
+        gitconfig: Option<PathBuf>,
         force_init: bool,
         skip_submodules: bool,
     ) -> Self {
@@ -434,6 +439,7 @@ impl GitUserInput {
             tag: tag.map(|s| s.as_ref().to_owned()),
             revision: revision.map(|s| s.as_ref().to_owned()),
             identity,
+            gitconfig,
             _force_init: force_init,
             skip_submodules,
         }
@@ -447,6 +453,7 @@ impl GitUserInput {
             args.template_path.tag(),
             args.template_path.revision(),
             args.ssh_identity.clone(),
+            args.gitconfig.clone(),
             args.force_git_init,
             args.skip_submodules,
         )
@@ -470,6 +477,10 @@ impl GitUserInput {
 
     pub fn identity(&self) -> Option<&Path> {
         self.identity.as_deref()
+    }
+
+    pub fn gitconfig(&self) -> Option<&Path> {
+        self.gitconfig.as_deref()
     }
 }
 

@@ -231,9 +231,9 @@ fn get_source_template_into_temp(
                 git.tag(),
                 git.revision(),
                 git.identity(),
+                git.gitconfig(),
                 git.skip_submodules,
-            )
-            .map(|(dir, branch)| (dir, Some(branch)));
+            );
             if let Ok((ref temp_dir, _)) = result {
                 git::remove_history(temp_dir.path())?;
                 strip_liquid_suffixes(temp_dir.path())?;
