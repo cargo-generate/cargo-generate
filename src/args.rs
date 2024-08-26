@@ -129,7 +129,7 @@ pub struct GenerateArgs {
     #[arg(short = 'i', long = "identity", value_parser, value_name="IDENTITY", help_heading = heading::GIT_PARAMETERS)]
     pub ssh_identity: Option<PathBuf>,
 
-    /// Use a different gitconfig file, if omited the usual $HOME/.gitconfig will be used
+    /// Use a different gitconfig file, if omitted the usual $HOME/.gitconfig will be used
     #[arg(long = "gitconfig", value_parser, value_name="GITCONFIG_FILE", help_heading = heading::GIT_PARAMETERS)]
     pub gitconfig: Option<PathBuf>,
 
