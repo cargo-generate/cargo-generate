@@ -13,7 +13,7 @@ use super::gitconfig;
 use super::gitconfig::find_gitconfig;
 use super::utils;
 
-pub(crate) struct RepoCloneBuilder<'cb> {
+pub struct RepoCloneBuilder<'cb> {
     builder: RepoBuilder<'cb>,
     authenticator: GitAuthenticator,
     url: String,
@@ -34,20 +34,17 @@ impl<'cb> RepoCloneBuilder<'cb> {
         }
     }
 
-    pub fn with_submodules(mut self, with_submodules: bool) -> Self {
+    pub const fn with_submodules(mut self, with_submodules: bool) -> Self {
         self.skip_submodules = !with_submodules;
         self
     }
 
     /// Might alter the url via gitconfig "instead url" configuration
     pub fn with_gitconfig(mut self, gitcfg: Option<&Path>) -> Result<Self> {
-        if let Some(gitconfig) = gitcfg.map(|p| p.to_owned()).or_else(|| {
-            if let Ok(gitconfig) = find_gitconfig() {
-                gitconfig
-            } else {
-                None
-            }
-        }) {
+        if let Some(gitconfig) = gitcfg
+            .map(|p| p.to_owned())
+            .or_else(|| find_gitconfig().map_or(None, |gitconfig| gitconfig))
+        {
             if let Some(url) = gitconfig::resolve_instead_url(&self.url, gitconfig)? {
                 debug!(
                     "{} gitconfig 'insteadOf' lead to this url: {}",

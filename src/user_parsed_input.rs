@@ -423,6 +423,7 @@ pub struct GitUserInput {
 }
 
 impl GitUserInput {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         url: &impl AsRef<str>,
         branch: Option<&impl AsRef<str>>,
