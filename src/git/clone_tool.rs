@@ -156,20 +156,20 @@ impl<'cb> GitCloneCmd<'cb> {
         let mut builder = self.builder.builder;
         builder.fetch_options(fetch_options);
 
-        let respository = builder
+        let repository = builder
             .clone(&url, &self.builder.destination_path.unwrap())
             .context("Please check if the Git user / repository exists.")?;
 
         if let Some(tag_or_revision) = &self.builder.tag_or_revision {
-            let (object, reference) = respository.revparse_ext(tag_or_revision)?;
-            respository.checkout_tree(&object, None)?;
+            let (object, reference) = repository.revparse_ext(tag_or_revision)?;
+            repository.checkout_tree(&object, None)?;
             reference.map_or_else(
-                || respository.set_head_detached(object.id()),
-                |gref| respository.set_head(gref.name().unwrap()),
+                || repository.set_head_detached(object.id()),
+                |gref| repository.set_head(gref.name().unwrap()),
             )?
         }
 
-        Ok(respository)
+        Ok(repository)
     }
 
     /// Clones the repository with submodules
