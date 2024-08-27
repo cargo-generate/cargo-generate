@@ -99,13 +99,14 @@ jobs:
         run: |
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
-      #      - name: Install SSH key
-      #        uses: shimataro/ssh-key-action@v2
-      #        with:
-      #          key: ${{ secrets.CI_SSH_PRIVATE_KEY_TESTING }}
-      #          # figured by `ssh-keyscan github.com`
-      #          known_hosts: ${{ secrets.KNOWN_HOSTS }}
-      #          if_key_exists: replace # replace / ignore / fail; optional (defaults to fail)
+      - name: install ssh key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PUBLIC_KEY }}" > ~/.ssh/id_rsa.pub
+          chmod 600 ~/.ssh/id_rsa ~/.ssh/id_rsa.pub
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
       - name: cargo test
         run: cargo test --verbose --all --locked
       - name: smoke tests
