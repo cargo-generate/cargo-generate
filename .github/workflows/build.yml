@@ -55,7 +55,6 @@ jobs:
 
   lint:
     name: lint
-    needs: check
     strategy:
       fail-fast: false
       matrix:
@@ -78,7 +77,6 @@ jobs:
 
   tests:
     name: test
-    needs: check
     strategy:
       fail-fast: false
       matrix:
@@ -127,7 +125,6 @@ jobs:
 
   coverage:
     name: code coverage
-    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -168,7 +165,6 @@ jobs:
 
   audit:
     name: security audit
-    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
