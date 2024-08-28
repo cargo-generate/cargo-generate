@@ -99,14 +99,24 @@ jobs:
         run: |
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
+      - name: start ssh-agent
+        shell: bash
+        run: |
+          eval `ssh-agent`
+          echo SSH_AUTH_SOCK="$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+          echo SSH_AGENT_PID="$SSH_AGENT_PID" >> "$GITHUB_ENV"
       - name: install ssh key
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PUBLIC_KEY }}" > ~/.ssh/id_rsa.pub
-          chmod 600 ~/.ssh/id_rsa ~/.ssh/id_rsa.pub
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
+          mkdir -p $HOME/.ssh
+          echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PRIVATE_KEY }}" > $HOME/.ssh/id_rsa
+          chmod 600 $HOME/.ssh/id_rsa
+          ssh-keyscan github.com >> $HOME/.ssh/known_hosts
+          chmod 644 $HOME/.ssh/known_hosts
+          ssh-add $HOME/.ssh/id_rsa
+      - name: list fingerprints
+        shell: bash
+        run: |
+          ssh-add -l
       - name: cargo test
         run: cargo test --verbose --all --locked
       - name: smoke tests
