@@ -47,6 +47,7 @@ impl CargoGenerateArgBuilder {
         self.arg("--gitconfig").arg(name)
     }
 
+    #[allow(dead_code)]
     /// wrapper for `--identity <file>` cli argument
     pub fn arg_identity(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
         self.arg("--identity").arg(name)

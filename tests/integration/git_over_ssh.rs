@@ -9,123 +9,87 @@
 use crate::helpers::prelude::*;
 
 #[test]
-#[ignore]
-fn git_flag_can_be_skipped_and_cargo_will_use_correct_implementation() {
-    // with --git
+// for now only locally working
+fn it_should_fail_if_a_identity_file_does_not_exist() {
     let dir = tempdir().build();
+
     binary()
-        .arg_name("my-proj")
-        .flag_init()
-        .arg("git://github.com/rustwasm/wasm-pack-template")
+        .arg_identity("id_foobarbak")
+        .arg_git("git@github.com:rustwasm/wasm-pack-template.git")
+        .arg_name("foobar-project")
+        .current_dir(dir.path())
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("Error: path does not exist: id_foobarbak").from_utf8());
+}
+
+#[cfg(unix)]
+#[test]
+#[ignore]
+// for now only locally working
+fn it_should_support_a_public_repo() {
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git("git@github.com:rustwasm/wasm-pack-template.git")
+        .arg_name("foobar-project")
         .current_dir(dir.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
+
+    let cargo_toml = dir.read("foobar-project/Cargo.toml");
+    assert!(cargo_toml.contains("foobar-project"));
 }
 
+#[cfg(unix)]
 #[test]
 #[ignore]
-fn plain_git_repo_works() {
-    let possible_urls = vec![
-        "git://github.com/rustwasm/wasm-pack-template",
-        "git://github.com/rustwasm/wasm-pack-template.git",
-        "https://github.com/rustwasm/wasm-pack-template.git",
-        "https://github.com/rustwasm/wasm-pack-template",
-        "http://github.com/rustwasm/wasm-pack-template.git",
-        "http://github.com/rustwasm/wasm-pack-template",
+// for now only locally working
+fn it_should_retrieve_the_private_key_from_ssh_agent() {
+    let ssh_urls_for_repos = [
+        "git@github.com:cargo-generate/wasm-pack-template.git",
+        "ssh://git@github.com/cargo-generate/wasm-pack-template.git",
     ];
 
-    // with --git
-    for remote in possible_urls {
+    for ssh_repo_url in ssh_urls_for_repos {
         let dir = tempdir().build();
+
         binary()
-            .arg_git(remote)
-            .arg_name("my-proj")
-            .flag_init()
+            .arg_git(ssh_repo_url)
+            .arg_name("foobar-project")
             .current_dir(dir.path())
             .assert()
             .success()
             .stdout(predicates::str::contains("Done!").from_utf8());
+
+        let cargo_toml = dir.read("foobar-project/Cargo.toml");
+        assert!(cargo_toml.contains("foobar-project"));
     }
 }
 
+#[cfg(unix)]
 #[test]
 #[ignore]
-fn abbreviation_for_github_works() {
-    let dir = tempdir().build();
-    binary()
+fn it_should_use_a_ssh_key_provided_by_identity_argument() {
+    let ssh_urls_for_repos = [
+        "git@github.com:cargo-generate/wasm-pack-template.git",
+        "ssh://git@github.com/cargo-generate/wasm-pack-template.git",
+    ];
 
-        .arg_name("my-proj")
-        .arg("rustwasm/wasm-pack-template")
-        .current_dir(dir.path())
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("Done!").and(
-            predicates::str::contains(
-                "Favorite `rustwasm/wasm-pack-template` not found in config, using it as a git repository: https://github.com/rustwasm/wasm-pack-template.git"
-            )).from_utf8());
-}
-
-#[cfg(test)]
-#[cfg(unix)]
-mod ssh_remote {
-    use super::*;
-
-    #[test]
-    #[ignore]
-    // for now only locally working
-    fn it_should_support_a_public_repo() {
+    for ssh_repo_url in ssh_urls_for_repos {
         let dir = tempdir().build();
 
         binary()
-            .arg_git("git@github.com:rustwasm/wasm-pack-template.git")
-            .arg_name("foobar-project")
-            .current_dir(dir.path())
-            .assert()
-            .success()
-            .stdout(predicates::str::contains("Done!").from_utf8());
-
-        let cargo_toml = dir.read("foobar-project/Cargo.toml");
-        assert!(cargo_toml.contains("foobar-project"));
-    }
-
-    #[test]
-    #[ignore]
-    // for now only locally working
-    fn it_should_support_a_private_repo() {
-        let dir = tempdir().build();
-
-        binary()
-            .arg_git("git@github.com:cargo-generate/wasm-pack-template.git")
-            .arg_name("foobar-project")
-            .current_dir(dir.path())
-            .assert()
-            .success()
-            .stdout(predicates::str::contains("Done!").from_utf8());
-
-        let cargo_toml = dir.read("foobar-project/Cargo.toml");
-        assert!(cargo_toml.contains("foobar-project"));
-    }
-
-    #[test]
-    #[ignore]
-    // for now only locally working
-    fn it_should_support_a_custom_ssh_key() {
-        let dir = tempdir().build();
-
-        binary()
-            .arg("-i")
-            .arg("~/workspaces/rust/cargo-generate-org/.env/id_rsa_ci")
-            .arg_git("git@github.com:cargo-generate/wasm-pack-template.git")
+            .arg_identity("~/.ssh/id_cargo-generate-e2e-test-key")
+            .arg_git(ssh_repo_url)
             .arg_name("foobar-project")
             .current_dir(dir.path())
             .assert()
             .success()
             .stdout(
                 predicates::str::contains("Using private key:")
-                    .and(predicates::str::contains(
-                        "cargo-generate-org/.env/id_rsa_ci",
-                    ))
+                    .and(predicates::str::contains("id_cargo-generate-e2e-test-key"))
                     .from_utf8(),
             );
 

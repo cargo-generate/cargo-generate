@@ -15,8 +15,8 @@ fn should_read_the_instead_of_config_and_rewrite_an_git_at_url_to_https() {
     let target = tempdir().build();
 
     binary()
-        .arg_git("git@github.com:rustwasm/wasm-pack-template.git")
         .arg_gitconfig(gitconfig_dir.path().join(".gitconfig"))
+        .arg_git("git@github.com:rustwasm/wasm-pack-template.git")
         .arg_name("foobar-project")
         .current_dir(target.path())
         .env("RUST_LOG", "debug")
@@ -50,8 +50,8 @@ fn should_read_the_instead_of_config_and_rewrite_an_ssh_url_to_https() {
     let target = tempdir().build();
 
     binary()
-        .arg_git("ssh://git@github.com/rustwasm/wasm-pack-template.git")
         .arg_gitconfig(gitconfig_dir.path().join(".gitconfig"))
+        .arg_git("ssh://git@github.com/rustwasm/wasm-pack-template.git")
         .arg_name("foobar-project")
         .current_dir(target.path())
         .env("RUST_LOG", "debug")

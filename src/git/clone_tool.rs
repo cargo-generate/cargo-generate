@@ -66,13 +66,7 @@ impl<'cb> RepoCloneBuilder<'cb> {
     /// If the password is incorrect, the user will be prompted 3 times in total.
     pub fn with_ssh_identity(mut self, identity_path: Option<&Path>) -> Result<Self> {
         if let Some(identity_path) = identity_path {
-            // let identity_path = utils::canonicalize_path(identity_path)?;
-            // if std::fs::metadata(&identity_path).is_err() {
-            // return Err(anyhow::anyhow!(
-            // "SSH identity file not found: {}",
-            // identity_path.display()
-            // ));
-            // }
+            let identity_path = utils::canonicalize_path(identity_path)?;
             log::info!(
                 "{} `{}` {}",
                 style("Using private key:").bold(),
