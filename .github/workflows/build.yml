@@ -117,8 +117,10 @@ jobs:
         run: |
           ssh-add -l
       - name: cargo test
+        shell: bash
         run: cargo test --verbose --all --locked
       - name: smoke tests
+        shell: bash
         run: |
           cargo run -- --version
           cargo run -- --help
