@@ -116,6 +116,10 @@ jobs:
         shell: bash
         run: |
           ssh-add -l
+      - name: check agent
+        if: ${{matrix.version == 'windows-latest' }}
+        run: |
+          Get-Service ssh-agent
       - name: cargo test
         shell: bash
         run: cargo test --verbose --all --locked
