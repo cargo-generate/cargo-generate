@@ -1,10 +1,11 @@
-//! Test that use real connection and working third part service.
+//! Test that use real connection, upstream github repo and an specific ssh-key
 //!
-//! The test are ignored by default
-//! You can run them with:
-//! ```
-//! cargo test -- --include-ignored
-//! ````
+//! This test cases need ssh-agend on windows to work.
+//! See https://github.com/cargo-generate/cargo-generate/discussions/653
+//!
+//! For reasons not yet known, there are issues on windows:
+//!     - The ssh-agent does not work as expected
+//!     - Additionally, the ssh-key via `--identity` is not working as expected
 use crate::helpers::prelude::*;
 
 #[test]

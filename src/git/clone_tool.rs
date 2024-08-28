@@ -24,9 +24,13 @@ pub struct RepoCloneBuilder<'cb> {
 
 impl<'cb> RepoCloneBuilder<'cb> {
     pub fn new(url: &str) -> Self {
+        let authenticator = GitAuthenticator::default()
+            .try_ssh_agent(true)
+            .add_default_ssh_keys()
+            .try_password_prompt(3);
         Self {
             builder: RepoBuilder::new(),
-            authenticator: GitAuthenticator::default(),
+            authenticator,
             url: url.to_owned(),
             skip_submodules: false,
             destination_path: None,
@@ -57,9 +61,18 @@ impl<'cb> RepoCloneBuilder<'cb> {
         Ok(self)
     }
 
+    /// SSH key files are used for authentication if provided.
+    /// If a password is required, the user will be prompted.
+    /// If the password is incorrect, the user will be prompted 3 times in total.
     pub fn with_ssh_identity(mut self, identity_path: Option<&Path>) -> Result<Self> {
         if let Some(identity_path) = identity_path {
-            let identity_path = utils::canonicalize_path(identity_path)?;
+            // let identity_path = utils::canonicalize_path(identity_path)?;
+            // if std::fs::metadata(&identity_path).is_err() {
+            // return Err(anyhow::anyhow!(
+            // "SSH identity file not found: {}",
+            // identity_path.display()
+            // ));
+            // }
             log::info!(
                 "{} `{}` {}",
                 style("Using private key:").bold(),
@@ -68,9 +81,11 @@ impl<'cb> RepoCloneBuilder<'cb> {
                     .yellow(),
                 style("for git-ssh checkout").bold()
             );
+
             self.authenticator = GitAuthenticator::new_empty()
                 .add_ssh_key_from_file(identity_path, None)
-                .prompt_ssh_key_password(true);
+                .try_password_prompt(3)
+                .prompt_ssh_key_password(true)
         }
 
         Ok(self)

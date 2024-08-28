@@ -47,6 +47,11 @@ impl CargoGenerateArgBuilder {
         self.arg("--gitconfig").arg(name)
     }
 
+    /// wrapper for `--identity <file>` cli argument
+    pub fn arg_identity(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
+        self.arg("--identity").arg(name)
+    }
+
     /// proxy for `Command::arg`
     pub fn arg(&mut self, arg: impl AsRef<OsStr>) -> &mut Self {
         self.0.arg(arg);
