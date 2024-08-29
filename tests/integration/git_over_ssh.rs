@@ -9,7 +9,6 @@
 use crate::helpers::prelude::*;
 
 #[test]
-// for now only locally working
 fn it_should_fail_if_a_identity_file_does_not_exist() {
     let dir = tempdir().build();
 
@@ -68,10 +67,17 @@ fn it_should_retrieve_the_private_key_from_ssh_agent() {
     }
 }
 
+// run this as:
+// ```sh
+// RUST_LOG=debug CARGO_GENERATE_E2E_SSH_PRIVATE_KEY=~/.ssh/id_cargo-generate-e2e-test-key cargo test
+// ```
 #[cfg(unix)]
 #[test]
-#[ignore]
 fn it_should_use_a_ssh_key_provided_by_identity_argument() {
+    let Ok(private_key) = env::var("CARGO_GENERATE_E2E_SSH_PRIVATE_KEY") else {
+        panic!("Skipping test because CARGO_GENERATE_E2E_SSH_PRIVATE_KEY is not set");
+    };
+
     let ssh_urls_for_repos = [
         "git@github.com:cargo-generate/wasm-pack-template.git",
         "ssh://git@github.com/cargo-generate/wasm-pack-template.git",
@@ -81,7 +87,7 @@ fn it_should_use_a_ssh_key_provided_by_identity_argument() {
         let dir = tempdir().build();
 
         binary()
-            .arg_identity("~/.ssh/id_cargo-generate-e2e-test-key")
+            .arg_identity(private_key.as_str())
             .arg_git(ssh_repo_url)
             .arg_name("foobar-project")
             .current_dir(dir.path())
@@ -89,7 +95,7 @@ fn it_should_use_a_ssh_key_provided_by_identity_argument() {
             .success()
             .stdout(
                 predicates::str::contains("Using private key:")
-                    .and(predicates::str::contains("id_cargo-generate-e2e-test-key"))
+                    .and(predicates::str::contains(private_key.as_str()))
                     .from_utf8(),
             );
 

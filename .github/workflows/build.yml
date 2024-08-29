@@ -108,7 +108,8 @@ jobs:
         run: |
           mkdir -p $HOME/.ssh
           echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PRIVATE_KEY }}" > $HOME/.ssh/id_rsa
-          chmod 600 $HOME/.ssh/id_rsa
+          echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PUBLIC_KEY }}" > $HOME/.ssh/id_rsa.pub
+          chmod 600 $HOME/.ssh/id_rsa $HOME/.ssh/id_rsa.pub
           ssh-keyscan github.com >> $HOME/.ssh/known_hosts
           chmod 644 $HOME/.ssh/known_hosts
           ssh-add $HOME/.ssh/id_rsa
@@ -123,6 +124,10 @@ jobs:
       - name: cargo test
         shell: bash
         run: cargo test --verbose --all --locked
+        env:
+          RUST_LOG: debug
+          RUST_BACKTRACE: full
+          CARGO_GENERATE_E2E_SSH_PRIVATE_KEY: ~/.ssh/id_rsa
       - name: smoke tests
         shell: bash
         run: |
