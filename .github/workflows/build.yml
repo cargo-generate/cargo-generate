@@ -122,9 +122,6 @@ jobs:
         if: ${{matrix.version != 'windows-latest' }}
         shell: bash
         run: ssh-add $HOME/.ssh/id_rsa
-      - name: add ssh key to agent on windwos
-        if: ${{matrix.version == 'windows-latest' }}
-        run: ssh-add ~\.ssh\id_rsa
       - name: list fingerprints
         shell: bash
         run: |
