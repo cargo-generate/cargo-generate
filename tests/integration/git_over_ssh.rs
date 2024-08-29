@@ -95,7 +95,9 @@ fn it_should_use_a_ssh_key_provided_by_identity_argument() {
             .success()
             .stdout(
                 predicates::str::contains("Using private key:")
-                    .and(predicates::str::contains(private_key.as_str()))
+                    .and(predicates::str::contains(
+                        private_key.as_str().replace("~/", ""),
+                    ))
                     .from_utf8(),
             );
 
