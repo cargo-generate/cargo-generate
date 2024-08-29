@@ -97,18 +97,6 @@ jobs:
         run: |
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
-      - name: start ssh-agent
-        if: ${{matrix.version != 'windows-latest' }}
-        shell: bash
-        run: |
-          eval `ssh-agent`
-          echo SSH_AUTH_SOCK="$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
-          echo SSH_AGENT_PID="$SSH_AGENT_PID" >> "$GITHUB_ENV"
-      - name: start ssh-agent on windows
-        if: ${{matrix.version == 'windows-latest' }}
-        run: |
-          Get-Service ssh-agent | Set-Service -StartupType Manual
-          Start-Service ssh-agent
       - name: install ssh key
         shell: bash
         run: |
@@ -118,18 +106,25 @@ jobs:
           chmod 600 $HOME/.ssh/id_rsa $HOME/.ssh/id_rsa.pub
           ssh-keyscan github.com >> $HOME/.ssh/known_hosts
           chmod 644 $HOME/.ssh/known_hosts
-      - name: add ssh key to agent
-        if: ${{matrix.version != 'windows-latest' }}
-        shell: bash
-        run: ssh-add $HOME/.ssh/id_rsa
-      - name: list fingerprints
-        shell: bash
-        run: |
-          ssh-add -l
-      - name: check agent
+
+      - name: start ssh-agent on windows
         if: ${{matrix.version == 'windows-latest' }}
         run: |
+          Get-Service ssh-agent | Set-Service -StartupType Manual
+          Start-Service ssh-agent
           Get-Service ssh-agent
+          ssh-add $ENV:UserProfile\.ssh\id_rsa
+
+      - name: start ssh-agent
+        if: ${{matrix.version != 'windows-latest' }}
+        shell: bash
+        run: |
+          eval `ssh-agent`
+          echo SSH_AUTH_SOCK="$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+          echo SSH_AGENT_PID="$SSH_AGENT_PID" >> "$GITHUB_ENV"
+          ssh-add $HOME/.ssh/id_rsa
+          ssh-add -l
+
       - name: cargo test
         shell: bash
         run: cargo test --verbose --all --locked
@@ -174,15 +169,15 @@ jobs:
           ssh-keyscan github.com >> $HOME/.ssh/known_hosts
           chmod 644 $HOME/.ssh/known_hosts
           ssh-add $HOME/.ssh/id_rsa
-      - name: list fingerprints
-        shell: bash
-        run: |
           ssh-add -l
       - uses: mozilla-actions/sccache-action@v0.0.5
       - name: coverage test
         shell: bash
         run: cargo +nightly test --verbose --all --locked
         env:
+          RUST_LOG: debug
+          RUST_BACKTRACE: full
+          CARGO_GENERATE_E2E_SSH_PRIVATE_KEY: ~/.ssh/id_rsa
           CARGO_INCREMENTAL: "0"
           RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
           RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
