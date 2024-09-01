@@ -78,22 +78,22 @@ cargo generate --path $HOME/mytemplate # Use it locally
 ### git over ssh
 
 New in version [0.7.0] is the support for both public and private and ssh git remote urls.
-For example:
+New in version [0.22.0] is the support for `ssh-agent` on Windows and interactively asking for passphrase for password protected keys on *Nix and macOS.
+
+There are 2 different git over ssh urls, one with the `git@` prefix and one with the `ssh://` prefix. Both are supported. Please note that the `ssh://` prefix url uses a path where the `git@` prefix uses a colon at the user/github-org level. For example:
+
+```raw
+git@github.com:rustwasm/wasm-pack-template.git
+
+# vs
+
+ssh://git@github.com/rustwasm/wasm-pack-template.git
+```
+
+Both those urls can also be used in the `.gitconfig` insteadOf configuration, see more in the section below.
 
 ```sh
 cargo generate --git git@github.com:rustwasm/wasm-pack-template.git --name mywasm
-```
-
-leads to the same result as:
-
-```sh
-cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name mywasm
-```
-
-as well as:
-
-```sh
-cargo generate rustwasm/wasm-pack-template --name mywasm
 ```
 
 ### Authentication using `ssh-agent`
@@ -113,7 +113,7 @@ If you omit the identity file (read the next paragraph) **OR** a provided identi
 
 However, if you use a different file, you can pass a custom ssh identity with via `-i | --identity` like `-i ~/.ssh/id_rsa_other` as argument.
 
-> ⚠️ NOTE: password protected private keys are **NOT** supported, you have to use `ssh-agent` and omit the `-i` argument (see above).
+If the file is passphrase protected cargo-generate will ask for the passphrase interactively.
 
 If you permanently want to use a custom identity file, you can configure it in the cargo-generate config file like this:
 
