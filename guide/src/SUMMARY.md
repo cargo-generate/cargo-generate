@@ -2,7 +2,9 @@
 
 - [Introduction](README.md)
 - [Installation](installation.md)
-- [Usage](usage.md)
+- [Usage](usage/README.md)
+  - [Git over SSH](usage/git-over-ssh.md)
+  - [.gitconfig `insteadOf`](usage/gitconfig-instead-of.md)
 - [Favorites](favorites.md)
 - [Templates](templates/README.md)
   - [Builtin Placeholders](templates/builtin_placeholders.md)
