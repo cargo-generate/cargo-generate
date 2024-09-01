@@ -179,9 +179,9 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="git-over-ssh"><a class="header" href="#git-over-ssh">git over ssh</a></h1>
-<p>New in version [0.7.0] is the support for both public and private and ssh git remote urls.
-New in version [0.22.0] is the support for <code>ssh-agent</code> on Windows and interactively asking for passphrase for password protected keys on *Nix and macOS.</p>
+                        <h1 id="git-over-ssh"><a class="header" href="#git-over-ssh">Git over SSH</a></h1>
+<p>New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0">0.7.0</a> is the support for both public and private and ssh git remote urls.
+New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.22.0">0.22.0</a> is the support for <code>ssh-agent</code> on Windows and interactively asking for passphrase for password protected keys on *Nix and macOS.</p>
 <p>There are 2 different git over ssh urls, one with the <code>git@</code> prefix and one with the <code>ssh://</code> prefix. Both are supported. Please note that the <code>ssh://</code> prefix url uses a path where the <code>git@</code> prefix uses a colon at the user/github-org level. For example:</p>
 <pre><code class="language-raw">git@github.com:rustwasm/wasm-pack-template.git
 
@@ -193,14 +193,14 @@ ssh://git@github.com/rustwasm/wasm-pack-template.git
 <pre><code class="language-sh">cargo generate --git git@github.com:rustwasm/wasm-pack-template.git --name mywasm
 </code></pre>
 <h2 id="authentication-using-ssh-agent"><a class="header" href="#authentication-using-ssh-agent">Authentication using <code>ssh-agent</code></a></h2>
-<p>New in version [0.15.1] is the <code>ssh-agent</code> usage for password protected keys. It's also the default mechanism on Windows.</p>
+<p>New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.15.1">0.15.1</a> is the <code>ssh-agent</code> usage for password protected keys. It's also the default mechanism on Windows.</p>
 <h3 id="on-windows"><a class="header" href="#on-windows">On Windows</a></h3>
 <p><code>ssh-agent</code> is the default and also <strong>the only</strong> possibility to get git+ssh working.
 Please follow <a href="https://github.com/cargo-generate/cargo-generate/discussions/653">this guide</a> to get <code>ssh-agent</code> configured on windows.</p>
 <h3 id="on-nix-and-macos"><a class="header" href="#on-nix-and-macos">On *Nix and macOS</a></h3>
 <p>If you omit the identity file (read the next paragraph) <strong>OR</strong> a provided identity file does not exist, then the default is to use <code>ssh-agent</code>.</p>
 <h2 id="ssh-identity-file-defaults"><a class="header" href="#ssh-identity-file-defaults">Ssh identity file defaults</a></h2>
-<p>Since version [0.22.0] the default mechanism on unix/macOS is to use the function <a href="https://github.com/de-vri-es/auth-git2-rs/blob/fd6502e20b9e82063b950ac9e32f6454341e71f2/src/lib.rs#L344"><code>add_default_ssh_keys</code></a> that adds a couple of default keys to look up first.</p>
+<p>Since version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.22.0">0.22.0</a> the default mechanism on unix/macOS is to use the function <a href="https://github.com/de-vri-es/auth-git2-rs/blob/fd6502e20b9e82063b950ac9e32f6454341e71f2/src/lib.rs#L344"><code>add_default_ssh_keys</code></a> that adds a couple of default keys to look up first.</p>
 <pre><code>// the list used..
 let candidates = [
 			"id_rsa",

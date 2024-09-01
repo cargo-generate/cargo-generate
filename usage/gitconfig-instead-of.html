@@ -179,7 +179,48 @@
 
                 <div id="content" class="content">
                     <main>
-                        
+                        <h1 id="gitconfig-and-insteadof-configuration"><a class="header" href="#gitconfig-and-insteadof-configuration"><code>.gitconfig</code> and <code>insteadOf</code> configuration</a></h1>
+<p>⚠️ New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.22.0">0.22.0</a></p>
+<p>git supports a magic trick to rewrite urls on the fly. This is done by adding a <code>url.&lt;base&gt;.insteadOf</code> configuration to your <code>.gitconfig</code> file.</p>
+<p>In cargo-generate this is supported as well.</p>
+<p>For example, if you prefer the ssh over the https urls and you want to use <code>cargo-generate</code> with it, you can add the following to your <code>.gitconfig</code>:</p>
+<pre><code class="language-.gitconfig"># ~/.gitconfig
+
+[url "git@github.com:"]
+insteadOf = https://github.com/
+</code></pre>
+<p>and then you can use <code>cargo-generate</code> with the <code>https</code> url:</p>
+<pre><code class="language-sh">RUST_LOG=debug cargo generate https://github.com/Rahix/avr-hal-template.git
+
+🔧   gitconfig 'insteadOf' lead to this url: git@github.com:Rahix/avr-hal-template.git
+
+...
+</code></pre>
+<p>In this case please notice the ssh url is <code>git@github.com:</code> if you prefer the more explicit notation you can also write it like this:</p>
+<pre><code class="language-.gitconfig"># ~/.gitconfig
+
+[url "ssh://git@github.com/"]
+insteadOf = https://github.com/
+</code></pre>
+<p>that would lead to the same result, with slightly different url:</p>
+<pre><code class="language-sh">RUST_LOG=debug cargo generate https://github.com/Rahix/avr-hal-template.git
+
+🔧   gitconfig 'insteadOf' lead to this url: ssh://git@github.com/Rahix/avr-hal-template.git
+
+...
+</code></pre>
+<blockquote>
+<p>⚠️ NOTE: <code>RUST_LOG=debug</code> would allow you to see the rewritten url in the output.</p>
+</blockquote>
+<p>In cases where you have a different <code>.gitconfig</code> location, you can use the <code>--gitconfig</code> argument to specify the path to the <code>.gitconfig</code> file, like this:</p>
+<pre><code class="language-sh">$ cd /path/to/my/workspace
+$ cat .gitconfig
+[url "git@github.com:"]
+insteadOf = https://github.com/
+
+$ cargo generate --gitconfig ./.gitconfig https://github.com/Rahix/avr-hal-template.git
+</code></pre>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
