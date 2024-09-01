@@ -1,4 +1,4 @@
-# git over ssh
+# Git over SSH
 
 New in version [0.7.0] is the support for both public and private and ssh git remote urls.
 New in version [0.22.0] is the support for `ssh-agent` on Windows and interactively asking for passphrase for password protected keys on *Nix and macOS.
@@ -68,3 +68,7 @@ ssh_identity = "/home/john/.ssh/id_rsa_other"
 ```
 
 > ⚠️ NOTE: that the cli argument `-i` always overrules the `ssh_identity` from the config file.
+
+[0.7.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0
+[0.15.1]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.15.1
+[0.22.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.22.0
