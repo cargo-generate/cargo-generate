@@ -22,10 +22,7 @@ fn it_should_fail_if_a_identity_file_does_not_exist() {
         .stderr(predicates::str::contains("Error: path does not exist: id_foobarbak").from_utf8());
 }
 
-#[cfg(unix)]
 #[test]
-#[ignore]
-// for now only locally working
 fn it_should_support_a_public_repo() {
     let dir = tempdir().build();
 
@@ -41,10 +38,7 @@ fn it_should_support_a_public_repo() {
     assert!(cargo_toml.contains("foobar-project"));
 }
 
-#[cfg(unix)]
 #[test]
-#[ignore]
-// for now only locally working
 fn it_should_retrieve_the_private_key_from_ssh_agent() {
     let ssh_urls_for_repos = [
         "git@github.com:cargo-generate/wasm-pack-template.git",
@@ -71,7 +65,6 @@ fn it_should_retrieve_the_private_key_from_ssh_agent() {
 // ```sh
 // RUST_LOG=debug CARGO_GENERATE_E2E_SSH_PRIVATE_KEY=~/.ssh/id_cargo-generate-e2e-test-key cargo test
 // ```
-#[cfg(unix)]
 #[test]
 fn it_should_use_a_ssh_key_provided_by_identity_argument() {
     let Ok(private_key) = env::var("CARGO_GENERATE_E2E_SSH_PRIVATE_KEY") else {

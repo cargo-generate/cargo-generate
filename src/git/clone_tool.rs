@@ -4,7 +4,7 @@ use anyhow::Context;
 use anyhow::Result;
 use auth_git2::GitAuthenticator;
 use console::style;
-use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository};
+use git2::{build::RepoBuilder, Config, FetchOptions, ProxyOptions, Repository};
 use log::debug;
 
 use crate::emoji::WRENCH;
@@ -20,21 +20,19 @@ pub struct RepoCloneBuilder<'cb> {
     skip_submodules: bool,
     destination_path: Option<PathBuf>,
     tag_or_revision: Option<String>,
+    gitconfig: Option<Config>,
 }
 
 impl<'cb> RepoCloneBuilder<'cb> {
     pub fn new(url: &str) -> Self {
-        let authenticator = GitAuthenticator::default()
-            .try_ssh_agent(true)
-            .add_default_ssh_keys()
-            .try_password_prompt(3);
         Self {
             builder: RepoBuilder::new(),
-            authenticator,
+            authenticator: GitAuthenticator::default().try_ssh_agent(true),
             url: url.to_owned(),
             skip_submodules: false,
             destination_path: None,
             tag_or_revision: None,
+            gitconfig: None,
         }
     }
 
@@ -49,6 +47,8 @@ impl<'cb> RepoCloneBuilder<'cb> {
             .map(|p| p.to_owned())
             .or_else(|| find_gitconfig().map_or(None, |gitconfig| gitconfig))
         {
+            self.gitconfig = Some(Config::open(gitconfig.as_path())?);
+
             if let Some(url) = gitconfig::resolve_instead_url(&self.url, gitconfig)? {
                 debug!(
                     "{} gitconfig 'insteadOf' lead to this url: {}",
@@ -76,7 +76,8 @@ impl<'cb> RepoCloneBuilder<'cb> {
                 style("for git-ssh checkout").bold()
             );
 
-            self.authenticator = GitAuthenticator::new_empty()
+            self.authenticator = self
+                .authenticator
                 .add_ssh_key_from_file(identity_path, None)
                 .try_password_prompt(3)
                 .prompt_ssh_key_password(true)
@@ -135,16 +136,20 @@ pub struct GitCloneCmd<'cb> {
 
 impl<'cb> GitCloneCmd<'cb> {
     fn do_clone_repo(self) -> Result<Repository> {
-        let config = git2::Config::open_default()?;
+        let gitconfig = self
+            .builder
+            .gitconfig
+            .map(Result::Ok)
+            .unwrap_or_else(git2::Config::open_default)?;
         let mut fetch_options = FetchOptions::new();
         let mut callbacks = git2::RemoteCallbacks::new();
 
-        callbacks.credentials(self.builder.authenticator.credentials(&config));
+        callbacks.credentials(self.builder.authenticator.credentials(&gitconfig));
         fetch_options.remote_callbacks(callbacks);
 
         let url = self.builder.url.clone();
 
-        let is_ssh_repo = url.starts_with("ssh://") || url.starts_with("git@");
+        let is_ssh_repo = url.starts_with("ssh}://") || url.starts_with("git@");
         let is_http_repo = url.starts_with("http://") || url.starts_with("https://");
 
         if is_http_repo {

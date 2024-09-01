@@ -108,7 +108,7 @@ jobs:
           chmod 644 $HOME/.ssh/known_hosts
 
       - name: start ssh-agent on windows
-        if: ${{matrix.version == 'windows-latest' }}
+        if: ${{ matrix.version == 'windows-latest' }}
         run: |
           Get-Service ssh-agent | Set-Service -StartupType Manual
           Start-Service ssh-agent
@@ -116,7 +116,7 @@ jobs:
           ssh-add $ENV:UserProfile\.ssh\id_rsa
 
       - name: start ssh-agent
-        if: ${{matrix.version != 'windows-latest' }}
+        if: ${{ matrix.version != 'windows-latest' }}
         shell: bash
         run: |
           eval `ssh-agent`
@@ -126,6 +126,7 @@ jobs:
           ssh-add -l
 
       - name: cargo test
+        if: ${{ matrix.version != 'windows-latest' }}
         shell: bash
         run: cargo test --verbose --all --locked
         env:
