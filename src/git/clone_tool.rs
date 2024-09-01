@@ -25,9 +25,18 @@ pub struct RepoCloneBuilder<'cb> {
 
 impl<'cb> RepoCloneBuilder<'cb> {
     pub fn new(url: &str) -> Self {
+        #[cfg(windows)]
+        let authenticator = GitAuthenticator::default().try_ssh_agent(true);
+        #[cfg(not(windows))]
+        let authenticator = GitAuthenticator::default()
+            .try_ssh_agent(true)
+            .add_default_ssh_keys()
+            .prompt_ssh_key_password(true)
+            .try_password_prompt(3);
+
         Self {
             builder: RepoBuilder::new(),
-            authenticator: GitAuthenticator::default().try_ssh_agent(true),
+            authenticator,
             url: url.to_owned(),
             skip_submodules: false,
             destination_path: None,
