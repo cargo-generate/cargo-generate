@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use git2::Repository;
 use tempfile::TempDir;
 
-use super::RepoCloneBuilder;
+use super::clone_tool::RepoCloneBuilder;
 
 pub fn tmp_dir() -> std::io::Result<tempfile::TempDir> {
     tempfile::Builder::new().prefix("cargo-generate").tempdir()
@@ -33,30 +33,28 @@ pub fn home() -> Result<PathBuf> {
 
 // clone git repository into temp using libgit2
 pub fn clone_git_template_into_temp(
-    git: &str,
+    git_url: &str,
     branch: Option<&str>,
     tag: Option<&str>,
     revision: Option<&str>,
     identity: Option<&Path>,
+    gitconfig: Option<&Path>,
     skip_submodules: bool,
-) -> anyhow::Result<(TempDir, String)> {
+) -> anyhow::Result<(TempDir, Option<String>)> {
     let git_clone_dir = tmp_dir()?;
 
-    let builder = RepoCloneBuilder::new_with(git, branch, identity, skip_submodules)?;
+    let repo = RepoCloneBuilder::new(git_url)
+        .with_branch(branch)
+        .with_ssh_identity(identity)?
+        .with_submodules(!skip_submodules)
+        .with_gitconfig(gitconfig)?
+        .with_destination(git_clone_dir.path())?
+        .with_tag(tag)
+        .with_revision(revision)
+        .build()?
+        .do_clone()?;
 
-    let repo = builder
-        .clone_with_submodules(git_clone_dir.path())
-        .context("Please check if the Git user / repository exists.")?;
-    let branch = get_branch_name_repo(&repo)?;
-
-    if let Some(spec) = tag.or(revision) {
-        let (object, reference) = repo.revparse_ext(spec)?;
-        repo.checkout_tree(&object, None)?;
-        reference.map_or_else(
-            || repo.set_head_detached(object.id()),
-            |gref| repo.set_head(gref.name().unwrap()),
-        )?
-    }
+    let branch = get_branch_name_repo(&repo).ok();
 
     Ok((git_clone_dir, branch))
 }

@@ -33,6 +33,7 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
         bin: true,
         lib: false,
         ssh_identity: None,
+        gitconfig: None,
         define: vec![],
         init: false,
         destination: Some(dir.clone()),

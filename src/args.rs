@@ -129,6 +129,10 @@ pub struct GenerateArgs {
     #[arg(short = 'i', long = "identity", value_parser, value_name="IDENTITY", help_heading = heading::GIT_PARAMETERS)]
     pub ssh_identity: Option<PathBuf>,
 
+    /// Use a different gitconfig file, if omitted the usual $HOME/.gitconfig will be used
+    #[arg(long = "gitconfig", value_parser, value_name="GITCONFIG_FILE", help_heading = heading::GIT_PARAMETERS)]
+    pub gitconfig: Option<PathBuf>,
+
     /// Define a value for use during template expansion. E.g `--define foo=bar`
     #[arg(long, short, number_of_values = 1, value_parser, help_heading = heading::OUTPUT_PARAMETERS)]
     pub define: Vec<String>,
@@ -180,6 +184,7 @@ impl Default for GenerateArgs {
             lib: true,
             bin: false,
             ssh_identity: None,
+            gitconfig: None,
             define: Vec::default(),
             init: false,
             destination: None,

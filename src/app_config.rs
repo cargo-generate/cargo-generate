@@ -11,7 +11,7 @@ use crate::{info, Vcs};
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
-#[derive(Deserialize, Default)]
+#[derive(Deserialize, Default, Debug)]
 pub struct AppConfig {
     pub defaults: Option<DefaultsConfig>,
     pub favorites: Option<HashMap<String, FavoriteConfig>>,
@@ -24,7 +24,7 @@ impl AppConfig {
     }
 }
 
-#[derive(Deserialize, Default)]
+#[derive(Deserialize, Default, Debug)]
 pub struct FavoriteConfig {
     pub description: Option<String>,
     pub git: Option<String>,
@@ -39,7 +39,7 @@ pub struct FavoriteConfig {
     pub overwrite: Option<bool>,
 }
 
-#[derive(Deserialize, Default)]
+#[derive(Deserialize, Default, Debug)]
 pub struct DefaultsConfig {
     /// relates to `crate::Args::ssh_identity`
     pub ssh_identity: Option<PathBuf>,
