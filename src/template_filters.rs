@@ -83,7 +83,7 @@ pub struct RhaiFilterParser {
 }
 
 impl RhaiFilterParser {
-    pub fn new(
+    pub const fn new(
         template_dir: PathBuf,
         liquid_object: LiquidObjectResource,
         allow_commands: bool,
