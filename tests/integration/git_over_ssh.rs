@@ -6,6 +6,7 @@
 //! For reasons not yet known, there are issues on windows:
 //!     - The ssh-agent does not work as expected
 //!     - Additionally, the ssh-key via `--identity` is not working as expected
+#[cfg(e2e_tests_with_ssh_key)]
 use crate::helpers::prelude::*;
 
 #[cfg(e2e_tests_with_ssh_key)]
