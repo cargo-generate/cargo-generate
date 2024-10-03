@@ -183,30 +183,16 @@ jobs:
           ssh-add $HOME/.ssh/id_rsa
           ssh-add -l
       - uses: mozilla-actions/sccache-action@v0.0.5
-      - name: coverage test
-        shell: bash
-        run: cargo +nightly test --verbose --all --locked
-        env:
-          RUST_LOG: debug
-          RUST_BACKTRACE: full
-          CARGO_GENERATE_E2E_SSH_PRIVATE_KEY: ~/.ssh/id_rsa
-          CARGO_INCREMENTAL: "0"
-          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-          RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-      - name: rust-grcov
-        # You may pin to the exact commit or the version.
-        # uses: actions-rs/grcov@bb47b1ed7883a1502fa6875d562727ace2511248
-        uses: actions-rs/grcov@v0.1
-      - name: Codecov
-        # You may pin to the exact commit or the version.
-        # uses: codecov/codecov-action@81cd2dc8148241f03f5839d295e000b8f761e378
-        uses: codecov/codecov-action@v4.5.0
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Generate code coverage
+        run: cargo llvm-cov --all-features --workspace  --codecov --output-path codecov.json
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4.6.0
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          # Repository upload token - get it from codecov.io. Required only for private repositories
-          # token: # optional
-          # Specify whether the Codecov output should be verbose
+          files: codecov.json
           verbose: true
           fail_ci_if_error: false
 
