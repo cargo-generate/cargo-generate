@@ -8,6 +8,7 @@
 //!     - Additionally, the ssh-key via `--identity` is not working as expected
 use crate::helpers::prelude::*;
 
+#[cfg(e2e_tests_with_ssh_key)]
 #[test]
 fn it_should_fail_if_a_identity_file_does_not_exist() {
     let dir = tempdir().build();
@@ -22,6 +23,7 @@ fn it_should_fail_if_a_identity_file_does_not_exist() {
         .stderr(predicates::str::contains("Error: path does not exist: id_foobarbak").from_utf8());
 }
 
+#[cfg(e2e_tests_with_ssh_key)]
 #[test]
 fn it_should_support_a_public_repo() {
     let dir = tempdir().build();
@@ -38,6 +40,7 @@ fn it_should_support_a_public_repo() {
     assert!(cargo_toml.contains("foobar-project"));
 }
 
+#[cfg(e2e_tests_with_ssh_key)]
 #[test]
 fn it_should_retrieve_the_private_key_from_ssh_agent() {
     let ssh_urls_for_repos = [
@@ -65,6 +68,7 @@ fn it_should_retrieve_the_private_key_from_ssh_agent() {
 // ```sh
 // RUST_LOG=debug CARGO_GENERATE_E2E_SSH_PRIVATE_KEY=~/.ssh/id_cargo-generate-e2e-test-key cargo test
 // ```
+#[cfg(e2e_tests_with_ssh_key)]
 #[test]
 fn it_should_use_a_ssh_key_provided_by_identity_argument() {
     let Ok(private_key) = env::var("CARGO_GENERATE_E2E_SSH_PRIVATE_KEY") else {

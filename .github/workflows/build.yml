@@ -98,6 +98,7 @@ jobs:
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
       - name: install ssh key
+        if: ${{ github.event_name != 'pull_request' }}
         shell: bash
         run: |
           mkdir -p $HOME/.ssh
@@ -108,7 +109,7 @@ jobs:
           chmod 644 $HOME/.ssh/known_hosts
 
       - name: start ssh-agent on windows
-        if: ${{ matrix.version == 'windows-latest' }}
+        if: ${{ github.event_name != 'pull_request' && matrix.version == 'windows-latest' }}
         run: |
           Get-Service ssh-agent | Set-Service -StartupType Manual
           Start-Service ssh-agent
@@ -116,7 +117,7 @@ jobs:
           ssh-add $ENV:UserProfile\.ssh\id_rsa
 
       - name: start ssh-agent
-        if: ${{ matrix.version != 'windows-latest' }}
+        if: ${{ github.event_name != 'pull_request' && matrix.version != 'windows-latest' }}
         shell: bash
         run: |
           eval `ssh-agent`
@@ -125,14 +126,24 @@ jobs:
           ssh-add $HOME/.ssh/id_rsa
           ssh-add -l
 
-      - name: cargo test
-        if: ${{ matrix.version != 'windows-latest' }}
+      - name: cargo test (all)
+        if: ${{ github.event_name != 'pull_request' && matrix.version != 'windows-latest' }}
         shell: bash
         run: cargo test --verbose --all --locked
         env:
           RUST_LOG: debug
           RUST_BACKTRACE: full
           CARGO_GENERATE_E2E_SSH_PRIVATE_KEY: ~/.ssh/id_rsa
+          RUSTFLAGS: "--cfg e2e_tests_with_ssh_key"
+
+      - name: cargo test (no e2e tests with ssh key)
+        if: ${{ github.event_name == 'pull_request' && matrix.version != 'windows-latest' }}
+        shell: bash
+        run: cargo test --verbose --all --locked
+        env:
+          RUST_LOG: debug
+          RUST_BACKTRACE: full
+
       - name: smoke tests
         shell: bash
         run: |
