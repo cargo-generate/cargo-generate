@@ -67,3 +67,8 @@ name = "cargo-generate"
 
 [profile.release]
 lto = true
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(e2e_tests_with_ssh_key)',
+] }
