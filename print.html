@@ -191,7 +191,8 @@ project by leveraging a pre-existing git repository as a template.</p>
 <p>Due to the use of <a href="http://liquidmarkup.org/">Shopify's Liquid</a>, <code>cargo-generate</code> special cases files with the file-ending
 <code>.liquid</code>, by simply removing the file-ending when processing the files. If you, as a template
 author, truly want the <code>.liquid</code> file-ending, you need to repeat it twice!</p>
-<p>An Example: the file <code>main.rs.liquid</code> will be renamed after templating to <code>main.rs</code></p>
+<p>For example: The file <code>README.md.liquid</code> will be renamed after templating to <code>README.md</code>.
+If <code>README.md</code> already exists, then it will be overwritten to include the contents of <code>README.md.liquid</code>.</p>
 <p>Here's an example of using <code>cargo-generate</code> with <a href="https://github.com/rustwasm/wasm-pack-template">this template</a>:</p>
 <p><img src="./demo.gif" alt="demo.gif" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
@@ -662,6 +663,8 @@ ignore = [
 ]
 </code></pre>
 <p>Both files and folders may be ignored using this method, but currently wildcards are <strong>not supported</strong>.</p>
+<p>Note that <code>cargo-generate</code> checks for which files to ignore after the removal of any <code>.liquid</code> file extensions.
+Meaning; Setting <code>ignore</code> to <code>["file.txt"]</code> will result in the ignoring of a file named <code>file.txt.liquid</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="include--exclude"><a class="header" href="#include--exclude">Include / Exclude</a></h1>
 <p>Templates support a <code>cargo-generate.toml</code>, with a "template" section that allows you to configure the files that will be processed by <code>cargo-generate</code>.
 The behavior mirrors Cargo's Include / Exclude functionality, which is <a href="https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional">documented here</a>.

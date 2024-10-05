@@ -190,6 +190,8 @@ ignore = [
 ]
 </code></pre>
 <p>Both files and folders may be ignored using this method, but currently wildcards are <strong>not supported</strong>.</p>
+<p>Note that <code>cargo-generate</code> checks for which files to ignore after the removal of any <code>.liquid</code> file extensions.
+Meaning; Setting <code>ignore</code> to <code>["file.txt"]</code> will result in the ignoring of a file named <code>file.txt.liquid</code>.</p>
 
                     </main>
 
