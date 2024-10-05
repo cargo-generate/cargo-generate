@@ -87,8 +87,7 @@ fn it_removes_git_history_also_on_local_templates() {
     let dir = tempdir().build();
 
     binary()
-        .arg("--path")
-        .arg(template.path())
+        .arg_path(template.path())
         .arg_name("xyz")
         .current_dir(dir.path())
         .assert()
