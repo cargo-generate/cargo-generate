@@ -16,7 +16,8 @@ Due to the use of [Shopify's Liquid], `cargo-generate` special cases files with 
 `.liquid`, by simply removing the file-ending when processing the files. If you, as a template 
 author, truly want the `.liquid` file-ending, you need to repeat it twice!
 
-An Example: the file `main.rs.liquid` will be renamed after templating to `main.rs`
+For example: The file `README.md.liquid` will be renamed after templating to `README.md`. 
+If `README.md` already exists, then it will be overwritten to include the contents of `README.md.liquid`.
 
 Here's an example of using `cargo-generate` with [this template]:
 
