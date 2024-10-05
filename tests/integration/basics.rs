@@ -52,8 +52,7 @@ version = "0.1.0"
 
     binary()
         .arg_name("foobar-project")
-        .arg("--path")
-        .arg(template.path())
+        .arg_path(template.path())
         .current_dir(dir.path())
         .assert()
         .success()
