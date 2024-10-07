@@ -37,7 +37,7 @@ names = { version = "~0.14", default-features = false }
 openssl = { version = "~0.10", optional = true }
 paste = "~1.0"
 path-absolutize = "~3.1"
-regex = "~1.10"
+regex = "~1.11"
 remove_dir_all = "~0.8"
 rhai = "~1.19"
 sanitize-filename = "~0.5"
