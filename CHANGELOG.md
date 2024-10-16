@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.22.1] 2024-10-16
+
+[0.22.1]: https://github.com/cargo-generate/cargo-generate/compare/0.22.0...0.22.1
+
+### ✨ Features
+
+- Run e2e tests with git over ssh only on non PRs, for secret access reasons ([#1287](https://github.com/cargo-generate/cargo-generate/pull/1287))
+
+### 🛠️ Maintenance
+
+- Bump tempfile from 3.10.1 to 3.13.0 ([#1281](https://github.com/cargo-generate/cargo-generate/pull/1281))
+- Bump auth-git2 from 0.5.4 to 0.5.5 ([#1277](https://github.com/cargo-generate/cargo-generate/pull/1277))
+- Bump bstr from 1.9.1 to 1.10.0 ([#1262](https://github.com/cargo-generate/cargo-generate/pull/1262))
+- Clarify `.liquid` overwrite and ignore behavior ([#1295](https://github.com/cargo-generate/cargo-generate/pull/1295))
+
+### 🤕 Fixes
+
+- Fix lint that wants a const fn ([#1285](https://github.com/cargo-generate/cargo-generate/pull/1285))
+
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.22.0...HEAD)
 
 ## [0.22.0] 2024-09-01
