@@ -14,7 +14,7 @@ features = ["ssh", "https"]
 version = "~0.19"
 
 [dependencies]
-anstyle = "1.0.7"
+anstyle = "1.0.9"
 anyhow = "~1.0"
 auth-git2 = "~0.5"
 clap = { version = "~4.5", features = ["derive", "wrap_help"] }
