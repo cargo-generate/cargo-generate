@@ -50,7 +50,7 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
           override: true
-      - uses: mozilla-actions/sccache-action@v0.0.6
+      - uses: mozilla-actions/sccache-action@v0.0.7
       - name: Build
         # todo: get rid of the deprecated actions-rs stuff..
         uses: actions-rs/cargo@v1
