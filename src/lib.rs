@@ -149,13 +149,7 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     let target_path = if user_parsed_input.test() {
         test_expanded_template(&template_dir, args.other_args)?
     } else {
-        let project_path = copy_expanded_template(
-            template_dir,
-            project_dir,
-            user_parsed_input,
-            config,
-            branch.as_deref(),
-        )?;
+        let project_path = copy_expanded_template(template_dir, project_dir, user_parsed_input)?;
 
         match workspace_member::add_to_workspace(&project_path)? {
             WorkspaceMemberStatus::Added(workspace_cargo_toml) => {
@@ -200,8 +194,6 @@ fn copy_expanded_template(
     template_dir: PathBuf,
     project_dir: PathBuf,
     user_parsed_input: UserParsedInput,
-    config: Config,
-    branch: Option<&str>,
 ) -> Result<PathBuf> {
     info!(
         "{} {} `{}`{}",
