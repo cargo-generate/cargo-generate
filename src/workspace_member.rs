@@ -75,7 +75,7 @@ impl Workspace {
     }
 
     pub fn save(&self) -> Result<()> {
-        let new_manifest = toml::to_string(&self.manifest)?;
+        let new_manifest = toml::to_string_pretty(&self.manifest)?;
         let cargo_toml_path = &self.cargo_toml_path;
         fs::write(cargo_toml_path, new_manifest)
             .with_context(|| format!("Failed to write {}", cargo_toml_path.display()))?;
