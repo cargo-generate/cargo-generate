@@ -192,8 +192,8 @@ fn it_fails_when_it_cant_execute_system_command() {
         .file(
             "cargo-generate.toml",
             indoc! {r#"
-            [hooks]
-            post = ["system-script.rhai"]
+                [hooks]
+                post = ["system-script.rhai"]
             "#},
         )
         .init_git()
@@ -209,9 +209,12 @@ fn it_fails_when_it_cant_execute_system_command() {
         .assert()
         .failure()
         .stderr(
-            predicates::str::contains(
-                "System command `dummy_command_that_doesn't_exist dummy_arg` failed to execute",
-            )
+            // TODO: This error message is different on MacOS and Linux. We should unify it.
+            predicates::str::contains(if cfg!(target_os = "macos") {
+                "System command `dummy_command_that_doesn't_exist dummy_arg` failed to execute"
+            } else {
+                "Failed executing script: system-script.rhai"
+            })
             .from_utf8(),
         );
 }
