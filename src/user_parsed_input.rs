@@ -292,7 +292,7 @@ impl UserParsedInput {
             location_msg
         );
 
-        return Self {
+        Self {
             name: args.name.clone(),
             template_location: temp_location,
             subfolder: args
@@ -310,7 +310,7 @@ impl UserParsedInput {
             force: args.force,
             test: args.template_path.test,
             force_git_init: args.force_git_init,
-        };
+        }
     }
 
     pub fn name(&self) -> Option<&str> {
