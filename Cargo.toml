@@ -48,6 +48,7 @@ thiserror = "~1.0"
 time = "~0.3"
 toml = { version = "~0.8", features = ["preserve_order"] }
 walkdir = "~2.5"
+cargo-util-schemas = "0.7.0"
 
 [dev-dependencies]
 assert_cmd = "~2.0"

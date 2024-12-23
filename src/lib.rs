@@ -39,6 +39,7 @@ mod template;
 mod template_filters;
 mod template_variables;
 mod user_parsed_input;
+mod workspace_member;
 
 pub use crate::app_config::{app_config_path, AppConfig};
 pub use crate::favorites::list_favorites;
@@ -135,13 +136,17 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     if user_parsed_input.test() {
         test_expanded_template(&template_dir, args.other_args)
     } else {
-        copy_expanded_template(
+        let project_path = copy_expanded_template(
             template_dir,
             project_dir,
             user_parsed_input,
             config,
             branch.as_deref(),
-        )
+        )?;
+
+        workspace_member::add_to_workspace(&project_path)?;
+
+        Ok(project_path.to_path_buf())
     }
 }
 
