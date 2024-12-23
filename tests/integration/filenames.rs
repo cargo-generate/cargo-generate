@@ -61,12 +61,14 @@ fn it_preserves_liquid_files_with_path() {
     assert_liquid_paths(Location::Path)
 }
 
+#[allow(dead_code)]
 #[derive(PartialEq)]
 enum Location {
     Git,
     Path,
 }
 
+#[allow(dead_code)]
 fn assert_liquid_paths(location: Location) {
     let mut project_builder = tempdir()
         .file("README.md", "This file conents will be overwritten")
