@@ -67,6 +67,7 @@ use std::{
 };
 use tempfile::TempDir;
 use user_parsed_input::{TemplateLocation, UserParsedInput};
+use workspace_member::WorkspaceMemberStatus;
 
 use crate::git::tmp_dir;
 use crate::template_variables::{
@@ -132,9 +133,21 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     check_cargo_generate_version(&config)?;
 
     let project_dir = expand_template(&template_dir, &mut config, &user_parsed_input, &args)?;
+    let (mut should_initialize_git, with_force) = {
+        let vcs = &config
+            .template
+            .as_ref()
+            .and_then(|t| t.vcs)
+            .unwrap_or_else(|| user_parsed_input.vcs());
 
-    if user_parsed_input.test() {
-        test_expanded_template(&template_dir, args.other_args)
+        (
+            !vcs.is_none() && (!user_parsed_input.init || user_parsed_input.force_git_init()),
+            user_parsed_input.force_git_init(),
+        )
+    };
+
+    let target_path = if user_parsed_input.test() {
+        test_expanded_template(&template_dir, args.other_args)?
     } else {
         let project_path = copy_expanded_template(
             template_dir,
@@ -144,10 +157,43 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
             branch.as_deref(),
         )?;
 
-        workspace_member::add_to_workspace(&project_path)?;
+        match workspace_member::add_to_workspace(&project_path)? {
+            WorkspaceMemberStatus::Added(workspace_cargo_toml) => {
+                should_initialize_git = with_force;
+                info!(
+                    "{} {} `{}`",
+                    emoji::WRENCH,
+                    style("Project added as member to workspace").bold(),
+                    style(workspace_cargo_toml.display()).bold().yellow(),
+                );
+            }
+            WorkspaceMemberStatus::NoWorkspaceFound => {
+                // not an issue, just a notification
+            }
+        }
 
-        Ok(project_path.to_path_buf())
+        project_path
+    };
+
+    if should_initialize_git {
+        info!(
+            "{} {}",
+            emoji::WRENCH,
+            style("Initializing a fresh Git repository").bold()
+        );
+
+        git::init(&target_path, branch.as_deref(), with_force)?;
     }
+
+    info!(
+        "{} {} {} {}",
+        emoji::SPARKLE,
+        style("Done!").bold().green(),
+        style("New project created").bold(),
+        style(&target_path.display()).underlined()
+    );
+
+    Ok(target_path)
 }
 
 fn copy_expanded_template(
@@ -165,25 +211,7 @@ fn copy_expanded_template(
         style("...").bold()
     );
     copy_dir_all(template_dir, &project_dir, user_parsed_input.overwrite())?;
-    let vcs = config
-        .template
-        .and_then(|t| t.vcs)
-        .unwrap_or_else(|| user_parsed_input.vcs());
-    if !vcs.is_none() && (!user_parsed_input.init || user_parsed_input.force_git_init()) {
-        info!(
-            "{} {}",
-            emoji::WRENCH,
-            style("Initializing a fresh Git repository").bold()
-        );
-        vcs.initialize(&project_dir, branch, user_parsed_input.force_git_init())?;
-    }
-    info!(
-        "{} {} {} {}",
-        emoji::SPARKLE,
-        style("Done!").bold().green(),
-        style("New project created").bold(),
-        style(&project_dir.display()).underlined()
-    );
+
     Ok(project_dir)
 }
 

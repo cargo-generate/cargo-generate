@@ -1,27 +1,29 @@
 use cargo_util_schemas::manifest::TomlManifest;
-use console::style;
 use std::{
     fs,
     path::{Path, PathBuf},
 };
 
 use anyhow::{bail, Context, Result};
-use log::{info, warn};
+use log::warn;
 
-use crate::emoji;
+#[derive(Debug, PartialEq)]
+pub enum WorkspaceMemberStatus {
+    Added(PathBuf),
+    NoWorkspaceFound,
+}
 
 /// Add the given project to the workspace members list.
 /// If there is no workspace project in the parent directories of the given path, do nothing.
-pub fn add_to_workspace(member_path: &Path) -> Result<()> {
+pub fn add_to_workspace(member_path: &Path) -> Result<WorkspaceMemberStatus> {
     let Some(mut workspace) = Workspace::try_new(member_path)? else {
-        info!("No workspace project found.");
-        return Ok(());
+        return Ok(WorkspaceMemberStatus::NoWorkspaceFound);
     };
     let member = WorkspaceMember::try_new(member_path)?;
     workspace.add_member(member)?;
     workspace.save()?;
 
-    Ok(())
+    Ok(WorkspaceMemberStatus::Added(workspace.cargo_toml_path))
 }
 
 struct Workspace {
@@ -88,13 +90,6 @@ impl Workspace {
         let cargo_toml_path = &self.cargo_toml_path;
         fs::write(cargo_toml_path, new_manifest)
             .with_context(|| format!("Failed to write {}", cargo_toml_path.display()))?;
-
-        info!(
-            "{} {} `{}`",
-            emoji::WRENCH,
-            style("Project added as member to workspace").bold(),
-            style(cargo_toml_path.display()).bold().yellow(),
-        );
 
         Ok(())
     }
