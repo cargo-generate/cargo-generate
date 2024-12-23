@@ -71,8 +71,8 @@ enum Location {
 #[allow(dead_code)]
 fn assert_liquid_paths(location: Location) {
     let mut project_builder = tempdir()
-        .file("README.md", "This file conents will be overwritten")
-        .file("README.md.liquid", "This file conents will be preserved");
+        .file("README.md", "This file contents will be overwritten")
+        .file("README.md.liquid", "This file contents will be preserved");
 
     if location == Location::Git {
         project_builder = project_builder.init_git();
@@ -105,7 +105,7 @@ fn assert_liquid_paths(location: Location) {
     );
     assert_eq!(
         target.read("foobar-project/README.md"),
-        "This file conents will be preserved",
+        "This file contents will be preserved",
         "project should keep .liquid file contents"
     );
 
