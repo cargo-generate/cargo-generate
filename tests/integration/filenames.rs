@@ -48,15 +48,11 @@ fn it_substitutes_filename() {
 }
 
 #[test]
-// TODO: this test fails on linux, for mysterious reasons
-#[cfg(not(target_os = "linux"))]
 fn it_preserves_liquid_files_with_git() {
     assert_liquid_paths(Location::Git)
 }
 
 #[test]
-// TODO: this test fails on linux, for mysterious reasons
-#[cfg(not(target_os = "linux"))]
 fn it_preserves_liquid_files_with_path() {
     assert_liquid_paths(Location::Path)
 }
@@ -69,7 +65,7 @@ enum Location {
 
 fn assert_liquid_paths(location: Location) {
     let mut project_builder = tempdir()
-        .file("README.md", "This file conents will be overwritten")
+        .file("README.md", "This file conents should be overwritten")
         .file("README.md.liquid", "This file conents will be preserved");
 
     if location == Location::Git {
@@ -89,7 +85,6 @@ fn assert_liquid_paths(location: Location) {
     }
 
     let target = tempdir().build();
-
     binary_command
         .arg_name("foobar-project")
         .current_dir(target.path())

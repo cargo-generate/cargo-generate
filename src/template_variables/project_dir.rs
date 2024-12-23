@@ -79,6 +79,13 @@ impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
     }
 }
 
+impl ProjectDir {
+    pub fn create(&self) -> anyhow::Result<()> {
+        std::fs::create_dir(&self.0)?;
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
