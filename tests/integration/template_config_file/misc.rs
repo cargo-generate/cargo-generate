@@ -3,7 +3,7 @@ use crate::helpers::prelude::*;
 #[test]
 fn it_always_removes_config_file() {
     let template = tempdir()
-        .default_manifest()
+        .with_default_manifest()
         .file(
             "cargo-generate.toml",
             r#"[template]
@@ -30,7 +30,7 @@ fn it_always_removes_config_file() {
 #[test]
 fn it_doesnt_warn_on_config_with_no_ignore() {
     let template = tempdir()
-        .default_manifest()
+        .with_default_manifest()
         .file(
             "cargo-generate.toml",
             r#"[template]
@@ -56,7 +56,7 @@ fn it_doesnt_warn_on_config_with_no_ignore() {
 #[test]
 fn a_template_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
     let template = tempdir()
-        .default_manifest()
+        .with_default_manifest()
         .file(
             "cargo-generate.toml",
             indoc! {r#"
@@ -87,7 +87,7 @@ fn a_template_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
 fn vsc_none_can_be_specified_in_the_template() {
     // Build and commit on branch named 'main'
     let template = tempdir()
-        .default_manifest()
+        .with_default_manifest()
         .file(
             "cargo-generate.toml",
             indoc! {r#"
