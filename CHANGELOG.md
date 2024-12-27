@@ -27,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix lint that wants a const fn (#1285)
 - Fix tests and copy path simplifiation ([#1346](https://github.com/cargo-generate/cargo-generate/pull/1346))
 
-## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.22.0...HEAD)
 
 ## [0.22.0] 2024-09-01
 
