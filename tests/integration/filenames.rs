@@ -91,7 +91,6 @@ fn assert_liquid_paths(location: Location) {
     }
 
     let target = tempdir().build();
-
     binary_command
         .arg_name("foobar-project")
         .current_dir(target.path())

@@ -36,11 +36,11 @@ impl ProjectBuilder {
     /// - one file `Cargo.toml` in it
     /// - one placeholder `project-name`
     pub fn init_default_template(self) -> Self {
-        self.default_manifest().init_git()
+        self.with_default_manifest().init_git()
     }
 
     /// creates a `Cargo.toml` manifest with a `project-name` placeholder
-    pub fn default_manifest(self) -> Self {
+    pub fn with_default_manifest(self) -> Self {
         self.file(
             "Cargo.toml",
             indoc! {r#"
