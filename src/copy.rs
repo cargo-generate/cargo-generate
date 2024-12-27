@@ -77,7 +77,7 @@ fn copy_file(src_path: &Path, dst: &Path, overwrite: bool) -> Result<()> {
     } else {
         // if the file doesn't have a .liquid suffix, just copy it
         // possibly overwriting existing files if overwrite is true
-        safe_copy(&src_path, &dst_path, overwrite)?;
+        safe_copy(src_path, &dst_path, overwrite)?;
     }
 
     Ok(())
