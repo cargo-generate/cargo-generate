@@ -204,7 +204,6 @@ fn copy_expanded_template(
         style(project_dir.display()).bold().yellow(),
         style("...").bold()
     );
-
     copy_files_recursively(template_dir, &project_dir, user_parsed_input.overwrite())?;
 
     Ok(project_dir)
