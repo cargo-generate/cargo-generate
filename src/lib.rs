@@ -453,7 +453,9 @@ fn expand_template(
     let project_name = ProjectName::from((&project_name_input, user_parsed_input));
     let crate_name = CrateName::from(&project_name_input);
     let destination = ProjectDir::try_from((&project_name_input, user_parsed_input))?;
-    destination.create()?;
+    if !user_parsed_input.init() {
+        destination.create()?;
+    }
 
     set_project_name_variables(&liquid_object, &destination, &project_name, &crate_name)?;
 
