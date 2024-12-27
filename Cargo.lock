@@ -1397,6 +1397,9 @@ name = "once_cell"
 version = "1.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1261fe7e33c73b354eab43b1273a57c8f967d0391e80353e51f764ac02cf6775"
+dependencies = [
+ "portable-atomic",
+]
 
 [[package]]
 name = "openssl"
@@ -1741,9 +1744,9 @@ dependencies = [
 
 [[package]]
 name = "rhai"
-version = "1.19.0"
+version = "1.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61797318be89b1a268a018a92a7657096d83f3ecb31418b9e9c16dcbb043b702"
+checksum = "d0277a46f29fe3b3eb10821ca2c65a4751b686b6c84422aae31695ba167b0fbc"
 dependencies = [
  "ahash",
  "bitflags",
