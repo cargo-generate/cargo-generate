@@ -3,7 +3,7 @@ use crate::helpers::prelude::*;
 #[test]
 fn it_prompts_for_placeholders_in_the_config_file_defined_order() {
     let template = tempdir()
-        .default_manifest()
+        .with_default_manifest()
         .file(
             "cargo-generate.toml",
             indoc! {r#"

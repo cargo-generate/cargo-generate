@@ -143,7 +143,7 @@ pub struct GitCloneCmd<'cb> {
     builder: RepoCloneBuilder<'cb>,
 }
 
-impl<'cb> GitCloneCmd<'cb> {
+impl GitCloneCmd<'_> {
     fn do_clone_repo(self) -> Result<Repository> {
         let gitconfig = self
             .builder
