@@ -196,7 +196,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         run: cargo llvm-cov --all-features --workspace  --codecov --output-path codecov.json
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4.6.0
+        uses: codecov/codecov-action@v5.1.1
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
