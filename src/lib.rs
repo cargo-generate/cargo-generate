@@ -25,6 +25,7 @@
 mod app_config;
 mod args;
 mod config;
+mod copy;
 mod emoji;
 mod favorites;
 mod filenames;
@@ -39,6 +40,7 @@ mod template;
 mod template_filters;
 mod template_variables;
 mod user_parsed_input;
+mod workspace_member;
 
 pub use crate::app_config::{app_config_path, AppConfig};
 pub use crate::favorites::list_favorites;
@@ -48,6 +50,7 @@ pub use args::*;
 use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
+use copy::copy_files_recursively;
 use env_logger::fmt::Formatter;
 use fs_err as fs;
 use hooks::execute_hooks;
@@ -66,6 +69,7 @@ use std::{
 };
 use tempfile::TempDir;
 use user_parsed_input::{TemplateLocation, UserParsedInput};
+use workspace_member::WorkspaceMemberStatus;
 
 use crate::git::tmp_dir;
 use crate::template_variables::{
@@ -131,26 +135,67 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     check_cargo_generate_version(&config)?;
 
     let project_dir = expand_template(&template_dir, &mut config, &user_parsed_input, &args)?;
+    let (mut should_initialize_git, with_force) = {
+        let vcs = &config
+            .template
+            .as_ref()
+            .and_then(|t| t.vcs)
+            .unwrap_or_else(|| user_parsed_input.vcs());
 
-    if user_parsed_input.test() {
-        test_expanded_template(&template_dir, args.other_args)
-    } else {
-        copy_expanded_template(
-            template_dir,
-            project_dir,
-            user_parsed_input,
-            config,
-            branch.as_deref(),
+        (
+            !vcs.is_none() && (!user_parsed_input.init || user_parsed_input.force_git_init()),
+            user_parsed_input.force_git_init(),
         )
+    };
+
+    let target_path = if user_parsed_input.test() {
+        test_expanded_template(&template_dir, args.other_args)?
+    } else {
+        let project_path = copy_expanded_template(template_dir, project_dir, user_parsed_input)?;
+
+        match workspace_member::add_to_workspace(&project_path)? {
+            WorkspaceMemberStatus::Added(workspace_cargo_toml) => {
+                should_initialize_git = with_force;
+                info!(
+                    "{} {} `{}`",
+                    emoji::WRENCH,
+                    style("Project added as member to workspace").bold(),
+                    style(workspace_cargo_toml.display()).bold().yellow(),
+                );
+            }
+            WorkspaceMemberStatus::NoWorkspaceFound => {
+                // not an issue, just a notification
+            }
+        }
+
+        project_path
+    };
+
+    if should_initialize_git {
+        info!(
+            "{} {}",
+            emoji::WRENCH,
+            style("Initializing a fresh Git repository").bold()
+        );
+
+        git::init(&target_path, branch.as_deref(), with_force)?;
     }
+
+    info!(
+        "{} {} {} {}",
+        emoji::SPARKLE,
+        style("Done!").bold().green(),
+        style("New project created").bold(),
+        style(&target_path.display()).underlined()
+    );
+
+    Ok(target_path)
 }
 
 fn copy_expanded_template(
     template_dir: PathBuf,
     project_dir: PathBuf,
     user_parsed_input: UserParsedInput,
-    config: Config,
-    branch: Option<&str>,
 ) -> Result<PathBuf> {
     info!(
         "{} {} `{}`{}",
@@ -159,26 +204,8 @@ fn copy_expanded_template(
         style(project_dir.display()).bold().yellow(),
         style("...").bold()
     );
-    copy_dir_all(template_dir, &project_dir, user_parsed_input.overwrite())?;
-    let vcs = config
-        .template
-        .and_then(|t| t.vcs)
-        .unwrap_or_else(|| user_parsed_input.vcs());
-    if !vcs.is_none() && (!user_parsed_input.init || user_parsed_input.force_git_init()) {
-        info!(
-            "{} {}",
-            emoji::WRENCH,
-            style("Initializing a fresh Git repository").bold()
-        );
-        vcs.initialize(&project_dir, branch, user_parsed_input.force_git_init())?;
-    }
-    info!(
-        "{} {} {} {}",
-        emoji::SPARKLE,
-        style("Done!").bold().green(),
-        style("New project created").bold(),
-        style(&project_dir.display()).underlined()
-    );
+    copy_files_recursively(template_dir, &project_dir, user_parsed_input.overwrite())?;
+
     Ok(project_dir)
 }
 
@@ -236,35 +263,16 @@ fn get_source_template_into_temp(
             );
             if let Ok((ref temp_dir, _)) = result {
                 git::remove_history(temp_dir.path())?;
-                strip_liquid_suffixes(temp_dir.path())?;
             };
             result
         }
         TemplateLocation::Path(path) => {
             let temp_dir = tmp_dir()?;
-            copy_dir_all(path, temp_dir.path(), false)?;
+            copy_files_recursively(path, temp_dir.path(), false)?;
             git::remove_history(temp_dir.path())?;
             Ok((temp_dir, try_get_branch_from_path(path)))
         }
     }
-}
-
-/// remove .liquid suffixes from git templates for parity with path templates
-fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
-    for entry in fs::read_dir(dir.as_ref())? {
-        let entry = entry?;
-        let entry_type = entry.file_type()?;
-
-        if entry_type.is_dir() {
-            strip_liquid_suffixes(entry.path())?;
-        } else if entry_type.is_file() {
-            let path = entry.path().to_string_lossy().to_string();
-            if let Some(new_path) = path.clone().strip_suffix(".liquid") {
-                fs::rename(path, new_path)?;
-            }
-        }
-    }
-    Ok(())
 }
 
 /// resolve the template location for the actual template to expand
@@ -397,86 +405,6 @@ fn resolve_configured_sub_templates(
         )
 }
 
-pub(crate) fn copy_dir_all(
-    src: impl AsRef<Path>,
-    dst: impl AsRef<Path>,
-    overwrite: bool,
-) -> Result<()> {
-    fn check_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>, overwrite: bool) -> Result<()> {
-        if !dst.as_ref().exists() {
-            return Ok(());
-        }
-
-        for src_entry in fs::read_dir(src.as_ref())? {
-            let src_entry = src_entry?;
-            let filename = src_entry.file_name().to_string_lossy().to_string();
-            let entry_type = src_entry.file_type()?;
-
-            if entry_type.is_dir() {
-                if filename == ".git" {
-                    continue;
-                }
-                let dst_path = dst.as_ref().join(filename);
-                check_dir_all(src_entry.path(), dst_path, overwrite)?;
-            } else if entry_type.is_file() {
-                let filename = filename.strip_suffix(".liquid").unwrap_or(&filename);
-                let dst_path = dst.as_ref().join(filename);
-                match (dst_path.exists(), overwrite) {
-                    (true, false) => {
-                        bail!(
-                            "{} {} {}",
-                            crate::emoji::WARN,
-                            style("File already exists:").bold().red(),
-                            style(dst_path.display()).bold().red(),
-                        )
-                    }
-                    (true, true) => {
-                        warn!(
-                            "{} {}",
-                            style("Overwriting file:").bold().red(),
-                            style(dst_path.display()).bold().red(),
-                        );
-                    }
-                    _ => {}
-                };
-            } else {
-                bail!(
-                    "{} {}",
-                    crate::emoji::WARN,
-                    style("Symbolic links not supported").bold().red(),
-                )
-            }
-        }
-        Ok(())
-    }
-    fn copy_all(src: impl AsRef<Path>, dst: impl AsRef<Path>, overwrite: bool) -> Result<()> {
-        fs::create_dir_all(&dst)?;
-        for src_entry in fs::read_dir(src.as_ref())? {
-            let src_entry = src_entry?;
-            let filename = src_entry.file_name().to_string_lossy().to_string();
-            let entry_type = src_entry.file_type()?;
-            if entry_type.is_dir() {
-                let dst_path = dst.as_ref().join(filename);
-                if ".git" == src_entry.file_name() {
-                    continue;
-                }
-                copy_dir_all(src_entry.path(), dst_path, overwrite)?;
-            } else if entry_type.is_file() {
-                let filename = filename.strip_suffix(".liquid").unwrap_or(&filename);
-                let dst_path = dst.as_ref().join(filename);
-                if dst_path.exists() && overwrite {
-                    fs::remove_file(&dst_path)?;
-                }
-                fs::copy(src_entry.path(), dst_path)?;
-            }
-        }
-        Ok(())
-    }
-
-    check_dir_all(&src, &dst, overwrite)?;
-    copy_all(src, dst, overwrite)
-}
-
 fn locate_template_file(
     name: &str,
     template_base_folder: impl AsRef<Path>,
@@ -522,8 +450,12 @@ fn expand_template(
 
     let project_name_input = ProjectNameInput::try_from((&liquid_object, user_parsed_input))?;
     let project_name = ProjectName::from((&project_name_input, user_parsed_input));
-    let destination = ProjectDir::try_from((&project_name_input, user_parsed_input))?;
     let crate_name = CrateName::from(&project_name_input);
+    let destination = ProjectDir::try_from((&project_name_input, user_parsed_input))?;
+    if !user_parsed_input.init() {
+        destination.create()?;
+    }
+
     set_project_name_variables(&liquid_object, &destination, &project_name, &crate_name)?;
 
     info!(

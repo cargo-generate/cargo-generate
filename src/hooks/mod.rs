@@ -54,12 +54,14 @@ fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engin
         engine
             .eval_file::<()>(script.into())
             .map_err(|e| anyhow::anyhow!(e.to_string()))
-            .context(format!(
-                "{} {} {}",
-                emoji::ERROR,
-                style("Failed executing script:").bold().red(),
-                style(script.to_owned()).yellow(),
-            ))?;
+            .with_context(|| {
+                format!(
+                    "{} {} {}",
+                    emoji::ERROR,
+                    style("Failed executing script:").bold().red(),
+                    style(script.to_owned()).yellow(),
+                )
+            })?;
     }
 
     Ok(())

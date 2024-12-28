@@ -13,3 +13,4 @@ mod hooks_and_rhai;
 mod public_api;
 mod template_config_file;
 mod template_filters;
+mod workspace_member;
