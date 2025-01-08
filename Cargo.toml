@@ -43,7 +43,7 @@ rhai = "~1.20"
 sanitize-filename = "~0.5"
 semver = { version = "~1.0", features = ["serde"] }
 serde = { version = "~1.0", features = ["derive"] }
-tempfile = "~3.13"
+tempfile = "~3.15"
 thiserror = "~2.0"
 time = "~0.3"
 toml = { version = "~0.8", features = ["preserve_order"] }
