@@ -11,7 +11,7 @@ include = ["src/**/*", "LICENSE-*", "*.md"]
 [dependencies.git2]
 default-features = false
 features = ["ssh", "https"]
-version = "~0.19"
+version = "~0.20"
 
 [dependencies]
 anstyle = "~1.0"
