@@ -11,7 +11,7 @@ include = ["src/**/*", "LICENSE-*", "*.md"]
 [dependencies.git2]
 default-features = false
 features = ["ssh", "https"]
-version = "~0.19"
+version = "~0.20"
 
 [dependencies]
 anstyle = "~1.0"
@@ -38,12 +38,12 @@ openssl = { version = "~0.10", optional = true }
 paste = "~1.0"
 path-absolutize = "~3.1"
 regex = "~1.11"
-remove_dir_all = "~0.8"
+remove_dir_all = "~1.0"
 rhai = "~1.20"
-sanitize-filename = "~0.5"
+sanitize-filename = "~0.6"
 semver = { version = "~1.0", features = ["serde"] }
 serde = { version = "~1.0", features = ["derive"] }
-tempfile = "~3.13"
+tempfile = "~3.15"
 thiserror = "~2.0"
 time = "~0.3"
 toml = { version = "~0.8", features = ["preserve_order"] }
