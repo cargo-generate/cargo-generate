@@ -600,6 +600,7 @@ fn read_default_variable_value_from_template(slot: &TemplateSlots) -> Result<Str
             } => default.clone(),
             _ => return Err(()),
         },
+        VarInfo::Array { entry } => return Err(()),
         _ => return Err(()),
     };
     let (key, value) = (&slot.var_name, &default_value);
@@ -821,6 +822,7 @@ mod tests {
                     anyhow::bail!("Missing choices")
                 }
             }
+            VarInfo::Array { entry } => todo!(),
         })?
         .canonicalize()?;
         let expected = tmp.path().join("sub2").canonicalize()?;
@@ -878,6 +880,7 @@ mod tests {
                     anyhow::bail!("Missing choices")
                 }
             }
+            VarInfo::Array { entry } => todo!(),
         })?
         .canonicalize()?;
 
@@ -917,6 +920,7 @@ mod tests {
                     anyhow::bail!("Missing choices")
                 }
             }
+            VarInfo::Array { entry } => todo!(),
         })?
         .canonicalize()?;
         let expected = tmp.path().join("dir4").canonicalize()?;

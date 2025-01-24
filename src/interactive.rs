@@ -84,6 +84,7 @@ pub fn prompt_and_check_variable(
                 handle_string_input(provided_value, &variable.var_name, entry, &variable.prompt)
             }
         },
+        VarInfo::Array { entry } => todo!(),
     }
 }
 
@@ -95,6 +96,7 @@ pub fn variable(variable: &TemplateSlots, provided_value: Option<&impl ToString>
             Ok(Value::Scalar(as_bool.into()))
         }
         VarInfo::String { .. } => Ok(Value::Scalar(user_entry.into())),
+        VarInfo::Array { entry } => todo!(),
     }
 }
 
@@ -160,6 +162,45 @@ fn handle_string_input(
 }
 
 fn handle_choice_input(
+    provided_value: Option<String>,
+    var_name: &str,
+    choices: &Vec<String>,
+    entry: &StringEntry,
+    prompt: &Prompt,
+) -> Result<String> {
+    match provided_value {
+        Some(value) => {
+            if choices.contains(&value) {
+                Ok(value)
+            } else {
+                bail!(
+                    "{} {} \"{}\" {}",
+                    emoji::WARN,
+                    style("Sorry,").bold().red(),
+                    style(&value).bold().yellow(),
+                    style(format!("is not a valid value for {var_name}"))
+                        .bold()
+                        .red(),
+                )
+            }
+        }
+        None => {
+            let default = entry
+                .default
+                .as_ref()
+                .map_or(0, |default| choices.binary_search(default).unwrap_or(0));
+            let chosen = Select::with_theme(&ColorfulTheme::default())
+                .items(choices)
+                .with_prompt(&prompt.styled)
+                .default(default)
+                .interact()?;
+
+            Ok(choices.index(chosen).to_string())
+        }
+    }
+}
+
+fn handle_multi_select_input(
     provided_value: Option<String>,
     var_name: &str,
     choices: &Vec<String>,
