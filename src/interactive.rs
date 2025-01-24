@@ -1,10 +1,10 @@
 use crate::{
     emoji,
-    project_variables::{Prompt, StringEntry, StringKind, TemplateSlots, VarInfo},
+    project_variables::{ArrayEntry, Prompt, StringEntry, StringKind, TemplateSlots, VarInfo},
 };
 use anyhow::{anyhow, bail, Result};
 use console::style;
-use dialoguer::{theme::ColorfulTheme, Select};
+use dialoguer::{theme::ColorfulTheme, MultiSelect, Select};
 use dialoguer::{Editor, Input};
 use liquid_core::Value;
 use log::warn;
@@ -84,7 +84,9 @@ pub fn prompt_and_check_variable(
                 handle_string_input(provided_value, &variable.var_name, entry, &variable.prompt)
             }
         },
-        VarInfo::Array { entry } => todo!(),
+        VarInfo::Array { entry } => {
+            handle_multi_select_input(provided_value, &variable.var_name, entry, &variable.prompt)
+        }
     }
 }
 
@@ -96,7 +98,7 @@ pub fn variable(variable: &TemplateSlots, provided_value: Option<&impl ToString>
             Ok(Value::Scalar(as_bool.into()))
         }
         VarInfo::String { .. } => Ok(Value::Scalar(user_entry.into())),
-        VarInfo::Array { entry } => todo!(),
+        VarInfo::Array { .. } => Ok(Value::Scalar(user_entry.into())),
     }
 }
 
@@ -200,42 +202,77 @@ fn handle_choice_input(
     }
 }
 
+// simple function so we can easily get more complicated later if we need to
+fn parse_list(provided_value: &str) -> Vec<String> {
+    provided_value.split(',').map(|s| s.to_string()).collect()
+}
+
+fn check_provided_selections(
+    provided_value: &String,
+    choices: &Vec<String>,
+) -> Result<String, String> {
+    let list = parse_list(provided_value);
+    let (ok_entries, bad_entries): (Vec<String>, Vec<String>) =
+        list.iter().cloned().partition(|e| choices.contains(e));
+    if bad_entries.is_empty() {
+        Ok(ok_entries.join(","))
+    } else {
+        Err(bad_entries.join(","))
+    }
+}
+
 fn handle_multi_select_input(
     provided_value: Option<String>,
     var_name: &str,
-    choices: &Vec<String>,
-    entry: &StringEntry,
+    entry: &ArrayEntry,
     prompt: &Prompt,
 ) -> Result<String> {
-    match provided_value {
-        Some(value) => {
-            if choices.contains(&value) {
-                Ok(value)
-            } else {
-                bail!(
-                    "{} {} \"{}\" {}",
-                    emoji::WARN,
-                    style("Sorry,").bold().red(),
-                    style(&value).bold().yellow(),
-                    style(format!("is not a valid value for {var_name}"))
-                        .bold()
-                        .red(),
-                )
-            }
-        }
+    let val = match provided_value {
+        // value is just povided
+        Some(value) => value,
+        // no value is provided so we have to be smarter
         None => {
-            let default = entry
-                .default
-                .as_ref()
-                .map_or(0, |default| choices.binary_search(default).unwrap_or(0));
-            let chosen = Select::with_theme(&ColorfulTheme::default())
-                .items(choices)
+            let mut selected_by_default = Vec::<bool>::with_capacity(entry.choices.len());
+            match &entry.default {
+                // if no defaults are provided everything is disselected by default
+                None => {
+                    for _ in 0..entry.choices.len() {
+                        selected_by_default.push(false);
+                    }
+                }
+                Some(default_choices) => {
+                    for choice in &entry.choices {
+                        selected_by_default.push(default_choices.contains(&choice));
+                    }
+                }
+            };
+
+            let choice_indeces = MultiSelect::with_theme(&ColorfulTheme::default())
+                .items(&entry.choices)
                 .with_prompt(&prompt.styled)
-                .default(default)
+                .defaults(&selected_by_default)
                 .interact()?;
 
-            Ok(choices.index(chosen).to_string())
+            choice_indeces
+                .iter()
+                .filter_map(|idx| entry.choices.get(*idx))
+                .cloned()
+                .collect::<Vec<String>>()
+                .join(",")
         }
+    };
+
+    match check_provided_selections(&val, &entry.choices) {
+        Ok(s) => Ok(s),
+        Err(s) => bail!(
+            "{} {} \"{}\" {}",
+            emoji::WARN,
+            style("Sorry,").bold().red(),
+            style(&s).bold().yellow(),
+            style(format!("are not a valid values for {var_name}"))
+                .bold()
+                .red(),
+        ),
     }
 }
 

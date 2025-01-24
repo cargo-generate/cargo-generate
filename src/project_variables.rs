@@ -65,9 +65,15 @@ impl<T: AsRef<str>> From<T> for Prompt {
 /// Editor will never have choices
 #[derive(Debug, Clone)]
 pub enum VarInfo {
-    Array { entry: Box<Vec<String>> },
+    Array { entry: Box<ArrayEntry> },
     Bool { default: Option<bool> },
     String { entry: Box<StringEntry> },
+}
+
+#[derive(Debug, Clone)]
+pub struct ArrayEntry {
+    pub(crate) default: Option<Vec<String>>,
+    pub(crate) choices: Vec<String>,
 }
 
 #[derive(Debug, Clone)]

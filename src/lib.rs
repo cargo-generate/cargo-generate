@@ -600,7 +600,6 @@ fn read_default_variable_value_from_template(slot: &TemplateSlots) -> Result<Str
             } => default.clone(),
             _ => return Err(()),
         },
-        VarInfo::Array { entry } => return Err(()),
         _ => return Err(()),
     };
     let (key, value) = (&slot.var_name, &default_value);
@@ -610,6 +609,27 @@ fn read_default_variable_value_from_template(slot: &TemplateSlots) -> Result<Str
         style(format!("{key}: {value:?}")).bold(),
     );
     Ok(default_value)
+}
+
+/// Turn things into strings that can be turned into strings
+/// Tables are not allowed and will be ignored
+/// arrays are allowed but will be flattened like so
+/// [[[[a,b],[[c]]],[[[d]]]]] => "a,b,c,d"
+fn extract_toml_string(value: &toml::Value) -> Option<String> {
+    match value {
+        toml::Value::String(s) => Some(s.clone()),
+        toml::Value::Integer(s) => Some(s.to_string()),
+        toml::Value::Float(s) => Some(s.to_string()),
+        toml::Value::Boolean(s) => Some(s.to_string()),
+        toml::Value::Datetime(s) => Some(s.to_string()),
+        toml::Value::Array(s) => Some(
+            s.iter()
+                .filter_map(extract_toml_string)
+                .collect::<Vec<String>>()
+                .join(","),
+        ),
+        toml::Value::Table(_) => None,
+    }
 }
 
 // Evaluate the configuration, adding defined placeholder variables to the liquid object.
@@ -624,14 +644,9 @@ fn fill_placeholders_and_merge_conditionals(
     loop {
         // keep evaluating for placeholder variables as long new ones are added.
         project_variables::fill_project_variables(liquid_object, config, |slot| {
-            let provided_value = template_values.get(&slot.var_name).and_then(|v| match v {
-                toml::Value::String(s) => Some(s.clone()),
-                toml::Value::Integer(s) => Some(s.to_string()),
-                toml::Value::Float(s) => Some(s.to_string()),
-                toml::Value::Boolean(s) => Some(s.to_string()),
-                toml::Value::Datetime(s) => Some(s.to_string()),
-                toml::Value::Array(_) | toml::Value::Table(_) => None,
-            });
+            let provided_value = template_values
+                .get(&slot.var_name)
+                .and_then(|v| extract_toml_string(v));
             if provided_value.is_none() && args.silent {
                 let default_value = match read_default_variable_value_from_template(slot) {
                     Ok(string) => string,
