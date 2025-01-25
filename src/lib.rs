@@ -646,7 +646,7 @@ fn fill_placeholders_and_merge_conditionals(
         project_variables::fill_project_variables(liquid_object, config, |slot| {
             let provided_value = template_values
                 .get(&slot.var_name)
-                .and_then(|v| extract_toml_string(v));
+                .and_then(extract_toml_string);
             if provided_value.is_none() && args.silent {
                 let default_value = match read_default_variable_value_from_template(slot) {
                     Ok(string) => string,
@@ -827,7 +827,7 @@ mod tests {
         let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
             .var_info
         {
-            VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
+            VarInfo::Bool { .. } | VarInfo::Array { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
                 if let StringKind::Choices(choices) = entry.kind.clone() {
                     let expected = vec!["sub1".to_string(), "sub2".to_string()];
@@ -837,7 +837,6 @@ mod tests {
                     anyhow::bail!("Missing choices")
                 }
             }
-            VarInfo::Array { entry } => todo!(),
         })?
         .canonicalize()?;
         let expected = tmp.path().join("sub2").canonicalize()?;
@@ -876,7 +875,7 @@ mod tests {
         let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
             .var_info
         {
-            VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
+            VarInfo::Bool { .. } | VarInfo::Array { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
                 if let StringKind::Choices(choices) = entry.kind.clone() {
                     let (expected, answer) = match prompt_num {
@@ -895,7 +894,6 @@ mod tests {
                     anyhow::bail!("Missing choices")
                 }
             }
-            VarInfo::Array { entry } => todo!(),
         })?
         .canonicalize()?;
 
@@ -922,7 +920,7 @@ mod tests {
         let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
             .var_info
         {
-            VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
+            VarInfo::Bool { .. } | VarInfo::Array { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
                 if let StringKind::Choices(choices) = entry.kind.clone() {
                     let expected = vec![
@@ -935,7 +933,6 @@ mod tests {
                     anyhow::bail!("Missing choices")
                 }
             }
-            VarInfo::Array { entry } => todo!(),
         })?
         .canonicalize()?;
         let expected = tmp.path().join("dir4").canonicalize()?;

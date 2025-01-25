@@ -11,7 +11,7 @@ type = "string"
 prompt = "Please select one..."
 choices = ["One", "Two", "Three", "Four"]
 
-[conditional.'ask_for_options'.placeholders.multi-choice]
+[conditional.'ask_for_options'.placeholders.multi_choice]
 type = "array"
 prompt = "Please select one or more..."
 choices = ["A", "B", "C", "D"]

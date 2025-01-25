@@ -15,6 +15,8 @@ use std::{
     str::FromStr,
 };
 
+const LIST_SEP: &str = ",";
+
 pub fn name() -> Result<String> {
     let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;
     let project_var = TemplateSlots {
@@ -98,7 +100,12 @@ pub fn variable(variable: &TemplateSlots, provided_value: Option<&impl ToString>
             Ok(Value::Scalar(as_bool.into()))
         }
         VarInfo::String { .. } => Ok(Value::Scalar(user_entry.into())),
-        VarInfo::Array { .. } => Ok(Value::Scalar(user_entry.into())),
+        VarInfo::Array { .. } => Ok(Value::Array(
+            user_entry
+                .split(LIST_SEP)
+                .map(|s| Value::Scalar(s.to_string().into()))
+                .collect(),
+        )),
     }
 }
 
@@ -207,17 +214,14 @@ fn parse_list(provided_value: &str) -> Vec<String> {
     provided_value.split(',').map(|s| s.to_string()).collect()
 }
 
-fn check_provided_selections(
-    provided_value: &String,
-    choices: &Vec<String>,
-) -> Result<String, String> {
+fn check_provided_selections(provided_value: &str, choices: &[String]) -> Result<String, String> {
     let list = parse_list(provided_value);
     let (ok_entries, bad_entries): (Vec<String>, Vec<String>) =
         list.iter().cloned().partition(|e| choices.contains(e));
     if bad_entries.is_empty() {
-        Ok(ok_entries.join(","))
+        Ok(ok_entries.join(LIST_SEP))
     } else {
-        Err(bad_entries.join(","))
+        Err(bad_entries.join(LIST_SEP))
     }
 }
 
@@ -236,13 +240,11 @@ fn handle_multi_select_input(
             match &entry.default {
                 // if no defaults are provided everything is disselected by default
                 None => {
-                    for _ in 0..entry.choices.len() {
-                        selected_by_default.push(false);
-                    }
+                    selected_by_default.resize(entry.choices.len(), false);
                 }
                 Some(default_choices) => {
                     for choice in &entry.choices {
-                        selected_by_default.push(default_choices.contains(&choice));
+                        selected_by_default.push(default_choices.contains(choice));
                     }
                 }
             };
@@ -258,7 +260,7 @@ fn handle_multi_select_input(
                 .filter_map(|idx| entry.choices.get(*idx))
                 .cloned()
                 .collect::<Vec<String>>()
-                .join(",")
+                .join(LIST_SEP)
         }
     };
 
