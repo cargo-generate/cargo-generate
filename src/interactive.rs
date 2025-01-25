@@ -211,11 +211,18 @@ fn handle_choice_input(
 
 // simple function so we can easily get more complicated later if we need to
 fn parse_list(provided_value: &str) -> Vec<String> {
-    provided_value.split(',').map(|s| s.to_string()).collect()
+    provided_value
+        .split(',')
+        .map(|s| s.to_string())
+        .filter(|e| !e.is_empty())
+        .collect()
 }
 
 fn check_provided_selections(provided_value: &str, choices: &[String]) -> Result<String, String> {
     let list = parse_list(provided_value);
+    if list.is_empty() {
+        return Ok(String::new());
+    }
     let (ok_entries, bad_entries): (Vec<String>, Vec<String>) =
         list.iter().cloned().partition(|e| choices.contains(e));
     if bad_entries.is_empty() {
