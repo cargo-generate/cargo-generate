@@ -31,6 +31,69 @@ version = "0.1.0"
 }
 
 #[test]
+fn it_errors_on_invalid_template() {
+    let template = tempdir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project}<>M>*(&^)-name}}"
+description = "A wonderful project Copyright {{ "2018-10-04 18:18:45 +0200" | date: "%Y" }}"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
+        .current_dir(dir.path())
+        .assert()
+        .failure()
+        .stderr(
+            predicates::str::contains("Substitution skipped, found invalid syntax in").from_utf8(),
+        );
+}
+
+#[test]
+fn it_quiet_suprresses_warning() {
+    let template = tempdir()
+        .file(
+            "Cargo.toml",
+            r#"[package]
+name = "{{project}<>M>*(&^)-name}}"
+description = "A wonderful project Copyright {{ "2018-10-04 18:18:45 +0200" | date: "%Y" }}"
+version = "0.1.0"
+"#,
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
+        .arg("--quiet")
+        .arg("--continue-on-error")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(
+            predicates::str::contains("Substitution skipped")
+                .not()
+                .from_utf8(),
+        );
+
+    let contents = dir.read("foobar-project/Cargo.toml");
+    assert!(contents.contains("{{project}<>M>*(&^)-name}}"));
+}
+
+#[test]
 fn it_applies_filters() {
     let template = tempdir()
         .file(

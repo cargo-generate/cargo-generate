@@ -95,8 +95,23 @@ pub struct GenerateArgs {
     pub force: bool,
 
     /// Enables more verbose output.
-    #[arg(long, short, action)]
+    #[arg(long, short, action, conflicts_with = "quiet")]
     pub verbose: bool,
+
+    /// Opposite of verbose, suppresses errors & warning in output
+    /// Conflicts with verbose, and requires the use of --continue-on-error
+    #[arg(
+        long,
+        short,
+        action,
+        conflicts_with = "verbose",
+        requires = "continue_on_error"
+    )]
+    pub quiet: bool,
+
+    /// Continue if errors in templates are encountered
+    #[arg(long, action)]
+    pub continue_on_error: bool,
 
     /// Pass template values through a file. Values should be in the format `key=value`, one per
     /// line
@@ -177,6 +192,8 @@ impl Default for GenerateArgs {
             name: None,
             force: false,
             verbose: false,
+            quiet: false,
+            continue_on_error: false,
             template_values_file: None,
             silent: false,
             config: None,
