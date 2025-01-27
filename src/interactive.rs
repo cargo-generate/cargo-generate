@@ -242,7 +242,7 @@ fn handle_multi_select_input(
     prompt: &Prompt,
 ) -> Result<String> {
     let val = match provided_value {
-        // value is just povided
+        // value is just provided
         Some(value) => value,
         // no value is provided so we have to be smarter
         None => {
@@ -259,13 +259,13 @@ fn handle_multi_select_input(
                 }
             };
 
-            let choice_indeces = MultiSelect::with_theme(&ColorfulTheme::default())
+            let choice_indices = MultiSelect::with_theme(&ColorfulTheme::default())
                 .items(&entry.choices)
                 .with_prompt(&prompt.styled)
                 .defaults(&selected_by_default)
                 .interact()?;
 
-            choice_indeces
+            choice_indices
                 .iter()
                 .filter_map(|idx| entry.choices.get(*idx))
                 .cloned()
