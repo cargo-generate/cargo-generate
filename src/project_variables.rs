@@ -833,6 +833,50 @@ mod tests {
     }
 
     #[test]
+    fn multi_choices_is_not_array_string_is_error() {
+        let result = extract_choices(
+            "foo",
+            SupportedVarType::Array,
+            None,
+            Some(&toml::Value::Array(vec![
+                toml::Value::String("bar0".into()),
+                toml::Value::Table(toml::map::Map::new()),
+            ])),
+        );
+
+        assert_eq!(
+            result,
+            Err(ConversionError::WrongTypeParameter {
+                var_name: "foo".into(),
+                parameter: "choices".into(),
+                correct_type: "String Array".into()
+            })
+        );
+    }
+
+    #[test]
+    fn multi_choices_wrong_default_type() {
+        let result = extract_default(
+            "foo",
+            SupportedVarType::Array,
+            None,
+            Some(&toml::Value::Array(vec![toml::Value::String(
+                "true".into(),
+            )])),
+            Some(&vec!["bar0".to_string()]),
+        );
+
+        assert_eq!(
+            result,
+            Err(ConversionError::InvalidDefault {
+                var_name: "foo".into(),
+                default: "true".to_string(),
+                choices: vec!["bar0".to_string()]
+            })
+        );
+    }
+
+    #[test]
     fn no_choices_for_type_string() {
         let result = extract_choices("foo", SupportedVarType::String, None, None);
 
