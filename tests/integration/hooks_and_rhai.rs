@@ -269,6 +269,8 @@ fn can_change_variables_from_pre_hook() {
         .file(
             "cargo-generate.toml",
             indoc! {r#"
+            [placeholders]
+            multi = {type = "array", prompt="??", choices=["a","b","c"], default=["a","b"]}
             [hooks]
             pre = ["pre-script.rhai"]
             "#},
@@ -277,12 +279,14 @@ fn can_change_variables_from_pre_hook() {
             "pre-script.rhai",
             indoc! {r#"
                 variable::set("foo", "bar");
+                variable::set("multi", ["Q","b"]);
             "#},
         )
         .file(
             "PRE-TEST",
             indoc! {r#"
                 {{foo}};
+                {{multi}};
             "#},
         )
         .init_git()
@@ -294,12 +298,17 @@ fn can_change_variables_from_pre_hook() {
         .arg_git(template.path())
         .arg_name("script-project")
         .current_dir(dir.path())
+        .arg("-d")
+        .arg("multi=a,b")
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("script-project/PRE-TEST"));
-    assert!(dir.read("script-project/PRE-TEST").contains("bar"));
+    let pre_test = dir.read("script-project/PRE-TEST");
+    dbg!(&pre_test);
+    assert!(pre_test.contains("bar"));
+    assert!(pre_test.contains("Q"));
 }
 
 #[test]

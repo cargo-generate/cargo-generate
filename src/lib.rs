@@ -611,6 +611,27 @@ fn read_default_variable_value_from_template(slot: &TemplateSlots) -> Result<Str
     Ok(default_value)
 }
 
+/// Turn things into strings that can be turned into strings
+/// Tables are not allowed and will be ignored
+/// arrays are allowed but will be flattened like so
+/// [[[[a,b],[[c]]],[[[d]]]]] => "a,b,c,d"
+fn extract_toml_string(value: &toml::Value) -> Option<String> {
+    match value {
+        toml::Value::String(s) => Some(s.clone()),
+        toml::Value::Integer(s) => Some(s.to_string()),
+        toml::Value::Float(s) => Some(s.to_string()),
+        toml::Value::Boolean(s) => Some(s.to_string()),
+        toml::Value::Datetime(s) => Some(s.to_string()),
+        toml::Value::Array(s) => Some(
+            s.iter()
+                .filter_map(extract_toml_string)
+                .collect::<Vec<String>>()
+                .join(","),
+        ),
+        toml::Value::Table(_) => None,
+    }
+}
+
 // Evaluate the configuration, adding defined placeholder variables to the liquid object.
 fn fill_placeholders_and_merge_conditionals(
     config: &mut Config,
@@ -623,14 +644,9 @@ fn fill_placeholders_and_merge_conditionals(
     loop {
         // keep evaluating for placeholder variables as long new ones are added.
         project_variables::fill_project_variables(liquid_object, config, |slot| {
-            let provided_value = template_values.get(&slot.var_name).and_then(|v| match v {
-                toml::Value::String(s) => Some(s.clone()),
-                toml::Value::Integer(s) => Some(s.to_string()),
-                toml::Value::Float(s) => Some(s.to_string()),
-                toml::Value::Boolean(s) => Some(s.to_string()),
-                toml::Value::Datetime(s) => Some(s.to_string()),
-                toml::Value::Array(_) | toml::Value::Table(_) => None,
-            });
+            let provided_value = template_values
+                .get(&slot.var_name)
+                .and_then(extract_toml_string);
             if provided_value.is_none() && args.silent {
                 let default_value = match read_default_variable_value_from_template(slot) {
                     Ok(string) => string,
@@ -748,7 +764,7 @@ impl Drop for ScopedWorkingDirectory {
 #[cfg(test)]
 mod tests {
     use crate::{
-        auto_locate_template_dir,
+        auto_locate_template_dir, extract_toml_string,
         project_variables::{StringKind, VarInfo},
         tmp_dir,
     };
@@ -811,7 +827,7 @@ mod tests {
         let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
             .var_info
         {
-            VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
+            VarInfo::Bool { .. } | VarInfo::Array { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
                 if let StringKind::Choices(choices) = entry.kind.clone() {
                     let expected = vec!["sub1".to_string(), "sub2".to_string()];
@@ -859,7 +875,7 @@ mod tests {
         let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
             .var_info
         {
-            VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
+            VarInfo::Bool { .. } | VarInfo::Array { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
                 if let StringKind::Choices(choices) = entry.kind.clone() {
                     let (expected, answer) = match prompt_num {
@@ -904,7 +920,7 @@ mod tests {
         let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
             .var_info
         {
-            VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
+            VarInfo::Bool { .. } | VarInfo::Array { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
                 if let StringKind::Choices(choices) = entry.kind.clone() {
                     let expected = vec![
@@ -954,5 +970,34 @@ mod tests {
 
         fs::File::create(&path)?.write_all(contents.as_ref().as_ref())?;
         Ok(())
+    }
+
+    #[test]
+    fn test_extract_toml_string() {
+        assert_eq!(
+            extract_toml_string(&toml::Value::Integer(42)),
+            Some(String::from("42"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Float(42.0)),
+            Some(String::from("42"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Boolean(true)),
+            Some(String::from("true"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Array(vec![
+                toml::Value::Integer(1),
+                toml::Value::Array(vec![toml::Value::Array(vec![toml::Value::Integer(2)])]),
+                toml::Value::Integer(3),
+                toml::Value::Integer(4),
+            ])),
+            Some(String::from("1,2,3,4"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Table(toml::map::Map::new())),
+            None
+        );
     }
 }
