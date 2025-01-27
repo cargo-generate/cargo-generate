@@ -528,13 +528,11 @@ fn extract_choices(
                 .collect::<Vec<_>>();
             Ok(Some(strings))
         }
-        (Some(_), SupportedVarType::Array) => {
-            return Err(ConversionError::WrongTypeParameter {
-                var_name: var_name.into(),
-                parameter: "choices".to_string(),
-                correct_type: "String Array".to_string(),
-            });
-        }
+        (Some(_), SupportedVarType::Array) => Err(ConversionError::WrongTypeParameter {
+            var_name: var_name.into(),
+            parameter: "choices".to_string(),
+            correct_type: "String Array".to_string(),
+        }),
         (Some(toml::Value::Array(arr)), SupportedVarType::String) => {
             // Checks if very entry in the array is a String
             let converted = arr
