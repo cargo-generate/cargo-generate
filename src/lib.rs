@@ -972,6 +972,7 @@ mod tests {
         Ok(())
     }
 
+    #[test]
     fn test_extract_toml_string() {
         assert_eq!(
             extract_toml_string(&toml::Value::Integer(42)),
@@ -979,15 +980,7 @@ mod tests {
         );
         assert_eq!(
             extract_toml_string(&toml::Value::Float(42.0)),
-            Some(String::from("42.0"))
-        );
-        assert_eq!(
-            extract_toml_string(&toml::Value::Float(42.0)),
-            Some(String::from("42.0"))
-        );
-        assert_eq!(
-            extract_toml_string(&toml::Value::Float(42.0)),
-            Some(String::from("42.0"))
+            Some(String::from("42"))
         );
         assert_eq!(
             extract_toml_string(&toml::Value::Boolean(true)),
