@@ -213,22 +213,25 @@ fn handle_choice_input(
 fn parse_list(provided_value: &str) -> Vec<String> {
     provided_value
         .split(',')
-        .map(|s| s.to_string())
         .filter(|e| !e.is_empty())
+        .map(|s| s.to_string())
         .collect()
 }
 
-fn check_provided_selections(provided_value: &str, choices: &[String]) -> Result<String, String> {
+fn check_provided_selections(
+    provided_value: &str,
+    choices: &[String],
+) -> Result<Vec<String>, Vec<String>> {
     let list = parse_list(provided_value);
     if list.is_empty() {
-        return Ok(String::new());
+        return Ok(Vec::new());
     }
     let (ok_entries, bad_entries): (Vec<String>, Vec<String>) =
         list.iter().cloned().partition(|e| choices.contains(e));
     if bad_entries.is_empty() {
-        Ok(ok_entries.join(LIST_SEP))
+        Ok(ok_entries)
     } else {
-        Err(bad_entries.join(LIST_SEP))
+        Err(bad_entries)
     }
 }
 
@@ -272,16 +275,22 @@ fn handle_multi_select_input(
     };
 
     match check_provided_selections(&val, &entry.choices) {
-        Ok(s) => Ok(s),
-        Err(s) => bail!(
-            "{} {} \"{}\" {}",
-            emoji::WARN,
-            style("Sorry,").bold().red(),
-            style(&s).bold().yellow(),
-            style(format!("are not a valid values for {var_name}"))
-                .bold()
-                .red(),
-        ),
+        Ok(s) => Ok(s.join(LIST_SEP)),
+        Err(s) => {
+            let err_string = if s.len() > 1 {
+                format!("are not valid values for {var_name}")
+            } else {
+                format!("is not a valid value for {var_name}")
+            };
+
+            bail!(
+                "{} {} \"{}\" {}",
+                emoji::WARN,
+                style("Sorry,").bold().red(),
+                style(&s.join(LIST_SEP)).bold().yellow(),
+                style(err_string).bold().red(),
+            )
+        }
     }
 }
 
