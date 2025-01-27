@@ -578,6 +578,7 @@ fn extract_choices(
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
@@ -617,6 +618,50 @@ mod tests {
             result,
             Err(ConversionError::UnsupportedChoices {
                 var_type: "Bool".into()
+            })
+        );
+    }
+
+    #[test]
+    fn editor_cant_have_regex() {
+        let result = extract_regex(
+            "foo",
+            SupportedVarType::Editor,
+            Some(&toml::Value::Array(vec![
+                toml::Value::Boolean(true),
+                toml::Value::Boolean(false),
+            ])),
+        );
+
+        assert_eq!(
+            result.err(),
+            Some(ConversionError::WrongTypeParameter {
+                var_name: "foo".to_string(),
+                parameter: "regex".to_string(),
+                correct_type: "String".to_string()
+            })
+        );
+    }
+
+    #[test]
+    fn cant_have_default_wrong_type() {
+        let result = extract_default(
+            "foo",
+            SupportedVarType::Array,
+            None,
+            Some(&toml::Value::Array(vec![
+                toml::Value::Boolean(true),
+                toml::Value::Boolean(false),
+            ])),
+            None,
+        );
+
+        assert_eq!(
+            result.err(),
+            Some(ConversionError::WrongTypeParameter {
+                var_name: "foo".into(),
+                parameter: "default".into(),
+                correct_type: "array".into()
             })
         );
     }
@@ -675,6 +720,17 @@ mod tests {
                 var_name: "foo".into()
             })
         );
+    }
+    #[test]
+    fn multi_choices_can_be_an_empty_array() {
+        let result = extract_choices(
+            "foo",
+            SupportedVarType::Array,
+            None,
+            Some(&toml::Value::Array(Vec::new())),
+        );
+
+        assert_eq!(result, Ok(Some(Vec::new())));
     }
 
     #[test]
