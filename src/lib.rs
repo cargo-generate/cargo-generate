@@ -764,7 +764,7 @@ impl Drop for ScopedWorkingDirectory {
 #[cfg(test)]
 mod tests {
     use crate::{
-        auto_locate_template_dir,
+        auto_locate_template_dir, extract_toml_string,
         project_variables::{StringKind, VarInfo},
         tmp_dir,
     };
@@ -970,5 +970,41 @@ mod tests {
 
         fs::File::create(&path)?.write_all(contents.as_ref().as_ref())?;
         Ok(())
+    }
+
+    fn test_extract_toml_string() {
+        assert_eq!(
+            extract_toml_string(&toml::Value::Integer(42)),
+            Some(String::from("42"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Float(42.0)),
+            Some(String::from("42.0"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Float(42.0)),
+            Some(String::from("42.0"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Float(42.0)),
+            Some(String::from("42.0"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Boolean(true)),
+            Some(String::from("true"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Array(vec![
+                toml::Value::Integer(1),
+                toml::Value::Array(vec![toml::Value::Array(vec![toml::Value::Integer(2)])]),
+                toml::Value::Integer(3),
+                toml::Value::Integer(4),
+            ])),
+            Some(String::from("1,2,3,4"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Table(toml::map::Map::new())),
+            None
+        );
     }
 }
