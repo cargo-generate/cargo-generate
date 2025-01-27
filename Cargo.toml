@@ -21,7 +21,7 @@ clap = { version = "~4.5", features = ["derive", "wrap_help"] }
 console = "~0.15"
 dialoguer = "~0.11"
 env_logger = "~0.11"
-fs-err = "~3.0"
+fs-err = "~3.1"
 gix-config = "~0.40"
 heck = "~0.5"
 home = "~0.5"
