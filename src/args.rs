@@ -227,6 +227,7 @@ pub struct TemplatePath {
 
     /// Expand $CWD as a template, then run `cargo test` on the expansion (set
     /// $CARGO_GENERATE_TEST_CMD to override test command).
+    /// implies --verbose
     ///
     /// Any arguments given after the `--test` argument, will be used as arguments for the test
     /// command.
