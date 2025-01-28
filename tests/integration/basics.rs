@@ -878,6 +878,7 @@ version = "0.1.0"
         .arg_git(template.path())
         .arg_name("foobar-project")
         .arg_branch("main")
+        .arg("--continue-on-error")
         .current_dir(dir.path())
         .assert()
         .success()

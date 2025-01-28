@@ -512,7 +512,7 @@ fn expand_template(
         user_parsed_input.silent(),
         rhai_filter_files.clone(),
     );
-    template::walk_dir(
+    let result = template::walk_dir(
         &mut template_config,
         template_dir,
         &all_hook_files,
@@ -520,8 +520,21 @@ fn expand_template(
         rhai_engine,
         &rhai_filter_files,
         &mut pbar,
-        args.verbose,
-    )?;
+        args.quiet,
+    );
+
+    match result {
+        Ok(()) => (),
+        Err(e) => {
+            // Don't print the error twice
+            if !args.quiet && args.continue_on_error {
+                warn!("{}", e);
+            }
+            if !args.continue_on_error {
+                return Err(e);
+            }
+        }
+    };
 
     // run post-hooks
     execute_hooks(
