@@ -311,7 +311,7 @@ fn it_refuses_to_overwrite_files() -> anyhow::Result<()> {
         .flag_init()
         .current_dir(dir.path())
         .assert()
-        .failure();
+        .success();
     assert!(dir.read("Cargo.toml").contains("my-proj"));
     Ok(())
 }
