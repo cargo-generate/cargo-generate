@@ -70,22 +70,30 @@ pub fn create_module(dir: &Path) -> Module {
         }
     });
 
+    // listdir(path);
     module.set_native_fn("listdir", {
         let dir = dir.clone();
+        move |path: &str| -> HookResult<Array> { listdir(&dir, path) }
+    });
 
-        move |path: &str| -> HookResult<Array> {
-            let entries = std::fs::read_dir(to_absolute_path(&dir, path)?)
-                .map_err(|e| e.to_string())?
-                .filter_map(|e| e.ok())
-                .filter_map(|entry| entry.path().to_str().map(|s| s.to_string()))
-                .map(Dynamic::from)
-                .collect::<Array>();
-
-            Ok(entries)
-        }
+    // listdir(path = ".");
+    module.set_native_fn("listdir", {
+        let dir = dir.clone();
+        move || -> HookResult<Array> { listdir(&dir, ".") }
     });
 
     module
+}
+
+fn listdir(dir: &Path, path: &str) -> HookResult<Array> {
+    let entries = std::fs::read_dir(to_absolute_path(dir, path)?)
+        .map_err(|e| e.to_string())?
+        .filter_map(|e| e.ok())
+        .filter_map(|entry| entry.path().to_str().map(|s| s.to_string()))
+        .map(Dynamic::from)
+        .collect::<Array>();
+
+    Ok(entries)
 }
 
 fn to_absolute_path(base_dir: &Path, relative_path: &str) -> HookResult<PathBuf> {
