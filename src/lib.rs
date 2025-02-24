@@ -55,7 +55,7 @@ use env_logger::fmt::Formatter;
 use fs_err as fs;
 use hooks::execute_hooks;
 use ignore_me::remove_dir_files;
-use interactive::prompt_and_check_variable;
+use interactive::{prompt_and_check_variable, LIST_SEP};
 use log::Record;
 use log::{info, warn};
 use project_variables::{StringEntry, StringKind, TemplateSlots, VarInfo};
@@ -626,7 +626,7 @@ fn extract_toml_string(value: &toml::Value) -> Option<String> {
             s.iter()
                 .filter_map(extract_toml_string)
                 .collect::<Vec<String>>()
-                .join(","),
+                .join(LIST_SEP),
         ),
         toml::Value::Table(_) => None,
     }

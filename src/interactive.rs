@@ -15,7 +15,7 @@ use std::{
     str::FromStr,
 };
 
-const LIST_SEP: &str = ",";
+pub const LIST_SEP: &str = ",";
 
 pub fn name() -> Result<String> {
     let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;
@@ -212,7 +212,7 @@ fn handle_choice_input(
 // simple function so we can easily get more complicated later if we need to
 fn parse_list(provided_value: &str) -> Vec<String> {
     provided_value
-        .split(',')
+        .split(LIST_SEP)
         .filter(|e| !e.is_empty())
         .map(|s| s.to_string())
         .collect()

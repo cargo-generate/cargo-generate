@@ -11,6 +11,7 @@ use console::style;
 
 use crate::{
     config::{Config, TemplateSlotsTable},
+    interactive::LIST_SEP,
     template::LiquidObjectResource,
 };
 
@@ -297,7 +298,7 @@ fn try_key_value_into_slot(
                 } else {
                     None
                 },
-                choices: choices.unwrap(),
+                choices: choices.unwrap_or_default(),
             }),
         },
         SupportedVarType::Text => VarInfo::String {
@@ -460,7 +461,7 @@ fn extract_default(
             } else {
                 Err(ConversionError::InvalidDefault {
                     var_name: var_name.into(),
-                    default: default_string_array.join(","),
+                    default: default_string_array.join(LIST_SEP),
                     choices: choices.clone(),
                 })
             }

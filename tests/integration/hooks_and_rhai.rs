@@ -306,7 +306,6 @@ fn can_change_variables_from_pre_hook() {
 
     assert!(dir.exists("script-project/PRE-TEST"));
     let pre_test = dir.read("script-project/PRE-TEST");
-    dbg!(&pre_test);
     assert!(pre_test.contains("bar"));
     assert!(pre_test.contains("Q"));
 }
