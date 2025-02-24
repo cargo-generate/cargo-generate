@@ -73,18 +73,17 @@ fn run_command(
         return Err(format!("User denied execution of system command `{full_command}`.").into());
     }
 
-    let output = Command::new(name).args(args).output();
+    let status = Command::new(name).args(args).status();
 
-    match output {
-        Ok(output) => {
-            if output.status.success() {
+    match status {
+        Ok(status) => {
+            if status.success() {
                 Ok(Dynamic::UNIT)
             } else {
-                Err(format!(
-                    "System command `{full_command}` returned non-zero status: {}",
-                    output.status
+                Err(
+                    format!("System command `{full_command}` returned non-zero status: {status}")
+                        .into(),
                 )
-                .into())
             }
         }
         Err(e) => Err(format!("System command `{full_command}` failed to execute: {e}").into()),
