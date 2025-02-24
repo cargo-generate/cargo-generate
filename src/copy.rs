@@ -66,7 +66,7 @@ fn copy_file(src_path: &Path, dst: &Path, overwrite: bool) -> Result<()> {
 
         // move the file to a new filename without the .liquid suffix, in any case
         let dst_path = dst.join(new_filename);
-        safe_copy(src_path, &dst_path, overwrite)?;
+        safe_copy(src_path, &dst_path, overwrite)
     } else if src_path
         .with_file_name(format!("{filename}{LIQUID_SUFFIX}"))
         .exists()
@@ -74,17 +74,16 @@ fn copy_file(src_path: &Path, dst: &Path, overwrite: bool) -> Result<()> {
         // there is a liquid file for this non-liquid file,
         // so we skip this one, so that the liquid file takes precedence
         debug!("A liquid file exists for {filename}, skipping the non-liquid file");
-        return Ok(());
+        Ok(())
     } else {
         // if the file doesn't have a .liquid suffix, just copy it
         // and skip if flile with that name exists
         // possibly overwriting existing files if overwrite is true
-        safe_copy_no_liquid(src_path, &dst_path, overwrite)?;
+        safe_copy_skip_existing(src_path, &dst_path, overwrite)
     }
-
-    Ok(())
 }
 
+/// Copies a file from `src_path` to `dst_path`, error when `dst_path` exists and not set to not overwriting.
 fn safe_copy(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
     if dst_path.exists() && !overwrite {
         bail!(
@@ -106,7 +105,9 @@ fn safe_copy(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
     Ok(())
 }
 
-fn safe_copy_no_liquid(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
+/// Does the same as `safe_copy`, but skips existing files if set to not overwriting.
+/// It does not error if the file already exists.
+fn safe_copy_skip_existing(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
     if dst_path.exists() && !overwrite {
         warn!(
             "{} {} `{}` {}",
@@ -162,7 +163,7 @@ mod tests {
         std::fs::write(&f2, "SECOND README").unwrap();
 
         assert!(
-            safe_copy_no_liquid(f1.as_path(), f2.as_path(), false).is_ok(),
+            safe_copy_skip_existing(f1.as_path(), f2.as_path(), false).is_ok(),
             "we do not allow overwriting if file with same name already exists without the flag set"
         );
         assert_eq!(
@@ -171,7 +172,7 @@ mod tests {
             "the file should not be copied"
         );
         assert!(
-            safe_copy_no_liquid(f1.as_path(), f2.as_path(), true).is_ok(),
+            safe_copy_skip_existing(f1.as_path(), f2.as_path(), true).is_ok(),
             "we do allow overwriting if file with same name already exists without the flag set"
         );
         assert_eq!(
