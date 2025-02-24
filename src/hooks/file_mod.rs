@@ -1,6 +1,6 @@
 use console::style;
 use path_absolutize::Absolutize;
-use rhai::{Array, Module};
+use rhai::{Array, Dynamic, Module};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
@@ -57,6 +57,8 @@ pub fn create_module(dir: &Path) -> Module {
     });
 
     module.set_native_fn("write", {
+        let dir = dir.clone();
+
         move |file: &str, content: Array| -> HookResult<()> {
             let file = to_absolute_path(&dir, file)?;
             let mut file = std::fs::File::create(file).map_err(|e| e.to_string())?;
@@ -65,6 +67,21 @@ pub fn create_module(dir: &Path) -> Module {
             }
 
             Ok(())
+        }
+    });
+
+    module.set_native_fn("listdir", {
+        let dir = dir.clone();
+
+        move |path: &str| -> HookResult<Array> {
+            let entries = std::fs::read_dir(to_absolute_path(&dir, path)?)
+                .map_err(|e| e.to_string())?
+                .filter_map(|e| e.ok())
+                .filter_map(|entry| entry.path().to_str().map(|s| s.to_string()))
+                .map(Dynamic::from)
+                .collect::<Array>();
+
+            Ok(entries)
         }
     });
 

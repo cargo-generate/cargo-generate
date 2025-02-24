@@ -1,3 +1,4 @@
+use log::debug;
 use rhai::{Dynamic, Module};
 use std::{collections::BTreeMap, process::Command};
 use time::OffsetDateTime;
@@ -17,6 +18,10 @@ pub fn create_module(allow_commands: bool, silent: bool) -> Module {
     module.set_native_fn("command", move |name: &str, commands_args: rhai::Array| {
         run_command(name, commands_args, allow_commands, silent)
     });
+    module.set_native_fn("command", move |name: &str| {
+        run_command(name, rhai::Array::new(), allow_commands, silent)
+    });
+
     module.set_native_fn("date", get_utc_date);
 
     module
@@ -73,17 +78,27 @@ fn run_command(
         return Err(format!("User denied execution of system command `{full_command}`.").into());
     }
 
-    let status = Command::new(name).args(args).status();
+    let output = Command::new(name).args(args).output();
 
-    match status {
-        Ok(status) => {
-            if status.success() {
-                Ok(Dynamic::UNIT)
+    match output {
+        Ok(output) => {
+            if output.status.success() {
+                match output.stdout.len() {
+                    0 => Ok(Dynamic::UNIT),
+                    _ => {
+                        let output_str = String::from_utf8_lossy(&output.stdout).to_string();
+                        debug!("Rhai output: {output_str}");
+
+                        Ok(Dynamic::from(output_str))
+                    }
+                }
             } else {
-                Err(
-                    format!("System command `{full_command}` returned non-zero status: {status}")
-                        .into(),
+                Err(format!(
+                    "System command `{full_command}` returned non-zero status: {}, stderr: {}",
+                    output.status,
+                    String::from_utf8_lossy(&output.stderr)
                 )
+                .into())
             }
         }
         Err(e) => Err(format!("System command `{full_command}` failed to execute: {e}").into()),

@@ -1,16 +1,19 @@
 use anyhow::{Context, Result};
 use console::style;
+use env_mod::Environment;
 use heck::{
     ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase, ToShoutySnakeCase, ToSnakeCase,
     ToTitleCase, ToUpperCamelCase,
 };
 use liquid::ValueView;
+use log::debug;
 use rhai::EvalAltResult;
 use std::{env, path::Path};
 
 use crate::emoji;
 use crate::template::LiquidObjectResource;
 
+mod env_mod;
 mod file_mod;
 mod system_mod;
 mod variable_mod;
@@ -38,6 +41,9 @@ pub fn execute_hooks(
     allow_commands: bool,
     silent: bool,
 ) -> Result<()> {
+    debug!("executing rhai hooks in: {}", dir.display());
+    debug!("we are in: {}", env::current_dir()?.display());
+
     let engine = create_rhai_engine(dir, liquid_object, allow_commands, silent);
     evaluate_scripts(dir, scripts, engine)?;
     Ok(())
@@ -116,6 +122,13 @@ pub fn create_rhai_engine(
 
     let module = system_mod::create_module(allow_commands, silent);
     engine.register_static_module("system", module.into());
+
+    let module = env_mod::create_module(Environment {
+        tmp_dir: dir.to_path_buf(),
+        // todo: here we need to pass the actual destination dir
+        destination_dir: dir.to_path_buf(),
+    });
+    engine.register_static_module("env", module.into());
 
     // register functions for changing case
     engine.register_fn("to_kebab_case", |str: &str| str.to_kebab_case());
