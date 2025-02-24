@@ -125,3 +125,35 @@ fn construct_date_map(dt: OffsetDateTime) -> Dynamic {
     );
     Dynamic::from_map(value)
 }
+
+#[cfg(test)]
+mod tests {
+    use std::io::Write;
+
+    use crate::{
+        hooks::{create_rhai_engine, RhaiHooksContext},
+        template::LiquidObjectResource,
+    };
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_system_module() {
+        let tmp_dir = TempDir::new().unwrap();
+        let mut file1 = std::fs::File::create(tmp_dir.path().join("file1")).unwrap();
+        file1.write_all(b"test1").unwrap();
+        let context = RhaiHooksContext {
+            working_directory: tmp_dir.path().to_path_buf(),
+            destination_directory: tmp_dir.path().join("destination").to_path_buf(),
+            liquid_object: LiquidObjectResource::default(),
+            allow_commands: true,
+            silent: true,
+        };
+        let engine = create_rhai_engine(&context);
+        std::env::set_current_dir(tmp_dir.path()).unwrap();
+
+        let content = engine
+            .eval::<String>(r#"system::command("cat", ["file1"])"#)
+            .unwrap();
+        assert_eq!(content, "test1");
+    }
+}
