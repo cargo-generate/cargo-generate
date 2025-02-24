@@ -85,8 +85,8 @@ pub fn create_module(dir: &Path) -> Module {
     module
 }
 
-fn listdir(dir: &Path, path: &str) -> HookResult<Array> {
-    let entries = std::fs::read_dir(to_absolute_path(dir, path)?)
+fn listdir(base_dir: &Path, path: &str) -> HookResult<Array> {
+    let entries = std::fs::read_dir(to_absolute_path(base_dir, path)?)
         .map_err(|e| e.to_string())?
         .filter_map(|e| e.ok())
         .filter_map(|entry| entry.path().to_str().map(|s| s.to_string()))
@@ -110,4 +110,40 @@ fn invalid_path(path: &str) -> String {
         style("Path must be inside template dir:").bold().red(),
         style(path).yellow(),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Write;
+
+    use crate::{
+        hooks::{create_rhai_engine, RhaiHooksContext},
+        template::LiquidObjectResource,
+    };
+    use rhai::Array;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_file_module() {
+        let tmp_dir = TempDir::new().unwrap();
+        let mut file1 = std::fs::File::create(tmp_dir.path().join("file1")).unwrap();
+        file1.write_all(b"test1").unwrap();
+        let mut file2 = std::fs::File::create(tmp_dir.path().join(".dotfile")).unwrap();
+        file2.write_all(b"test1").unwrap();
+        let context = RhaiHooksContext {
+            working_directory: tmp_dir.path().to_path_buf(),
+            destination_directory: tmp_dir.path().join("destination").to_path_buf(),
+            liquid_object: LiquidObjectResource::default(),
+            allow_commands: true,
+            silent: true,
+        };
+        let engine = create_rhai_engine(&context);
+
+        let files = engine.eval::<Array>("file::listdir()").unwrap();
+        assert_eq!(files.len(), 2);
+        let file = files.first().unwrap().clone();
+        assert!(file.into_string().unwrap().as_str().ends_with(".dotfile"));
+        let file = files[1].clone();
+        assert!(file.into_string().unwrap().as_str().ends_with("file1"));
+    }
 }
