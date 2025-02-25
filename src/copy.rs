@@ -106,7 +106,9 @@ fn safe_copy(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
     Ok(())
 }
 
-fn safe_copy_no_liquid(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
+/// Does the same as `safe_copy`, but skips existing files if set to not overwriting.
+/// It does not error if the file already exists.
+fn safe_copy_skip_existing(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
     if dst_path.exists() && !overwrite {
         warn!(
             "{} {} `{}` {}",
@@ -162,7 +164,7 @@ mod tests {
         std::fs::write(&f2, "SECOND README").unwrap();
 
         assert!(
-            safe_copy_no_liquid(f1.as_path(), f2.as_path(), false).is_ok(),
+            safe_copy_skip_existing(f1.as_path(), f2.as_path(), false).is_ok(),
             "we do not allow overwriting if file with same name already exists without the flag set"
         );
         assert_eq!(
@@ -171,7 +173,7 @@ mod tests {
             "the file should not be copied"
         );
         assert!(
-            safe_copy_no_liquid(f1.as_path(), f2.as_path(), true).is_ok(),
+            safe_copy_skip_existing(f1.as_path(), f2.as_path(), true).is_ok(),
             "we do allow overwriting if file with same name already exists without the flag set"
         );
         assert_eq!(
