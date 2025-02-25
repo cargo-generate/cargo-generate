@@ -22,6 +22,7 @@
     clippy::use_self,
 )]
 
+mod absolute_path;
 mod app_config;
 mod args;
 mod config;

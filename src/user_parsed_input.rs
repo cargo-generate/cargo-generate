@@ -6,8 +6,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::absolute_path::AbsolutePathExt;
 use console::style;
-use path_absolutize::Absolutize;
 use regex::Regex;
 
 use crate::{app_config::AppConfig, template_variables::CrateType, GenerateArgs, Vcs};
@@ -91,13 +91,11 @@ impl UserParsedInput {
     pub fn try_from_args_and_config(app_config: AppConfig, args: &GenerateArgs) -> Self {
         const DEFAULT_VCS: Vcs = Vcs::Git;
 
-        dbg!(&args.destination);
-
         let destination = args
             .destination
             .as_ref()
             .map(|p| {
-                p.absolutize()
+                p.as_absolute()
                     .expect("cannot get the absolute path of the destination folder")
                     .to_path_buf()
             })

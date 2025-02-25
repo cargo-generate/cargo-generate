@@ -1,5 +1,5 @@
+use crate::absolute_path::AbsolutePathExt;
 use console::style;
-use path_absolutize::Absolutize;
 use rhai::{Array, Dynamic, Module};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -14,7 +14,7 @@ pub fn create_module(dir: &Path) -> Module {
         let dir = dir.clone();
 
         move |path: &str| -> HookResult<bool> {
-            let path = to_absolute_path(&dir, path)?;
+            let path = to_sandboxed_absolute_path(&dir, path)?;
             Ok(path.exists())
         }
     });
@@ -23,8 +23,8 @@ pub fn create_module(dir: &Path) -> Module {
         let dir = dir.clone();
 
         move |from: &str, to: &str| -> HookResult<()> {
-            let from = to_absolute_path(&dir, from)?;
-            let to = to_absolute_path(&dir, to)?;
+            let from = to_sandboxed_absolute_path(&dir, from)?;
+            let to = to_sandboxed_absolute_path(&dir, to)?;
             std::fs::rename(from, to).map_err(|e| e.to_string())?;
             Ok(())
         }
@@ -34,7 +34,7 @@ pub fn create_module(dir: &Path) -> Module {
         let dir = dir.clone();
 
         move |file: &str| -> HookResult<()> {
-            let path = to_absolute_path(&dir, file)?;
+            let path = to_sandboxed_absolute_path(&dir, file)?;
             if path.exists() {
                 if path.is_file() {
                     std::fs::remove_file(path).map_err(|e| e.to_string())?;
@@ -50,7 +50,7 @@ pub fn create_module(dir: &Path) -> Module {
         let dir = dir.clone();
 
         move |file: &str, content: &str| -> HookResult<()> {
-            let file = to_absolute_path(&dir, file)?;
+            let file = to_sandboxed_absolute_path(&dir, file)?;
             std::fs::write(file, content).map_err(|e| e.to_string())?;
             Ok(())
         }
@@ -60,7 +60,7 @@ pub fn create_module(dir: &Path) -> Module {
         let dir = dir.clone();
 
         move |file: &str, content: Array| -> HookResult<()> {
-            let file = to_absolute_path(&dir, file)?;
+            let file = to_sandboxed_absolute_path(&dir, file)?;
             let mut file = std::fs::File::create(file).map_err(|e| e.to_string())?;
             for v in content.iter() {
                 writeln!(file, "{v}").map_err(|e| e.to_string())?;
@@ -86,7 +86,7 @@ pub fn create_module(dir: &Path) -> Module {
 }
 
 fn listdir(base_dir: &Path, path: &str) -> HookResult<Array> {
-    let entries = std::fs::read_dir(to_absolute_path(base_dir, path)?)
+    let entries = std::fs::read_dir(to_sandboxed_absolute_path(base_dir, path)?)
         .map_err(|e| e.to_string())?
         .filter_map(|e| e.ok())
         .filter_map(|entry| entry.path().to_str().map(|s| s.to_string()))
@@ -96,12 +96,10 @@ fn listdir(base_dir: &Path, path: &str) -> HookResult<Array> {
     Ok(entries)
 }
 
-fn to_absolute_path(base_dir: &Path, relative_path: &str) -> HookResult<PathBuf> {
-    let joined = base_dir.join(relative_path);
-    Ok(joined
-        .absolutize_virtually(base_dir)
-        .map_err(|_| invalid_path(relative_path))?
-        .into_owned())
+fn to_sandboxed_absolute_path(sandbox_dir: &Path, any_path: &str) -> HookResult<PathBuf> {
+    Ok(PathBuf::from(any_path)
+        .as_sandboxed_absolute(sandbox_dir)
+        .map_err(|_| invalid_path(any_path))?)
 }
 
 fn invalid_path(path: &str) -> String {
@@ -124,50 +122,110 @@ mod tests {
     use tempfile::TempDir;
 
     #[test]
+    fn test_to_sandboxed_absolute_path() {
+        let cwd = std::env::current_dir().unwrap();
+
+        let absolute_path = super::to_sandboxed_absolute_path(&cwd, "Cargo.toml").unwrap();
+        assert_eq!(absolute_path, cwd.join("Cargo.toml"));
+
+        let path = std::path::Path::new(".");
+        let absolute_path =
+            super::to_sandboxed_absolute_path(&cwd, path.to_str().unwrap()).unwrap();
+        assert_eq!(absolute_path, cwd);
+    }
+
+    #[test]
     fn test_file_module() {
-        let tmp_dir = TempDir::new().unwrap();
-        let mut file1 = std::fs::File::create(tmp_dir.path().join("file1")).unwrap();
-        file1.write_all(b"test1").unwrap();
-        let mut file2 = std::fs::File::create(tmp_dir.path().join(".dotfile")).unwrap();
-        file2.write_all(b"test1").unwrap();
-        let context = RhaiHooksContext {
-            working_directory: tmp_dir.path().to_path_buf(),
-            destination_directory: tmp_dir.path().join("destination").to_path_buf(),
-            liquid_object: LiquidObjectResource::default(),
-            allow_commands: true,
-            silent: true,
-        };
+        let tmp_dir = prepare_file_system();
+        let context = prepare_context(&tmp_dir);
         let engine = create_rhai_engine(&context);
         std::env::set_current_dir(tmp_dir.path()).unwrap();
 
         let files = engine.eval::<Array>("file::listdir()").unwrap();
         assert_eq!(files.len(), 2);
-        let file = files.first().unwrap().clone();
-        assert!(file.into_string().unwrap().as_str().ends_with(".dotfile"));
-        let file = files[1].clone();
-        assert!(file.into_string().unwrap().as_str().ends_with("file1"));
+        for file in files.iter() {
+            let file = file.clone().into_string().unwrap();
+            assert!(
+                file.ends_with(".dotfile") || file.ends_with("file1"),
+                "file: {file} did not end with .dotfile nor file1"
+            );
+        }
+    }
+
+    #[test]
+    fn test_listdir_with_parameter() {
+        let tmp_dir = prepare_file_system();
+        let context = prepare_context(&tmp_dir);
+        let engine = create_rhai_engine(&context);
+        std::env::set_current_dir(tmp_dir.path()).unwrap();
 
         // cover the other listdir function with one path argument
         let files = engine.eval::<Array>(r#"file::listdir(".")"#).unwrap();
         assert_eq!(files.len(), 2);
-        let file = files.first().unwrap().clone();
-        assert!(file.into_string().unwrap().as_str().ends_with(".dotfile"));
-        let file = files[1].clone();
-        assert!(file.into_string().unwrap().as_str().ends_with("file1"));
+        for file in files.iter() {
+            let file = file.clone().into_string().unwrap();
+            assert!(
+                file.ends_with(".dotfile") || file.ends_with("file1"),
+                "file: {file} did not end with .dotfile nor file1"
+            );
+        }
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    #[should_panic(expected = "Path must be inside template dir:")]
+    fn test_listdir_does_not_escape_sandboxed_directory() {
+        let tmp_dir = prepare_file_system();
+        let context = prepare_context(&tmp_dir);
+        let engine = create_rhai_engine(&context);
+        std::env::set_current_dir(tmp_dir.path()).unwrap();
+
+        let path_argument = "../../../../etc";
+        engine
+            .eval::<Array>(format!("file::listdir(\"{path_argument}\")").as_str())
+            .unwrap();
+    }
+
+    #[test]
+    #[cfg(target_family = "unix")]
+    #[should_panic(expected = "Path must be inside template dir:")]
+    fn test_listdir_does_not_escape_sandboxed_directory_2() {
+        let tmp_dir = prepare_file_system();
+        let context = prepare_context(&tmp_dir);
+        let engine = create_rhai_engine(&context);
+        std::env::set_current_dir(tmp_dir.path()).unwrap();
+
+        let path_argument = "////../../../../etc";
+        engine
+            .eval::<Array>(format!("file::listdir(\"{path_argument}\")").as_str())
+            .unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Path must be inside template dir:")]
     fn test_listdir_error_case() {
         let tmp_dir = TempDir::new().unwrap();
-        let context = RhaiHooksContext {
+        let context = prepare_context(&tmp_dir);
+        let engine = create_rhai_engine(&context);
+        engine.eval::<Array>(r#"file::listdir("/tmp")"#).unwrap();
+    }
+
+    fn prepare_file_system() -> TempDir {
+        let tmp_dir = TempDir::new().unwrap();
+        let mut file1 = std::fs::File::create(tmp_dir.path().join("file1")).unwrap();
+        file1.write_all(b"test1").unwrap();
+        let mut file2 = std::fs::File::create(tmp_dir.path().join(".dotfile")).unwrap();
+        file2.write_all(b"test1").unwrap();
+        tmp_dir
+    }
+
+    fn prepare_context(tmp_dir: &TempDir) -> RhaiHooksContext {
+        RhaiHooksContext {
             working_directory: tmp_dir.path().to_path_buf(),
             destination_directory: tmp_dir.path().join("destination").to_path_buf(),
             liquid_object: LiquidObjectResource::default(),
             allow_commands: true,
             silent: true,
-        };
-        let engine = create_rhai_engine(&context);
-        engine.eval::<Array>(r#"file::listdir("/tmp")"#).unwrap();
+        }
     }
 }

@@ -111,12 +111,15 @@ pub fn create_rhai_engine(context: &RhaiHooksContext) -> rhai::Engine {
     let module = file_mod::create_module(&context.working_directory);
     engine.register_static_module("file", module.into());
 
-    let module = system_mod::create_module(context.allow_commands, context.silent);
+    let module = system_mod::create_module(
+        context.working_directory.clone(),
+        context.allow_commands,
+        context.silent,
+    );
     engine.register_static_module("system", module.into());
 
     let module = env_mod::create_module(Environment {
         working_directory: context.working_directory.clone(),
-        // todo: here we need to pass the actual destination dir
         destination_directory: context.destination_directory.clone(),
     });
     engine.register_static_module("env", module.into());

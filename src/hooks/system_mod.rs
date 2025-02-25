@@ -1,6 +1,10 @@
 use log::debug;
-use rhai::{Dynamic, Module};
-use std::{collections::BTreeMap, process::Command};
+use rhai::{Dynamic, FuncRegistration, Module};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+    process::Command,
+};
 use time::OffsetDateTime;
 
 use crate::{
@@ -12,14 +16,20 @@ use super::HookResult;
 
 /// Creates the system module, containing the `command` function,
 /// which allows you to run system command.
-pub fn create_module(allow_commands: bool, silent: bool) -> Module {
+pub fn create_module(working_directory: PathBuf, allow_commands: bool, silent: bool) -> Module {
     let mut module = Module::new();
 
-    module.set_native_fn("command", move |name: &str, commands_args: rhai::Array| {
-        run_command(name, commands_args, allow_commands, silent)
-    });
-    module.set_native_fn("command", move |name: &str| {
-        run_command(name, rhai::Array::new(), allow_commands, silent)
+    let cwd = working_directory.clone();
+    FuncRegistration::new("command").set_into_module(
+        &mut module,
+        move |name: &str, commands_args: rhai::Array| {
+            run_command(&cwd, name, commands_args, allow_commands, silent)
+        },
+    );
+
+    let cwd = working_directory.clone();
+    FuncRegistration::new("command").set_into_module(&mut module, move |name: &str| {
+        run_command(&cwd, name, rhai::Array::new(), allow_commands, silent)
     });
 
     module.set_native_fn("date", get_utc_date);
@@ -28,6 +38,7 @@ pub fn create_module(allow_commands: bool, silent: bool) -> Module {
 }
 
 fn run_command(
+    working_directory: &Path,
     name: &str,
     args: rhai::Array,
     allow_commands: bool,
@@ -78,29 +89,43 @@ fn run_command(
         return Err(format!("User denied execution of system command `{full_command}`.").into());
     }
 
-    let output = Command::new(name).args(args).output();
+    debug!(
+        "the command is executed within the cwd: {}",
+        std::env::current_dir().unwrap().display()
+    );
 
+    let output = if cfg!(target_os = "windows") {
+        Command::new("cmd")
+            .arg("/C")
+            .arg(&full_command)
+            .current_dir(working_directory)
+            .output()
+    } else {
+        Command::new("sh")
+            .arg("-c")
+            .arg(&full_command)
+            .current_dir(working_directory)
+            .output()
+    };
+
+    debug!("Command Call: {output:?}");
     match output {
-        Ok(output) => {
-            if output.status.success() {
-                match output.stdout.len() {
-                    0 => Ok(Dynamic::UNIT),
-                    _ => {
-                        let output_str = String::from_utf8_lossy(&output.stdout).to_string();
-                        debug!("Rhai output: {output_str}");
+        Ok(output) if output.status.success() && output.status.code().unwrap_or(1) == 0 => {
+            match output.stdout.len() {
+                0 => Ok(Dynamic::UNIT),
+                _ => {
+                    let output_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                    debug!("Rhai output: {output_str}");
 
-                        Ok(Dynamic::from(output_str))
-                    }
+                    Ok(Dynamic::from(output_str))
                 }
-            } else {
-                Err(format!(
-                    "System command `{full_command}` returned non-zero status: {}, stderr: {}",
-                    output.status,
-                    String::from_utf8_lossy(&output.stderr)
-                )
-                .into())
             }
         }
+        Ok(output) => Err(format!(
+            "System command `{full_command}` failed to execute: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        )
+        .into()),
         Err(e) => Err(format!("System command `{full_command}` failed to execute: {e}").into()),
     }
 }
@@ -149,19 +174,35 @@ mod tests {
             allow_commands: true,
             silent: true,
         };
+        std::env::set_current_dir(&context.working_directory).unwrap();
         let engine = create_rhai_engine(&context);
-        std::env::set_current_dir(tmp_dir.path()).unwrap();
+
+        let pwd = engine.eval::<String>(r#"system::command("pwd")"#).unwrap();
+        assert_eq!(
+            pwd,
+            pwd.trim_end(),
+            "there should be no trailing whitespace or newline"
+        );
+        assert_eq!(
+            pwd,
+            tmp_dir.path().canonicalize().unwrap().to_str().unwrap(),
+            "the system::command should run in the context of the working_directory: {}",
+            tmp_dir.path().display()
+        );
 
         let content = engine
-            .eval::<String>(r#"system::command("cat", ["file1"])"#)
+            .eval::<String>(r#"system::command("/bin/cat", ["file1"])"#)
             .unwrap();
         assert_eq!(content, "test1");
     }
 
+    // Note, macos and linux have different error message behaviour for this case
+    // macos: System command `nonexistent_command` failed to execute: No such file or directory (os error 2)
+    // linux: System command `nonexistent_command` failed to execute: "
+    //
+    // root cause is that on linux stderr is empty, on macos it contains the error message
     #[test]
-    #[should_panic(
-        expected = "System command `nonexistent_command` failed to execute: No such file or directory (os error 2)"
-    )]
+    #[should_panic(expected = "System command `nonexistent_command` failed to execute: ")]
     fn test_run_command_failure() {
         let tmp_dir = TempDir::new().unwrap();
         let context = RhaiHooksContext {
@@ -203,7 +244,8 @@ mod tests {
     #[test]
     fn test_get_utc_date() {
         let mut engine = Engine::new();
-        let module = super::create_module(true, true);
+        let cwd = std::env::current_dir().unwrap();
+        let module = super::create_module(cwd, true, true);
         engine.register_static_module("system", module.into());
 
         let result = engine.eval::<rhai::Map>(r#"system::date()"#).unwrap();

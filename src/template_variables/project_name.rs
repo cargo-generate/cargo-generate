@@ -45,8 +45,18 @@ pub fn sanitize_project_name(name: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use crate::absolute_path::AbsolutePathExt;
+    use std::path::Path;
+
     use super::*;
     use crate::user_parsed_input::UserParsedInputBuilder;
+
+    #[test]
+    fn ensure_that_absolute_path_of_non_existing_path_works() {
+        let path = Path::new("/non-existing-path");
+        let path_absolutize = path.as_absolute().unwrap();
+        assert_eq!(path_absolutize, path);
+    }
 
     #[test]
     fn test_snake_case_is_accepted() {
