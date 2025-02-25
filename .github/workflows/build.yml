@@ -5,250 +5,250 @@
 
 name: Build
 on:
-    push:
-        branches: ["*"]
-        paths-ignore:
-            - "**/docs/**"
-            - "**.md"
-    pull_request:
-        branches: [main]
-    workflow_call:
-    merge_group:
+  push:
+    branches: ["*"]
+    paths-ignore:
+      - "**/docs/**"
+      - "**.md"
+  pull_request:
+    branches: [main]
+  workflow_call:
+  merge_group:
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-    cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 env:
-    CARGO_INCREMENTAL: 0
-    SCCACHE_GHA_ENABLED: "true"
-    RUSTC_WRAPPER: "sccache"
+  CARGO_INCREMENTAL: 0
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
 
 jobs:
-    typos:
-        name: typos
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: crate-ci/typos@master
-              with:
-                  config: ./typos.toml
+  typos:
+    name: typos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crate-ci/typos@master
+        with:
+          config: ./typos.toml
 
-    check:
-        name: check
-        strategy:
-            fail-fast: false
-            matrix:
-                version: ["macos-latest", "ubuntu-latest", "windows-latest"]
-        runs-on: ${{ matrix.version }}
-        steps:
-            - uses: actions/checkout@v4
-            - name: setup | rust
-              uses: dtolnay/rust-toolchain@stable
-              with:
-                  toolchain: stable
-                  default: true
-                  profile: minimal
-                  components: clippy, rustfmt
-            - uses: mozilla-actions/sccache-action@v0.0.7
-            - run: cargo check
+  check:
+    name: check
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ["macos-latest", "ubuntu-latest", "windows-latest"]
+    runs-on: ${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup | rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          default: true
+          profile: minimal
+          components: clippy, rustfmt
+      - uses: mozilla-actions/sccache-action@v0.0.7
+      - run: cargo check
 
-    lint:
-        name: lint
-        strategy:
-            fail-fast: false
-            matrix:
-                version: ["macos-latest", "ubuntu-latest", "windows-latest"]
-                cargo-cmd:
-                    - fmt --all -- --check
-                    - clippy --all-targets --all-features -- -D warnings
-        runs-on: ${{ matrix.version }}
-        steps:
-            - uses: actions/checkout@v4
-            - name: setup | rust
-              uses: dtolnay/rust-toolchain@stable
-              with:
-                  toolchain: stable
-                  default: true
-                  profile: minimal
-                  components: clippy, rustfmt
-            - uses: mozilla-actions/sccache-action@v0.0.7
-            - run: cargo ${{ matrix['cargo-cmd'] }}
+  lint:
+    name: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ["macos-latest", "ubuntu-latest", "windows-latest"]
+        cargo-cmd:
+          - fmt --all -- --check
+          - clippy --all-targets --all-features -- -D warnings
+    runs-on: ${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup | rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          default: true
+          profile: minimal
+          components: clippy, rustfmt
+      - uses: mozilla-actions/sccache-action@v0.0.7
+      - run: cargo ${{ matrix['cargo-cmd'] }}
 
-    tests:
-        name: test
-        strategy:
-            fail-fast: false
-            matrix:
-                version: ["macos-latest", "ubuntu-latest", "windows-latest"]
-                rust: [nightly, stable]
-        runs-on: ${{ matrix.version }}
-        continue-on-error: ${{ matrix.rust == 'nightly' }}
-        steps:
-            - uses: actions/checkout@v4
-            - name: setup | rust
-              uses: dtolnay/rust-toolchain@stable
-              with:
-                  toolchain: ${{ matrix.rust }}
-                  default: true
-                  profile: minimal
-            - uses: mozilla-actions/sccache-action@v0.0.7
-            - name: git test setup preparation
-              run: |
-                  git config --global user.email "you@example.com"
-                  git config --global user.name "Your Name"
-            - name: install ssh key
-              if: ${{ github.event_name != 'pull_request' }}
-              shell: bash
-              run: |
-                  mkdir -p $HOME/.ssh
-                  echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PRIVATE_KEY }}" > $HOME/.ssh/id_rsa
-                  echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PUBLIC_KEY }}" > $HOME/.ssh/id_rsa.pub
-                  chmod 600 $HOME/.ssh/id_rsa $HOME/.ssh/id_rsa.pub
-                  ssh-keyscan github.com >> $HOME/.ssh/known_hosts
-                  chmod 644 $HOME/.ssh/known_hosts
+  tests:
+    name: test
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ["macos-latest", "ubuntu-latest", "windows-latest"]
+        rust: [nightly, stable]
+    runs-on: ${{ matrix.version }}
+    continue-on-error: ${{ matrix.rust == 'nightly' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup | rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+          default: true
+          profile: minimal
+      - uses: mozilla-actions/sccache-action@v0.0.7
+      - name: git test setup preparation
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+      - name: install ssh key
+        if: ${{ github.event_name != 'pull_request' }}
+        shell: bash
+        run: |
+          mkdir -p $HOME/.ssh
+          echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PRIVATE_KEY }}" > $HOME/.ssh/id_rsa
+          echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PUBLIC_KEY }}" > $HOME/.ssh/id_rsa.pub
+          chmod 600 $HOME/.ssh/id_rsa $HOME/.ssh/id_rsa.pub
+          ssh-keyscan github.com >> $HOME/.ssh/known_hosts
+          chmod 644 $HOME/.ssh/known_hosts
 
-            - name: start ssh-agent on windows
-              if: ${{ github.event_name != 'pull_request' && matrix.version == 'windows-latest' }}
-              run: |
-                  Get-Service ssh-agent | Set-Service -StartupType Manual
-                  Start-Service ssh-agent
-                  Get-Service ssh-agent
-                  ssh-add $ENV:UserProfile\.ssh\id_rsa
+      - name: start ssh-agent on windows
+        if: ${{ github.event_name != 'pull_request' && matrix.version == 'windows-latest' }}
+        run: |
+          Get-Service ssh-agent | Set-Service -StartupType Manual
+          Start-Service ssh-agent
+          Get-Service ssh-agent
+          ssh-add $ENV:UserProfile\.ssh\id_rsa
 
-            - name: start ssh-agent
-              if: ${{ github.event_name != 'pull_request' && matrix.version != 'windows-latest' }}
-              shell: bash
-              run: |
-                  eval `ssh-agent`
-                  echo SSH_AUTH_SOCK="$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
-                  echo SSH_AGENT_PID="$SSH_AGENT_PID" >> "$GITHUB_ENV"
-                  ssh-add $HOME/.ssh/id_rsa
-                  ssh-add -l
+      - name: start ssh-agent
+        if: ${{ github.event_name != 'pull_request' && matrix.version != 'windows-latest' }}
+        shell: bash
+        run: |
+          eval `ssh-agent`
+          echo SSH_AUTH_SOCK="$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+          echo SSH_AGENT_PID="$SSH_AGENT_PID" >> "$GITHUB_ENV"
+          ssh-add $HOME/.ssh/id_rsa
+          ssh-add -l
 
-            - name: cargo test (with e2e tests with ssh key)
-              if: ${{ github.event_name != 'pull_request' && matrix.version != 'windows-latest' }}
-              shell: bash
-              run: cargo test --verbose --all --locked
-              env:
-                  RUST_LOG: debug
-                  RUST_BACKTRACE: full
-                  CARGO_GENERATE_E2E_SSH_PRIVATE_KEY: ~/.ssh/id_rsa
-                  RUSTFLAGS: "--cfg e2e_tests_with_ssh_key"
+      - name: cargo test (with e2e tests with ssh key)
+        if: ${{ github.event_name != 'pull_request' && matrix.version != 'windows-latest' }}
+        shell: bash
+        run: cargo test --verbose --all --locked
+        env:
+          RUST_LOG: debug
+          RUST_BACKTRACE: full
+          CARGO_GENERATE_E2E_SSH_PRIVATE_KEY: ~/.ssh/id_rsa
+          RUSTFLAGS: "--cfg e2e_tests_with_ssh_key"
 
-            - name: cargo test (no e2e tests with ssh key)
-              if: ${{ github.event_name == 'pull_request' || matrix.version == 'windows-latest' }}
-              shell: bash
-              run: cargo test --verbose --all --locked
-              env:
-                  RUST_LOG: debug
-                  RUST_BACKTRACE: full
+      - name: cargo test (no e2e tests with ssh key)
+        if: ${{ github.event_name == 'pull_request' || matrix.version == 'windows-latest' }}
+        shell: bash
+        run: cargo test --verbose --all --locked
+        env:
+          RUST_LOG: debug
+          RUST_BACKTRACE: full
 
-            - name: smoke tests
-              shell: bash
-              run: |
-                  cargo run -- --version
-                  cargo run -- --help
+      - name: smoke tests
+        shell: bash
+        run: |
+          cargo run -- --version
+          cargo run -- --help
 
-    coverage:
-        name: code coverage
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - name: setup | rust
-              uses: dtolnay/rust-toolchain@stable
-              with:
-                  toolchain: nightly
-                  default: true
-                  profile: minimal
-                  components: clippy, rustfmt
-            - name: git test setup preparation
-              run: |
-                  git config --global user.email "you@example.com"
-                  git config --global user.name "Your Name"
-            - name: start ssh-agent
-              shell: bash
-              run: |
-                  eval `ssh-agent`
-                  echo SSH_AUTH_SOCK="$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
-                  echo SSH_AGENT_PID="$SSH_AGENT_PID" >> "$GITHUB_ENV"
-            - name: install ssh key
-              if: ${{ github.event_name != 'pull_request' }}
-              shell: bash
-              run: |
-                  mkdir -p $HOME/.ssh
-                  echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PRIVATE_KEY }}" > $HOME/.ssh/id_rsa
-                  chmod 600 $HOME/.ssh/id_rsa
-                  ssh-keyscan github.com >> $HOME/.ssh/known_hosts
-                  chmod 644 $HOME/.ssh/known_hosts
-                  ssh-add $HOME/.ssh/id_rsa
-                  ssh-add -l
-            - uses: mozilla-actions/sccache-action@v0.0.7
-            - name: Install cargo-llvm-cov
-              uses: taiki-e/install-action@cargo-llvm-cov
-            - name: Generate code coverage
-              if: ${{ github.event_name != 'pull_request' }}
-              run: cargo llvm-cov --all-features --workspace  --codecov --output-path codecov.json
-              env:
-                  CARGO_GENERATE_E2E_SSH_PRIVATE_KEY: ~/.ssh/id_rsa
-                  RUSTFLAGS: "--cfg e2e_tests_with_ssh_key"
-            - name: Generate code coverage
-              if: ${{ github.event_name == 'pull_request' }}
-              run: cargo llvm-cov --all-features --workspace  --codecov --output-path codecov.json
-            - name: Upload coverage to Codecov
-              uses: codecov/codecov-action@v5.1.1
-              env:
-                  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-              with:
-                  files: codecov.json
-                  verbose: true
-                  fail_ci_if_error: false
+  coverage:
+    name: code coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup | rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly
+          default: true
+          profile: minimal
+          components: clippy, rustfmt
+      - name: git test setup preparation
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+      - name: start ssh-agent
+        shell: bash
+        run: |
+          eval `ssh-agent`
+          echo SSH_AUTH_SOCK="$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+          echo SSH_AGENT_PID="$SSH_AGENT_PID" >> "$GITHUB_ENV"
+      - name: install ssh key
+        if: ${{ github.event_name != 'pull_request' }}
+        shell: bash
+        run: |
+          mkdir -p $HOME/.ssh
+          echo "${{ secrets.CARGO_GENERATE_E2E_SSH_PRIVATE_KEY }}" > $HOME/.ssh/id_rsa
+          chmod 600 $HOME/.ssh/id_rsa
+          ssh-keyscan github.com >> $HOME/.ssh/known_hosts
+          chmod 644 $HOME/.ssh/known_hosts
+          ssh-add $HOME/.ssh/id_rsa
+          ssh-add -l
+      - uses: mozilla-actions/sccache-action@v0.0.7
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Generate code coverage
+        if: ${{ github.event_name != 'pull_request' }}
+        run: cargo llvm-cov --all-features --workspace  --codecov --output-path codecov.json
+        env:
+          CARGO_GENERATE_E2E_SSH_PRIVATE_KEY: ~/.ssh/id_rsa
+          RUSTFLAGS: "--cfg e2e_tests_with_ssh_key"
+      - name: Generate code coverage
+        if: ${{ github.event_name == 'pull_request' }}
+        run: cargo llvm-cov --all-features --workspace  --codecov --output-path codecov.json
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5.1.1
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: codecov.json
+          verbose: true
+          fail_ci_if_error: false
 
-    audit:
-        name: security audit
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - name: setup | rust
-              uses: dtolnay/rust-toolchain@stable
-              with:
-                  toolchain: stable
-                  default: true
-                  profile: minimal
-            - uses: mozilla-actions/sccache-action@v0.0.7
-            - name: audit
-              uses: actions-rs/audit-check@v1
-              continue-on-error: true
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
+  audit:
+    name: security audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup | rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          default: true
+          profile: minimal
+      - uses: mozilla-actions/sccache-action@v0.0.7
+      - name: audit
+        uses: actions-rs/audit-check@v1
+        continue-on-error: true
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    publish-dry-run:
-        name: publish dry run
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - name: setup | rust
-              uses: dtolnay/rust-toolchain@stable
-              with:
-                  toolchain: stable
-                  default: true
-                  profile: minimal
-            - uses: mozilla-actions/sccache-action@v0.0.7
-            - run: cargo publish --dry-run
+  publish-dry-run:
+    name: publish dry run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup | rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          default: true
+          profile: minimal
+      - uses: mozilla-actions/sccache-action@v0.0.7
+      - run: cargo publish --dry-run
 
-    docs:
-        name: docs
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - name: setup | rust
-              uses: dtolnay/rust-toolchain@stable
-              with:
-                  toolchain: stable
-                  default: true
-                  profile: minimal
-            - uses: mozilla-actions/sccache-action@v0.0.7
-            - name: check documentation
-              env:
-                  RUSTDOCFLAGS: -D warnings
-              run: cargo doc --no-deps --all-features
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup | rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          default: true
+          profile: minimal
+      - uses: mozilla-actions/sccache-action@v0.0.7
+      - name: check documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --no-deps --all-features
