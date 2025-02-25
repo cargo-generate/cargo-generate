@@ -6,10 +6,10 @@
 name: Build
 on:
     push:
-        branches: ['*']
+        branches: ["*"]
         paths-ignore:
-            - '**/docs/**'
-            - '**.md'
+            - "**/docs/**"
+            - "**.md"
     pull_request:
         branches: [main]
     workflow_call:
@@ -21,8 +21,8 @@ concurrency:
 
 env:
     CARGO_INCREMENTAL: 0
-    SCCACHE_GHA_ENABLED: 'true'
-    RUSTC_WRAPPER: 'sccache'
+    SCCACHE_GHA_ENABLED: "true"
+    RUSTC_WRAPPER: "sccache"
 
 jobs:
     typos:
@@ -39,7 +39,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                version: ['macos-latest', 'ubuntu-latest', 'windows-latest']
+                version: ["macos-latest", "ubuntu-latest", "windows-latest"]
         runs-on: ${{ matrix.version }}
         steps:
             - uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                version: ['macos-latest', 'ubuntu-latest', 'windows-latest']
+                version: ["macos-latest", "ubuntu-latest", "windows-latest"]
                 cargo-cmd:
                     - fmt --all -- --check
                     - clippy --all-targets --all-features -- -D warnings
@@ -80,7 +80,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                version: ['macos-latest', 'ubuntu-latest', 'windows-latest']
+                version: ["macos-latest", "ubuntu-latest", "windows-latest"]
                 rust: [nightly, stable]
         runs-on: ${{ matrix.version }}
         continue-on-error: ${{ matrix.rust == 'nightly' }}
@@ -134,7 +134,7 @@ jobs:
                   RUST_LOG: debug
                   RUST_BACKTRACE: full
                   CARGO_GENERATE_E2E_SSH_PRIVATE_KEY: ~/.ssh/id_rsa
-                  RUSTFLAGS: '--cfg e2e_tests_with_ssh_key'
+                  RUSTFLAGS: "--cfg e2e_tests_with_ssh_key"
 
             - name: cargo test (no e2e tests with ssh key)
               if: ${{ github.event_name == 'pull_request' || matrix.version == 'windows-latest' }}
@@ -149,9 +149,6 @@ jobs:
               run: |
                   cargo run -- --version
                   cargo run -- --help
-                  # run the many-hooks-in-action template
-                  sudo ln -s /usr/bin/sed /usr/bin/gsed
-                  RUST_LOG=debug cargo run -- generate --verbose example-templates/many-hooks-in-action/ --name foo --allow-commands -d license=mit
 
     coverage:
         name: code coverage
@@ -194,7 +191,7 @@ jobs:
               run: cargo llvm-cov --all-features --workspace  --codecov --output-path codecov.json
               env:
                   CARGO_GENERATE_E2E_SSH_PRIVATE_KEY: ~/.ssh/id_rsa
-                  RUSTFLAGS: '--cfg e2e_tests_with_ssh_key'
+                  RUSTFLAGS: "--cfg e2e_tests_with_ssh_key"
             - name: Generate code coverage
               if: ${{ github.event_name == 'pull_request' }}
               run: cargo llvm-cov --all-features --workspace  --codecov --output-path codecov.json
