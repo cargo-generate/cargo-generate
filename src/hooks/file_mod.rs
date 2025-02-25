@@ -145,5 +145,28 @@ mod tests {
         assert!(file.into_string().unwrap().as_str().ends_with(".dotfile"));
         let file = files[1].clone();
         assert!(file.into_string().unwrap().as_str().ends_with("file1"));
+
+        // cover the other listdir function with one path argument
+        let files = engine.eval::<Array>(r#"file::listdir(".")"#).unwrap();
+        assert_eq!(files.len(), 2);
+        let file = files.first().unwrap().clone();
+        assert!(file.into_string().unwrap().as_str().ends_with(".dotfile"));
+        let file = files[1].clone();
+        assert!(file.into_string().unwrap().as_str().ends_with("file1"));
+    }
+
+    #[test]
+    #[should_panic(expected = "Path must be inside template dir:")]
+    fn test_listdir_error_case() {
+        let tmp_dir = TempDir::new().unwrap();
+        let context = RhaiHooksContext {
+            working_directory: tmp_dir.path().to_path_buf(),
+            destination_directory: tmp_dir.path().join("destination").to_path_buf(),
+            liquid_object: LiquidObjectResource::default(),
+            allow_commands: true,
+            silent: true,
+        };
+        let engine = create_rhai_engine(&context);
+        engine.eval::<Array>(r#"file::listdir("/tmp")"#).unwrap();
     }
 }
