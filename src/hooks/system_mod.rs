@@ -90,8 +90,8 @@ fn run_command(
     }
 
     debug!(
-        "the command is executed within the cwd: {}",
-        std::env::current_dir().unwrap().display()
+        "the command is executed within the working directory: {}",
+        working_directory.display()
     );
 
     let output = if cfg!(target_os = "windows") {
