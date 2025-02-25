@@ -91,6 +91,8 @@ impl UserParsedInput {
     pub fn try_from_args_and_config(app_config: AppConfig, args: &GenerateArgs) -> Self {
         const DEFAULT_VCS: Vcs = Vcs::Git;
 
+        dbg!(&args.destination);
+
         let destination = args
             .destination
             .as_ref()
