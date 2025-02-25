@@ -171,14 +171,15 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
         .assert()
         .failure()
         .stderr(
-            predicates::str::contains(
-                "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: cannot create directory \'invalid_/.dir_name\': No such file or directory",
-            )
-            .from_utf8().or(
+            if cfg!(target_os = "linux") {
+                predicates::str::contains(
+                    "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: cannot create directory ‘invalid_/.dir_name’: No such file or directory"
+                ).from_utf8()
+            } else {
                 predicates::str::contains(
                     "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: invalid_: No such file or directory"
                 ).from_utf8()
-            ),
+            }
         );
 }
 
