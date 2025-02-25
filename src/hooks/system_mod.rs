@@ -134,6 +134,7 @@ mod tests {
         hooks::{create_rhai_engine, RhaiHooksContext},
         template::LiquidObjectResource,
     };
+    use rhai::Engine;
     use tempfile::TempDir;
 
     #[test]
@@ -155,5 +156,64 @@ mod tests {
             .eval::<String>(r#"system::command("cat", ["file1"])"#)
             .unwrap();
         assert_eq!(content, "test1");
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "System command `nonexistent_command` failed to execute: No such file or directory (os error 2)"
+    )]
+    fn test_run_command_failure() {
+        let tmp_dir = TempDir::new().unwrap();
+        let context = RhaiHooksContext {
+            working_directory: tmp_dir.path().to_path_buf(),
+            destination_directory: tmp_dir.path().join("destination").to_path_buf(),
+            liquid_object: LiquidObjectResource::default(),
+            allow_commands: true,
+            silent: true,
+        };
+        let engine = create_rhai_engine(&context);
+        std::env::set_current_dir(tmp_dir.path()).unwrap();
+
+        engine
+            .eval::<String>(r#"system::command("nonexistent_command")"#)
+            .unwrap();
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "Cannot prompt for system command confirmation in silent mode. Use --allow-commands if you want to allow the template to run system commands in silent mode."
+    )]
+    fn test_run_command_silent_mode_denied() {
+        let tmp_dir = TempDir::new().unwrap();
+        let context = RhaiHooksContext {
+            working_directory: tmp_dir.path().to_path_buf(),
+            destination_directory: tmp_dir.path().join("destination").to_path_buf(),
+            liquid_object: LiquidObjectResource::default(),
+            allow_commands: false,
+            silent: true,
+        };
+        let engine = create_rhai_engine(&context);
+        std::env::set_current_dir(tmp_dir.path()).unwrap();
+
+        engine
+            .eval::<String>(r#"system::command("echo", ["hello"])"#)
+            .unwrap();
+    }
+
+    #[test]
+    fn test_get_utc_date() {
+        let mut engine = Engine::new();
+        let module = super::create_module(true, true);
+        engine.register_static_module("system", module.into());
+
+        let result = engine.eval::<rhai::Map>(r#"system::date()"#).unwrap();
+        let now = time::OffsetDateTime::now_utc();
+        assert!(result.contains_key("year"));
+        assert!(result.contains_key("month"));
+        assert!(result.contains_key("day"));
+
+        assert_eq!(result["year"].as_int().unwrap(), i64::from(now.year()));
+        assert_eq!(result["month"].as_int().unwrap(), now.month() as i64);
+        assert_eq!(result["day"].as_int().unwrap(), i64::from(now.day()));
     }
 }

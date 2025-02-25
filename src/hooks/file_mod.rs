@@ -138,6 +138,7 @@ mod tests {
             silent: true,
         };
         let engine = create_rhai_engine(&context);
+        std::env::set_current_dir(tmp_dir.path()).unwrap();
 
         let files = engine.eval::<Array>("file::listdir()").unwrap();
         assert_eq!(files.len(), 2);
