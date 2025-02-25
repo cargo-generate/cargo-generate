@@ -24,11 +24,15 @@ impl UserParsedInputBuilder {
     #[cfg(test)]
     pub(crate) fn for_testing() -> Self {
         use crate::TemplatePath;
+        let destination = Path::new("/tmp/dest/").to_path_buf();
+        if !destination.exists() {
+            std::fs::create_dir(destination.to_path_buf()).unwrap();
+        }
         Self {
             subject: UserParsedInput::try_from_args_and_config(
                 AppConfig::default(),
                 &GenerateArgs {
-                    destination: Some(Path::new("/tmp/dest/").to_path_buf()),
+                    destination: Some(destination.to_path_buf()),
                     template_path: TemplatePath {
                         path: Some("/tmp".to_string()),
                         ..TemplatePath::default()
