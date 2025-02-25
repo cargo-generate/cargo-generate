@@ -24,15 +24,11 @@ impl UserParsedInputBuilder {
     #[cfg(test)]
     pub(crate) fn for_testing() -> Self {
         use crate::TemplatePath;
-        let destination = Path::new("/tmp/dest/").to_path_buf();
-        if !destination.exists() {
-            std::fs::create_dir(destination.to_path_buf()).unwrap();
-        }
         Self {
             subject: UserParsedInput::try_from_args_and_config(
                 AppConfig::default(),
                 &GenerateArgs {
-                    destination: Some(destination.to_path_buf()),
+                    destination: Some(Path::new("/tmp/dest/").to_path_buf()),
                     template_path: TemplatePath {
                         path: Some("/tmp".to_string()),
                         ..TemplatePath::default()
@@ -98,7 +94,11 @@ impl UserParsedInput {
         let destination = args
             .destination
             .as_ref()
-            .map(|p| p.absolutize().unwrap().to_path_buf())
+            .map(|p| {
+                p.absolutize()
+                    .expect("cannot get the absolute path of the destination folder")
+                    .to_path_buf()
+            })
             .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
 
         let mut default_values = app_config.values.clone().unwrap_or_default();
