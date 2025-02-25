@@ -7,11 +7,11 @@ The selected license file will be renamed into `LICENSE`, and besides this `READ
 ## Expansion
 
 ```sh
-cargo generate --name my-expanded-template gh:cargo-generate/cargo-generate example-templates/hooks
+cargo generate --name my-expanded-template gh:cargo-generate/cargo-generate example-templates/many-hooks-in-action
 ```
 
 or to select the license directly from commandline:
 
 ```sh
-cargo generate --name my-expanded-template gh:cargo-generate/cargo-generate example-templates/hooks -d license=mit
+cargo generate --name my-expanded-template gh:cargo-generate/cargo-generate example-templates/many-hooks-in-action -d license=mit
 ```
