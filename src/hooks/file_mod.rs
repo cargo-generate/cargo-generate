@@ -123,15 +123,16 @@ mod tests {
 
     #[test]
     fn test_to_sandboxed_absolute_path() {
-        let cwd = std::env::current_dir().unwrap();
+        let tmp_dir = prepare_file_system();
 
-        let absolute_path = super::to_sandboxed_absolute_path(&cwd, "Cargo.toml").unwrap();
-        assert_eq!(absolute_path, cwd.join("Cargo.toml"));
+        let absolute_path =
+            super::to_sandboxed_absolute_path(tmp_dir.path(), "Cargo.toml").unwrap();
+        assert_eq!(absolute_path, tmp_dir.path().join("Cargo.toml"));
 
         let path = std::path::Path::new(".");
         let absolute_path =
-            super::to_sandboxed_absolute_path(&cwd, path.to_str().unwrap()).unwrap();
-        assert_eq!(absolute_path, cwd);
+            super::to_sandboxed_absolute_path(tmp_dir.path(), path.to_str().unwrap()).unwrap();
+        assert_eq!(absolute_path, tmp_dir.path());
     }
 
     #[test]

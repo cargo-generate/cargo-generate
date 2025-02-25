@@ -243,9 +243,9 @@ mod tests {
 
     #[test]
     fn test_get_utc_date() {
+        let tmp_dir = TempDir::new().unwrap();
         let mut engine = Engine::new();
-        let cwd = std::env::current_dir().unwrap();
-        let module = super::create_module(cwd, true, true);
+        let module = super::create_module(tmp_dir.path().to_path_buf(), true, true);
         engine.register_static_module("system", module.into());
 
         let result = engine.eval::<rhai::Map>(r#"system::date()"#).unwrap();
