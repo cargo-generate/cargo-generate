@@ -175,9 +175,13 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
                 predicates::str::contains(
                     "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: cannot create directory ‘invalid_/.dir_name’: No such file or directory"
                 ).from_utf8()
-            } else {
+            } else if cfg!(target_os = "macos") {
                 predicates::str::contains(
                     "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: invalid_: No such file or directory"
+                ).from_utf8()
+            } else { // Windows
+                predicates::str::contains(
+                    "System command `mkdir invalid_/.dir_name` failed to execute: The syntax of the command is incorrect."
                 ).from_utf8()
             }
         );
