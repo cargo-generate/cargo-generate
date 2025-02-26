@@ -11,6 +11,7 @@ use console::style;
 
 use crate::{
     config::{Config, TemplateSlotsTable},
+    interactive::LIST_SEP,
     template::LiquidObjectResource,
 };
 
@@ -65,8 +66,15 @@ impl<T: AsRef<str>> From<T> for Prompt {
 /// Editor will never have choices
 #[derive(Debug, Clone)]
 pub enum VarInfo {
+    Array { entry: Box<ArrayEntry> },
     Bool { default: Option<bool> },
     String { entry: Box<StringEntry> },
+}
+
+#[derive(Debug, Clone)]
+pub struct ArrayEntry {
+    pub(crate) default: Option<Vec<String>>,
+    pub(crate) choices: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -132,6 +140,7 @@ pub enum ConversionError {
 enum SupportedVarValue {
     Bool(bool),
     String(String),
+    Array(Vec<String>),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -140,6 +149,7 @@ enum SupportedVarType {
     String,
     Editor,
     Text,
+    Array,
 }
 
 const RESERVED_NAMES: [&str; 7] = [
@@ -281,6 +291,16 @@ fn try_key_value_into_slot(
                 regex,
             }),
         },
+        SupportedVarType::Array => VarInfo::Array {
+            entry: Box::new(ArrayEntry {
+                default: if let Some(SupportedVarValue::Array(value)) = default_choice {
+                    Some(value)
+                } else {
+                    None
+                },
+                choices: choices.unwrap_or_default(),
+            }),
+        },
         SupportedVarType::Text => VarInfo::String {
             entry: Box::new(StringEntry {
                 default: if let Some(SupportedVarValue::String(value)) = default_choice {
@@ -320,13 +340,17 @@ fn extract_regex(
                 error: e,
             }),
         },
-        (SupportedVarType::String | SupportedVarType::Editor | SupportedVarType::Text, Some(_)) => {
-            Err(ConversionError::WrongTypeParameter {
-                var_name: var_name.into(),
-                parameter: "regex".to_string(),
-                correct_type: "String".to_string(),
-            })
-        }
+        (
+            SupportedVarType::String
+            | SupportedVarType::Editor
+            | SupportedVarType::Text
+            | SupportedVarType::Array,
+            Some(_),
+        ) => Err(ConversionError::WrongTypeParameter {
+            var_name: var_name.into(),
+            parameter: "regex".to_string(),
+            correct_type: "String".to_string(),
+        }),
         (_, None) => Ok(None),
     }
 }
@@ -341,6 +365,7 @@ fn extract_type(
         Some(toml::Value::String(value)) if value == "editor" => Ok(SupportedVarType::Editor),
         Some(toml::Value::String(value)) if value == "text" => Ok(SupportedVarType::Text),
         Some(toml::Value::String(value)) if value == "bool" => Ok(SupportedVarType::Bool),
+        Some(toml::Value::String(value)) if value == "array" => Ok(SupportedVarType::Array),
         Some(toml::Value::String(value)) => Err(ConversionError::InvalidVariableType {
             var_name: var_name.into(),
             value: value.clone(),
@@ -425,6 +450,22 @@ fn extract_default(
                 Ok(Some(SupportedVarValue::String(value.clone())))
             }
         }
+        (Some(toml::Value::Array(defaults)), Some(choices), SupportedVarType::Array) => {
+            let default_string_array: Vec<String> = defaults
+                .iter()
+                .filter(|f| !(f.is_table() && f.is_array()))
+                .map(|f| f.as_str().unwrap_or_default().to_string())
+                .collect();
+            if default_string_array.iter().all(|v| choices.contains(v)) {
+                Ok(Some(SupportedVarValue::Array(default_string_array.clone())))
+            } else {
+                Err(ConversionError::InvalidDefault {
+                    var_name: var_name.into(),
+                    default: default_string_array.join(LIST_SEP),
+                    choices: choices.clone(),
+                })
+            }
+        }
 
         // Wrong type of variables
         (Some(_), _, type_name) => Err(ConversionError::WrongTypeParameter {
@@ -435,6 +476,7 @@ fn extract_default(
                 SupportedVarType::String => "string".to_string(),
                 SupportedVarType::Editor => "editor".to_string(),
                 SupportedVarType::Text => "text".to_string(),
+                SupportedVarType::Array => "array".to_string(),
             },
         }),
     }
@@ -447,9 +489,13 @@ fn extract_choices(
     table_entry: Option<&toml::Value>,
 ) -> Result<Option<Vec<String>>, ConversionError> {
     match (table_entry, var_type) {
-        (None, SupportedVarType::Bool | SupportedVarType::Editor | SupportedVarType::Text) => {
-            Ok(None)
-        }
+        (
+            None,
+            SupportedVarType::Bool
+            | SupportedVarType::Editor
+            | SupportedVarType::Text
+            | SupportedVarType::Array,
+        ) => Ok(None),
         (Some(_), SupportedVarType::Bool | SupportedVarType::Editor | SupportedVarType::Text) => {
             Err(ConversionError::UnsupportedChoices {
                 var_type: format!("{var_type:?}"),
@@ -460,6 +506,34 @@ fn extract_choices(
                 var_name: var_name.into(),
             })
         }
+        (Some(toml::Value::Array(arr)), SupportedVarType::Array) => {
+            let converted = arr
+                .iter()
+                .map(|entry| match entry {
+                    toml::Value::String(s) => Ok(s.clone()),
+                    _ => Err(()),
+                })
+                .collect::<Vec<_>>();
+            if converted.iter().any(|v| v.is_err()) {
+                return Err(ConversionError::WrongTypeParameter {
+                    var_name: var_name.into(),
+                    parameter: "choices".to_string(),
+                    correct_type: "String Array".to_string(),
+                });
+            }
+
+            let strings = converted
+                .iter()
+                .cloned()
+                .map(|v| v.unwrap())
+                .collect::<Vec<_>>();
+            Ok(Some(strings))
+        }
+        (Some(_), SupportedVarType::Array) => Err(ConversionError::WrongTypeParameter {
+            var_name: var_name.into(),
+            parameter: "choices".to_string(),
+            correct_type: "String Array".to_string(),
+        }),
         (Some(toml::Value::Array(arr)), SupportedVarType::String) => {
             // Checks if very entry in the array is a String
             let converted = arr
@@ -505,6 +579,7 @@ fn extract_choices(
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
@@ -544,6 +619,50 @@ mod tests {
             result,
             Err(ConversionError::UnsupportedChoices {
                 var_type: "Bool".into()
+            })
+        );
+    }
+
+    #[test]
+    fn editor_cant_have_regex() {
+        let result = extract_regex(
+            "foo",
+            SupportedVarType::Editor,
+            Some(&toml::Value::Array(vec![
+                toml::Value::Boolean(true),
+                toml::Value::Boolean(false),
+            ])),
+        );
+
+        assert_eq!(
+            result.err(),
+            Some(ConversionError::WrongTypeParameter {
+                var_name: "foo".to_string(),
+                parameter: "regex".to_string(),
+                correct_type: "String".to_string()
+            })
+        );
+    }
+
+    #[test]
+    fn cant_have_default_wrong_type() {
+        let result = extract_default(
+            "foo",
+            SupportedVarType::Array,
+            None,
+            Some(&toml::Value::Array(vec![
+                toml::Value::Boolean(true),
+                toml::Value::Boolean(false),
+            ])),
+            None,
+        );
+
+        assert_eq!(
+            result.err(),
+            Some(ConversionError::WrongTypeParameter {
+                var_name: "foo".into(),
+                parameter: "default".into(),
+                correct_type: "array".into()
             })
         );
     }
@@ -602,6 +721,17 @@ mod tests {
                 var_name: "foo".into()
             })
         );
+    }
+    #[test]
+    fn multi_choices_can_be_an_empty_array() {
+        let result = extract_choices(
+            "foo",
+            SupportedVarType::Array,
+            None,
+            Some(&toml::Value::Array(Vec::new())),
+        );
+
+        assert_eq!(result, Ok(Some(Vec::new())));
     }
 
     #[test]
@@ -699,6 +829,50 @@ mod tests {
                 var_name: "foo".into(),
                 parameter: "choices".into(),
                 correct_type: "String Array".into()
+            })
+        );
+    }
+
+    #[test]
+    fn multi_choices_is_not_array_string_is_error() {
+        let result = extract_choices(
+            "foo",
+            SupportedVarType::Array,
+            None,
+            Some(&toml::Value::Array(vec![
+                toml::Value::String("bar0".into()),
+                toml::Value::Table(toml::map::Map::new()),
+            ])),
+        );
+
+        assert_eq!(
+            result,
+            Err(ConversionError::WrongTypeParameter {
+                var_name: "foo".into(),
+                parameter: "choices".into(),
+                correct_type: "String Array".into()
+            })
+        );
+    }
+
+    #[test]
+    fn multi_choices_wrong_default_type() {
+        let result = extract_default(
+            "foo",
+            SupportedVarType::Array,
+            None,
+            Some(&toml::Value::Array(vec![toml::Value::String(
+                "true".into(),
+            )])),
+            Some(&vec!["bar0".to_string()]),
+        );
+
+        assert_eq!(
+            result,
+            Err(ConversionError::InvalidDefault {
+                var_name: "foo".into(),
+                default: "true".to_string(),
+                choices: vec!["bar0".to_string()]
             })
         );
     }
