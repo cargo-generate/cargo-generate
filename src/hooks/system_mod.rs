@@ -187,7 +187,7 @@ mod tests {
         // assertion `left == right` failed: the system::command should run in the context of the working_directory: C:\Users\RUNNER~1\AppData\Local\Temp\.tmpDXzQr1
         //   left: "/tmp/.tmpDXzQr1"
         //   right: "\\\\?\\C:\\Users\\runneradmin\\AppData\\Local\\Temp\\.tmpDXzQr1"
-        #[cfg(target_family = "unix")] {
+        #[cfg(target_family = "unix")]
         assert_eq!(
             pwd,
             tmp_dir.path().canonicalize().unwrap().to_str().unwrap(),

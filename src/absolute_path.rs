@@ -216,8 +216,9 @@ mod tests {
         #[cfg(target_family = "unix")]
         let sandbox = PathBuf::from("/sandbox");
         #[cfg(target_family = "windows")]
-        let sandbox = PathBuf::from("D:\\sandbox");        let relative_path = PathBuf::from("/outside/file.txt");
-        relative_path.as_sandboxed_absolute(&sandbox).unwrap();
+        let sandbox = PathBuf::from("D:\\sandbox");
+        let outside_path = PathBuf::from("/outside/file.txt");
+        outside_path.as_sandboxed_absolute(&sandbox).unwrap();
     }
 
     #[test]
@@ -226,7 +227,8 @@ mod tests {
         #[cfg(target_family = "unix")]
         let sandbox = PathBuf::from("/sandbox");
         #[cfg(target_family = "windows")]
-        let sandbox = PathBuf::from("D:\\sandbox");        let relative_path = PathBuf::from("../file.txt");
+        let sandbox = PathBuf::from("D:\\sandbox");
+        let relative_path = PathBuf::from("../file.txt");
         relative_path.as_sandboxed_absolute(&sandbox).unwrap();
     }
 
