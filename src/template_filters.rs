@@ -17,7 +17,7 @@ use std::{
 };
 
 use crate::{
-    hooks::{create_rhai_engine, PoisonError},
+    hooks::{create_rhai_engine, PoisonError, RhaiHooksContext},
     template::LiquidObjectResource,
 };
 
@@ -144,13 +144,15 @@ impl Filter for RhaiFilter {
     ) -> Result<Value, liquid_core::Error> {
         // Unfortunately, liquid filters can't really cause liquid to fail. It just leaves the
         // substitution as is - thus we resort to displaying warnings to the user.
+        let context = RhaiHooksContext {
+            liquid_object: Arc::clone(&self.liquid_object),
+            allow_commands: self.allow_commands,
+            silent: self.silent,
+            working_directory: self.template_dir.clone(),
+            destination_directory: self.template_dir.clone(),
+        };
 
-        let engine = create_rhai_engine(
-            &self.template_dir,
-            &self.liquid_object,
-            self.allow_commands,
-            self.silent,
-        );
+        let engine = create_rhai_engine(&context);
         let file_path = PathBuf::from(input.to_kstr().to_string());
         if !file_path.exists() {
             warn!(

@@ -9,9 +9,9 @@ To configure the use of hooks, write a `hooks` section in the `cargo-generate.to
 
 ```toml
 [hooks]
-#init = ["init-script.rhai"]
-#pre = ["pre-script.rhai"]
-#post = ["post-script.rhai"]
+init = ["init-script.rhai"]
+pre = ["pre-script.rhai"]
+post = ["post-script.rhai"]
 ```
 
 [`Rhai`]: https://rhai.rs/book/

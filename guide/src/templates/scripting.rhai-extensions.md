@@ -2,7 +2,7 @@
 
 Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
 
-### Variables
+### Variables with the `variable` module
 
 #### get/set
 
@@ -18,7 +18,7 @@ Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
 
   Set new or overwrite existing variables. Do not allow to change types.
 
-#### Prompt
+#### Prompt for values with `variable::prompt`
 
 * **`variable::prompt(text: &str, default_value: bool) -> value`**
 
@@ -40,7 +40,7 @@ Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
 
   Prompt the user for a choice value
 
-### Files
+### Files with the `file` module
 
 * **`file::exists(path: &str)`**
 
@@ -61,10 +61,32 @@ Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
 * **`file::write(file: &str, content: Array)`**
 
   Create/overwrite a file inside the template folder, each entry in the array on a new line
+  
+* **`file::listdir(path = ".") -> Array<String>`**
 
-### System
+  List the contents of a directory
+  
+  Note: The path is relative to the template folder, and cannot be outside the template folder.
+  
+  Examples:
+  ```rhai
+  let files = file::listdir();
+  for f in files {
+      print(`file: ${f}`);
+  }
+  
+  // this is actually the same as above, the path must be inside the template directory, cannot be absolute or ourside
+  let files = file::listdir(".");
+  for f in files {
+      print(`file: ${f}`);
+  }
+  ```
+  
+  See also: [the many-hooks-in-action example project](https://github.com/cargo-generate/cargo-generate/blob/main/example-templates/many-hooks-in-action/sed-license.rhai#L18)
 
-* **`system::command(cmd: &str, args: Array) -> value`**
+### The `system` module
+
+* **`system::command(cmd: &str, args: Array = []) -> value`**
 
   Execute a command on the system generating the project from a template.
 
@@ -77,11 +99,51 @@ Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
 
   unless the user uses the flag `--allow-commands`. If the user attempts to use the
   `--silent` flag without the `--allow-commands` flag will fail.
+  
+  Examples:
+  ```rhai
+  // this returns the PWD as a string
+  let pwd = system::command("pwd");
+  
+  // but this works too and does the same
+  system::command("pwd", []);
+  
+  // this will cat a file and returns the content
+  let content = system::command("cat", ["file.txt"]);
+  ```
+  
+  See also: [the many-hooks-in-action example project](https://github.com/cargo-generate/cargo-generate/blob/main/example-templates/many-hooks-in-action/sed-license.rhai#L11)
 
 * **`system::date() -> Date`**
   
   Get the date in UTC from the system as an object with the properties `year`, `month`, and `day`.
+  
+### The `env` module
 
+The `env` module provides access to environment variables.
+
+* **`env::working_directory`**
+  
+  Returns the current working directory as a string. This is the directory where the `cargo-generate` pre-processes the template, before it is copied over to the users `destination` directory.
+  
+  Examples:
+  ```rhai
+  let wd = env::working_directory;
+  print(`Working directory: ${wd}`);
+  ```
+  
+  See also: [the many-hooks-in-action example project](https://github.com/cargo-generate/cargo-generate/blob/main/example-templates/many-hooks-in-action/post-script.rhai#L6)
+  
+* **`env::destination_directory`**
+  
+  Returns the destination directory as a string. This is the directory where the template is copied to, and where the user will find the generated project.
+  
+  Examples:
+  ```rhai
+  let dd = env::destination_directory;
+  print(`Destination directory: ${dd}`);
+  ```
+  
 ### Other
 
 * **`abort(reason: &str)`**: Aborts `cargo-generate` with a script error.

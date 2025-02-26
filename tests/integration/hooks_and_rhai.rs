@@ -149,15 +149,13 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
     let template = tempdir()
         .file(
             "system-script.rhai",
-            indoc! {r#"
-                let output = system::command("mkdir", ["invalid_/.dir_name"]);
-            "#},
+            r#"let output = system::command("mkdir", ["invalid_/.dir_name"]);"#,
         )
         .file(
             "cargo-generate.toml",
             indoc! {r#"
-            [hooks]
-            post = ["system-script.rhai"]
+                [hooks]
+                post = ["system-script.rhai"]
             "#},
         )
         .init_git()
@@ -173,10 +171,19 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
         .assert()
         .failure()
         .stderr(
-            predicates::str::contains(
-                "System command `mkdir invalid_/.dir_name` returned non-zero status",
-            )
-            .from_utf8(),
+            if cfg!(target_os = "linux") {
+                predicates::str::contains(
+                    "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: cannot create directory ‘invalid_/.dir_name’: No such file or directory"
+                ).from_utf8()
+            } else if cfg!(target_os = "macos") {
+                predicates::str::contains(
+                    "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: invalid_: No such file or directory"
+                ).from_utf8()
+            } else { // Windows
+                predicates::str::contains(
+                    "System command `mkdir invalid_/.dir_name` failed to execute: The syntax of the command is incorrect."
+                ).from_utf8()
+            }
         );
 }
 

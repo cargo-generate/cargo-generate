@@ -6,8 +6,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::absolute_path::AbsolutePathExt;
 use console::style;
-use path_absolutize::Absolutize;
 use regex::Regex;
 
 use crate::{app_config::AppConfig, template_variables::CrateType, GenerateArgs, Vcs};
@@ -94,7 +94,11 @@ impl UserParsedInput {
         let destination = args
             .destination
             .as_ref()
-            .map(|p| p.absolutize().unwrap().to_path_buf())
+            .map(|p| {
+                p.as_absolute()
+                    .expect("cannot get the absolute path of the destination folder")
+                    .to_path_buf()
+            })
             .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
 
         let mut default_values = app_config.values.clone().unwrap_or_default();
