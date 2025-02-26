@@ -53,7 +53,11 @@ mod tests {
 
     #[test]
     fn ensure_that_absolute_path_of_non_existing_path_works() {
+        #[cfg(target_family = "unix")]
         let path = Path::new("/non-existing-path");
+        #[cfg(target_family = "windows")]
+        let path = Path::new("D:\\non-existing-path");
+
         let path_absolutize = path.as_absolute().unwrap();
         assert_eq!(path_absolutize, path);
     }

@@ -101,7 +101,10 @@ mod tests {
 
     #[test]
     fn test_non_existing_path() {
+        #[cfg(target_family = "unix")]
         let relative_path = PathBuf::from("/non-existing-path");
+        #[cfg(target_family = "windows")]
+        let relative_path = PathBuf::from("D:\\non-existing-path");
         let absolute_path = relative_path.as_absolute().unwrap();
         assert!(absolute_path.is_absolute());
         assert_eq!(absolute_path, relative_path);
@@ -153,10 +156,10 @@ mod tests {
     #[test]
     fn test_root_path() {
         // Test with the root path
-        #[cfg(unix)]
+        #[cfg(target_family = "unix")]
         let root_path = PathBuf::from("/");
-        #[cfg(windows)]
-        let root_path = PathBuf::from("C:\\");
+        #[cfg(target_family = "windows")]
+        let root_path = PathBuf::from("D:\\");
 
         let absolute_path = root_path.as_absolute().unwrap();
         assert_eq!(absolute_path, root_path);
@@ -197,7 +200,10 @@ mod tests {
 
     #[test]
     fn test_path_within_sandbox() {
+        #[cfg(target_family = "unix")]
         let sandbox = PathBuf::from("/sandbox");
+        #[cfg(target_family = "windows")]
+        let sandbox = PathBuf::from("D:\\sandbox");
         let relative_path = PathBuf::from("file.txt");
         let absolute_path = relative_path.as_sandboxed_absolute(&sandbox).unwrap();
         assert!(absolute_path.is_absolute());
@@ -207,22 +213,29 @@ mod tests {
     #[test]
     #[should_panic(expected = "Path cannot escape the sandbox")]
     fn test_path_outside_sandbox() {
+        #[cfg(target_family = "unix")]
         let sandbox = PathBuf::from("/sandbox");
-        let relative_path = PathBuf::from("/outside/file.txt");
+        #[cfg(target_family = "windows")]
+        let sandbox = PathBuf::from("D:\\sandbox");        let relative_path = PathBuf::from("/outside/file.txt");
         relative_path.as_sandboxed_absolute(&sandbox).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Path cannot escape the sandbox")]
     fn test_path_with_dot_dot_to_escape_sandbox() {
+        #[cfg(target_family = "unix")]
         let sandbox = PathBuf::from("/sandbox");
-        let relative_path = PathBuf::from("../file.txt");
+        #[cfg(target_family = "windows")]
+        let sandbox = PathBuf::from("D:\\sandbox");        let relative_path = PathBuf::from("../file.txt");
         relative_path.as_sandboxed_absolute(&sandbox).unwrap();
     }
 
     #[test]
     fn test_empty_path_in_sandbox() {
+        #[cfg(target_family = "unix")]
         let sandbox = PathBuf::from("/sandbox");
+        #[cfg(target_family = "windows")]
+        let sandbox = PathBuf::from("D:\\sandbox");
         let empty_path = PathBuf::new();
         let absolute_path = empty_path.as_sandboxed_absolute(&sandbox).unwrap();
         assert_eq!(absolute_path, sandbox);
@@ -234,7 +247,7 @@ mod tests {
         #[cfg(unix)]
         let root_path = PathBuf::from("/");
         #[cfg(windows)]
-        let root_path = PathBuf::from("C:\\");
+        let root_path = PathBuf::from("D:\\");
 
         let result = root_path.as_sandboxed_absolute(&sandbox);
         assert!(result.is_err());
@@ -242,14 +255,25 @@ mod tests {
 
     #[test]
     fn test_multiple_consecutive_slashes_in_sandbox() {
+        #[cfg(target_family = "unix")]
         let sandbox = PathBuf::from("/sandbox");
+        #[cfg(target_family = "unix")]
         let multiple_slashes_path = PathBuf::from("src//main.rs");
+
+        #[cfg(target_family = "windows")]
+        let sandbox = PathBuf::from("D:\\sandbox");
+        #[cfg(target_family = "windows")]
+        let multiple_slashes_path = PathBuf::from("src\\\\main.rs");
+
         let absolute_path = multiple_slashes_path
             .as_sandboxed_absolute(&sandbox)
             .unwrap();
         assert!(absolute_path.is_absolute());
         assert!(absolute_path.starts_with(&sandbox));
+        #[cfg(target_family = "unix")]
         assert!(absolute_path.ends_with("src/main.rs"));
+        #[cfg(target_family = "windows")]
+        assert!(absolute_path.ends_with("src\\main.rs"));
     }
 
     #[test]
@@ -278,8 +302,16 @@ mod tests {
 
     #[test]
     fn test_path_with_trailing_slashes() {
+        #[cfg(target_family = "unix")]
         let sandbox = PathBuf::from("/sandbox");
+        #[cfg(target_family = "unix")]
         let relative_path = PathBuf::from("file.txt///");
+
+        #[cfg(target_family = "windows")]
+        let sandbox = PathBuf::from("D:\\sandbox");
+        #[cfg(target_family = "windows")]
+        let relative_path = PathBuf::from("file.txt\\\\\\");
+
         let absolute_path = relative_path.as_sandboxed_absolute(&sandbox).unwrap();
         assert!(absolute_path.is_absolute());
         assert!(absolute_path.starts_with(&sandbox));
