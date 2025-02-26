@@ -80,7 +80,14 @@ fn canonicalize_path(path: &Path) -> PathBuf {
             Component::Normal(_) => {
                 result.push(component);
             }
-            _ => {}
+            Component::Prefix(prefix) => match prefix.kind() {
+                std::path::Prefix::Disk(_) => {
+                    result.push(prefix.as_os_str());
+                }
+                _ => {
+                    // Skip other types of prefixes
+                }
+            },
         }
     }
 
