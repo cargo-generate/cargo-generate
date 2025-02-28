@@ -111,8 +111,7 @@ fn safe_copy(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
 fn safe_copy_skip_existing(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
     if dst_path.exists() && !overwrite {
         warn!(
-            "{} {} `{}` {}",
-            crate::emoji::WARN,
+            "{} `{}` {}",
             style("[Skipping] File already exists").bold().yellow(),
             style(dst_path.display()).bold(),
             style("and `--overwrite` was not passed")
