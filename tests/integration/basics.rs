@@ -296,7 +296,7 @@ fn it_can_generate_at_given_path() -> anyhow::Result<()> {
 }
 
 #[test]
-fn it_refuses_to_overwrite_files() -> anyhow::Result<()> {
+fn it_does_not_overwrite_existing_files() -> anyhow::Result<()> {
     let template = tempdir().init_default_template().build();
     let dir = tempdir().build();
     let _ = binary()
@@ -311,7 +311,7 @@ fn it_refuses_to_overwrite_files() -> anyhow::Result<()> {
         .flag_init()
         .current_dir(dir.path())
         .assert()
-        .failure();
+        .success();
     assert!(dir.read("Cargo.toml").contains("my-proj"));
     Ok(())
 }

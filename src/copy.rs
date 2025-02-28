@@ -48,7 +48,8 @@ pub fn copy_files_recursively(
     Ok(())
 }
 
-/// move a file from src to dst, possibly overwriting existing files if overwrite is true
+/// move a file from src to dst, possibly overwriting existing files
+/// if overwrite is true skipping otherwise
 /// if the file has a .liquid suffix, the suffix will be removed in the destination, and overwritten if existing
 fn copy_file(src_path: &Path, dst: &Path, overwrite: bool) -> Result<()> {
     let filename = src_path.file_name().unwrap().to_string_lossy().to_string();
@@ -76,8 +77,9 @@ fn copy_file(src_path: &Path, dst: &Path, overwrite: bool) -> Result<()> {
         return Ok(());
     } else {
         // if the file doesn't have a .liquid suffix, just copy it
+        // and skip if flile with that name exists
         // possibly overwriting existing files if overwrite is true
-        safe_copy(src_path, &dst_path, overwrite)?;
+        safe_copy_skip_existing(src_path, &dst_path, overwrite)?;
     }
 
     Ok(())
@@ -92,6 +94,29 @@ fn safe_copy(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
             style(dst_path.display()).bold(),
             style("and `--overwrite` was not passed")
         )
+    }
+
+    if dst_path.exists() && overwrite {
+        remove_file(dst_path)?;
+        copy(src_path, dst_path)?;
+    } else if !dst_path.exists() {
+        copy(src_path, dst_path)?;
+    }
+
+    Ok(())
+}
+
+/// Does the same as `safe_copy`, but skips existing files if set to not overwriting.
+/// It does not error if the file already exists.
+fn safe_copy_skip_existing(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
+    if dst_path.exists() && !overwrite {
+        warn!(
+            "{} `{}` {}",
+            style("[Skipping] File already exists").bold().yellow(),
+            style(dst_path.display()).bold(),
+            style("and `--overwrite` was not passed")
+        );
+        return Ok(());
     }
 
     if dst_path.exists() && overwrite {
@@ -126,6 +151,34 @@ mod tests {
             "we do allow overwriting with the flag set"
         );
         assert_eq!(std::fs::read_to_string(f2.as_path()).unwrap(), "A README");
+    }
+
+    #[test]
+    fn test_overwriting_behavior2() {
+        let tmp1 = tempdir().unwrap();
+        let tmp2 = tempdir().unwrap();
+        let f1 = tmp1.path().join("README.md");
+        std::fs::write(&f1, "FIRST README").unwrap();
+        let f2 = tmp2.path().join("README.md");
+        std::fs::write(&f2, "SECOND README").unwrap();
+
+        assert!(
+            safe_copy_skip_existing(f1.as_path(), f2.as_path(), false).is_ok(),
+            "we do not allow overwriting if file with same name already exists without the flag set"
+        );
+        assert_eq!(
+            std::fs::read_to_string(f2.as_path()).unwrap(),
+            "SECOND README",
+            "the file should not be copied"
+        );
+        assert!(
+            safe_copy_skip_existing(f1.as_path(), f2.as_path(), true).is_ok(),
+            "we do allow overwriting if file with same name already exists without the flag set"
+        );
+        assert_eq!(
+            std::fs::read_to_string(f2.as_path()).unwrap(),
+            "FIRST README"
+        );
     }
 
     #[test]
