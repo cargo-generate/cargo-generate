@@ -1,10 +1,9 @@
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use console::style;
 use indicatif::{MultiProgress, ProgressBar};
 use liquid::model::KString;
 use liquid::{Parser, ParserBuilder};
 use liquid_core::{Object, Value};
-use log::warn;
 use std::sync::{Arc, Mutex};
 use std::{
     cell::RefCell,
@@ -123,7 +122,7 @@ pub fn walk_dir(
     rhai_engine: Parser,
     rhai_filter_files: &Arc<Mutex<Vec<PathBuf>>>,
     mp: &mut MultiProgress,
-    verbose: bool,
+    quiet: bool,
 ) -> Result<()> {
     fn is_git_metadata(entry: &DirEntry) -> bool {
         entry
@@ -155,7 +154,7 @@ pub fn walk_dir(
             width = total.len()
         ));
 
-        if !verbose {
+        if quiet {
             pb.set_draw_target(indicatif::ProgressDrawTarget::hidden());
         }
 
@@ -183,9 +182,8 @@ pub fn walk_dir(
                 if entry.file_type().is_file() {
                     match template_process_file(liquid_object, &rhai_engine, filename) {
                         Err(e) => {
-                            if verbose {
-                                files_with_errors.push((filename.display().to_string(), e.clone()));
-                            }
+                            files_with_errors
+                                .push((relative_path.display().to_string(), e.clone()));
                         }
                         Ok(new_contents) => {
                             let new_filename =
@@ -238,11 +236,11 @@ pub fn walk_dir(
         }
     }
 
-    if !files_with_errors.is_empty() {
-        print_files_with_errors_warning(files_with_errors);
+    if files_with_errors.is_empty() {
+        Ok(())
+    } else {
+        bail!(print_files_with_errors_warning(files_with_errors))
     }
-
-    Ok(())
 }
 
 fn template_process_file(
@@ -317,7 +315,7 @@ pub fn render_string_gracefully(
     }
 }
 
-fn print_files_with_errors_warning(files_with_errors: Vec<(String, liquid_core::Error)>) {
+fn print_files_with_errors_warning(files_with_errors: Vec<(String, liquid_core::Error)>) -> String {
     let mut msg = format!(
         "{}",
         style("Substitution skipped, found invalid syntax in\n")
@@ -333,6 +331,5 @@ fn print_files_with_errors_warning(files_with_errors: Vec<(String, liquid_core::
         "Learn more: https://github.com/cargo-generate/cargo-generate#include--exclude.\n\n";
     let hint = style("Consider adding these files to a `cargo-generate.toml` in the template repo to skip substitution on these files.").bold();
 
-    warn!("");
-    warn!("{msg}\n{hint}\n\n{read_more}");
+    format!("{msg}\n{hint}\n\n{read_more}")
 }
