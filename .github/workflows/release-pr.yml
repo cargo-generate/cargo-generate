@@ -3,31 +3,30 @@
 name: Release PR
 
 permissions:
-  pull-requests: write
-  contents: write
+    pull-requests: write
+    contents: write
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
 
 jobs:
-  release-plz:
-    name: Release-plz
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.CI_CARGO_GENERATE_RELEASE_GH_PAT }}
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      - name: Run release-plz pr
-        uses: MarcoIeni/release-plz-action@v0.5
-        with:
-          command: release-pr
-          config: release-plz.toml
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_CARGO_GENERATE_RELEASE_GH_PAT }}
+    release-plz:
+        name: Release-plz
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Install Rust toolchain
+              uses: dtolnay/rust-toolchain@stable
+            - name: Run release-plz pr
+              uses: MarcoIeni/release-plz-action@v0.5
+              with:
+                  command: release-pr
+                  config: release-plz.toml
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
