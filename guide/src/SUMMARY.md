@@ -18,5 +18,6 @@
     - [Rhai extensions](templates/scripting.rhai-extensions.md)
     - [Mini example](templates/scripting.mini-example.md)
   - [Authoring](templates/authoring.md)
+  - [Common Pitfalls](templates/pitfalls.md)
 - [Contributing](contributing.md)
 - [License](license.md)
