@@ -186,12 +186,14 @@ placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], def
 <li><code>"text"</code>: Represents a multiline string value. (terminated by hitting CTRL-D)</li>
 <li><code>"editor"</code>: Represents a multiline string value, collected from the user by a real terminal editor.</li>
 <li><code>"bool"</code>: Represents a boolean value (<code>true</code> or <code>false</code>).</li>
+<li><code>"array"</code>: Represents an array of strings (<code>["a","b","c"]</code>)</li>
 </ul>
 <h2 id="example"><a class="header" href="#example">Example</a></h2>
 <p>Consider the following <code>cargo-generate.toml</code> file:</p>
 <pre><code class="language-toml">[placeholders]
 project_name = { prompt = "Enter project name", default = "my_project", type = "string" }
 environment = { prompt = "Which environment?", choices = ["dev", "prod"], default = "dev", type = "string"}
+features = { prompt = "Include features?", choices = ["serde", "logging"], default = ["serde"], type = "array"}
 use_git = { prompt = "Initialize Git repository?", default = true, type = "bool" }
 phone_number = { prompt = "What's your phone number?", type = "string", regex = "^[0-9]+$" }
 </code></pre>

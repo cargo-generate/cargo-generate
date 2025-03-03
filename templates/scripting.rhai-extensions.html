@@ -173,7 +173,8 @@
 </li>
 <li>
 <p><strong><code>variable::set(name: &amp;str, value: (&amp;str|bool))</code></strong></p>
-<p>Set new or overwrite existing variables. Do not allow to change types.</p>
+<p>Set new or overwrite existing variables. Do not allow to change types.
+Note that you can set entire arrays with this (e.g. <code>variable::set("array",["a","b"])</code>) but not individual elements (<code>variable::set("array[1]","a")</code> will not work).</p>
 </li>
 </ul>
 <h4 id="prompt"><a class="header" href="#prompt">Prompt</a></h4>
