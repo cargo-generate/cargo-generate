@@ -1,10 +1,10 @@
 use crate::{
     emoji,
-    project_variables::{Prompt, StringEntry, StringKind, TemplateSlots, VarInfo},
+    project_variables::{ArrayEntry, Prompt, StringEntry, StringKind, TemplateSlots, VarInfo},
 };
 use anyhow::{anyhow, bail, Result};
 use console::style;
-use dialoguer::{theme::ColorfulTheme, Select};
+use dialoguer::{theme::ColorfulTheme, MultiSelect, Select};
 use dialoguer::{Editor, Input};
 use liquid_core::Value;
 use log::warn;
@@ -14,6 +14,8 @@ use std::{
     ops::Index,
     str::FromStr,
 };
+
+pub const LIST_SEP: &str = ",";
 
 pub fn name() -> Result<String> {
     let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;
@@ -84,6 +86,9 @@ pub fn prompt_and_check_variable(
                 handle_string_input(provided_value, &variable.var_name, entry, &variable.prompt)
             }
         },
+        VarInfo::Array { entry } => {
+            handle_multi_select_input(provided_value, &variable.var_name, entry, &variable.prompt)
+        }
     }
 }
 
@@ -95,6 +100,12 @@ pub fn variable(variable: &TemplateSlots, provided_value: Option<&impl ToString>
             Ok(Value::Scalar(as_bool.into()))
         }
         VarInfo::String { .. } => Ok(Value::Scalar(user_entry.into())),
+        VarInfo::Array { .. } => Ok(Value::Array(
+            user_entry
+                .split(LIST_SEP)
+                .map(|s| Value::Scalar(s.to_string().into()))
+                .collect(),
+        )),
     }
 }
 
@@ -194,6 +205,91 @@ fn handle_choice_input(
                 .interact()?;
 
             Ok(choices.index(chosen).to_string())
+        }
+    }
+}
+
+// simple function so we can easily get more complicated later if we need to
+fn parse_list(provided_value: &str) -> Vec<String> {
+    provided_value
+        .split(LIST_SEP)
+        .filter(|e| !e.is_empty())
+        .map(|s| s.to_string())
+        .collect()
+}
+
+fn check_provided_selections(
+    provided_value: &str,
+    choices: &[String],
+) -> Result<Vec<String>, Vec<String>> {
+    let list = parse_list(provided_value);
+    if list.is_empty() {
+        return Ok(Vec::new());
+    }
+    let (ok_entries, bad_entries): (Vec<String>, Vec<String>) =
+        list.iter().cloned().partition(|e| choices.contains(e));
+    if bad_entries.is_empty() {
+        Ok(ok_entries)
+    } else {
+        Err(bad_entries)
+    }
+}
+
+fn handle_multi_select_input(
+    provided_value: Option<String>,
+    var_name: &str,
+    entry: &ArrayEntry,
+    prompt: &Prompt,
+) -> Result<String> {
+    let val = match provided_value {
+        // value is just provided
+        Some(value) => value,
+        // no value is provided so we have to be smarter
+        None => {
+            let mut selected_by_default = Vec::<bool>::with_capacity(entry.choices.len());
+            match &entry.default {
+                // if no defaults are provided everything is disselected by default
+                None => {
+                    selected_by_default.resize(entry.choices.len(), false);
+                }
+                Some(default_choices) => {
+                    for choice in &entry.choices {
+                        selected_by_default.push(default_choices.contains(choice));
+                    }
+                }
+            };
+
+            let choice_indices = MultiSelect::with_theme(&ColorfulTheme::default())
+                .items(&entry.choices)
+                .with_prompt(&prompt.styled)
+                .defaults(&selected_by_default)
+                .interact()?;
+
+            choice_indices
+                .iter()
+                .filter_map(|idx| entry.choices.get(*idx))
+                .cloned()
+                .collect::<Vec<String>>()
+                .join(LIST_SEP)
+        }
+    };
+
+    match check_provided_selections(&val, &entry.choices) {
+        Ok(s) => Ok(s.join(LIST_SEP)),
+        Err(s) => {
+            let err_string = if s.len() > 1 {
+                format!("are not valid values for {var_name}")
+            } else {
+                format!("is not a valid value for {var_name}")
+            };
+
+            bail!(
+                "{} {} \"{}\" {}",
+                emoji::WARN,
+                style("Sorry,").bold().red(),
+                style(&s.join(LIST_SEP)).bold().yellow(),
+                style(err_string).bold().red(),
+            )
         }
     }
 }
