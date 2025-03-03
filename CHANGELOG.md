@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0] 2025-03-03
+
+[0.23.0]: https://github.com/cargo-generate/cargo-generate/compare/0.22.1...0.23.0
+
+### ✨ Features
+
+- Fail on template errors ([#1376](https://github.com/cargo-generate/cargo-generate/pull/1376))
+- Add multi select variables  ([#1373](https://github.com/cargo-generate/cargo-generate/pull/1373))
+
+### 📖 Documentation
+
+- Elaborate on common pitfalls that appeared to happen lately ([#1398](https://github.com/cargo-generate/cargo-generate/pull/1398))
+
+### 🛠️ Maintenance
+
+- Fix typo in templates README. ([#1358](https://github.com/cargo-generate/cargo-generate/pull/1358))
+- Bump git2 from 0.19.0 to 0.20.0 ([#1361](https://github.com/cargo-generate/cargo-generate/pull/1361))
+- Bump tempfile from 3.13.0 to 3.15.0 ([#1359](https://github.com/cargo-generate/cargo-generate/pull/1359))
+- Bump sanitize-filename from 0.5.0 to 0.6.0 ([#1354](https://github.com/cargo-generate/cargo-generate/pull/1354))
+- Inherit stdio for system::command calls ([#1374](https://github.com/cargo-generate/cargo-generate/pull/1374))
+- Bump fs-err from 3.0.0 to 3.1.0 ([#1379](https://github.com/cargo-generate/cargo-generate/pull/1379))
+- Bump cargo-util-schemas from 0.7.0 to 0.7.2 ([#1395](https://github.com/cargo-generate/cargo-generate/pull/1395))
+
 ## [0.22.1] 2024-12-27
 
 [0.22.1]: https://github.com/cargo-generate/cargo-generate/compare/0.22.0...0.22.1
