@@ -166,7 +166,7 @@ a variable that is substituted by another value upon expansion of the template.<
 <p>Additionally, <strong>all filters and tags</strong> of the liquid template language are supported.
 For more information, check out the <a href="https://shopify.github.io/liquid">Liquid Documentation on <code>Tags</code> and <code>Filters</code></a>.</p>
 <p>You can use those placeholders in the file and directory names of the generated project.
-For example, for a project named <code>awesome</code>, the filename <code>{{project_name}}/{{project_name}}.rs</code> will be transformed to <code>awesome/awesome.rs</code> during generation.
+For example, for a project named <code>awesome</code>, the filename <code>{{project-name}}/{{project-name}}.rs</code> will be transformed to <code>awesome/awesome.rs</code> during generation.
 Only files that are <strong>not</strong> listed in the exclude settings will be templated.</p>
 <blockquote>
 <p>⚠️ NOTE: invalid characters for a filename or directory name will be sanitized after template substitution. Invalid is e.g. <code>/</code> or <code>\</code>.</p>

@@ -396,7 +396,7 @@ a variable that is substituted by another value upon expansion of the template.<
 <p>Additionally, <strong>all filters and tags</strong> of the liquid template language are supported.
 For more information, check out the <a href="https://shopify.github.io/liquid">Liquid Documentation on <code>Tags</code> and <code>Filters</code></a>.</p>
 <p>You can use those placeholders in the file and directory names of the generated project.
-For example, for a project named <code>awesome</code>, the filename <code>{{project_name}}/{{project_name}}.rs</code> will be transformed to <code>awesome/awesome.rs</code> during generation.
+For example, for a project named <code>awesome</code>, the filename <code>{{project-name}}/{{project-name}}.rs</code> will be transformed to <code>awesome/awesome.rs</code> during generation.
 Only files that are <strong>not</strong> listed in the exclude settings will be templated.</p>
 <blockquote>
 <p>⚠️ NOTE: invalid characters for a filename or directory name will be sanitized after template substitution. Invalid is e.g. <code>/</code> or <code>\</code>.</p>
@@ -984,6 +984,96 @@ jobs:
 </code></pre>
 <p>This is a very simple pipeline that builds weekly and on push.
 It processes your template repo and runs a <code>cargo check</code> as the final step. That's it, a good start to build on.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="common-pitfalls"><a class="header" href="#common-pitfalls">Common Pitfalls</a></h1>
+<p>When creating templates with <code>cargo-generate</code>, there are several common issues and pitfalls that template authors may encounter. This section aims to highlight these issues and provide guidance on how to avoid them.</p>
+<h2 id="github-actions-and-liquid-template-language-interference"><a class="header" href="#github-actions-and-liquid-template-language-interference">GitHub Actions and Liquid Template Language Interference</a></h2>
+<p>GitHub Actions use their own templating language, which can interfere with the Liquid template language used by <code>cargo-generate</code>. This can lead to unexpected behavior when placeholders are used in GitHub Actions workflow files.</p>
+<h3 id="issue"><a class="header" href="#issue">Issue</a></h3>
+<p>When using placeholders in GitHub Actions workflow files, the syntax for GitHub Actions (<code>${{ ... }}</code>) can conflict with the Liquid syntax (<code>{{ ... }}</code>). This can cause errors or unexpected behavior during template generation.</p>
+<p>For more details, you can refer to the <a href="https://github.com/cargo-generate/cargo-generate/discussions/843">discussion</a> that was opened for this purpose.</p>
+<h3 id="workarounds"><a class="header" href="#workarounds">Workarounds</a></h3>
+<ol>
+<li>
+<p><strong>Escape Liquid Syntax</strong>: One way to avoid conflicts is to escape the Liquid syntax in the workflow files. This can be done by using <code>{% raw %}</code> and <code>{% endraw %}</code> tags around the GitHub Actions syntax.</p>
+<pre><code class="language-yaml">jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run cargo-generate
+        run: |
+          cargo generate --git https://github.com/your/repo.git --name ${{ '{% raw %}' }}{{ project-name }}{% endraw %}
+</code></pre>
+</li>
+<li>
+<p><strong>Use Different Placeholders</strong>: Another approach is to use different placeholders for GitHub Actions and Liquid. For example, you can use a different syntax for placeholders in GitHub Actions and then replace them with the correct values in a pre-processing step.</p>
+<pre><code class="language-yaml">jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up project
+        run: |
+          PROJECT_NAME={{ project-name }}
+          echo "Project name is $PROJECT_NAME"
+</code></pre>
+</li>
+<li>
+<p><strong>Use <code>cargo-generate</code> Placeholders Sparingly</strong>: Limit the use of <code>cargo-generate</code> placeholders in GitHub Actions workflow files to only where necessary. This reduces the chances of conflicts and makes the workflow files easier to manage.</p>
+</li>
+<li>
+<p><strong>Liquid Prepend and Append</strong>: Use Liquid's <code>prepend</code> and <code>append</code> filters to dynamically generate the GitHub Actions syntax. This ensures that the placeholders are correctly processed by Liquid and result in the correct GitHub Actions markup.</p>
+<pre><code class="language-yaml">jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up project
+        run: |
+          echo "${{ "github-variable" | prepend: "{{" | append: "}}" }}"
+</code></pre>
+</li>
+<li>
+<p><strong>Pre-Hook Rhai Script</strong>: Another solution is to create a pre-hook Rhai script that executes <code>gsed</code> or <code>sed</code> to replace all GitHub Actions placeholders with the Liquid syntax on the fly. This automates the escaping process.</p>
+<pre><code class="language-toml">[hooks]
+pre = ["pre-hook.rhai"]
+</code></pre>
+<pre><code class="language-rhai">// pre-hook.rhai
+let result = system::command("gsed", ["-i", 's/${{ /${{ "{{" | prepend: "{{" | append: "}}" }}/g', "path/to/workflow/file.yml"]);
+if result != 0 {
+    abort("Failed to replace GitHub Actions placeholders");
+}
+</code></pre>
+<p>For more details, you can refer to the <a href="https://github.com/cargo-generate/cargo-generate/issues/1387#issuecomment-2691737440">issue</a> that was opened for this.</p>
+</li>
+</ol>
+<h2 id="undefined-placeholders"><a class="header" href="#undefined-placeholders">Undefined Placeholders</a></h2>
+<p>Another common pitfall is using placeholders that are not defined. When a placeholder is not defined, <code>cargo-generate</code> will not throw an error; instead, it will replace the placeholder with an empty string. This can lead to unexpected results in the generated files.</p>
+<h3 id="issue-1"><a class="header" href="#issue-1">Issue</a></h3>
+<p>If a placeholder is used in a template file but is not defined in the <code>cargo-generate.toml</code> file or provided by the user, it will be replaced with an empty string. This can cause issues such as missing values in configuration files or broken code.</p>
+<h3 id="solution"><a class="header" href="#solution">Solution</a></h3>
+<ol>
+<li>
+<p><strong>Define All Placeholders</strong>: Ensure that all placeholders used in the template files are defined in the <code>cargo-generate.toml</code> file. This includes providing default values or prompting the user for input.</p>
+<pre><code class="language-toml">[placeholders]
+project_name = { prompt = "Enter project name", default = "my_project", type = "string" }
+author_name = { prompt = "Enter author name", default = "John Doe", type = "string" }
+</code></pre>
+</li>
+<li>
+<p><strong>Validate Placeholder Usage</strong>: Before generating the template, validate that all placeholders used in the template files are defined. This can be done by reviewing the template files and cross-referencing them with the placeholders defined in the <code>cargo-generate.toml</code> file.</p>
+</li>
+<li>
+<p><strong>Provide Default Values</strong>: Where possible, provide default values for placeholders to ensure that they are always replaced with meaningful values.</p>
+<pre><code class="language-toml">[placeholders]
+project_name = { prompt = "Enter project name", default = "my_project", type = "string" }
+</code></pre>
+</li>
+</ol>
+<p>By being aware of these common issues and pitfalls, template authors can create more robust and reliable templates with <code>cargo-generate</code>. Proper handling of GitHub Actions and Liquid template language interference, as well as ensuring that all placeholders are defined, will help avoid unexpected behavior and improve the overall template generation experience.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="contributing"><a class="header" href="#contributing">Contributing</a></h1>
 <p>Unless you explicitly state otherwise, any contribution intentionally
 submitted for inclusion in the work by you, as defined in the Apache-2.0
