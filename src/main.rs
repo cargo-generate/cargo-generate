@@ -40,6 +40,10 @@ fn resolve_args() -> cargo_generate::GenerateArgs {
         })
     };
     let Cli::Generate(mut args) = Cli::parse_from(args);
+    if args.template_path.test {
+        args.verbose = true;
+    };
+
     args.other_args = Some(other_args);
     if args.template_path.test {
         args.template_path.path = Some(
