@@ -39,7 +39,7 @@ paste = "~1.0"
 path-absolutize = "~3.1"
 regex = "~1.11"
 remove_dir_all = "~1.0"
-rhai = "~1.20"
+rhai = "~1.21"
 sanitize-filename = "~0.6"
 semver = { version = "~1.0", features = ["serde"] }
 serde = { version = "~1.0", features = ["derive"] }
