@@ -32,6 +32,7 @@ placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], def
 - `"text"`: Represents a multiline string value. (terminated by hitting CTRL-D)
 - `"editor"`: Represents a multiline string value, collected from the user by a real terminal editor.
 - `"bool"`: Represents a boolean value (`true` or `false`).
+- `"array"`: Represents an array of strings (`["a","b","c"]`)
 
 ## Example
 
@@ -41,6 +42,7 @@ Consider the following `cargo-generate.toml` file:
 [placeholders]
 project_name = { prompt = "Enter project name", default = "my_project", type = "string" }
 environment = { prompt = "Which environment?", choices = ["dev", "prod"], default = "dev", type = "string"}
+features = { prompt = "Include features?", choices = ["serde", "logging"], default = ["serde"], type = "array"}
 use_git = { prompt = "Initialize Git repository?", default = true, type = "bool" }
 phone_number = { prompt = "What's your phone number?", type = "string", regex = "^[0-9]+$" }
 ```
