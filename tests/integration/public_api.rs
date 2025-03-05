@@ -28,6 +28,8 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
         verbose: true,
         template_values_file: None,
         silent: false,
+        continue_on_error: false,
+        quiet: false,
         list_favorites: false,
         config: None,
         bin: true,
