@@ -17,6 +17,7 @@ Besides the basic [`Rhai`] features, these are the modules/behaviors defined:
 * **`variable::set(name: &str, value: (&str|bool))`**
 
   Set new or overwrite existing variables. Do not allow to change types.
+  Note that you can set entire arrays with this (e.g. `variable::set("array",["a","b"])`) but not individual elements (`variable::set("array[1]","a")` will not work).
 
 #### Prompt for values with `variable::prompt`
 
