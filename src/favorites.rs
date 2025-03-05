@@ -20,7 +20,7 @@ pub fn list_favorites(args: &GenerateArgs) -> Result<()> {
                     .filter(|(key, _)| {
                         args.template_path
                             .auto_path()
-                            .map_or(true, |f| key.starts_with(f.as_ref()))
+                            .is_none_or(|f| key.starts_with(f.as_ref()))
                     })
                     .collect::<Vec<(&String, &FavoriteConfig)>>()
             })

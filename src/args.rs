@@ -95,8 +95,23 @@ pub struct GenerateArgs {
     pub force: bool,
 
     /// Enables more verbose output.
-    #[arg(long, short, action)]
+    #[arg(long, short, action, conflicts_with = "quiet")]
     pub verbose: bool,
+
+    /// Opposite of verbose, suppresses errors & warning in output
+    /// Conflicts with verbose, and requires the use of --continue-on-error
+    #[arg(
+        long,
+        short,
+        action,
+        conflicts_with = "verbose",
+        requires = "continue_on_error"
+    )]
+    pub quiet: bool,
+
+    /// Continue if errors in templates are encountered
+    #[arg(long, action)]
+    pub continue_on_error: bool,
 
     /// Pass template values through a file. Values should be in the format `key=value`, one per
     /// line
@@ -128,6 +143,10 @@ pub struct GenerateArgs {
     /// Use a different ssh identity
     #[arg(short = 'i', long = "identity", value_parser, value_name="IDENTITY", help_heading = heading::GIT_PARAMETERS)]
     pub ssh_identity: Option<PathBuf>,
+
+    /// Use a different gitconfig file, if omitted the usual $HOME/.gitconfig will be used
+    #[arg(long = "gitconfig", value_parser, value_name="GITCONFIG_FILE", help_heading = heading::GIT_PARAMETERS)]
+    pub gitconfig: Option<PathBuf>,
 
     /// Define a value for use during template expansion. E.g `--define foo=bar`
     #[arg(long, short, number_of_values = 1, value_parser, help_heading = heading::OUTPUT_PARAMETERS)]
@@ -173,6 +192,8 @@ impl Default for GenerateArgs {
             name: None,
             force: false,
             verbose: false,
+            quiet: false,
+            continue_on_error: false,
             template_values_file: None,
             silent: false,
             config: None,
@@ -180,6 +201,7 @@ impl Default for GenerateArgs {
             lib: true,
             bin: false,
             ssh_identity: None,
+            gitconfig: None,
             define: Vec::default(),
             init: false,
             destination: None,
@@ -205,6 +227,7 @@ pub struct TemplatePath {
 
     /// Expand $CWD as a template, then run `cargo test` on the expansion (set
     /// $CARGO_GENERATE_TEST_CMD to override test command).
+    /// implies --verbose
     ///
     /// Any arguments given after the `--test` argument, will be used as arguments for the test
     /// command.

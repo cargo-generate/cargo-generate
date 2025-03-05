@@ -42,6 +42,22 @@ impl CargoGenerateArgBuilder {
         self.arg("--git").arg(name)
     }
 
+    /// wrapper for `--path <name>` cli argument
+    pub fn arg_path(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
+        self.arg("--path").arg(name)
+    }
+
+    /// wrapper for `--gitconfig <file>` cli argument
+    pub fn arg_gitconfig(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
+        self.arg("--gitconfig").arg(name)
+    }
+
+    #[allow(dead_code)]
+    /// wrapper for `--identity <file>` cli argument
+    pub fn arg_identity(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
+        self.arg("--identity").arg(name)
+    }
+
     /// proxy for `Command::arg`
     pub fn arg(&mut self, arg: impl AsRef<OsStr>) -> &mut Self {
         self.0.arg(arg);

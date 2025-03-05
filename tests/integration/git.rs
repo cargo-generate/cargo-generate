@@ -87,8 +87,7 @@ fn it_removes_git_history_also_on_local_templates() {
     let dir = tempdir().build();
 
     binary()
-        .arg("--path")
-        .arg(template.path())
+        .arg_path(template.path())
         .arg_name("xyz")
         .current_dir(dir.path())
         .assert()
@@ -103,18 +102,30 @@ fn it_removes_git_history_also_on_local_templates() {
 #[test]
 fn it_should_init_an_empty_git_repo_even_when_starting_from_a_repo_when_forced() {
     let template = tempdir().init_default_template().build();
-    let target_path = template.path();
+    let target = tempdir()
+        .file("README", "any existing file on a git repo")
+        .init_git()
+        .build();
+
+    // the target path is a git repo with commits
+    let repo = Repository::open(target.path()).unwrap();
+    let references = repo.references().unwrap().count();
+    assert_ne!(0, references);
 
     binary()
         .arg("--force-git-init")
         .arg_git(template.path())
         .arg_name("foo")
-        .current_dir(target_path)
+        .current_dir(target.path())
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    let repo = Repository::open(target_path.join("foo")).unwrap();
+    assert!(target.read("foo/Cargo.toml").contains(r#"name = "foo""#));
+    assert!(target.exists("foo/.git"));
+
+    // the generated project should be an empty git repo, even if the target path was a git repo already
+    let repo = Repository::open(target.path().join("foo")).unwrap();
     let references = repo.references().unwrap().count();
     assert_eq!(0, references);
 }
@@ -127,11 +138,11 @@ fn should_retrieve_an_instead_of_url() {
 "#;
     let mut config = GitConfig::try_from(input).unwrap();
     let url = config
-        .string("url", Some("ssh://git@github.com:".into()), "insteadOf")
+        .string_by("url", Some("ssh://git@github.com:".into()), "insteadOf")
         .unwrap();
     assert_eq!(url.deref(), "https://github.com/");
     config
-        .set_raw_value(
+        .set_raw_value_by(
             "url",
             Some("ssh://git@github.com:".into()),
             "insteadOf",

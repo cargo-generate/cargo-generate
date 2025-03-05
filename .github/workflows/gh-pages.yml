@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
     steps:
@@ -26,5 +26,5 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
-          github_token: ${{ secrets.CI_CARGO_GENERATE_RELEASE_GH_PAT }}
-          publish_dir: ./guide/book
+            github_token: ${{ secrets.GITHUB_TOKEN }} 
+            publish_dir: ./guide/book

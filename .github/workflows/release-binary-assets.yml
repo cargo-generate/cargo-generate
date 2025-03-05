@@ -50,7 +50,7 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
           override: true
-      - uses: mozilla-actions/sccache-action@v0.0.5
+      - uses: mozilla-actions/sccache-action@v0.0.7
       - name: Build
         # todo: get rid of the deprecated actions-rs stuff..
         uses: actions-rs/cargo@v1
@@ -90,7 +90,7 @@ jobs:
           tar -czvf "$filename" README.md LICENSE-MIT LICENSE-APACHE -C "target/$TARGET/release" "${{ matrix.binName }}"
           echo "::set-output name=filename::$filename"
       - name: Upload Archive
-        uses: ncipollo/release-action@v1.14.0
+        uses: ncipollo/release-action@v1.16.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           allowUpdates: true

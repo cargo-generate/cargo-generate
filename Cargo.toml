@@ -1,27 +1,28 @@
 [package]
 name = "cargo-generate"
 description = "cargo, make me a project"
-version = "0.21.3"
+version = "0.22.1"
 authors = ["Ashley Williams <ashley666ashley@gmail.com>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/cargo-generate/cargo-generate"
 edition = "2021"
 include = ["src/**/*", "LICENSE-*", "*.md"]
 
+[dependencies.git2]
+default-features = false
+features = ["ssh", "https"]
+version = "~0.20"
+
 [dependencies]
-anstyle = "1.0.7"
+anstyle = "~1.0"
 anyhow = "~1.0"
 auth-git2 = "~0.5"
 clap = { version = "~4.5", features = ["derive", "wrap_help"] }
 console = "~0.15"
 dialoguer = "~0.11"
 env_logger = "~0.11"
-fs-err = "2.11"
-git2 = { version = "~0.19", default-features = false, features = [
-    "ssh",
-    "https",
-] }
-gix-config = "~0.37"
+fs-err = "~3.1"
+gix-config = "~0.40"
 heck = "~0.5"
 home = "~0.5"
 ignore = "~0.4"
@@ -36,21 +37,22 @@ names = { version = "~0.14", default-features = false }
 openssl = { version = "~0.10", optional = true }
 paste = "~1.0"
 path-absolutize = "~3.1"
-regex = "~1.10"
-remove_dir_all = "~0.8"
-rhai = "~1.19"
-sanitize-filename = "~0.5"
+regex = "~1.11"
+remove_dir_all = "~1.0"
+rhai = "~1.20"
+sanitize-filename = "~0.6"
 semver = { version = "~1.0", features = ["serde"] }
 serde = { version = "~1.0", features = ["derive"] }
-tempfile = "~3.10"
-thiserror = "~1.0"
+tempfile = "~3.17"
+thiserror = "~2.0"
 time = "~0.3"
 toml = { version = "~0.8", features = ["preserve_order"] }
 walkdir = "~2.5"
+cargo-util-schemas = "~0.7"
 
 [dev-dependencies]
 assert_cmd = "~2.0"
-bstr = "~1.9"
+bstr = "~1.11"
 indoc = "~2.0"
 predicates = "~3.1"
 url = "~2.5"
@@ -66,3 +68,8 @@ name = "cargo-generate"
 
 [profile.release]
 lto = true
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(e2e_tests_with_ssh_key)',
+] }
