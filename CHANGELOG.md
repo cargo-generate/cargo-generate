@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0] 2025-03-05
+
+[0.23.0]: https://github.com/cargo-generate/cargo-generate/compare/0.22.1...0.23.0
+
+### ✨ Features
+
+- Fail on template errors ([#1376](<REPO>/issues/1376))
+- Add multi select variables  ([#1373](<REPO>/issues/1373))
+
+### 📖 Documentation
+
+- Elaborate on common pitfalls that appeared to happen lately ([#1398](<REPO>/issues/1398))
+
+### 🛠️ Maintenance
+
+- Fix typo in templates README. ([#1358](<REPO>/issues/1358))
+- Bump git2 from 0.19.0 to 0.20.0 ([#1361](<REPO>/issues/1361))
+- Bump tempfile from 3.13.0 to 3.15.0 ([#1359](<REPO>/issues/1359))
+- Bump sanitize-filename from 0.5.0 to 0.6.0 ([#1354](<REPO>/issues/1354))
+- Inherit stdio for system::command calls ([#1374](<REPO>/issues/1374))
+- Bump fs-err from 3.0.0 to 3.1.0 ([#1379](<REPO>/issues/1379))
+- Bump cargo-util-schemas from 0.7.0 to 0.7.2 ([#1395](<REPO>/issues/1395))
+- Bump bstr from 1.10.0 to 1.11.3 ([#1360](<REPO>/issues/1360))
+- Enhance file copy behavior: Implement skipping existing files and allow overwriting with a flag ([#1381](<REPO>/issues/1381))
+
 ## [0.22.1] 2024-12-27
 
 [0.22.1]: https://github.com/cargo-generate/cargo-generate/compare/0.22.0...0.22.1
