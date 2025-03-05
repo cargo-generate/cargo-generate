@@ -736,9 +736,9 @@ ignore = [ "LICENSE-MIT.txt" ]
 during template expansion.</p>
 <p>To configure the use of hooks, write a <code>hooks</code> section in the <code>cargo-generate.toml</code> file.</p>
 <pre><code class="language-toml">[hooks]
-#init = ["init-script.rhai"]
-#pre = ["pre-script.rhai"]
-#post = ["post-script.rhai"]
+init = ["init-script.rhai"]
+pre = ["pre-script.rhai"]
+post = ["post-script.rhai"]
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h2 id="hook-types"><a class="header" href="#hook-types">Hook types</a></h2>
 <h3 id="init"><a class="header" href="#init">Init</a></h3>
@@ -777,7 +777,7 @@ in order not to confuse the user.</p>
 <p>Why not later? Security, and the fact that a failing script still causes no errors in the users destination.</p>
 <div style="break-before: page; page-break-before: always;"></div><h2 id="rhai-extensions"><a class="header" href="#rhai-extensions">Rhai extensions</a></h2>
 <p>Besides the basic <a href="https://rhai.rs/book/"><code>Rhai</code></a> features, these are the modules/behaviors defined:</p>
-<h3 id="variables"><a class="header" href="#variables">Variables</a></h3>
+<h3 id="variables-with-the-variable-module"><a class="header" href="#variables-with-the-variable-module">Variables with the <code>variable</code> module</a></h3>
 <h4 id="getset"><a class="header" href="#getset">get/set</a></h4>
 <ul>
 <li>
@@ -794,7 +794,7 @@ in order not to confuse the user.</p>
 Note that you can set entire arrays with this (e.g. <code>variable::set("array",["a","b"])</code>) but not individual elements (<code>variable::set("array[1]","a")</code> will not work).</p>
 </li>
 </ul>
-<h4 id="prompt"><a class="header" href="#prompt">Prompt</a></h4>
+<h4 id="prompt-for-values-with-variableprompt"><a class="header" href="#prompt-for-values-with-variableprompt">Prompt for values with <code>variable::prompt</code></a></h4>
 <ul>
 <li>
 <p><strong><code>variable::prompt(text: &amp;str, default_value: bool) -&gt; value</code></strong></p>
@@ -817,7 +817,7 @@ Note that you can set entire arrays with this (e.g. <code>variable::set("array",
 <p>Prompt the user for a choice value</p>
 </li>
 </ul>
-<h3 id="files"><a class="header" href="#files">Files</a></h3>
+<h3 id="files-with-the-file-module"><a class="header" href="#files-with-the-file-module">Files with the <code>file</code> module</a></h3>
 <ul>
 <li>
 <p><strong><code>file::exists(path: &amp;str)</code></strong></p>
@@ -839,11 +839,29 @@ Note that you can set entire arrays with this (e.g. <code>variable::set("array",
 <p><strong><code>file::write(file: &amp;str, content: Array)</code></strong></p>
 <p>Create/overwrite a file inside the template folder, each entry in the array on a new line</p>
 </li>
+<li>
+<p><strong><code>file::listdir(path = ".") -&gt; Array&lt;String&gt;</code></strong></p>
+<p>List the contents of a directory</p>
+<p>Note: The path is relative to the template folder, and cannot be outside the template folder.</p>
+<p>Examples:</p>
+<pre><code class="language-rhai">let files = file::listdir();
+for f in files {
+    print(`file: ${f}`);
+}
+
+// this is actually the same as above, the path must be inside the template directory, cannot be absolute or ourside
+let files = file::listdir(".");
+for f in files {
+    print(`file: ${f}`);
+}
+</code></pre>
+<p>See also: <a href="https://github.com/cargo-generate/cargo-generate/blob/main/example-templates/many-hooks-in-action/sed-license.rhai#L18">the many-hooks-in-action example project</a></p>
+</li>
 </ul>
-<h3 id="system"><a class="header" href="#system">System</a></h3>
+<h3 id="the-system-module"><a class="header" href="#the-system-module">The <code>system</code> module</a></h3>
 <ul>
 <li>
-<p><strong><code>system::command(cmd: &amp;str, args: Array) -&gt; value</code></strong></p>
+<p><strong><code>system::command(cmd: &amp;str, args: Array = []) -&gt; value</code></strong></p>
 <p>Execute a command on the system generating the project from a template.</p>
 <p>The user will be prompted with</p>
 <pre><code>The template is requesting to run the following command. Do you agree?
@@ -851,10 +869,42 @@ Note that you can set entire arrays with this (e.g. <code>variable::set("array",
 </code></pre>
 <p>unless the user uses the flag <code>--allow-commands</code>. If the user attempts to use the
 <code>--silent</code> flag without the <code>--allow-commands</code> flag will fail.</p>
+<p>Examples:</p>
+<pre><code class="language-rhai">// this returns the PWD as a string
+let pwd = system::command("pwd");
+
+// but this works too and does the same
+system::command("pwd", []);
+
+// this will cat a file and returns the content
+let content = system::command("cat", ["file.txt"]);
+</code></pre>
+<p>See also: <a href="https://github.com/cargo-generate/cargo-generate/blob/main/example-templates/many-hooks-in-action/sed-license.rhai#L11">the many-hooks-in-action example project</a></p>
 </li>
 <li>
 <p><strong><code>system::date() -&gt; Date</code></strong></p>
 <p>Get the date in UTC from the system as an object with the properties <code>year</code>, <code>month</code>, and <code>day</code>.</p>
+</li>
+</ul>
+<h3 id="the-env-module"><a class="header" href="#the-env-module">The <code>env</code> module</a></h3>
+<p>The <code>env</code> module provides access to environment variables.</p>
+<ul>
+<li>
+<p><strong><code>env::working_directory</code></strong></p>
+<p>Returns the current working directory as a string. This is the directory where the <code>cargo-generate</code> pre-processes the template, before it is copied over to the users <code>destination</code> directory.</p>
+<p>Examples:</p>
+<pre><code class="language-rhai">let wd = env::working_directory;
+print(`Working directory: ${wd}`);
+</code></pre>
+<p>See also: <a href="https://github.com/cargo-generate/cargo-generate/blob/main/example-templates/many-hooks-in-action/post-script.rhai#L6">the many-hooks-in-action example project</a></p>
+</li>
+<li>
+<p><strong><code>env::destination_directory</code></strong></p>
+<p>Returns the destination directory as a string. This is the directory where the template is copied to, and where the user will find the generated project.</p>
+<p>Examples:</p>
+<pre><code class="language-rhai">let dd = env::destination_directory;
+print(`Destination directory: ${dd}`);
+</code></pre>
 </li>
 </ul>
 <h3 id="other"><a class="header" href="#other">Other</a></h3>
