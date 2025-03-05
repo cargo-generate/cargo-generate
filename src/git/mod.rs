@@ -4,13 +4,12 @@ use std::path::Path;
 use std::{io, ops::Sub, thread::sleep, time::Duration};
 
 use anyhow::Result;
-use auth_git2::GitAuthenticator;
-use console::style;
-use git2::{build::RepoBuilder, FetchOptions, ProxyOptions, Repository, RepositoryInitOptions};
+use git2::{Repository, RepositoryInitOptions};
 use log::warn;
 use remove_dir_all::remove_dir_all;
 pub use utils::clone_git_template_into_temp;
 
+mod clone_tool;
 mod gitconfig;
 mod utils;
 
@@ -34,143 +33,11 @@ pub use utils::{tmp_dir, try_get_branch_from_path};
 
 type Git2Result<T> = Result<T, git2::Error>;
 
-struct RepoCloneBuilder<'cb> {
-    builder: RepoBuilder<'cb>,
-    authenticator: GitAuthenticator,
-    url: String,
-    skip_submodules: bool,
-}
-
-impl<'cb> RepoCloneBuilder<'cb> {
-    pub fn new(url: &str, skip_submodules: bool) -> Result<Self> {
-        let url = gitconfig::find_gitconfig()?.map_or_else(
-            || url.to_owned(),
-            |gitcfg| {
-                gitconfig::resolve_instead_url(url, gitcfg)
-                    .expect("correct configuration")
-                    .unwrap_or_else(|| url.to_owned())
-            },
-        );
-
-        Ok(Self {
-            builder: RepoBuilder::new(),
-            authenticator: GitAuthenticator::default(),
-            url,
-            skip_submodules,
-        })
-    }
-
-    pub fn new_with(
-        url: &str,
-        branch: Option<&str>,
-        identity_path: Option<&Path>,
-        submodules: bool,
-    ) -> Result<Self> {
-        let mut builder = Self::new(url, submodules)?;
-        if let Some(branch) = branch {
-            builder.set_branch(branch);
-        }
-
-        if let Some(identity_path) = identity_path {
-            builder.set_identity(identity_path)?;
-        }
-
-        Ok(builder)
-    }
-
-    pub fn set_identity(&mut self, identity_path: &Path) -> Result<()> {
-        let identity_path = utils::canonicalize_path(identity_path)?;
-        log::info!(
-            "{} `{}` {}",
-            style("Using private key:").bold(),
-            style(format_args!("{}", identity_path.display()))
-                .bold()
-                .yellow(),
-            style("for git-ssh checkout").bold()
-        );
-        self.authenticator = GitAuthenticator::new_empty()
-            .add_ssh_key_from_file(identity_path, None)
-            .prompt_ssh_key_password(true);
-        Ok(())
-    }
-
-    pub fn set_branch(&mut self, branch: &str) {
-        self.builder.branch(branch);
-    }
-
-    fn clone(self, dest_path: &Path) -> Result<Repository> {
-        let config = git2::Config::open_default()?;
-
-        let mut proxy_options = ProxyOptions::new();
-        proxy_options.auto();
-
-        let mut callbacks = git2::RemoteCallbacks::new();
-        callbacks.credentials(self.authenticator.credentials(&config));
-
-        let mut fetch_options = FetchOptions::new();
-        fetch_options.proxy_options(proxy_options);
-        fetch_options.remote_callbacks(callbacks);
-        if self.url.starts_with("ssh://")
-            || self.url.starts_with("git@")
-            || self.url.starts_with("http://")
-            || self.url.starts_with("https://")
-        {
-            fetch_options.depth(1);
-            fetch_options.download_tags(git2::AutotagOption::All);
-        }
-
-        let mut builder = self.builder;
-        builder.fetch_options(fetch_options);
-
-        builder
-            .clone(&self.url, dest_path)
-            .map_err(anyhow::Error::from)
-    }
-
-    pub fn clone_with_submodules(self, dest_path: &Path) -> Result<Repository> {
-        let authenticator = Clone::clone(&self.authenticator);
-        let skip_submodules = self.skip_submodules;
-        let repo = self.clone(dest_path)?;
-        if skip_submodules {
-            return Ok(repo);
-        }
-
-        let config = repo.config()?;
-
-        for mut sub in repo.submodules()? {
-            let mut proxy_options = ProxyOptions::new();
-            proxy_options.auto();
-
-            let mut callbacks = git2::RemoteCallbacks::new();
-            callbacks.credentials(authenticator.credentials(&config));
-
-            let mut fetch_options = FetchOptions::new();
-            fetch_options.proxy_options(proxy_options);
-            fetch_options.remote_callbacks(callbacks);
-
-            let mut update_options = git2::SubmoduleUpdateOptions::new();
-            update_options.fetch(fetch_options);
-            sub.update(true, Some(&mut update_options))?;
-        }
-
-        Ok(repo)
-    }
-}
-
 /// Init project_dir with fresh repository on branch
 ///
 /// Arguments:
 /// - `force` - enforce a fresh git init
 pub fn init(project_dir: &Path, branch: Option<&str>, force: bool) -> Git2Result<Repository> {
-    fn just_init(project_dir: &Path, branch: Option<&str>) -> Git2Result<Repository> {
-        let mut opts = RepositoryInitOptions::new();
-        opts.bare(false);
-        if let Some(branch) = branch {
-            opts.initial_head(branch);
-        }
-        Repository::init_opts(project_dir, &opts)
-    }
-
     Repository::discover(project_dir).map_or_else(
         |_| just_init(project_dir, branch),
         |repo| {
@@ -181,6 +48,15 @@ pub fn init(project_dir: &Path, branch: Option<&str>, force: bool) -> Git2Result
             }
         },
     )
+}
+
+fn just_init(project_dir: &Path, branch: Option<&str>) -> Git2Result<Repository> {
+    let mut opts = RepositoryInitOptions::new();
+    opts.bare(false);
+    if let Some(branch) = branch {
+        opts.initial_head(branch);
+    }
+    Repository::init_opts(project_dir, &opts)
 }
 
 /// remove context of repository by removing `.git` from filesystem

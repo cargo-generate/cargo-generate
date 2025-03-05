@@ -1,6 +1,8 @@
+use assert_cmd::prelude::*;
 use indoc::indoc;
 use std::fs;
 use std::io::Write;
+use std::process::Command;
 use std::str;
 
 use crate::helpers::project::Project;
@@ -34,11 +36,11 @@ impl ProjectBuilder {
     /// - one file `Cargo.toml` in it
     /// - one placeholder `project-name`
     pub fn init_default_template(self) -> Self {
-        self.default_manifest().init_git()
+        self.with_default_manifest().init_git()
     }
 
     /// creates a `Cargo.toml` manifest with a `project-name` placeholder
-    pub fn default_manifest(self) -> Self {
+    pub fn with_default_manifest(self) -> Self {
         self.file(
             "Cargo.toml",
             indoc! {r#"
@@ -85,12 +87,28 @@ impl ProjectBuilder {
     /// the initial branch is named `main` in all our integration tests so that they're not
     /// effected by `init.defaultBranch`.
     fn rename_branch_to_main(&self) {
-        use assert_cmd::prelude::*;
-        std::process::Command::new("git")
+        Command::new("git")
             .arg("branch")
             .arg("--move")
             .arg("main")
             .current_dir(self.root.path())
+            .assert()
+            .success();
+    }
+
+    fn git_commit(message: &str, current_directory: impl AsRef<std::path::Path>) {
+        Command::new("git")
+            .args([
+                "-c",
+                "user.name='Foo Bar'",
+                "-c",
+                "user.email='foo@bar.com'",
+            ])
+            .arg("commit")
+            .arg("--no-gpg-sign")
+            .arg("--message")
+            .arg(message)
+            .current_dir(current_directory)
             .assert()
             .success();
     }
@@ -114,9 +132,6 @@ impl ProjectBuilder {
         }
 
         if self.git {
-            use assert_cmd::prelude::*;
-            use std::process::Command;
-
             Command::new("git")
                 .arg("init")
                 .current_dir(path)
@@ -138,14 +153,7 @@ impl ProjectBuilder {
                     .assert()
                     .success();
 
-                Command::new("git")
-                    .arg("commit")
-                    .arg("--no-gpg-sign")
-                    .arg("--message")
-                    .arg("initial main commit")
-                    .current_dir(path)
-                    .assert()
-                    .success();
+                Self::git_commit("initial main commit", path);
 
                 self.rename_branch_to_main();
 
@@ -178,17 +186,16 @@ impl ProjectBuilder {
                     .success();
             });
 
-            Command::new("git")
-                .arg("commit")
-                .arg("--no-gpg-sign")
-                .arg("--message")
-                .arg("initial commit")
-                .current_dir(path)
-                .assert()
-                .success();
+            Self::git_commit("initial commit", path);
 
             if let Some(ref tag) = self.tag {
                 Command::new("git")
+                    .args([
+                        "-c",
+                        "user.name='Foo Bar'",
+                        "-c",
+                        "user.email='foo@bar.com'",
+                    ])
                     .arg("tag")
                     .arg("-a")
                     .arg(tag)
@@ -212,14 +219,7 @@ impl ProjectBuilder {
                     .assert()
                     .success();
 
-                Command::new("git")
-                    .arg("commit")
-                    .arg("--no-gpg-sign")
-                    .arg("--message")
-                    .arg("dummy commit after tag")
-                    .current_dir(path)
-                    .assert()
-                    .success();
+                Self::git_commit("dummy commit after tag", path);
             }
 
             if self.branch.is_some() {

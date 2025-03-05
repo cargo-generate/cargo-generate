@@ -410,8 +410,7 @@ fn cli_values_are_checked_via_regex() {
         .arg_name("foobar-project")
         .arg("-d")
         .arg(r#"my_value="content of my-value""#)
-        .arg("--path")
-        .arg(template.path())
+        .arg_path(template.path())
         .current_dir(dir.path())
         .assert()
         .failure();

@@ -25,6 +25,7 @@
 mod app_config;
 mod args;
 mod config;
+mod copy;
 mod emoji;
 mod favorites;
 mod filenames;
@@ -39,6 +40,7 @@ mod template;
 mod template_filters;
 mod template_variables;
 mod user_parsed_input;
+mod workspace_member;
 
 pub use crate::app_config::{app_config_path, AppConfig};
 pub use crate::favorites::list_favorites;
@@ -48,11 +50,12 @@ pub use args::*;
 use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
+use copy::copy_files_recursively;
 use env_logger::fmt::Formatter;
 use fs_err as fs;
 use hooks::execute_hooks;
 use ignore_me::remove_dir_files;
-use interactive::prompt_and_check_variable;
+use interactive::{prompt_and_check_variable, LIST_SEP};
 use log::Record;
 use log::{info, warn};
 use project_variables::{StringEntry, StringKind, TemplateSlots, VarInfo};
@@ -66,6 +69,7 @@ use std::{
 };
 use tempfile::TempDir;
 use user_parsed_input::{TemplateLocation, UserParsedInput};
+use workspace_member::WorkspaceMemberStatus;
 
 use crate::git::tmp_dir;
 use crate::template_variables::{
@@ -131,26 +135,67 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     check_cargo_generate_version(&config)?;
 
     let project_dir = expand_template(&template_dir, &mut config, &user_parsed_input, &args)?;
+    let (mut should_initialize_git, with_force) = {
+        let vcs = &config
+            .template
+            .as_ref()
+            .and_then(|t| t.vcs)
+            .unwrap_or_else(|| user_parsed_input.vcs());
 
-    if user_parsed_input.test() {
-        test_expanded_template(&template_dir, args.other_args)
-    } else {
-        copy_expanded_template(
-            template_dir,
-            project_dir,
-            user_parsed_input,
-            config,
-            branch.as_deref(),
+        (
+            !vcs.is_none() && (!user_parsed_input.init || user_parsed_input.force_git_init()),
+            user_parsed_input.force_git_init(),
         )
+    };
+
+    let target_path = if user_parsed_input.test() {
+        test_expanded_template(&template_dir, args.other_args)?
+    } else {
+        let project_path = copy_expanded_template(template_dir, project_dir, user_parsed_input)?;
+
+        match workspace_member::add_to_workspace(&project_path)? {
+            WorkspaceMemberStatus::Added(workspace_cargo_toml) => {
+                should_initialize_git = with_force;
+                info!(
+                    "{} {} `{}`",
+                    emoji::WRENCH,
+                    style("Project added as member to workspace").bold(),
+                    style(workspace_cargo_toml.display()).bold().yellow(),
+                );
+            }
+            WorkspaceMemberStatus::NoWorkspaceFound => {
+                // not an issue, just a notification
+            }
+        }
+
+        project_path
+    };
+
+    if should_initialize_git {
+        info!(
+            "{} {}",
+            emoji::WRENCH,
+            style("Initializing a fresh Git repository").bold()
+        );
+
+        git::init(&target_path, branch.as_deref(), with_force)?;
     }
+
+    info!(
+        "{} {} {} {}",
+        emoji::SPARKLE,
+        style("Done!").bold().green(),
+        style("New project created").bold(),
+        style(&target_path.display()).underlined()
+    );
+
+    Ok(target_path)
 }
 
 fn copy_expanded_template(
     template_dir: PathBuf,
     project_dir: PathBuf,
     user_parsed_input: UserParsedInput,
-    config: Config,
-    branch: Option<&str>,
 ) -> Result<PathBuf> {
     info!(
         "{} {} `{}`{}",
@@ -159,26 +204,8 @@ fn copy_expanded_template(
         style(project_dir.display()).bold().yellow(),
         style("...").bold()
     );
-    copy_dir_all(template_dir, &project_dir, user_parsed_input.overwrite())?;
-    let vcs = config
-        .template
-        .and_then(|t| t.vcs)
-        .unwrap_or_else(|| user_parsed_input.vcs());
-    if !vcs.is_none() && (!user_parsed_input.init || user_parsed_input.force_git_init()) {
-        info!(
-            "{} {}",
-            emoji::WRENCH,
-            style("Initializing a fresh Git repository").bold()
-        );
-        vcs.initialize(&project_dir, branch, user_parsed_input.force_git_init())?;
-    }
-    info!(
-        "{} {} {} {}",
-        emoji::SPARKLE,
-        style("Done!").bold().green(),
-        style("New project created").bold(),
-        style(&project_dir.display()).underlined()
-    );
+    copy_files_recursively(template_dir, &project_dir, user_parsed_input.overwrite())?;
+
     Ok(project_dir)
 }
 
@@ -231,40 +258,21 @@ fn get_source_template_into_temp(
                 git.tag(),
                 git.revision(),
                 git.identity(),
+                git.gitconfig(),
                 git.skip_submodules,
-            )
-            .map(|(dir, branch)| (dir, Some(branch)));
+            );
             if let Ok((ref temp_dir, _)) = result {
                 git::remove_history(temp_dir.path())?;
-                strip_liquid_suffixes(temp_dir.path())?;
             };
             result
         }
         TemplateLocation::Path(path) => {
             let temp_dir = tmp_dir()?;
-            copy_dir_all(path, temp_dir.path(), false)?;
+            copy_files_recursively(path, temp_dir.path(), false)?;
             git::remove_history(temp_dir.path())?;
             Ok((temp_dir, try_get_branch_from_path(path)))
         }
     }
-}
-
-/// remove .liquid suffixes from git templates for parity with path templates
-fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
-    for entry in fs::read_dir(dir.as_ref())? {
-        let entry = entry?;
-        let entry_type = entry.file_type()?;
-
-        if entry_type.is_dir() {
-            strip_liquid_suffixes(entry.path())?;
-        } else if entry_type.is_file() {
-            let path = entry.path().to_string_lossy().to_string();
-            if let Some(new_path) = path.clone().strip_suffix(".liquid") {
-                fs::rename(path, new_path)?;
-            }
-        }
-    }
-    Ok(())
 }
 
 /// resolve the template location for the actual template to expand
@@ -397,86 +405,6 @@ fn resolve_configured_sub_templates(
         )
 }
 
-pub(crate) fn copy_dir_all(
-    src: impl AsRef<Path>,
-    dst: impl AsRef<Path>,
-    overwrite: bool,
-) -> Result<()> {
-    fn check_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>, overwrite: bool) -> Result<()> {
-        if !dst.as_ref().exists() {
-            return Ok(());
-        }
-
-        for src_entry in fs::read_dir(src.as_ref())? {
-            let src_entry = src_entry?;
-            let filename = src_entry.file_name().to_string_lossy().to_string();
-            let entry_type = src_entry.file_type()?;
-
-            if entry_type.is_dir() {
-                if filename == ".git" {
-                    continue;
-                }
-                let dst_path = dst.as_ref().join(filename);
-                check_dir_all(src_entry.path(), dst_path, overwrite)?;
-            } else if entry_type.is_file() {
-                let filename = filename.strip_suffix(".liquid").unwrap_or(&filename);
-                let dst_path = dst.as_ref().join(filename);
-                match (dst_path.exists(), overwrite) {
-                    (true, false) => {
-                        bail!(
-                            "{} {} {}",
-                            crate::emoji::WARN,
-                            style("File already exists:").bold().red(),
-                            style(dst_path.display()).bold().red(),
-                        )
-                    }
-                    (true, true) => {
-                        warn!(
-                            "{} {}",
-                            style("Overwriting file:").bold().red(),
-                            style(dst_path.display()).bold().red(),
-                        );
-                    }
-                    _ => {}
-                };
-            } else {
-                bail!(
-                    "{} {}",
-                    crate::emoji::WARN,
-                    style("Symbolic links not supported").bold().red(),
-                )
-            }
-        }
-        Ok(())
-    }
-    fn copy_all(src: impl AsRef<Path>, dst: impl AsRef<Path>, overwrite: bool) -> Result<()> {
-        fs::create_dir_all(&dst)?;
-        for src_entry in fs::read_dir(src.as_ref())? {
-            let src_entry = src_entry?;
-            let filename = src_entry.file_name().to_string_lossy().to_string();
-            let entry_type = src_entry.file_type()?;
-            if entry_type.is_dir() {
-                let dst_path = dst.as_ref().join(filename);
-                if ".git" == src_entry.file_name() {
-                    continue;
-                }
-                copy_dir_all(src_entry.path(), dst_path, overwrite)?;
-            } else if entry_type.is_file() {
-                let filename = filename.strip_suffix(".liquid").unwrap_or(&filename);
-                let dst_path = dst.as_ref().join(filename);
-                if dst_path.exists() && overwrite {
-                    fs::remove_file(&dst_path)?;
-                }
-                fs::copy(src_entry.path(), dst_path)?;
-            }
-        }
-        Ok(())
-    }
-
-    check_dir_all(&src, &dst, overwrite)?;
-    copy_all(src, dst, overwrite)
-}
-
 fn locate_template_file(
     name: &str,
     template_base_folder: impl AsRef<Path>,
@@ -522,8 +450,12 @@ fn expand_template(
 
     let project_name_input = ProjectNameInput::try_from((&liquid_object, user_parsed_input))?;
     let project_name = ProjectName::from((&project_name_input, user_parsed_input));
-    let destination = ProjectDir::try_from((&project_name_input, user_parsed_input))?;
     let crate_name = CrateName::from(&project_name_input);
+    let destination = ProjectDir::try_from((&project_name_input, user_parsed_input))?;
+    if !user_parsed_input.init() {
+        destination.create()?;
+    }
+
     set_project_name_variables(&liquid_object, &destination, &project_name, &crate_name)?;
 
     info!(
@@ -580,7 +512,7 @@ fn expand_template(
         user_parsed_input.silent(),
         rhai_filter_files.clone(),
     );
-    template::walk_dir(
+    let result = template::walk_dir(
         &mut template_config,
         template_dir,
         &all_hook_files,
@@ -588,8 +520,21 @@ fn expand_template(
         rhai_engine,
         &rhai_filter_files,
         &mut pbar,
-        args.verbose,
-    )?;
+        args.quiet,
+    );
+
+    match result {
+        Ok(()) => (),
+        Err(e) => {
+            // Don't print the error twice
+            if !args.quiet && args.continue_on_error {
+                warn!("{}", e);
+            }
+            if !args.continue_on_error {
+                return Err(e);
+            }
+        }
+    };
 
     // run post-hooks
     execute_hooks(
@@ -679,6 +624,27 @@ fn read_default_variable_value_from_template(slot: &TemplateSlots) -> Result<Str
     Ok(default_value)
 }
 
+/// Turn things into strings that can be turned into strings
+/// Tables are not allowed and will be ignored
+/// arrays are allowed but will be flattened like so
+/// [[[[a,b],[[c]]],[[[d]]]]] => "a,b,c,d"
+fn extract_toml_string(value: &toml::Value) -> Option<String> {
+    match value {
+        toml::Value::String(s) => Some(s.clone()),
+        toml::Value::Integer(s) => Some(s.to_string()),
+        toml::Value::Float(s) => Some(s.to_string()),
+        toml::Value::Boolean(s) => Some(s.to_string()),
+        toml::Value::Datetime(s) => Some(s.to_string()),
+        toml::Value::Array(s) => Some(
+            s.iter()
+                .filter_map(extract_toml_string)
+                .collect::<Vec<String>>()
+                .join(LIST_SEP),
+        ),
+        toml::Value::Table(_) => None,
+    }
+}
+
 // Evaluate the configuration, adding defined placeholder variables to the liquid object.
 fn fill_placeholders_and_merge_conditionals(
     config: &mut Config,
@@ -691,14 +657,9 @@ fn fill_placeholders_and_merge_conditionals(
     loop {
         // keep evaluating for placeholder variables as long new ones are added.
         project_variables::fill_project_variables(liquid_object, config, |slot| {
-            let provided_value = template_values.get(&slot.var_name).and_then(|v| match v {
-                toml::Value::String(s) => Some(s.clone()),
-                toml::Value::Integer(s) => Some(s.to_string()),
-                toml::Value::Float(s) => Some(s.to_string()),
-                toml::Value::Boolean(s) => Some(s.to_string()),
-                toml::Value::Datetime(s) => Some(s.to_string()),
-                toml::Value::Array(_) | toml::Value::Table(_) => None,
-            });
+            let provided_value = template_values
+                .get(&slot.var_name)
+                .and_then(extract_toml_string);
             if provided_value.is_none() && args.silent {
                 let default_value = match read_default_variable_value_from_template(slot) {
                     Ok(string) => string,
@@ -816,7 +777,7 @@ impl Drop for ScopedWorkingDirectory {
 #[cfg(test)]
 mod tests {
     use crate::{
-        auto_locate_template_dir,
+        auto_locate_template_dir, extract_toml_string,
         project_variables::{StringKind, VarInfo},
         tmp_dir,
     };
@@ -879,7 +840,7 @@ mod tests {
         let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
             .var_info
         {
-            VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
+            VarInfo::Bool { .. } | VarInfo::Array { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
                 if let StringKind::Choices(choices) = entry.kind.clone() {
                     let expected = vec!["sub1".to_string(), "sub2".to_string()];
@@ -927,7 +888,7 @@ mod tests {
         let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
             .var_info
         {
-            VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
+            VarInfo::Bool { .. } | VarInfo::Array { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
                 if let StringKind::Choices(choices) = entry.kind.clone() {
                     let (expected, answer) = match prompt_num {
@@ -972,7 +933,7 @@ mod tests {
         let actual = auto_locate_template_dir(tmp.path().to_path_buf(), &mut |slots| match &slots
             .var_info
         {
-            VarInfo::Bool { .. } => anyhow::bail!("Wrong prompt type"),
+            VarInfo::Bool { .. } | VarInfo::Array { .. } => anyhow::bail!("Wrong prompt type"),
             VarInfo::String { entry } => {
                 if let StringKind::Choices(choices) = entry.kind.clone() {
                     let expected = vec![
@@ -1022,5 +983,34 @@ mod tests {
 
         fs::File::create(&path)?.write_all(contents.as_ref().as_ref())?;
         Ok(())
+    }
+
+    #[test]
+    fn test_extract_toml_string() {
+        assert_eq!(
+            extract_toml_string(&toml::Value::Integer(42)),
+            Some(String::from("42"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Float(42.0)),
+            Some(String::from("42"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Boolean(true)),
+            Some(String::from("true"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Array(vec![
+                toml::Value::Integer(1),
+                toml::Value::Array(vec![toml::Value::Array(vec![toml::Value::Integer(2)])]),
+                toml::Value::Integer(3),
+                toml::Value::Integer(4),
+            ])),
+            Some(String::from("1,2,3,4"))
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Table(toml::map::Map::new())),
+            None
+        );
     }
 }

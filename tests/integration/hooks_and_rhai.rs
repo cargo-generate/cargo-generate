@@ -192,8 +192,8 @@ fn it_fails_when_it_cant_execute_system_command() {
         .file(
             "cargo-generate.toml",
             indoc! {r#"
-            [hooks]
-            post = ["system-script.rhai"]
+                [hooks]
+                post = ["system-script.rhai"]
             "#},
         )
         .init_git()
@@ -209,9 +209,12 @@ fn it_fails_when_it_cant_execute_system_command() {
         .assert()
         .failure()
         .stderr(
-            predicates::str::contains(
-                "System command `dummy_command_that_doesn't_exist dummy_arg` failed to execute",
-            )
+            // TODO: This error message is different on MacOS and Linux. We should unify it.
+            predicates::str::contains(if cfg!(target_os = "macos") {
+                "System command `dummy_command_that_doesn't_exist dummy_arg` failed to execute"
+            } else {
+                "Failed executing script: system-script.rhai"
+            })
             .from_utf8(),
         );
 }
@@ -266,6 +269,8 @@ fn can_change_variables_from_pre_hook() {
         .file(
             "cargo-generate.toml",
             indoc! {r#"
+            [placeholders]
+            multi = {type = "array", prompt="??", choices=["a","b","c"], default=["a","b"]}
             [hooks]
             pre = ["pre-script.rhai"]
             "#},
@@ -274,12 +279,14 @@ fn can_change_variables_from_pre_hook() {
             "pre-script.rhai",
             indoc! {r#"
                 variable::set("foo", "bar");
+                variable::set("multi", ["Q","b"]);
             "#},
         )
         .file(
             "PRE-TEST",
             indoc! {r#"
                 {{foo}};
+                {{multi}};
             "#},
         )
         .init_git()
@@ -291,12 +298,16 @@ fn can_change_variables_from_pre_hook() {
         .arg_git(template.path())
         .arg_name("script-project")
         .current_dir(dir.path())
+        .arg("-d")
+        .arg("multi=a,b")
         .assert()
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("script-project/PRE-TEST"));
-    assert!(dir.read("script-project/PRE-TEST").contains("bar"));
+    let pre_test = dir.read("script-project/PRE-TEST");
+    assert!(pre_test.contains("bar"));
+    assert!(pre_test.contains("Q"));
 }
 
 #[test]

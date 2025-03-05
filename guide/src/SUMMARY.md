@@ -2,7 +2,9 @@
 
 - [Introduction](README.md)
 - [Installation](installation.md)
-- [Usage](usage.md)
+- [Usage](usage/README.md)
+  - [Git over SSH](usage/git-over-ssh.md)
+  - [.gitconfig `insteadOf`](usage/gitconfig-instead-of.md)
 - [Favorites](favorites.md)
 - [Templates](templates/README.md)
   - [Builtin Placeholders](templates/builtin_placeholders.md)
@@ -16,5 +18,6 @@
     - [Rhai extensions](templates/scripting.rhai-extensions.md)
     - [Mini example](templates/scripting.mini-example.md)
   - [Authoring](templates/authoring.md)
+  - [Common Pitfalls](templates/pitfalls.md)
 - [Contributing](contributing.md)
 - [License](license.md)

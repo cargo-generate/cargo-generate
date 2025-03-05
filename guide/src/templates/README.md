@@ -13,7 +13,7 @@ For more information, check out the [Liquid Documentation on `Tags` and `Filters
 [liquid]: https://shopify.github.io/liquid
 
 You can use those placeholders in the file and directory names of the generated project.
-For example, for a project named `awesome`, the filename `{{project_name}}/{{project_name}}.rs` will be transformed to `awesome/awesome.rs` during generation.
+For example, for a project named `awesome`, the filename `{{project-name}}/{{project-name}}.rs` will be transformed to `awesome/awesome.rs` during generation.
 Only files that are **not** listed in the exclude settings will be templated.
 
 > ⚠️ NOTE: invalid characters for a filename or directory name will be sanitized after template substitution. Invalid is e.g. `/` or `\`.

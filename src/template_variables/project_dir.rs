@@ -79,6 +79,25 @@ impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
     }
 }
 
+impl ProjectDir {
+    pub fn create(&self) -> anyhow::Result<()> {
+        let path = self.0.as_path();
+        if path.exists() {
+            bail!(
+                "{} {}",
+                emoji::ERROR,
+                style("Target directory already exists, aborting!")
+                    .bold()
+                    .red()
+            );
+        }
+
+        std::fs::create_dir(&self.0)?;
+
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
