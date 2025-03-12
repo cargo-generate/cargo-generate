@@ -131,3 +131,38 @@ fn it_accepts_empty_multi_choices() {
         .assert()
         .success();
 }
+
+#[test]
+fn it_renders_arrays_as_list() {
+    let template = tempdir()
+        .with_default_manifest()
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [template]
+                [placeholders.mcu]
+                type = "array"
+                prompt = "Which MCU to target?"
+                choices = ["esp32", "esp32c2", "esp32c3", "esp32c6", "esp32s2", "esp32s3"]
+            "#},
+        )
+        .file("mcu_as_list", "{{mcu}}")
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
+        .args(["--define", "mcu=esp32,esp32c6"])
+        .current_dir(dir.path())
+        .assert()
+        .success();
+
+    assert_eq!(
+        dir.read("foobar-project/mcu_as_list"),
+        r#"["esp32", "esp32c6"]"#
+    );
+}
