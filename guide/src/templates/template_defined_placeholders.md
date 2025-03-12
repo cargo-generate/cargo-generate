@@ -32,6 +32,9 @@ placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], def
 - `"text"`: Represents a multiline string value. (terminated by hitting CTRL-D)
 - `"editor"`: Represents a multiline string value, collected from the user by a real terminal editor.
 - `"bool"`: Represents a boolean value (`true` or `false`).
+
+> Available since version [0.23.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.23.0)
+
 - `"array"`: Represents an array of strings (`["a","b","c"]`)
 
 ## Example
