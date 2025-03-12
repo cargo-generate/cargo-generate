@@ -1,0 +1,6 @@
+[template]
+cargo_generate_version = ">=0.9.0"
+
+[hooks]
+pre = ["remove-unwanted.rhai", "ask-license.rhai", "sed-licence.rhai"]
+post = ["post-script.rhai"]

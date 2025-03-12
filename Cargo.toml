@@ -36,14 +36,13 @@ log = "~0.4"
 names = { version = "~0.14", default-features = false }
 openssl = { version = "~0.10", optional = true }
 paste = "~1.0"
-path-absolutize = "~3.1"
 regex = "~1.11"
 remove_dir_all = "~1.0"
 rhai = "~1.20"
 sanitize-filename = "~0.6"
 semver = { version = "~1.0", features = ["serde"] }
 serde = { version = "~1.0", features = ["derive"] }
-tempfile = "~3.15"
+tempfile = "~3.18"
 thiserror = "~2.0"
 time = "~0.3"
 toml = { version = "~0.8", features = ["preserve_order"] }
@@ -52,7 +51,7 @@ cargo-util-schemas = "~0.7"
 
 [dev-dependencies]
 assert_cmd = "~2.0"
-bstr = "~1.10"
+bstr = "~1.11"
 indoc = "~2.0"
 predicates = "~3.1"
 url = "~2.5"

@@ -22,6 +22,7 @@
     clippy::use_self,
 )]
 
+mod absolute_path;
 mod app_config;
 mod args;
 mod config;
@@ -53,7 +54,7 @@ use console::style;
 use copy::copy_files_recursively;
 use env_logger::fmt::Formatter;
 use fs_err as fs;
-use hooks::execute_hooks;
+use hooks::{execute_hooks, RhaiHooksContext};
 use ignore_me::remove_dir_files;
 use interactive::{prompt_and_check_variable, LIST_SEP};
 use log::Record;
@@ -434,19 +435,20 @@ fn expand_template(
     args: &GenerateArgs,
 ) -> Result<PathBuf> {
     let liquid_object = create_liquid_object(user_parsed_input)?;
+    let context = RhaiHooksContext {
+        liquid_object: liquid_object.clone(),
+        allow_commands: user_parsed_input.allow_commands(),
+        silent: user_parsed_input.silent(),
+        working_directory: template_dir.to_owned(),
+        destination_directory: user_parsed_input.destination().to_owned(),
+    };
 
     // run init hooks - these won't have access to `crate_name`/`within_cargo_project`
     // variables, as these are not set yet. Furthermore, if `project-name` is set, it is the raw
     // user input!
     // The init hooks are free to set `project-name` (but it will be validated before further
     // use).
-    execute_hooks(
-        template_dir,
-        &liquid_object,
-        &config.get_init_hooks(),
-        user_parsed_input.allow_commands(),
-        user_parsed_input.silent(),
-    )?;
+    execute_hooks(&context, &config.get_init_hooks())?;
 
     let project_name_input = ProjectNameInput::try_from((&liquid_object, user_parsed_input))?;
     let project_name = ProjectName::from((&project_name_input, user_parsed_input));
@@ -488,14 +490,14 @@ fn expand_template(
     )?;
     add_missing_provided_values(&liquid_object, user_parsed_input.template_values())?;
 
+    let context = RhaiHooksContext {
+        liquid_object: Arc::clone(&liquid_object),
+        destination_directory: destination.as_ref().to_owned(),
+        ..context
+    };
+
     // run pre-hooks
-    execute_hooks(
-        template_dir,
-        &liquid_object,
-        &config.get_pre_hooks(),
-        user_parsed_input.allow_commands(),
-        user_parsed_input.silent(),
-    )?;
+    execute_hooks(&context, &config.get_pre_hooks())?;
 
     // walk/evaluate the template
     let all_hook_files = config.get_hook_files();
@@ -537,13 +539,7 @@ fn expand_template(
     };
 
     // run post-hooks
-    execute_hooks(
-        template_dir,
-        &liquid_object,
-        &config.get_post_hooks(),
-        user_parsed_input.allow_commands(),
-        user_parsed_input.silent(),
-    )?;
+    execute_hooks(&context, &config.get_post_hooks())?;
 
     // remove all hook and filter files as they are never part of the template output
     let rhai_filter_files = rhai_filter_files

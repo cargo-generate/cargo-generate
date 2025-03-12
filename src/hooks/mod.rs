@@ -1,16 +1,20 @@
 use anyhow::{Context, Result};
 use console::style;
+use env_mod::Environment;
 use heck::{
     ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase, ToShoutySnakeCase, ToSnakeCase,
     ToTitleCase, ToUpperCamelCase,
 };
 use liquid::ValueView;
+use log::debug;
 use rhai::EvalAltResult;
 use std::{env, path::Path};
 
 use crate::emoji;
 use crate::template::LiquidObjectResource;
 
+mod context;
+mod env_mod;
 mod file_mod;
 mod system_mod;
 mod variable_mod;
@@ -18,6 +22,8 @@ mod variable_mod;
 type HookResult<T> = std::result::Result<T, Box<EvalAltResult>>;
 
 struct CleanupJob<F: FnOnce()>(Option<F>);
+
+pub use context::RhaiHooksContext;
 
 impl<F: FnOnce()> CleanupJob<F> {
     pub const fn new(f: F) -> Self {
@@ -31,15 +37,11 @@ impl<F: FnOnce()> Drop for CleanupJob<F> {
     }
 }
 
-pub fn execute_hooks(
-    dir: &Path,
-    liquid_object: &LiquidObjectResource,
-    scripts: &[String],
-    allow_commands: bool,
-    silent: bool,
-) -> Result<()> {
-    let engine = create_rhai_engine(dir, liquid_object, allow_commands, silent);
-    evaluate_scripts(dir, scripts, engine)?;
+pub fn execute_hooks(context: &RhaiHooksContext, scripts: &[String]) -> Result<()> {
+    debug!("executing rhai with context: {:?}", context);
+
+    let engine = create_rhai_engine(context);
+    evaluate_scripts(&context.working_directory, scripts, engine)?;
     Ok(())
 }
 
@@ -99,23 +101,28 @@ pub fn evaluate_script<T: Clone + 'static>(
     conditional_evaluation_engine.eval_expression::<T>(script)
 }
 
-pub fn create_rhai_engine(
-    dir: &Path,
-    liquid_object: &LiquidObjectResource,
-    allow_commands: bool,
-    silent: bool,
-) -> rhai::Engine {
+pub fn create_rhai_engine(context: &RhaiHooksContext) -> rhai::Engine {
     let mut engine = rhai::Engine::new();
 
     // register modules
-    let module = variable_mod::create_module(liquid_object);
+    let module = variable_mod::create_module(&context.liquid_object);
     engine.register_static_module("variable", module.into());
 
-    let module = file_mod::create_module(dir);
+    let module = file_mod::create_module(&context.working_directory);
     engine.register_static_module("file", module.into());
 
-    let module = system_mod::create_module(allow_commands, silent);
+    let module = system_mod::create_module(
+        context.working_directory.clone(),
+        context.allow_commands,
+        context.silent,
+    );
     engine.register_static_module("system", module.into());
+
+    let module = env_mod::create_module(Environment {
+        working_directory: context.working_directory.clone(),
+        destination_directory: context.destination_directory.clone(),
+    });
+    engine.register_static_module("env", module.into());
 
     // register functions for changing case
     engine.register_fn("to_kebab_case", |str: &str| str.to_kebab_case());
