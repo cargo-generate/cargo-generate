@@ -1,6 +1,7 @@
 use crate::{
     emoji,
     project_variables::{ArrayEntry, Prompt, StringEntry, StringKind, TemplateSlots, VarInfo},
+    template_variable_types::ArrayToTemplateString,
 };
 use anyhow::{anyhow, bail, Result};
 use console::style;
@@ -16,6 +17,7 @@ use std::{
 };
 
 pub const LIST_SEP: &str = ",";
+pub const LIST_SEP_PRETTY: &str = ", ";
 
 pub fn name() -> Result<String> {
     let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$")?;
@@ -100,11 +102,8 @@ pub fn variable(variable: &TemplateSlots, provided_value: Option<&impl ToString>
             Ok(Value::Scalar(as_bool.into()))
         }
         VarInfo::String { .. } => Ok(Value::Scalar(user_entry.into())),
-        VarInfo::Array { .. } => Ok(Value::Array(
-            user_entry
-                .split(LIST_SEP)
-                .map(|s| Value::Scalar(s.to_string().into()))
-                .collect(),
+        VarInfo::Array { .. } => Ok(Value::Scalar(
+            parse_list(&user_entry).render_as_string().into(),
         )),
     }
 }
@@ -135,9 +134,9 @@ fn handle_string_input(
         )
     };
     let mut prompt: Cow<'_, Prompt> = Cow::Borrowed(prompt);
+    let user_entry = user_question(&prompt, &entry.default, &entry.kind)?;
     match &entry.regex {
         Some(regex) => loop {
-            let user_entry = user_question(&prompt, &entry.default, &entry.kind)?;
             if regex.is_match(&user_entry) {
                 break Ok(user_entry);
             }
@@ -166,7 +165,7 @@ fn handle_string_input(
                 }
             };
         },
-        None => Ok(user_question(&prompt, &entry.default, &entry.kind)?),
+        None => Ok(user_entry),
     }
 }
 
@@ -214,7 +213,7 @@ fn parse_list(provided_value: &str) -> Vec<String> {
     provided_value
         .split(LIST_SEP)
         .filter(|e| !e.is_empty())
-        .map(|s| s.to_string())
+        .map(ToOwned::to_owned)
         .collect()
 }
 

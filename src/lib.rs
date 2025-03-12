@@ -39,6 +39,7 @@ mod progressbar;
 mod project_variables;
 mod template;
 mod template_filters;
+mod template_variable_types;
 mod template_variables;
 mod user_parsed_input;
 mod workspace_member;
@@ -56,7 +57,7 @@ use env_logger::fmt::Formatter;
 use fs_err as fs;
 use hooks::{execute_hooks, RhaiHooksContext};
 use ignore_me::remove_dir_files;
-use interactive::{prompt_and_check_variable, LIST_SEP};
+use interactive::{prompt_and_check_variable, LIST_SEP_PRETTY};
 use log::Record;
 use log::{info, warn};
 use project_variables::{StringEntry, StringKind, TemplateSlots, VarInfo};
@@ -631,12 +632,17 @@ fn extract_toml_string(value: &toml::Value) -> Option<String> {
         toml::Value::Float(s) => Some(s.to_string()),
         toml::Value::Boolean(s) => Some(s.to_string()),
         toml::Value::Datetime(s) => Some(s.to_string()),
-        toml::Value::Array(s) => Some(
+        toml::Value::Array(s) => Some(format!(
+            "[{}]",
             s.iter()
-                .filter_map(extract_toml_string)
+                .filter_map(|item| match item {
+                    toml::Value::Array(_) => extract_toml_string(item),
+                    toml::Value::Table(_) => None,
+                    _ => extract_toml_string(item).map(|str_ish| format!(r#""{str_ish}""#)),
+                })
                 .collect::<Vec<String>>()
-                .join(LIST_SEP),
-        ),
+                .join(LIST_SEP_PRETTY),
+        )),
         toml::Value::Table(_) => None,
     }
 }
@@ -1001,8 +1007,17 @@ mod tests {
                 toml::Value::Array(vec![toml::Value::Array(vec![toml::Value::Integer(2)])]),
                 toml::Value::Integer(3),
                 toml::Value::Integer(4),
-            ])),
-            Some(String::from("1,2,3,4"))
+            ]))
+            .unwrap(),
+            r#"["1", [["2"]], "3", "4"]"#
+        );
+        assert_eq!(
+            extract_toml_string(&toml::Value::Array(vec![
+                toml::Value::String("serde".to_string()),
+                toml::Value::String("logging".to_string()),
+            ]))
+            .unwrap(),
+            r#"["serde", "logging"]"#
         );
         assert_eq!(
             extract_toml_string(&toml::Value::Table(toml::map::Map::new())),
