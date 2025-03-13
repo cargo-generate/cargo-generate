@@ -146,7 +146,13 @@ fn it_renders_arrays_as_list() {
                 choices = ["esp32", "esp32c2", "esp32c3", "esp32c6", "esp32s2", "esp32s3"]
             "#},
         )
-        .file("mcu_as_list", "{{mcu}}")
+        .file(
+            "mcu_as_list",
+            indoc! {r#"
+                [{%- for m in mcu -%}
+                    "{{ m }}"{% unless forloop.last %}, {% endunless -%}
+                {%- endfor -%}]"#},
+        )
         .init_git()
         .build();
 
