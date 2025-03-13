@@ -24,7 +24,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz pr
-        uses: MarcoIeni/release-plz-action@v0.5
+        uses: release-plz/action@v0.5    
         with:
           command: release-pr
           config: release-plz.toml
