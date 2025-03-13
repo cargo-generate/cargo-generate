@@ -1,0 +1,18 @@
+[template]
+cargo_generate_version = ">=0.23.0"
+
+[placeholders]
+description = { type = "string", prompt = "Description for the crate?" }
+ask_for_options = { type = "bool", prompt = "Make a choice too?", default = true }
+features = { prompt = "Include features?", choices = [
+    "serde",
+    "async",
+], default = [
+    "serde",
+], type = "array" }
+
+[conditional.'ask_for_options'.placeholders.multi_choice]
+type = "array"
+prompt = "Please select one or more..."
+choices = ["A", "B", "C", "D"]
+default = ["B", "C"]

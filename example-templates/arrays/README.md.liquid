@@ -1,0 +1,74 @@
+# Test Template
+
+# The regular variables such as bool and string
+
+- this is a bool:   {{ ask_for_options }}
+- this is a string: {{ description }}
+
+## (new) Array with a single item
+
+- dumped as string: {{ features }}
+- iterated into bullet points:
+{%- for item in features %}
+  - {{ features }}
+{%- endfor %}
+- joined by a filter: {{ features | join: ", " }}
+
+## (new) Array with multiple items
+
+- dumped as string: {{ multi_choice }}
+- iterated into bullet points:
+{%- for item in multi_choice %}
+  - {{ item }}
+{%- endfor %}
+- joined by a filter: {{ multi_choice | join: ", " }}
+
+## Use Cases for arrays
+
+### Features in Cargo.toml
+
+Imagine you create a template, a crate that has several dependencies,
+like `serde_json` or `tokio`. Now you want to give the user the option to
+opt into these dependencies. Then you could use an array of features in your Cargo.toml like this:
+
+```toml
+# Cargo.toml
+[dependencies]
+serde_json = { version = "1.0", optional = true }
+tokio = { version = "1.0", optional = true }
+
+[features]
+default = [
+{%- comment -%}
+
+Here we use the template variables as shown above to define what are the default features of the crate
+
+{%- endcomment -%}
+{%- for feature in features -%}
+    "{{ feature }}"{% unless forloop.last %}, {% endunless -%}
+{%- endfor -%}
+]
+serde = ["serde_json"]
+async = ["tokio"]
+```
+
+Using this approach provides a benefit: you won't need to pollute your Rust code with Liquid syntax conditionals to verify feature availability elsewhere in the template. You rely on the rust `#[cfg(feature = "feature_name")]` attribute in your Rust code as usual.
+
+
+## How to use this example template to see the rendered output
+
+First you need cargo-generate version `v0.23.0` or later.
+
+```sh
+cargo generate gh:cargo-generate/cargo-generate example-templates/arrays
+```
+
+or if you have a local copy the cargo-generate repo at `<cargo-gen-repo>`:
+
+```sh
+cargo generate --path <cargo-gen-repo>/example-templates/arrays
+```
+
+This will crate a new project with the name you provide and it contains the rendered `README.md` file with the variables replaced.
+
+Be curious and check it out!
