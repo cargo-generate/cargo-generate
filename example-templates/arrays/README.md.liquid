@@ -38,6 +38,13 @@ serde_json = { version = "1.0", optional = true }
 tokio = { version = "1.0", optional = true }
 
 [features]
+{%- if features == empty %}
+# we have empty features
+{%- else %}
+# we have features
+{%- endif -%}
+
+{% unless features == empty %}
 default = [
 {%- comment -%}
 
@@ -48,6 +55,7 @@ Here we use the template variables as shown above to define what are the default
     "{{ feature }}"{% unless forloop.last %}, {% endunless -%}
 {%- endfor -%}
 ]
+{%- endunless %}
 serde = ["serde_json"]
 async = ["tokio"]
 ```
