@@ -107,7 +107,7 @@ impl WorkspaceMember {
         let manifest: TomlManifest = toml::from_str(&content)
             .with_context(|| format!("Failed to parse {}", cargo_toml_path.display()))?;
 
-        let name = manifest.package().unwrap().name.as_ref().to_string();
+        let name = manifest.package().unwrap().name.as_ref().expect("name in workspace is missing").to_string();
 
         Ok(Self { name })
     }
