@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{bail, Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use log::warn;
 
 #[derive(Debug, PartialEq)]
@@ -107,7 +107,14 @@ impl WorkspaceMember {
         let manifest: TomlManifest = toml::from_str(&content)
             .with_context(|| format!("Failed to parse {}", cargo_toml_path.display()))?;
 
-        let name = manifest.package().unwrap().name.as_ref().to_string();
+        let pkg = manifest.package().ok_or_else(|| {
+            anyhow!(
+                "No [package] section found in Cargo.toml at {}",
+                cargo_toml_path.display()
+            )
+        })?;
+
+        let name = pkg.name.as_ref().to_string();
 
         Ok(Self { name })
     }
