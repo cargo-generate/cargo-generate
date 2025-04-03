@@ -114,7 +114,16 @@ impl WorkspaceMember {
             )
         })?;
 
-        let name = pkg.name.as_ref().to_string();
+        let name = pkg
+            .name
+            .as_ref()
+            .ok_or_else(|| {
+                anyhow!(
+                    "No `package.name` found in Cargo.toml at {}",
+                    cargo_toml_path.display()
+                )
+            })?
+            .to_string();
 
         Ok(Self { name })
     }
