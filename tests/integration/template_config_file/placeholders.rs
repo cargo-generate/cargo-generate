@@ -107,6 +107,16 @@ fn it_accepts_empty_multi_choices() {
     let template = tempdir()
         .with_default_manifest()
         .file(
+            "README.md.liquid",
+            indoc! {r#"
+                {%- if formats == empty -%}
+                we have empty formats
+                {%- else -%}
+                we have NOT empty formats
+                {%- endif -%}
+            "#},
+        )
+        .file(
             "cargo-generate.toml",
             indoc! {r#"
                 [template]
@@ -114,7 +124,6 @@ fn it_accepts_empty_multi_choices() {
                 type = "array"
                 prompt = "Which MCU to target?"
                 choices = ["esp32", "esp32c2", "esp32c3", "esp32c6", "esp32s2", "esp32s3"]
-
             "#},
         )
         .init_git()
@@ -130,6 +139,11 @@ fn it_accepts_empty_multi_choices() {
         .current_dir(dir.path())
         .assert()
         .success();
+
+    assert_eq!(
+        dir.read("foobar-project/README.md"),
+        "we have empty formats"
+    );
 }
 
 #[test]

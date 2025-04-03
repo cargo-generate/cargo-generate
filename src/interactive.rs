@@ -100,12 +100,18 @@ pub fn variable(variable: &TemplateSlots, provided_value: Option<&impl ToString>
             Ok(Value::Scalar(as_bool.into()))
         }
         VarInfo::String { .. } => Ok(Value::Scalar(user_entry.into())),
-        VarInfo::Array { .. } => Ok(Value::Array(
-            user_entry
-                .split(LIST_SEP)
-                .map(|s| Value::Scalar(s.to_string().into()))
-                .collect(),
-        )),
+        VarInfo::Array { .. } => {
+            let items = if user_entry.is_empty() {
+                Vec::new()
+            } else {
+                user_entry
+                    .split(LIST_SEP)
+                    .map(|s| Value::Scalar(s.to_string().into()))
+                    .collect()
+            };
+
+            Ok(Value::Array(items))
+        }
     }
 }
 
