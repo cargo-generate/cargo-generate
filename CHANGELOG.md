@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.1] 2025-04-03
+
+[0.23.1]: https://github.com/cargo-generate/cargo-generate/compare/0.23.0...0.23.1
+
+### 📖 Documentation
+
+- Fix link to examples and improve wording ([#1428](https://github.com/cargo-generate/cargo-generate/issues/1428))
+
+### 🛠️ Maintenance
+
+- Bump git2 from 0.20.0 to 0.20.1 ([#1430](https://github.com/cargo-generate/cargo-generate/issues/1430))
+
+### 🤕 Fixes
+
+- Fix array placeholders misbehave when not selecting any items ([#1441](https://github.com/cargo-generate/cargo-generate/issues/1441))
+- Handle optional package.name field in workspace_member ([#1442](https://github.com/cargo-generate/cargo-generate/issues/1442)) ([#1443](https://github.com/cargo-generate/cargo-generate/issues/1443))
+- Fix lints ([#1446](https://github.com/cargo-generate/cargo-generate/issues/1446))
+- Update cargo-util-schemas to 0.7.3 and fix optional type for package name ([#1447](https://github.com/cargo-generate/cargo-generate/issues/1447))
+
 ## [0.23.0] 2025-03-13
 
 [0.23.0]: https://github.com/cargo-generate/cargo-generate/compare/0.22.1...0.23.0
