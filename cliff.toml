@@ -16,7 +16,7 @@ body = """
 
     [{{ version | trim_start_matches(pat="v") }}]: https://github.com/cargo-generate/cargo-generate/compare/{{ previous.version }}...{{ version }}
 {% else -%}
-    ## [Unreleased](<REPO>/compare/{{ previous.version }}...HEAD)
+    ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/{{ previous.version }}...HEAD)
 {% endif -%}
 {% for group, commits in commits | group_by(attribute="group") %}
     ### {{ group | upper_first }}
@@ -36,10 +36,10 @@ filter_unconventional = false
 # process each line of a commit as an individual commit
 split_commits = false
 commit_preprocessors = [
-    { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/issues/${2}))" }, # replace issue numbers
+    { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](https://github.com/cargo-generate/cargo-generate/issues/${2}))" }, # replace issue numbers
 ]
 postprocessors = [
-    { pattern = '<REPO>', replace = "https://github.com/cargo-generate/cargo-generate" }, # replace repository URL
+    { pattern = 'https://github.com/cargo-generate/cargo-generate', replace = "https://github.com/cargo-generate/cargo-generate" }, # replace repository URL
 ]
 commit_parsers = [
     { message = "^feat", group = "✨ Features" },
