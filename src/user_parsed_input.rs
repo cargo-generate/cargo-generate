@@ -333,7 +333,7 @@ impl UserParsedInput {
         &self.template_values
     }
 
-    pub fn template_values_mut(&mut self) -> &mut HashMap<String, toml::Value> {
+    pub const fn template_values_mut(&mut self) -> &mut HashMap<String, toml::Value> {
         &mut self.template_values
     }
 
