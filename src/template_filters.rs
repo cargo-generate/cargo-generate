@@ -18,6 +18,7 @@ use std::{
 
 use crate::{
     hooks::{create_rhai_engine, PoisonError, RhaiHooksContext},
+    interactive::LIST_SEP,
     template::LiquidObjectResource,
 };
 
@@ -185,5 +186,77 @@ impl Filter for RhaiFilter {
                 Err(liquid_core::Error::with_msg(err.to_string()))
             }
         }
+    }
+}
+
+#[derive(Clone, FilterReflection)]
+#[filter(
+    name = "to_list",
+    description = r#"Convert an array to a comma separated string list e.g. `["a","b","c"]`"#,
+    parsed(StringListFilter)
+)]
+pub struct StringListFilterParser;
+
+#[derive(Debug, Default, liquid_derive::Display_filter)]
+#[name = "to_list"]
+pub struct StringListFilter;
+
+impl Filter for StringListFilter {
+    fn evaluate(
+        &self,
+        input: &dyn ValueView,
+        _runtime: &dyn Runtime,
+    ) -> Result<Value, liquid_core::Error> {
+        let result = input
+            .as_array()
+            .ok_or_else(|| liquid_core::error::Error::with_msg("Array expected"))?
+            .values()
+            .map(|v| {
+                let value = v.to_value();
+                if value.type_name() == "string" {
+                    format!("\"{}\"", value.to_kstr())
+                } else {
+                    format!("{}", value.to_kstr())
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(LIST_SEP);
+
+        let result = format!("[{result}]");
+
+        Ok(Value::Scalar(model::Scalar::from(result)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use liquid_core::runtime;
+
+    use super::*;
+
+    #[test]
+    fn test_as_string_list_filter() {
+        let runtime = runtime::RuntimeBuilder::new().build();
+        let filter = StringListFilter;
+
+        let input = Value::Array(vec![
+            Value::Scalar(model::Scalar::from("a")),
+            Value::Scalar(model::Scalar::from("b")),
+            Value::Scalar(model::Scalar::from("c")),
+        ]);
+        let result = filter.evaluate(&input, &runtime).unwrap();
+        assert_eq!(result.to_kstr(), r#"["a","b","c"]"#);
+
+        let input = Value::Array(vec![
+            Value::Scalar(model::Scalar::from(1)),
+            Value::Scalar(model::Scalar::from(2)),
+            Value::Scalar(model::Scalar::from(3)),
+        ]);
+        let result = filter.evaluate(&input, &runtime).unwrap();
+        assert_eq!(result.to_kstr(), r#"[1,2,3]"#);
+
+        let input = Value::Array(vec![]);
+        let result = filter.evaluate(&input, &runtime).unwrap();
+        assert_eq!(result.to_kstr(), r#"[]"#, "empty array should return []");
     }
 }

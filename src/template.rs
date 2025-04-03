@@ -49,6 +49,7 @@ pub fn create_liquid_engine(
             silent,
             rhai_filter_files,
         ))
+        .filter(StringListFilterParser)
         .build()
         .expect("can't fail due to no partials support")
 }
