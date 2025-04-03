@@ -73,7 +73,7 @@ fn canonicalize_path(path: &Path) -> PathBuf {
             }
             Component::ParentDir => {
                 // Pop the last component if it's not a root directory
-                if result.components().last() != Some(Component::RootDir) {
+                if result.components().next_back() != Some(Component::RootDir) {
                     result.pop();
                 }
             }
