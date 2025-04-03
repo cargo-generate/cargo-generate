@@ -172,7 +172,7 @@ checksum = "1628fb46dfa0b37568d12e5edd512553eccf6a22a78e8bde00bb4aed84d5bdbf"
 
 [[package]]
 name = "cargo-generate"
-version = "0.23.0"
+version = "0.23.1"
 dependencies = [
  "anstyle",
  "anyhow",
