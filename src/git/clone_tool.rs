@@ -176,7 +176,7 @@ impl GitCloneCmd<'_> {
 
         let url = self.builder.url.clone();
 
-        let is_ssh_repo = url.starts_with("ssh}://") || url.starts_with("git@");
+        let is_ssh_repo = url.starts_with("ssh://") || url.starts_with("git@");
         let is_http_repo = is_http_repo_url(&url);
 
         if should_limit_fetch_depth(&url, self.builder.requires_full_history) {

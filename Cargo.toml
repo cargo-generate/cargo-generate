@@ -22,10 +22,15 @@ console = "~0.16"
 dialoguer = "~0.12"
 env_logger = "~0.11"
 fs-err = "~3.3"
-gix-config = "~0.58"
-# gix-config 0.56's transitive deps need gix-hash with a hash-kind feature enabled;
+gix-config = "~0.60"
+# gix-config's transitive deps need gix-hash with a hash-kind feature enabled;
 # otherwise gix-hash's Kind enum is empty and the crate fails to compile.
-gix-hash = { version = "~0.25", default-features = false, features = ["sha1"] }
+gix-hash = { version = "~0.26", default-features = false, features = ["sha1"] }
+# for the gix module, that will be a drop-in replacement for git2
+gix = { version = "~0.87", default-features = false, features = [
+    "worktree-mutation",
+    "blocking-http-transport-reqwest-rust-tls-trust-dns",
+] }
 heck = "~0.5"
 home = "~0.5"
 ignore = "~0.4"
