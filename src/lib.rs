@@ -31,6 +31,7 @@ mod emoji;
 mod favorites;
 mod filenames;
 mod git;
+mod gix;
 mod hooks;
 mod ignore_me;
 mod include_exclude;
