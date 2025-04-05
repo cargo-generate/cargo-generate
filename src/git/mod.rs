@@ -10,8 +10,8 @@ use remove_dir_all::remove_dir_all;
 pub use utils::clone_git_template_into_temp;
 
 mod clone_tool;
-mod gitconfig;
-mod utils;
+pub(super) mod gitconfig;
+pub(super) mod utils;
 
 pub use utils::{tmp_dir, try_get_branch_from_path};
 
