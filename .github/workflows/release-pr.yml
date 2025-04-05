@@ -17,21 +17,6 @@ jobs:
     name: Release-plz
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/create-github-app-token@v1
-        id: app-token
-        with:
-          app-id: 1178949
-          private-key: ${{ secrets.PRIVATE_KEY_5422M4N_BOT }}
-
-      - name: Get GitHub App User ID
-        id: get-user-id
-        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-      - run: |
-          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
-          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -44,4 +29,4 @@ jobs:
           command: release-pr
           config: release-plz.toml
         env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ secrets.CI_CARGO_GENERATE_RELEASE_GH_PAT }}
