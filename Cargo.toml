@@ -51,7 +51,7 @@ cargo-util-schemas = "~0.8.0"
 
 [dev-dependencies]
 assert_cmd = "~2.0"
-bstr = "~1.11"
+bstr = "~1.12"
 indoc = "~2.0"
 predicates = "~3.1"
 url = "~2.5"
