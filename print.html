@@ -970,7 +970,7 @@ license = { type = "string", prompt = "What license to use?", choices = ["APACHE
 <p>Now, write the script in <a href="https://rhai.rs/book/"><code>Rhai</code></a>, utilizing the <code>cargo-generate</code> <a href="templates/scripting.mini-example.html#Rhai-extensions">provided extensions</a>:</p>
 <pre><code class="language-rhai">// we can see existing variables.
 // note that template and Rhai variables are separate!
-let crate_type = variable::get("crate_type")
+let crate_type = variable::get("crate_type");
 debug(`crate_type: ${crate_type}`);
 
 let license = variable::get("license").to_upper();
