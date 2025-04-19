@@ -6,7 +6,7 @@ use std::{
     path::Path,
 };
 
-const LIQUID_SUFFIX: &str = ".liquid";
+pub const LIQUID_SUFFIX: &str = ".liquid";
 
 pub fn copy_files_recursively(
     src: impl AsRef<Path>,
