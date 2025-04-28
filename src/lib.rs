@@ -52,7 +52,7 @@ pub use args::*;
 use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
-use copy::copy_files_recursively;
+use copy::{copy_files_recursively, LIQUID_SUFFIX};
 use env_logger::fmt::Formatter;
 use fs_err as fs;
 use hooks::{execute_hooks, RhaiHooksContext};
@@ -265,6 +265,7 @@ fn get_source_template_into_temp(
             );
             if let Ok((ref temp_dir, _)) = result {
                 git::remove_history(temp_dir.path())?;
+                strip_liquid_suffixes(temp_dir.path())?;
             };
             result
         }
@@ -275,6 +276,24 @@ fn get_source_template_into_temp(
             Ok((temp_dir, try_get_branch_from_path(path)))
         }
     }
+}
+
+/// remove .liquid suffixes from git templates for parity with path templates
+fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
+    for entry in fs::read_dir(dir.as_ref())? {
+        let entry = entry?;
+        let entry_type = entry.file_type()?;
+
+        if entry_type.is_dir() {
+            strip_liquid_suffixes(entry.path())?;
+        } else if entry_type.is_file() {
+            let path = entry.path().to_string_lossy().to_string();
+            if let Some(new_path) = path.clone().strip_suffix(LIQUID_SUFFIX) {
+                fs::rename(path, new_path)?;
+            }
+        }
+    }
+    Ok(())
 }
 
 /// resolve the template location for the actual template to expand
