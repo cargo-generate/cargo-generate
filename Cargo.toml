@@ -28,6 +28,9 @@ gix-config = "~0.43"
 gix = { version = "0.71", default-features = false, features = [
     "worktree-mutation",
     "blocking-http-transport-reqwest-rust-tls-trust-dns",
+    "blocking-network-client",
+    "revision",
+    "worktree-mutation",
 ] }
 
 heck = "~0.5"
