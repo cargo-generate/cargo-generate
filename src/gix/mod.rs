@@ -1,4 +1,6 @@
 //! https://github.com/GitoxideLabs/gitoxide/issues/301
+//! the `gix clone` cli entry point can be found here:
+//!     - https://github.com/GitoxideLabs/gitoxide/blob/main/src/plumbing/main.rs#L587
 
 use anyhow::Result;
 use std::path::{Path, PathBuf};
