@@ -36,10 +36,7 @@ impl AbsolutePathExt for PathBuf {
         };
 
         if !absolute_path.starts_with(sandbox) {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "Path cannot escape the sandbox",
-            ));
+            return Err(std::io::Error::other("Path cannot escape the sandbox"));
         }
         Ok(absolute_path)
     }

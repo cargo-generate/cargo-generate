@@ -13,12 +13,11 @@ impl From<(&ProjectNameInput, &UserParsedInput)> for ProjectName {
     fn from(
         (project_name_input, user_parsed_input): (&ProjectNameInput, &UserParsedInput),
     ) -> Self {
-        Self(
-            user_parsed_input
-                .force()
-                .then(|| project_name_input.as_ref().to_owned())
-                .unwrap_or_else(|| sanitize_project_name(project_name_input.as_ref())),
-        )
+        Self(if user_parsed_input.force() {
+            project_name_input.as_ref().to_owned()
+        } else {
+            sanitize_project_name(project_name_input.as_ref())
+        })
     }
 }
 

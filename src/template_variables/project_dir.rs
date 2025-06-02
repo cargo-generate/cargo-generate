@@ -45,10 +45,10 @@ impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
             .name()
             .map_or_else(|| project_name_input.as_ref().to_owned(), String::from);
 
-        let dir_name = user_parsed_input
-            .force()
-            .then(|| name.clone())
-            .unwrap_or_else(|| {
+        let dir_name = if user_parsed_input.force() {
+            name.clone()
+        } else {
+            {
                 let renamed_project_name = sanitize_project_name(name.as_str());
                 if renamed_project_name != name {
                     warn!(
@@ -61,7 +61,8 @@ impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
                     );
                 }
                 renamed_project_name
-            });
+            }
+        };
 
         let project_dir = base_path.join(dir_name);
 
