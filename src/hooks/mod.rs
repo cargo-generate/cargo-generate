@@ -38,7 +38,7 @@ impl<F: FnOnce()> Drop for CleanupJob<F> {
 }
 
 pub fn execute_hooks(context: &RhaiHooksContext, scripts: &[String]) -> Result<()> {
-    debug!("executing rhai with context: {:?}", context);
+    debug!("executing rhai with context: {context:?}");
 
     let engine = create_rhai_engine(context);
     evaluate_scripts(&context.working_directory, scripts, engine)?;

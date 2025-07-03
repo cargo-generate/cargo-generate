@@ -74,7 +74,7 @@ pub fn remove_history(project_dir: &Path) -> io::Result<()> {
 
                 if e.to_string().contains("The process cannot access the file because it is being used by another process.") {
                     let wait_for = Duration::from_secs(2_u64.pow(attempt.sub(1).into()));
-                    warn!("Git history cleanup failed with a windows process blocking error. [Retry in {:?}]", wait_for);
+                    warn!("Git history cleanup failed with a windows process blocking error. [Retry in {wait_for:?}]");
                     sleep(wait_for);
                 } else {
                     return Err(e);
