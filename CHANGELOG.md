@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.23.3] 2025-04-06
 
-[0.23.3]: https://github.com/cargo-generate/cargo-generate/compare/0.23.2...0.23.3
+[0.23.3]: https://github.com/cargo-generate/cargo-generate/compare/v0.23.2...v0.23.3
 
 ### 🛠️ Maintenance
 
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.23.2] 2025-04-05
 
-[0.23.2]: https://github.com/cargo-generate/cargo-generate/compare/0.23.1...0.23.2
+[0.23.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.23.1...v0.23.2
 
 ### 🛠️ Maintenance
 
@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.23.1] 2025-04-03
 
-[0.23.1]: https://github.com/cargo-generate/cargo-generate/compare/0.23.0...0.23.1
+[0.23.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.23.0...v0.23.1
 
 ### 📖 Documentation
 
@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.23.0] 2025-03-13
 
-[0.23.0]: https://github.com/cargo-generate/cargo-generate/compare/0.22.1...0.23.0
+[0.23.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.22.1...v0.23.0
 
 ### ✨ Features
 
@@ -71,7 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.22.1] 2024-12-27
 
-[0.22.1]: https://github.com/cargo-generate/cargo-generate/compare/0.22.0...0.22.1
+[0.22.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.22.0...v0.22.1
 
 ### ✨ Features
 
@@ -95,7 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.22.0] 2024-09-01
 
-[0.22.0]: https://github.com/cargo-generate/cargo-generate/compare/0.21.3...0.22.0
+[0.22.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.21.3...v0.22.0
 
 ### 📖 Documentation
 
@@ -109,7 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.21.3] 2024-07-15
 
-[0.21.3]: https://github.com/cargo-generate/cargo-generate/compare/0.21.2...0.21.3
+[0.21.3]: https://github.com/cargo-generate/cargo-generate/compare/v0.21.2...v0.21.3
 
 ### ✨ Features
 
@@ -126,7 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.21.2] 2024-07-10
 
-[0.21.2]: https://github.com/cargo-generate/cargo-generate/compare/0.21.1...0.21.2
+[0.21.2]: https://github.com/cargo-generate/cargo-generate/compare/v0.21.1...v0.21.2
 
 ### 🛠️ Maintenance
 
@@ -138,7 +138,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.21.1] 2024-06-21
 
-[0.21.1]: https://github.com/cargo-generate/cargo-generate/compare/0.21.0...0.21.1
+[0.21.1]: https://github.com/cargo-generate/cargo-generate/compare/v0.21.0...v0.21.1
 
 ### ✨ Features
 
@@ -154,7 +154,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.21.0] 2024-05-02
 
-[0.21.0]: https://github.com/cargo-generate/cargo-generate/compare/0.20.0...0.21.0
+[0.21.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.20.0...v0.21.0
 
 ### ✨ Features
 
@@ -175,7 +175,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.20.0] 2024-03-26
 
-[0.20.0]: https://github.com/cargo-generate/cargo-generate/compare/0.19.0...0.20.0
+[0.20.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.19.0...v0.20.0
 
 ### ✨ Features
 
@@ -212,7 +212,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.19.0] 2023-12-13
 
-[0.19.0]: https://github.com/cargo-generate/cargo-generate/compare/0.18.5...0.19.0
+[0.19.0]: https://github.com/cargo-generate/cargo-generate/compare/v0.18.5...v0.19.0
 
 ### ✨ Features
 
