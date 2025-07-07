@@ -27,10 +27,9 @@ impl Matcher {
         if template_config.include.is_some() && template_config.exclude.is_some() {
             template_config.exclude = None;
             warn!(
-                "Your {} contains both an include and exclude list. \
+                "Your {CONFIG_FILE_NAME} contains both an include and exclude list. \
                     Only the include list will be considered. \
-                    You should remove the exclude list for clarity",
-                CONFIG_FILE_NAME
+                    You should remove the exclude list for clarity"
             )
         }
 
