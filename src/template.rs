@@ -228,7 +228,27 @@ pub fn walk_dir(
                 }
             }
             ShouldInclude::Exclude => {
-                pb.finish_with_message(format!("Skipped: {filename_display}"));
+                let new_filename = substitute_filename(filename, &rhai_engine, liquid_object)?;
+                let mut f = filename_display;
+                // Check if the file to exclude is in a templated path
+                // If it is, we need to copy it to the new location
+                if filename != new_filename {
+                    let relative_path = new_filename.strip_prefix(project_dir)?;
+                    f = relative_path.display();
+                    fs::create_dir_all(new_filename.parent().unwrap()).unwrap();
+                    fs::copy(filename, new_filename.as_path()).with_context(|| {
+                        format!(
+                            "{} {} `{}`",
+                            emoji::ERROR,
+                            style("Error copying file.").bold().red(),
+                            style(new_filename.display()).bold()
+                        )
+                    })?;
+                    pb.inc(50);
+                    fs::remove_file(filename)?;
+                    pb.inc(50);
+                }
+                pb.finish_with_message(format!("Skipped: {f}"));
             }
             ShouldInclude::Ignore => {
                 pb.finish_with_message(format!("Ignored: {filename_display}"));
