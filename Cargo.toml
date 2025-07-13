@@ -27,7 +27,7 @@ heck = "~0.5"
 home = "~0.5"
 ignore = "~0.4"
 indexmap = { version = "~2", features = ["serde"] }
-indicatif = "~0.17"
+indicatif = "~0.18"
 liquid = "~0.26"
 liquid-core = "~0.26"
 liquid-derive = "~0.26"
@@ -47,7 +47,7 @@ thiserror = "~2.0"
 time = "~0.3"
 toml = { version = "~0.8", features = ["preserve_order"] }
 walkdir = "~2.5"
-cargo-util-schemas = "~0.8.1"
+cargo-util-schemas = "~0.8.2"
 
 [dev-dependencies]
 assert_cmd = "~2.0"
