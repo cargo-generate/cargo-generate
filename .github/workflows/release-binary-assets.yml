@@ -90,7 +90,7 @@ jobs:
           tar -czvf "$filename" README.md LICENSE-MIT LICENSE-APACHE -C "target/$TARGET/release" "${{ matrix.binName }}"
           echo "::set-output name=filename::$filename"
       - name: Upload Archive
-        uses: ncipollo/release-action@v1.16.0
+        uses: ncipollo/release-action@v1.18.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           allowUpdates: true
