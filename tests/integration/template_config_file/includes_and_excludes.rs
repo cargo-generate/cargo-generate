@@ -78,6 +78,44 @@ fn it_doesnt_process_excluded_files_in_config() {
 }
 
 #[test]
+fn it_doesnt_process_excluded_files_in_templated_paths() {
+    let template = tempdir()
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [template]
+                exclude = ["excluded"]
+            "#},
+        )
+        .file("included1", "{{project-name}}")
+        .file("{{project-name}}/included2", "{{project-name}}")
+        .file("{{project-name}}/excluded", "{{should-not-process}}")
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/foobar-project/excluded")
+        .contains("{{should-not-process}}"));
+    assert!(dir
+        .read("foobar-project/included1")
+        .contains("foobar-project"));
+    assert!(dir
+        .read("foobar-project/foobar-project/included2")
+        .contains("foobar-project"));
+}
+
+#[test]
 fn it_warns_on_include_and_exclude_in_config() {
     let template = tempdir()
         .file(
