@@ -549,7 +549,7 @@ fn expand_template(
         Err(e) => {
             // Don't print the error twice
             if !args.quiet && args.continue_on_error {
-                warn!("{}", e);
+                warn!("{e}");
             }
             if !args.continue_on_error {
                 return Err(e);
