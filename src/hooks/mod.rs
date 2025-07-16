@@ -8,6 +8,7 @@ use heck::{
 use liquid::ValueView;
 use log::debug;
 use rhai::EvalAltResult;
+use std::path::PathBuf;
 use std::{env, path::Path};
 
 use crate::emoji;
@@ -53,17 +54,54 @@ fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engin
     env::set_current_dir(template_dir)?;
 
     for script in scripts {
-        engine
-            .eval_file::<()>(script.into())
+        let script: PathBuf = script.into();
+
+        let result = engine
+            .eval_file::<rhai::plugin::Dynamic>(script.clone())
             .map_err(|e| anyhow::anyhow!(e.to_string()))
             .with_context(|| {
                 format!(
                     "{} {} {}",
                     emoji::ERROR,
                     style("Failed executing script:").bold().red(),
-                    style(script.to_owned()).yellow(),
+                    style(script.display()).yellow(),
                 )
             })?;
+        match result.into_string() {
+            Ok(output) => {
+                if !output.is_empty() {
+                    println!(
+                        "{} {} {}",
+                        emoji::SPARKLE,
+                        style(format!(
+                            "Script `{}` executed successfully and returned output:",
+                            script.display()
+                        ))
+                        .bold()
+                        .green(),
+                        style(output).yellow()
+                    );
+                } else {
+                    println!(
+                        "{} {}",
+                        emoji::WRENCH,
+                        style(format!(
+                            "Script `{}` executed successfully with no output.",
+                            script.display()
+                        ))
+                        .bold()
+                        .green()
+                    );
+                }
+            }
+            Err(e) => {
+                // this is not an issue, a rhai script can return nothing
+                debug!(
+                    "Script `{}` executed successfully and returned not string but: {e}",
+                    script.display()
+                );
+            }
+        }
     }
 
     Ok(())
