@@ -22,6 +22,11 @@ impl CargoGenerateArgBuilder {
         self.arg("--init")
     }
 
+    /// wrapper for `--allow-commands` cli flag
+    pub fn flag_allow_commands(&mut self) -> &mut Self {
+        self.arg("--allow-commands")
+    }
+
     /// wrapper for `--name <name>` cli argument
     pub fn arg_name(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
         self.arg("--name").arg(name)
