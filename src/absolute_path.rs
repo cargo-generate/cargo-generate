@@ -327,7 +327,7 @@ mod tests {
     #[test]
     fn test_verbatim_disk_path_canonicalization() {
         // Verbatim disks should not be stripped during canonicalization
-        let root_path = PathBuf::from(r"\\?\D:\");
+        let root_path = PathBuf::from(r"\\?\D:\path");
 
         assert_eq!(root_path, canonicalize_path(&root_path));
     }
