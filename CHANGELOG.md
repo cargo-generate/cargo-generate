@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.5] 2025-08-22
+
+[0.23.5]: https://github.com/cargo-generate/cargo-generate/compare/0.23.4...0.23.5
+
+### 🛠️ Maintenance
+
+- Bump toml from 0.8.23 to 0.9.2 ([#1521](https://github.com/cargo-generate/cargo-generate/issues/1521))
+- Fix verbatim disks in windows ([#1539](https://github.com/cargo-generate/cargo-generate/issues/1539))
+
 ## [0.23.4] 2025-07-13
 
 [0.23.4]: https://github.com/cargo-generate/cargo-generate/compare/0.23.3...0.23.4
