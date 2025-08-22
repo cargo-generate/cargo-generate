@@ -78,7 +78,7 @@ fn canonicalize_path(path: &Path) -> PathBuf {
                 result.push(component);
             }
             Component::Prefix(prefix) => match prefix.kind() {
-                std::path::Prefix::Disk(_) => {
+                std::path::Prefix::Disk(_) | std::path::Prefix::VerbatimDisk(_) => {
                     result.push(prefix.as_os_str());
                 }
                 _ => {
