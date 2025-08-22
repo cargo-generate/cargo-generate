@@ -323,4 +323,12 @@ mod tests {
         let some_malicious_path = PathBuf::from("///file.txt");
         some_malicious_path.as_sandboxed_absolute(&sandbox).unwrap();
     }
+
+    #[test]
+    fn test_verbatim_disk_path_canonicalization() {
+        // Verbatim disks should not be stripped during canonicalization
+        let root_path = PathBuf::from(r"\\?\D:\");
+
+        assert_eq!(root_path, canonicalize_path(&root_path));
+    }
 }
