@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.5] 2025-08-22
+
+[0.23.5]: https://github.com/cargo-generate/cargo-generate/compare/0.23.4...0.23.5
+
+### 🛠️ Maintenance
+
+- Bump toml from 0.8.23 to 0.9.2 ([#1521](https://github.com/cargo-generate/cargo-generate/issues/1521))
+- Fix verbatim disks in windows ([#1539](https://github.com/cargo-generate/cargo-generate/issues/1539))
+
+## [0.23.4] 2025-07-13
+
+[0.23.4]: https://github.com/cargo-generate/cargo-generate/compare/0.23.3...0.23.4
+
+### 📖 Documentation
+
+- Fix syntax error for pre-script.rhai example ([#1479](https://github.com/cargo-generate/cargo-generate/issues/1479))
+
+### 🛠️ Maintenance
+
+- Bump git2 from 0.20.1 to 0.20.2 ([#1485](https://github.com/cargo-generate/cargo-generate/issues/1485))
+- Bump toml from 0.8.20 to 0.8.22 ([#1483](https://github.com/cargo-generate/cargo-generate/issues/1483))
+- Bump auth-git2 from 0.5.7 to 0.5.8 ([#1493](https://github.com/cargo-generate/cargo-generate/issues/1493))
+- Bump cargo-util-schemas from 0.8.0 to 0.8.1 ([#1488](https://github.com/cargo-generate/cargo-generate/issues/1488))
+- Bump bstr from 1.11.3 to 1.12.0 ([#1476](https://github.com/cargo-generate/cargo-generate/issues/1476))
+- Bump clap from 4.5.39 to 4.5.40 ([#1506](https://github.com/cargo-generate/cargo-generate/issues/1506))
+- Bump fs-err from 3.1.0 to 3.1.1 ([#1505](https://github.com/cargo-generate/cargo-generate/issues/1505))
+- Bump toml from 0.8.22 to 0.8.23 ([#1504](https://github.com/cargo-generate/cargo-generate/issues/1504))
+- Bump anstyle from 1.0.10 to 1.0.11 ([#1503](https://github.com/cargo-generate/cargo-generate/issues/1503))
+- Bump assert_cmd from 2.0.16 to 2.0.17 ([#1481](https://github.com/cargo-generate/cargo-generate/issues/1481))
+- Fix broken comparison links in CHANGELOG.md ([#1518](https://github.com/cargo-generate/cargo-generate/issues/1518))
+- Excluded files in templated paths are now properly handled ([#1515](https://github.com/cargo-generate/cargo-generate/issues/1515))
+- Bump cargo-util-schemas from 0.8.1 to 0.8.2 ([#1509](https://github.com/cargo-generate/cargo-generate/issues/1509))
+
+### 🤕 Fixes
+
+- Missing `.liquid` stripping in git templates ([#1480](https://github.com/cargo-generate/cargo-generate/issues/1480))
+- Fix lints ([#1497](https://github.com/cargo-generate/cargo-generate/issues/1497))
+
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.23.3...HEAD)
 
 ## [0.23.3] 2025-04-06
