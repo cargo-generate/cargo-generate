@@ -154,18 +154,20 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     } else {
         let project_path = copy_expanded_template(template_dir, project_dir, user_parsed_input)?;
 
-        match workspace_member::add_to_workspace(&project_path)? {
-            WorkspaceMemberStatus::Added(workspace_cargo_toml) => {
-                should_initialize_git = with_force;
-                info!(
-                    "{} {} `{}`",
-                    emoji::WRENCH,
-                    style("Project added as member to workspace").bold(),
-                    style(workspace_cargo_toml.display()).bold().yellow(),
-                );
-            }
-            WorkspaceMemberStatus::NoWorkspaceFound => {
-                // not an issue, just a notification
+        if !args.no_workspace {
+            match workspace_member::add_to_workspace(&project_path)? {
+                WorkspaceMemberStatus::Added(workspace_cargo_toml) => {
+                    should_initialize_git = with_force;
+                    info!(
+                        "{} {} `{}`",
+                        emoji::WRENCH,
+                        style("Project added as member to workspace").bold(),
+                        style(workspace_cargo_toml.display()).bold().yellow(),
+                    );
+                }
+                WorkspaceMemberStatus::NoWorkspaceFound => {
+                    // not an issue, just a notification
+                }
             }
         }
 
