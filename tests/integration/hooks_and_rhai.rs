@@ -545,3 +545,34 @@ fn missing_rhai_filter_fails_prints_warnings() {
         .read("filter-project/file_to_expand.txt")
         .contains(r#"{{"filter-script.rhai"|rhai}}"#));
 }
+
+#[test]
+fn should_echo_something() {
+    let template = tempdir()
+        .file(
+            "echo.rhai",
+            indoc! {r#"
+                system::command("echo", ["picard"]);
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [hooks]
+                init = ["echo.rhai"]
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("foo")
+        .flag_allow_commands()
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("picard").from_utf8());
+}
