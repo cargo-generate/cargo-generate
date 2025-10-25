@@ -154,18 +154,20 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     } else {
         let project_path = copy_expanded_template(template_dir, project_dir, user_parsed_input)?;
 
-        match workspace_member::add_to_workspace(&project_path)? {
-            WorkspaceMemberStatus::Added(workspace_cargo_toml) => {
-                should_initialize_git = with_force;
-                info!(
-                    "{} {} `{}`",
-                    emoji::WRENCH,
-                    style("Project added as member to workspace").bold(),
-                    style(workspace_cargo_toml.display()).bold().yellow(),
-                );
-            }
-            WorkspaceMemberStatus::NoWorkspaceFound => {
-                // not an issue, just a notification
+        if !args.no_workspace {
+            match workspace_member::add_to_workspace(&project_path)? {
+                WorkspaceMemberStatus::Added(workspace_cargo_toml) => {
+                    should_initialize_git = with_force;
+                    info!(
+                        "{} {} `{}`",
+                        emoji::WRENCH,
+                        style("Project added as member to workspace").bold(),
+                        style(workspace_cargo_toml.display()).bold().yellow(),
+                    );
+                }
+                WorkspaceMemberStatus::NoWorkspaceFound => {
+                    // not an issue, just a notification
+                }
             }
         }
 
@@ -384,7 +386,7 @@ fn auto_locate_template_dir(
             let path = prompt(&prompt_args)?;
 
             // recursively retry to resolve the template,
-            // until we hit a single or no config, idetifying the final template folder
+            // until we hit a single or no config, identifying the final template folder
             auto_locate_template_dir(template_base_dir.join(path), prompt)
         }
     }
@@ -416,7 +418,7 @@ fn resolve_configured_sub_templates(
                 let path = prompt(&prompt_args)?;
 
                 // recursively retry to resolve the template,
-                // until we hit a single or no config, idetifying the final template folder
+                // until we hit a single or no config, identifying the final template folder
                 auto_locate_template_dir(
                     resolve_template_dir_subfolder(config_path, Some(path))?,
                     prompt,

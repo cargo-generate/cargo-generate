@@ -179,6 +179,11 @@ pub struct GenerateArgs {
     #[arg(long, action, help_heading = heading::GIT_PARAMETERS)]
     pub skip_submodules: bool,
 
+    /// Skip automatic workspace member addition. When set, the generated project will not be added
+    /// to any parent Cargo.toml workspace members list
+    #[arg(long, action, help_heading = heading::OUTPUT_PARAMETERS)]
+    pub no_workspace: bool,
+
     /// All args after "--" on the command line.
     #[arg(skip)]
     pub other_args: Option<Vec<String>>,
@@ -209,6 +214,7 @@ impl Default for GenerateArgs {
             allow_commands: false,
             overwrite: false,
             skip_submodules: false,
+            no_workspace: false,
             other_args: None,
         }
     }

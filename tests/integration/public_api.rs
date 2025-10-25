@@ -44,6 +44,7 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
         overwrite: false,
         other_args: None,
         skip_submodules: false,
+        no_workspace: false,
     };
 
     assert_eq!(
