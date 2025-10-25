@@ -172,17 +172,17 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
         .failure()
         .stderr(
             if cfg!(target_os = "linux") {
-                predicates::str::contains(
-                    "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: cannot create directory 'invalid_/.dir_name': No such file or directory"
-                ).from_utf8()
+                predicates::str::is_match(
+                    r"System command `mkdir invalid_/.dir_name` failed to execute: mkdir: cannot create directory [‘']invalid_/\.dir_name[’']: No such file or directory"
+                ).unwrap().from_utf8()
             } else if cfg!(target_os = "macos") {
-                predicates::str::contains(
-                    "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: invalid_: No such file or directory"
-                ).from_utf8()
+                predicates::str::is_match(
+                    r"System command `mkdir invalid_/.dir_name` failed to execute: mkdir: invalid_: No such file or directory"
+                ).unwrap().from_utf8()
             } else { // Windows
-                predicates::str::contains(
-                    "System command `mkdir invalid_/.dir_name` failed to execute: The syntax of the command is incorrect."
-                ).from_utf8()
+                predicates::str::is_match(
+                    r"System command `mkdir invalid_/.dir_name` failed to execute: The syntax of the command is incorrect\."
+                ).unwrap().from_utf8()
             }
         );
 }
