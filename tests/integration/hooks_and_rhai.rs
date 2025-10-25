@@ -173,7 +173,7 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
         .stderr(
             if cfg!(target_os = "linux") {
                 predicates::str::contains(
-                    "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: cannot create directory ‘invalid_/.dir_name’: No such file or directory"
+                    "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: cannot create directory 'invalid_/.dir_name': No such file or directory"
                 ).from_utf8()
             } else if cfg!(target_os = "macos") {
                 predicates::str::contains(
