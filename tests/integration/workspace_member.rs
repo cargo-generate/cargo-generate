@@ -94,3 +94,31 @@ fn it_should_skip_workspace_when_no_workspace_flag_is_set() {
     assert!(workspace_toml.contains(r#"members = ["c"]"#));
     assert!(!workspace_toml.contains(r#""a""#));
 }
+
+#[test]
+fn it_should_generate_when_no_workspace_is_present() {
+    let project_root = tempdir().build();
+
+    let template = tempdir()
+        .file(
+            "Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                version = "0.1.0"
+            "#},
+        )
+        .init_git()
+        .build();
+
+    binary()
+        .arg_name("a")
+        .arg_path(template.path())
+        .current_dir(project_root.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(project_root.exists("a/Cargo.toml"));
+    assert!(project_root.read("a/Cargo.toml").contains(r#"name = "a""#));
+}
