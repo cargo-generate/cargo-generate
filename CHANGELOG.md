@@ -45,6 +45,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.23.3...HEAD)
 
+## [0.23.6] 2025-10-28
+
+[0.23.6]: https://github.com/cargo-generate/cargo-generate/compare/0.23.5...0.23.6
+
+### 🛠️ Maintenance
+
+- Bump cargo-util-schemas from 0.8.2 to 0.10.0 ([#1560](https://github.com/cargo-generate/cargo-generate/issues/1560))
+- Bump indexmap from 2.10.0 to 2.12.0 ([#1568](https://github.com/cargo-generate/cargo-generate/issues/1568))
+
+
 ## [0.23.3] 2025-04-06
 
 [0.23.3]: https://github.com/cargo-generate/cargo-generate/compare/v0.23.2...v0.23.3
