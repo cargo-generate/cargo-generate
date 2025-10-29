@@ -348,7 +348,7 @@ fn print_files_with_errors_warning(files_with_errors: Vec<(String, liquid_core::
         msg.push('\n');
     }
     let read_more =
-        "Learn more: https://github.com/cargo-generate/cargo-generate#include--exclude.\n\n";
+        "Learn more: https://github.com/cargo-generate/cargo-generate/blob/main/guide/src/templates/include_exclude.md.\n\n";
     let hint = style("Consider adding these files to a `cargo-generate.toml` in the template repo to skip substitution on these files.").bold();
 
     format!("{msg}\n{hint}\n\n{read_more}")
