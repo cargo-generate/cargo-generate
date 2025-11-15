@@ -8,7 +8,7 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
 
     let template = tempdir().init_default_template().init_git().build();
 
-    let dir = tempdir().build().root.into_path();
+    let dir = tempdir().build().root.keep();
 
     let args_exposed: GenerateArgs = GenerateArgs {
         template_path: TemplatePath {
@@ -44,6 +44,7 @@ fn it_allows_generate_call_with_public_args_and_returns_the_generated_path() {
         overwrite: false,
         other_args: None,
         skip_submodules: false,
+        no_workspace: false,
     };
 
     assert_eq!(

@@ -19,7 +19,7 @@ anyhow = "~1.0"
 auth-git2 = "~0.5"
 clap = { version = "~4.5", features = ["derive", "wrap_help"] }
 console = "~0.16"
-dialoguer = "~0.11"
+dialoguer = "~0.12"
 env_logger = "~0.11"
 fs-err = "~3.1"
 gix-config = "~0.45"
@@ -36,13 +36,13 @@ log = "~0.4"
 names = { version = "~0.14", default-features = false }
 openssl = { version = "~0.10", optional = true }
 paste = "~1.0"
-regex = "~1.11"
+regex = "~1.12"
 remove_dir_all = "~1.0"
-rhai = "~1.22"
+rhai = "~1.23"
 sanitize-filename = "~0.6"
 semver = { version = "~1.0", features = ["serde"] }
 serde = { version = "~1.0", features = ["derive"] }
-tempfile = "~3.19"
+tempfile = "~3.20"
 thiserror = "~2.0"
 time = "~0.3"
 toml = { version = "~0.9", features = ["preserve_order"] }
@@ -50,7 +50,7 @@ walkdir = "~2.5"
 cargo-util-schemas = "~0.10.0"
 
 [dev-dependencies]
-assert_cmd = "~2.0"
+assert_cmd = "~2.1"
 bstr = "~1.12"
 indoc = "~2.0"
 predicates = "~3.1"
