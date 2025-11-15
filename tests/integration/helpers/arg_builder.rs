@@ -21,6 +21,11 @@ impl CargoGenerateArgBuilder {
         self.arg("--init")
     }
 
+    /// wrapper for `--no-workspace` cli flag
+    pub fn flag_no_workspace(&mut self) -> &mut Self {
+        self.arg("--no-workspace")
+    }
+
     /// wrapper for `--name <name>` cli argument
     pub fn arg_name(&mut self, name: impl AsRef<OsStr>) -> &mut Self {
         self.arg("--name").arg(name)
