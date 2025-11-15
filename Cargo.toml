@@ -50,7 +50,7 @@ walkdir = "~2.5"
 cargo-util-schemas = "~0.10.0"
 
 [dev-dependencies]
-assert_cmd = "~2.0"
+assert_cmd = "~2.1"
 bstr = "~1.12"
 indoc = "~2.0"
 predicates = "~3.1"
