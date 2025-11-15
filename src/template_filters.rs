@@ -104,7 +104,7 @@ impl ParseFilter for RhaiFilterParser {
     fn parse(&self, mut args: FilterArguments) -> liquid_core::Result<Box<dyn Filter>> {
         if args.positional.next().is_some() {
             return Err(Error::with_msg("Invalid number of positional arguments")
-                .context("cause", concat!("expected at most 0 positional arguments")));
+                .context("cause", "expected at most 0 positional arguments"));
         }
         if let Some(arg) = args.keyword.next() {
             return Err(Error::with_msg(format!(
