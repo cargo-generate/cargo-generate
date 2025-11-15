@@ -1,7 +1,6 @@
-use assert_cmd::prelude::*;
+use assert_cmd::{cargo, Command};
 use std::ffi::OsStr;
 use std::path::Path;
-use std::process::Command;
 
 pub fn binary() -> CargoGenerateArgBuilder {
     CargoGenerateArgBuilder::new()
@@ -11,7 +10,7 @@ pub struct CargoGenerateArgBuilder(Command);
 
 impl CargoGenerateArgBuilder {
     pub fn new() -> Self {
-        let mut builder = Self(Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap());
+        let mut builder = Self(cargo::cargo_bin_cmd!());
         builder.0.arg("generate");
 
         builder
