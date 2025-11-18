@@ -304,7 +304,8 @@ fn it_does_not_overwrite_existing_files() -> anyhow::Result<()> {
         .arg_name("my-proj")
         .flag_init()
         .current_dir(dir.path())
-        .status();
+        .assert()
+        .success();
     binary()
         .arg_git(template.path())
         .arg_name("overwritten-proj")
@@ -325,7 +326,8 @@ fn it_can_overwrite_files() -> anyhow::Result<()> {
         .arg_name("my-proj")
         .flag_init()
         .current_dir(dir.path())
-        .status();
+        .assert()
+        .success();
     binary()
         .arg_git(template.path())
         .arg_name("overwritten-proj")

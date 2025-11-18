@@ -22,7 +22,7 @@ console = "~0.16"
 dialoguer = "~0.12"
 env_logger = "~0.11"
 fs-err = "~3.1"
-gix-config = "~0.45"
+gix-config = "~0.46"
 heck = "~0.5"
 home = "~0.5"
 ignore = "~0.4"
@@ -42,7 +42,7 @@ rhai = "~1.23"
 sanitize-filename = "~0.6"
 semver = { version = "~1.0", features = ["serde"] }
 serde = { version = "~1.0", features = ["derive"] }
-tempfile = "~3.19"
+tempfile = "~3.20"
 thiserror = "~2.0"
 time = "~0.3"
 toml = { version = "~0.9", features = ["preserve_order"] }
@@ -50,7 +50,7 @@ walkdir = "~2.5"
 cargo-util-schemas = "~0.10.0"
 
 [dev-dependencies]
-assert_cmd = "~2.0"
+assert_cmd = "~2.1"
 bstr = "~1.12"
 indoc = "~2.0"
 predicates = "~3.1"
