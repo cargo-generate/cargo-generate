@@ -29,6 +29,13 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
                 NamedValue::NonExistent => Ok(Dynamic::from(String::from(""))),
                 NamedValue::Bool(v) => Ok(Dynamic::from(v)),
                 NamedValue::String(v) => Ok(Dynamic::from(v)),
+                NamedValue::Array(arr) => {
+                    let rhai_array: Array = arr
+                        .into_iter()
+                        .map(liquid_to_rhai_value)
+                        .collect::<HookResult<_>>()?;
+                    Ok(Dynamic::from(rhai_array))
+                }
             }
         }
     });
@@ -74,7 +81,7 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
         let liquid_object = liquid_object.clone();
         move |name: &str, value: Array| -> HookResult<()> {
             match liquid_object.get_value(name)? {
-                NamedValue::NonExistent => {
+                NamedValue::NonExistent | NamedValue::Array(_) => {
                     let val = rhai_to_liquid_value(Dynamic::from(value))?;
                     liquid_object
                         .lock()
@@ -216,6 +223,7 @@ enum NamedValue {
     NonExistent,
     Bool(bool),
     String(String),
+    Array(Vec<Value>),
 }
 
 trait GetNamedValue {
@@ -230,6 +238,13 @@ impl GetNamedValue for LiquidObjectResource {
             .borrow()
             .get(name)
             .map_or(NamedValue::NonExistent, |value| {
+                // Check if it's an array first
+                if let Some(arr) = value.as_array() {
+                    let values: Vec<Value> = arr.values().map(|v| v.to_value()).collect();
+                    return NamedValue::Array(values);
+                }
+
+                // Then check if it's a scalar
                 value
                     .as_scalar()
                     .map(|scalar| {
@@ -271,6 +286,30 @@ fn rhai_to_liquid_value(val: Dynamic) -> HookResult<Value> {
         })
 }
 
+fn liquid_to_rhai_value(val: Value) -> HookResult<Dynamic> {
+    match val {
+        Value::Scalar(scalar) => {
+            // Try to convert to bool first, then to string
+            scalar.to_bool().map_or_else(
+                || Ok(Dynamic::from(String::from(scalar.to_kstr().as_str()))),
+                |b| Ok(Dynamic::from(b)),
+            )
+        }
+        Value::Array(arr) => {
+            let rhai_array: Array = arr
+                .into_iter()
+                .map(liquid_to_rhai_value)
+                .collect::<HookResult<_>>()?;
+            Ok(Dynamic::from(rhai_array))
+        }
+        _ => Err(format!(
+            "unsupported liquid value type for conversion to rhai: {:?}",
+            val
+        )
+        .into()),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::{
@@ -310,5 +349,80 @@ mod tests {
                 Value::Scalar("other_dep".into())
             ]))
         );
+    }
+
+    #[test]
+    fn test_rhai_get_array() {
+        let mut engine = rhai::Engine::new();
+        let mut obj = Object::new();
+
+        // Pre-populate the liquid object with an array
+        obj.insert(
+            "test_array".into(),
+            Value::Array(vec![
+                Value::Scalar("aaa".into()),
+                Value::Scalar("bbb".into()),
+                Value::Scalar("ccc".into()),
+                Value::Scalar("ddd".into()),
+            ]),
+        );
+
+        let liquid_object = Arc::new(Mutex::new(RefCell::new(obj)));
+        let module = create_module(&liquid_object);
+        engine.register_static_module("variable", module.into());
+
+        // Test is_set() on array variable
+        let is_set: bool = engine
+            .eval(
+                r#"
+            variable::is_set("test_array")
+        "#,
+            )
+            .unwrap();
+        assert!(is_set);
+
+        // Test get() on array variable and iterate
+        let result: String = engine
+            .eval(
+                r#"
+            let arr = variable::get("test_array");
+            let result = "";
+            for item in arr {
+                result += item + ",";
+            }
+            result
+        "#,
+            )
+            .unwrap();
+        assert_eq!(result, "aaa,bbb,ccc,ddd,");
+    }
+
+    #[test]
+    fn test_rhai_get_nonexistent_array() {
+        let mut engine = rhai::Engine::new();
+        let liquid_object = Arc::new(Mutex::new(RefCell::new(Object::new())));
+
+        let module = create_module(&liquid_object);
+        engine.register_static_module("variable", module.into());
+
+        // Test is_set() on non-existent variable
+        let is_set: bool = engine
+            .eval(
+                r#"
+            variable::is_set("nonexistent")
+        "#,
+            )
+            .unwrap();
+        assert!(!is_set);
+
+        // Test get() on non-existent variable returns empty string
+        let result: String = engine
+            .eval(
+                r#"
+            variable::get("nonexistent")
+        "#,
+            )
+            .unwrap();
+        assert_eq!(result, "");
     }
 }
