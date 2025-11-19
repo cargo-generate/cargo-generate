@@ -21,6 +21,11 @@ impl CargoGenerateArgBuilder {
         self.arg("--init")
     }
 
+    /// wrapper for `--allow-commands` cli flag
+    pub fn flag_allow_commands(&mut self) -> &mut Self {
+        self.arg("--allow-commands")
+    }
+
     /// wrapper for `--no-workspace` cli flag
     pub fn flag_no_workspace(&mut self) -> &mut Self {
         self.arg("--no-workspace")
