@@ -97,7 +97,7 @@ fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engin
             Err(e) => {
                 // this is not an issue, a rhai script can return nothing
                 debug!(
-                    "Script `{}` executed successfully and returned not string but: {e}",
+                    "Script `{}` executed successfully but did not return a string: {e}",
                     script.display()
                 );
             }
