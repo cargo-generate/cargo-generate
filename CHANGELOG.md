@@ -45,6 +45,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.23.3...HEAD)
 
+## [0.23.6] 2025-11-19
+
+[0.23.6]: https://github.com/cargo-generate/cargo-generate/compare/0.23.5...0.23.6
+
+### ✨ Features
+
+- Add --no-workspace flag that skips workspace addition ([#1570](https://github.com/cargo-generate/cargo-generate/issues/1570))
+
+### 🛠️ Maintenance
+
+- Bump cargo-util-schemas from 0.8.2 to 0.10.0 ([#1560](https://github.com/cargo-generate/cargo-generate/issues/1560))
+- Bump indexmap from 2.10.0 to 2.12.0 ([#1568](https://github.com/cargo-generate/cargo-generate/issues/1568))
+- Bump home from 0.5.11 to 0.5.12 ([#1575](https://github.com/cargo-generate/cargo-generate/issues/1575))
+- Bump dialoguer from 0.11.0 to 0.12.0 ([#1544](https://github.com/cargo-generate/cargo-generate/issues/1544))
+- Bump assert_cmd from 2.0.17 to 2.1.1 ([#1576](https://github.com/cargo-generate/cargo-generate/issues/1576))
+- Fix stale link text ([#1556](https://github.com/cargo-generate/cargo-generate/issues/1556))
+- Bump toml from 0.9.6 to 0.9.8 ([#1586](https://github.com/cargo-generate/cargo-generate/issues/1586))
+- Bump bstr from 1.12.0 to 1.12.1 ([#1585](https://github.com/cargo-generate/cargo-generate/issues/1585))
+- Bump ignore from 0.4.23 to 0.4.25 ([#1582](https://github.com/cargo-generate/cargo-generate/issues/1582))
+- Bump anstyle from 1.0.11 to 1.0.13 ([#1581](https://github.com/cargo-generate/cargo-generate/issues/1581))
+
+### 🤕 Fixes
+
+- Fix hardcoded path in tests ([#1523](https://github.com/cargo-generate/cargo-generate/issues/1523))
+- Rhai hook return type mismatch ([#1524](https://github.com/cargo-generate/cargo-generate/issues/1524)) ([#1525](https://github.com/cargo-generate/cargo-generate/issues/1525))
+
+
 ## [0.23.3] 2025-04-06
 
 [0.23.3]: https://github.com/cargo-generate/cargo-generate/compare/v0.23.2...v0.23.3
