@@ -66,6 +66,7 @@ path = "src/main.rs"
 name = "cargo-generate"
 
 [profile.release]
+codegen-units = 1
 lto = true
 
 [lints.rust]
