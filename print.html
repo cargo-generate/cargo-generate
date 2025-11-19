@@ -13,21 +13,20 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="favicon.svg">
-        <link rel="shortcut icon" href="favicon.png">
-        <link rel="stylesheet" href="css/variables.css">
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/chrome.css">
-        <link rel="stylesheet" href="css/print.css" media="print">
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-2459343d.css">
+        <link rel="stylesheet" href="css/chrome-9dfbd86b.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="fonts/fonts.css">
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
 
@@ -37,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex.js";
+            window.path_to_searchindex_js = "searchindex-772488ef.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc.js"></script>
+        <script src="toc-fcc4b84f.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -54,7 +53,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -83,12 +82,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -103,39 +102,39 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
-                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
-                            <i class="fa fa-search"></i>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
                         </button>
                     </div>
 
@@ -143,62 +142,63 @@
 
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
-                            <i id="print-button" class="fa fa-print"></i>
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
                         </a>
                         <a href="https://github.com/cargo-generate/cargo-generate/tree/main/guide" title="Git repository" aria-label="Git repository">
-                            <i id="git-repository-button" class="fa fa-github"></i>
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
                         </a>
 
                     </div>
                 </div>
 
-                <div id="search-wrapper" class="hidden">
-                    <form id="searchbar-outer" class="searchbar-outer">
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
                         <div class="search-wrapper">
-                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
                             <div class="spinner-wrapper">
-                                <i class="fa fa-spinner fa-spin"></i>
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
                             </div>
                         </div>
                     </form>
-                    <div id="searchresults-outer" class="searchresults-outer hidden">
-                        <div id="searchresults-header" class="searchresults-header"></div>
-                        <ul id="searchresults">
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
                         </ul>
                     </div>
                 </div>
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
 <blockquote>
 <p>cargo, make me a project</p>
 </blockquote>
-<p><a href="https://github.com/cargo-generate/cargo-generate/actions?query=workflow%3ABuild+branch%3Amain+"><img src="https://github.com/cargo-generate/cargo-generate/workflows/Build/badge.svg" alt="Build status" /></a>
-<a href="https://crates.io/crates/cargo-generate"><img src="https://img.shields.io/crates/v/cargo-generate.svg" alt="crates.io" /></a>
-<a href="https://deps.rs/repo/github/cargo-generate/cargo-generate"><img src="https://deps.rs/repo/github/cargo-generate/cargo-generate/status.svg" alt="dependency status" /></a></p>
+<p><a href="https://github.com/cargo-generate/cargo-generate/actions?query=workflow%3ABuild+branch%3Amain+"><img src="https://github.com/cargo-generate/cargo-generate/workflows/Build/badge.svg" alt="Build status"></a>
+<a href="https://crates.io/crates/cargo-generate"><img src="https://img.shields.io/crates/v/cargo-generate.svg" alt="crates.io"></a>
+<a href="https://deps.rs/repo/github/cargo-generate/cargo-generate"><img src="https://deps.rs/repo/github/cargo-generate/cargo-generate/status.svg" alt="dependency status"></a></p>
 <p><code>cargo-generate</code> is a developer tool to help you get up and running quickly with a new Rust
 project by leveraging a pre-existing git repository as a template.</p>
-<p>cargo-generate uses <a href="http://liquidmarkup.org/">Shopify's Liquid</a> template language,
+<p>cargo-generate uses <a href="http://liquidmarkup.org/">Shopify’s Liquid</a> template language,
 <a href="https://docs.rs/rhai/latest/rhai/">Rhai</a> for hook scripts and <a href="https://docs.rs/regex/latest/regex/">regex</a> for placeholders.</p>
-<p>Due to the use of <a href="http://liquidmarkup.org/">Shopify's Liquid</a>, <code>cargo-generate</code> special cases files with the file-ending
+<p>Due to the use of <a href="http://liquidmarkup.org/">Shopify’s Liquid</a>, <code>cargo-generate</code> special cases files with the file-ending
 <code>.liquid</code>, by simply removing the file-ending when processing the files. If you, as a template
 author, truly want the <code>.liquid</code> file-ending, you need to repeat it twice!</p>
 <p>For example: The file <code>README.md.liquid</code> will be renamed after templating to <code>README.md</code>.
 If <code>README.md</code> already exists, then it will be overwritten to include the contents of <code>README.md.liquid</code>.</p>
-<p>Here's an example of using <code>cargo-generate</code> with <a href="https://github.com/rustwasm/wasm-pack-template">this template</a>:</p>
-<p><img src="./demo.gif" alt="demo.gif" /></p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
-<h2 id="using-cargo-generate-with-vendored-libgit2-and-systems-openssl"><a class="header" href="#using-cargo-generate-with-vendored-libgit2-and-systems-openssl">Using <code>cargo-generate</code> with vendored <code>libgit2</code> and system's OpenSSL</a></h2>
+<p>Here’s an example of using <code>cargo-generate</code> with <a href="https://github.com/rustwasm/wasm-pack-template">this template</a>:</p>
+<p><img src="demo.gif" alt="demo.gif"></p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
+<h2 id="using-cargo-generate-with-vendored-libgit2-and-systems-openssl"><a class="header" href="#using-cargo-generate-with-vendored-libgit2-and-systems-openssl">Using <code>cargo-generate</code> with vendored <code>libgit2</code> and system’s OpenSSL</a></h2>
 <p>By default, cargo-generate uses vendored sources for <code>libgit2</code> and OpenSSL that is installed on your system.</p>
 <pre><code class="language-sh">cargo install cargo-generate
 </code></pre>
@@ -208,7 +208,7 @@ If <code>README.md</code> already exists, then it will be overwritten to include
 </ul>
 <h2 id="using-cargo-generate-with-vendored-openssl"><a class="header" href="#using-cargo-generate-with-vendored-openssl">Using <code>cargo-generate</code> with vendored OpenSSL</a></h2>
 <p>However, you can also opt in to use a vendored OpenSSL version.
-So that you don't have to have OpenSSL installed and built it on the spot.</p>
+So that you don’t have to have OpenSSL installed and built it on the spot.</p>
 <p>this would require the following dependencies on your system, as documented by the <a href="https://docs.rs/openssl"><code>openssl</code> crate</a>:</p>
 <ul>
 <li>A C compiler (<code>gcc</code>, for example)</li>
@@ -217,7 +217,7 @@ So that you don't have to have OpenSSL installed and built it on the spot.</p>
 </ul>
 <pre><code class="language-sh">cargo install cargo-generate --features vendored-openssl
 </code></pre>
-<h2 id="using-cargo-generate-with-systems-libgit2-and-systems-openssl"><a class="header" href="#using-cargo-generate-with-systems-libgit2-and-systems-openssl">Using <code>cargo-generate</code> with system's <code>libgit2</code> and system's OpenSSL</a></h2>
+<h2 id="using-cargo-generate-with-systems-libgit2-and-systems-openssl"><a class="header" href="#using-cargo-generate-with-systems-libgit2-and-systems-openssl">Using <code>cargo-generate</code> with system’s <code>libgit2</code> and system’s OpenSSL</a></h2>
 <p>You can opt-out of vendored libraries and use <code>libgit2</code> and OpenSSL from your system
 by building cargo-generate without the default dependencies.</p>
 <pre><code class="language-sh">cargo install cargo-generate --no-default-features
@@ -237,10 +237,11 @@ by building cargo-generate without the default dependencies.</p>
 <li>Download the binary tarball for your platform from our <a href="https://github.com/cargo-generate/cargo-generate/releases">releases page</a>.</li>
 <li>Unpack the tarball and place the binary <code>cargo-generate</code> in <code>~/.cargo/bin/</code></li>
 </ol>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="usage"><a class="header" href="#usage">Usage</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="usage"><a class="header" href="#usage">Usage</a></h1>
 <p>Standard usage is to pass a <code>--git</code> flag to <code>cargo generate</code> or short <code>cargo gen</code>. This will prompt you to enter the name of your project.</p>
 <blockquote>
-<p>⚠️ NOTE: <code>cargo gen</code> requires a <a href="usage/index.html#cargo-gen---alias">cargo alias configuration</a></p>
+<p>⚠️ NOTE: <code>cargo gen</code> requires a <a href="#cargo-gen---alias">cargo alias configuration</a></p>
 </blockquote>
 <pre><code class="language-sh">cargo generate username-on-github/mytemplate
 # is the same as
@@ -293,7 +294,8 @@ cargo generate --path $HOME/mytemplate # Use it locally
 <h2 id="https-proxy"><a class="header" href="#https-proxy">Http(s) proxy</a></h2>
 <p>New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0">0.7.0</a> is automatic proxy usage. So, if http(s)_PROXY env variables are provided, they
 will be used for cloning a http(s) template repository.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="git-over-ssh"><a class="header" href="#git-over-ssh">Git over SSH</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="git-over-ssh"><a class="header" href="#git-over-ssh">Git over SSH</a></h1>
 <p>New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.7.0">0.7.0</a> is the support for both public and private and ssh git remote urls.
 New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.22.0">0.22.0</a> is the support for <code>ssh-agent</code> on Windows and interactively asking for passphrase for password protected keys on *Nix and macOS.</p>
 <p>There are 2 different git over ssh urls, one with the <code>git@</code> prefix and one with the <code>ssh://</code> prefix. Both are supported. Please note that the <code>ssh://</code> prefix url uses a path where the <code>git@</code> prefix uses a colon at the user/github-org level. For example:</p>
@@ -307,7 +309,7 @@ ssh://git@github.com/rustwasm/wasm-pack-template.git
 <pre><code class="language-sh">cargo generate --git git@github.com:rustwasm/wasm-pack-template.git --name mywasm
 </code></pre>
 <h2 id="authentication-using-ssh-agent"><a class="header" href="#authentication-using-ssh-agent">Authentication using <code>ssh-agent</code></a></h2>
-<p>New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.15.1">0.15.1</a> is the <code>ssh-agent</code> usage for password protected keys. It's also the default mechanism on Windows.</p>
+<p>New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.15.1">0.15.1</a> is the <code>ssh-agent</code> usage for password protected keys. It’s also the default mechanism on Windows.</p>
 <h3 id="on-windows"><a class="header" href="#on-windows">On Windows</a></h3>
 <p><code>ssh-agent</code> is the default and also <strong>the only</strong> possibility to get git+ssh working.
 Please follow <a href="https://github.com/cargo-generate/cargo-generate/discussions/653">this guide</a> to get <code>ssh-agent</code> configured on windows.</p>
@@ -341,7 +343,8 @@ ssh_identity = "/home/john/.ssh/id_rsa_other"
 <blockquote>
 <p>⚠️ NOTE: that the cli argument <code>-i</code> always overrules the <code>ssh_identity</code> from the config file.</p>
 </blockquote>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="gitconfig-and-insteadof-configuration"><a class="header" href="#gitconfig-and-insteadof-configuration"><code>.gitconfig</code> and <code>insteadOf</code> configuration</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="gitconfig-and-insteadof-configuration"><a class="header" href="#gitconfig-and-insteadof-configuration"><code>.gitconfig</code> and <code>insteadOf</code> configuration</a></h1>
 <p>⚠️ New in version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.22.0">0.22.0</a></p>
 <p>git supports a magic trick to rewrite urls on the fly. This is done by adding a <code>url.&lt;base&gt;.insteadOf</code> configuration to your <code>.gitconfig</code> file.</p>
 <p>In cargo-generate this is supported as well.</p>
@@ -382,7 +385,8 @@ insteadOf = https://github.com/
 
 $ cargo generate --gitconfig ./.gitconfig https://github.com/Rahix/avr-hal-template.git
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="favorites"><a class="header" href="#favorites">Favorites</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="favorites"><a class="header" href="#favorites">Favorites</a></h1>
 <p>Favorite templates can be defined in a config file, that by default is placed at <code>$CARGO_HOME/cargo-generate.toml</code> or <code>$CARGO_HOME/cargo-generate</code>.
 To specify an alternate configuration file, use the <code>--config &lt;config-file&gt;</code> option.</p>
 <blockquote>
@@ -411,7 +415,8 @@ commandline, as there is no counter-option!</p>
 <blockquote>
 <p>⚠️ NOTE: when <code>&lt;favorite&gt;</code> is not defined in the config file, it is interpreted as a git repo like as if <code>--git &lt;favorite&gt;</code></p>
 </blockquote>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="templates"><a class="header" href="#templates">Templates</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="templates"><a class="header" href="#templates">Templates</a></h1>
 <h2 id="placeholders"><a class="header" href="#placeholders">Placeholders</a></h2>
 <p>Templates are git repositories whose files can contain placeholders. A placeholder can be seen as
 a variable that is substituted by another value upon expansion of the template.</p>
@@ -425,9 +430,9 @@ Only files that are <strong>not</strong> listed in the exclude settings will be 
 <p>⚠️ NOTE: invalid characters for a filename or directory name will be sanitized after template substitution. Invalid is e.g. <code>/</code> or <code>\</code>.</p>
 </blockquote>
 <blockquote>
-<p>⚠️ <strong>Deprecated</strong> in favor of using <a href="templates/index.html#Ignoring-files">ignore in <code>cargo-generate.toml</code></a></p>
+<p>⚠️ <strong>Deprecated</strong> in favor of using <a href="#Ignoring-files">ignore in <code>cargo-generate.toml</code></a></p>
 <p>You can also add a <code>.genignore</code> file to your template. The files listed in the <code>.genignore</code> file
-will be removed from the local machine when <code>cargo-generate</code> is run on the end user's machine.
+will be removed from the local machine when <code>cargo-generate</code> is run on the end user’s machine.
 The <code>.genignore</code> file is always ignored, so there is no need to list it in the <code>.genignore</code> file.</p>
 </blockquote>
 <h3 id="additional-liquid-filters"><a class="header" href="#additional-liquid-filters">Additional <code>liquid</code> filters</a></h3>
@@ -480,7 +485,7 @@ the substitution in its original form.</p>
 </li>
 </ul>
 <h2 id="templates-by-the-community"><a class="header" href="#templates-by-the-community">Templates by the community</a></h2>
-<p>It's encouraged to classify your template repository <a href="https://docs.github.com/en/github/administering-a-repository/managing-repository-settings/classifying-your-repository-with-topics">with a GitHub topic</a> labeled <code>cargo-generate</code>.</p>
+<p>It’s encouraged to classify your template repository <a href="https://docs.github.com/en/github/administering-a-repository/managing-repository-settings/classifying-your-repository-with-topics">with a GitHub topic</a> labeled <code>cargo-generate</code>.</p>
 <p>So that every developer can find the template via <a href="https://github.com/topics/cargo-generate">cargo-generate topic on GitHub</a>.</p>
 <p>If you have a great template, please tag your repository with the topic <a href="https://twitter.com/intent/tweet?text=See%20my%20new%20%23cargogenerate%20%23template%20%0A%0A%3E%20your%20link%20goes%20here">and tweet about it</a> by including the hashtag <a href="https://twitter.com/search?q=%23cargogenerate&amp;src=typed_query"><code>#cargogenerate</code></a> (since twitter does not support hashtags with <code>-</code>).</p>
 <blockquote>
@@ -505,7 +510,8 @@ name = "{{crate_name}}-cli"
 </code></pre>
 <p>Now a user of this template could decide weather they want the binary version by passing <code>--bin</code>
 or use only the library version by passing <code>--lib</code> as a command line argument.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="builtin-placeholders"><a class="header" href="#builtin-placeholders">Builtin placeholders</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="builtin-placeholders"><a class="header" href="#builtin-placeholders">Builtin placeholders</a></h1>
 <p><code>cargo-generate</code> supports a number of builtin placeholders for use in templates.</p>
 <p>These placeholders can be used directly in files using the <a href="https://shopify.github.io/liquid">Liquid language</a>, or from
 <a href="https://rhai.rs/book/">Rhai scripts</a> using the syntax:</p>
@@ -515,8 +521,8 @@ or use only the library version by passing <code>--lib</code> as a command line 
 <ul>
 <li><code>authors</code>
 <ul>
-<li>this will be filled in by a function borrowed from Cargo's source code, that determines your information from
-Cargo's configuration. It will either be on the form <code>username &lt;email&gt;</code> or just plain <code>username</code>.</li>
+<li>this will be filled in by a function borrowed from Cargo’s source code, that determines your information from
+Cargo’s configuration. It will either be on the form <code>username &lt;email&gt;</code> or just plain <code>username</code>.</li>
 </ul>
 </li>
 <li><code>project-name</code>
@@ -548,14 +554,14 @@ or <code>lib</code>, <code>--bin</code> is the default</li>
 </li>
 <li><code>username</code>
 <ul>
-<li>this will be filled in by a function borrowed from Cargo's source code, that determines your information from
-Cargo's
+<li>this will be filled in by a function borrowed from Cargo’s source code, that determines your information from
+Cargo’s
 configuration.</li>
 </ul>
 </li>
 <li><code>within_cargo_project</code>
 <ul>
-<li>A boolean with the value <code>true</code> if the template is being expanded inside a <code>Cargo</code> project. It's
+<li>A boolean with the value <code>true</code> if the template is being expanded inside a <code>Cargo</code> project. It’s
 a simple matter of whether <code>Cargo.toml</code> is present in any parent folder.</li>
 </ul>
 </li>
@@ -570,7 +576,8 @@ a simple matter of whether <code>Cargo.toml</code> is present in any parent fold
 
 This awesome crate `{{ crate_name }}` is brought to you by {{ authors }}.
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="template-defined-placeholders"><a class="header" href="#template-defined-placeholders">Template Defined Placeholders</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="template-defined-placeholders"><a class="header" href="#template-defined-placeholders">Template Defined Placeholders</a></h1>
 <p>Template defined placeholders offer a powerful way for template authors to customize project templates and streamline project creation. In addition to defining placeholders directly within template files, users can also define placeholders in the <code>cargo-generate.toml</code> file, providing additional flexibility and customization options.</p>
 <h2 id="defining-placeholders-in-cargo-generatetoml"><a class="header" href="#defining-placeholders-in-cargo-generatetoml">Defining Placeholders in <code>cargo-generate.toml</code></a></h2>
 <p>To define placeholders in the <code>cargo-generate.toml</code> file, template authors can specify them under the <code>placeholders</code> section using the following syntax:</p>
@@ -583,7 +590,7 @@ placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], def
 <li><code>choices</code> (optional): A list of predefined choices for the placeholder value.</li>
 <li><code>default</code> (optional): The default value for the placeholder if no user input is provided.</li>
 <li><code>regex</code> (optional and only for string-like types): The entered value is validated against this regex.</li>
-<li><code>type</code>: The data type of the placeholder value (see <a href="templates/template_defined_placeholders.html#supported-types">Supported Types</a>).</li>
+<li><code>type</code>: The data type of the placeholder value (see <a href="#supported-types">Supported Types</a>).</li>
 </ul>
 <h2 id="prompt-choices-and-default-values"><a class="header" href="#prompt-choices-and-default-values">Prompt, Choices, and Default Values</a></h2>
 <ul>
@@ -660,8 +667,9 @@ placeholder1 = "default value overriding the default"
 placeholder2 = "default value for favorite"
 </code></pre>
 <h2 id="further-examples"><a class="header" href="#further-examples">Further examples</a></h2>
-<p>You can find further examples in the <a href="templates//example-templates/">example-templates folder</a> that provide some template provided placeholders.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="ignoring-files"><a class="header" href="#ignoring-files">Ignoring files</a></h1>
+<p>You can find further examples in the <a href="/example-templates">example-templates folder</a> that provide some template provided placeholders.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ignoring-files"><a class="header" href="#ignoring-files">Ignoring files</a></h1>
 <p>The template author may choose to ignore files completely, by including an <code>ignore</code> list in the <code>cargo-generate.toml</code> file.</p>
 <p>Example:</p>
 <pre><code class="language-toml">[template]
@@ -674,9 +682,10 @@ ignore = [
 <p>Both files and folders may be ignored using this method, but currently wildcards are <strong>not supported</strong>.</p>
 <p>Note that <code>cargo-generate</code> checks for which files to ignore after the removal of any <code>.liquid</code> file extensions.
 Meaning; Setting <code>ignore</code> to <code>["file.txt"]</code> will result in the ignoring of a file named <code>file.txt.liquid</code>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="include--exclude"><a class="header" href="#include--exclude">Include / Exclude</a></h1>
-<p>Templates support a <code>cargo-generate.toml</code>, with a "template" section that allows you to configure the files that will be processed by <code>cargo-generate</code>.
-The behavior mirrors Cargo's Include / Exclude functionality, which is <a href="https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional">documented here</a>.
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="include--exclude"><a class="header" href="#include--exclude">Include / Exclude</a></h1>
+<p>Templates support a <code>cargo-generate.toml</code>, with a “template” section that allows you to configure the files that will be processed by <code>cargo-generate</code>.
+The behavior mirrors Cargo’s Include / Exclude functionality, which is <a href="https://doc.rust-lang.org/cargo/reference/manifest.html#the-exclude-and-include-fields-optional">documented here</a>.
 If you are using placeholders in a file name, and also wish to use placeholders in the contents of that file,
 you should setup your globs to match on the pre-rename filename.</p>
 <pre><code class="language-toml">[template]
@@ -685,10 +694,11 @@ include = ["Cargo.toml"]
 exclude = ["*.c"]
 </code></pre>
 <blockquote>
-<p>⚠️ NOTE: <code>exclude</code> only makes <code>cargo-generate</code> ignore any <code>liquid</code> tags in the file. In order to exclude a file from being copied to the final dir, see <a href="templates/ignoring.html">ignoring files</a>.</p>
+<p>⚠️ NOTE: <code>exclude</code> only makes <code>cargo-generate</code> ignore any <code>liquid</code> tags in the file. In order to exclude a file from being copied to the final dir, see <a href="#ignoring-files">ignoring files</a>.</p>
 </blockquote>
 <p>The <code>cargo-generate.toml</code> file should be placed in the root of the template. If using the <code>subfolder</code> feature, the root is the <code>subfolder</code> inside the repository, though <code>cargo-generate</code> will look for the file in all parent folders until it reaches the repository root.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="require-cargo-generate-version-from-template"><a class="header" href="#require-cargo-generate-version-from-template">Require <code>cargo-generate</code> version from template</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="require-cargo-generate-version-from-template"><a class="header" href="#require-cargo-generate-version-from-template">Require <code>cargo-generate</code> version from template</a></h1>
 <blockquote>
 <p>Available since version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0">0.9.0</a></p>
 </blockquote>
@@ -697,10 +707,11 @@ exclude = ["*.c"]
 cargo_generate_version = "&gt;=0.9.0"
 </code></pre>
 <p>The format for the version requirement is <a href="https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html">documented here</a>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="conditional-template-settings"><a class="header" href="#conditional-template-settings">Conditional template settings</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="conditional-template-settings"><a class="header" href="#conditional-template-settings">Conditional template settings</a></h1>
 <p>Using <code>cargo-generate.toml</code>, values and some [<code>Rhai</code>] syntax, the template author can make certain conditional decisions before expansion of the template.</p>
 <p><code>include</code>, <code>exclude</code>, <code>ignore</code> and <code>placeholders</code> can all be used in sections that are only used based upon the value of one or more values, possibly input by the user using the interactive prompt (if the values in question are defined as placeholders in the non-conditional section).</p>
-<p>Using the following example, <code>cargo-generate</code> will ask for the <code>license</code>, and depending on the <code>--lib</code> | <code>--bin</code> flags it'll as for the <code>hypervisor</code> and <code>network_enabled</code> values. It will then continue to expand the template, ignoring the <code>src/main.rs</code> file (and thus excluding it from the output) in case <code>--lib</code> was specified.</p>
+<p>Using the following example, <code>cargo-generate</code> will ask for the <code>license</code>, and depending on the <code>--lib</code> | <code>--bin</code> flags it’ll as for the <code>hypervisor</code> and <code>network_enabled</code> values. It will then continue to expand the template, ignoring the <code>src/main.rs</code> file (and thus excluding it from the output) in case <code>--lib</code> was specified.</p>
 <p>The example is broken up in order to explain each section.</p>
 <pre><code class="language-toml">[template]
 cargo_generate_version = "&gt;=0.10.0"
@@ -721,7 +732,7 @@ license = { type = "string", prompt = "What license to use?", choices = ["MIT", 
 ...
 </code></pre>
 <p>This is the section for the <em>default</em> placeholders. These are variable definitions that <code>cargo-generate</code> knows about and will query for if they are not provided e.g. on the commandline (see [Default-values-for-placeholders]).</p>
-<p>The section should contain at least all variables used for any conditions (unless it's an automatic variable such as <code>crate_type</code>). All variables that are not specific to a condition are recommended to go here as well.</p>
+<p>The section should contain at least all variables used for any conditions (unless it’s an automatic variable such as <code>crate_type</code>). All variables that are not specific to a condition are recommended to go here as well.</p>
 <p>Here we simply define a variable <code>license</code> for selecting the desired license type.</p>
 <pre><code class="language-toml">...
 [conditional.'crate_type == "lib"']
@@ -758,7 +769,8 @@ ignore = [ "LICENSE-MIT.txt" ]
 <blockquote>
 <p>⚠️ Note that <code>include</code> and <code>exclude</code> are still mutually exclusive even if they are in different, but included, conditional sections.</p>
 </blockquote>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="initprepost-scripts"><a class="header" href="#initprepost-scripts">Init/Pre/Post Scripts</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="initprepost-scripts"><a class="header" href="#initprepost-scripts">Init/Pre/Post Scripts</a></h1>
 <p><code>cargo-generate</code> can run scripts in the <a href="https://rhai.rs/book/"><code>Rhai</code></a> language as part of the template expansion.</p>
 <p>Doing so requires the template is configured to use hooks, which can be used at specific times
 during template expansion.</p>
@@ -768,7 +780,9 @@ init = ["init-script.rhai"]
 pre = ["pre-script.rhai"]
 post = ["post-script.rhai"]
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h2 id="hook-types"><a class="header" href="#hook-types">Hook types</a></h2>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="hook-types-1"><a href="#hook-types-1" class="header">Hook types</a></h1>
+<h2 id="hook-types"><a class="header" href="#hook-types">Hook types</a></h2>
 <h3 id="init"><a class="header" href="#init">Init</a></h3>
 <ul>
 <li>
@@ -803,7 +817,9 @@ in order not to confuse the user.</p>
 <li>Post hooks are run after template expansion, but <em>before final output is moved to the final destination</em>.</li>
 </ul>
 <p>Why not later? Security, and the fact that a failing script still causes no errors in the users destination.</p>
-<div style="break-before: page; page-break-before: always;"></div><h2 id="rhai-extensions"><a class="header" href="#rhai-extensions">Rhai extensions</a></h2>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="rhai-extensions-1"><a href="#rhai-extensions-1" class="header">Rhai extensions</a></h1>
+<h2 id="rhai-extensions"><a class="header" href="#rhai-extensions">Rhai extensions</a></h2>
 <p>Besides the basic <a href="https://rhai.rs/book/"><code>Rhai</code></a> features, these are the modules/behaviors defined:</p>
 <h3 id="variables-with-the-variable-module"><a class="header" href="#variables-with-the-variable-module">Variables with the <code>variable</code> module</a></h3>
 <h4 id="getset"><a class="header" href="#getset">get/set</a></h4>
@@ -974,7 +990,9 @@ print(`Destination directory: ${dd}`);
 <p><code>"We are not in the least afraid of ruins."</code> =&gt; <code>"WeAreNotInTheLeastAfraidOfRuins"</code></p>
 </li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h2 id="mini-example"><a class="header" href="#mini-example">Mini Example</a></h2>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="mini-example-1"><a href="#mini-example-1" class="header">Mini example</a></h1>
+<h2 id="mini-example"><a class="header" href="#mini-example">Mini Example</a></h2>
 <p>In <code>cargo-generate.toml</code> write a <code>[hooks]</code> section:</p>
 <pre><code class="language-toml">[template]
 cargo_generate_version = "0.10.0"
@@ -987,7 +1005,7 @@ pre = ["pre-script.rhai"]
 [placeholders]
 license = { type = "string", prompt = "What license to use?", choices = ["APACHE", "MIT"], default = "MIT" }
 </code></pre>
-<p>Now, write the script in <a href="https://rhai.rs/book/"><code>Rhai</code></a>, utilizing the <code>cargo-generate</code> <a href="templates/scripting.mini-example.html#Rhai-extensions">provided extensions</a>:</p>
+<p>Now, write the script in <a href="https://rhai.rs/book/"><code>Rhai</code></a>, utilizing the <code>cargo-generate</code> <a href="#Rhai-extensions">provided extensions</a>:</p>
 <pre><code class="language-rhai">// we can see existing variables.
 // note that template and Rhai variables are separate!
 let crate_type = variable::get("crate_type");
@@ -1014,11 +1032,12 @@ while switch license {
 }
 variable::set("license", license);
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="template-authoring"><a class="header" href="#template-authoring">Template Authoring</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="template-authoring"><a class="header" href="#template-authoring">Template Authoring</a></h1>
 <blockquote>
 <p>Available since version <a href="https://github.com/cargo-generate/cargo-generate/releases/tag/v0.9.0">0.9.0</a></p>
 </blockquote>
-<p>As a template author you're probably concerned about successful builds of your template.</p>
+<p>As a template author you’re probably concerned about successful builds of your template.</p>
 <p>Imagine a couple of months after your first template release, some new versions of any dependencies
 would break your template, and you would not even be aware of it?</p>
 <p>The answer to this question is a vital build pipeline for your template project. This challenge got now
@@ -1064,8 +1083,9 @@ jobs:
           cargo check
 </code></pre>
 <p>This is a very simple pipeline that builds weekly and on push.
-It processes your template repo and runs a <code>cargo check</code> as the final step. That's it, a good start to build on.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="common-pitfalls"><a class="header" href="#common-pitfalls">Common Pitfalls</a></h1>
+It processes your template repo and runs a <code>cargo check</code> as the final step. That’s it, a good start to build on.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="common-pitfalls"><a class="header" href="#common-pitfalls">Common Pitfalls</a></h1>
 <p>When creating templates with <code>cargo-generate</code>, there are several common issues and pitfalls that template authors may encounter. This section aims to highlight these issues and provide guidance on how to avoid them.</p>
 <h2 id="github-actions-and-liquid-template-language-interference"><a class="header" href="#github-actions-and-liquid-template-language-interference">GitHub Actions and Liquid Template Language Interference</a></h2>
 <p>GitHub Actions use their own templating language, which can interfere with the Liquid template language used by <code>cargo-generate</code>. This can lead to unexpected behavior when placeholders are used in GitHub Actions workflow files.</p>
@@ -1105,7 +1125,7 @@ It processes your template repo and runs a <code>cargo check</code> as the final
 <p><strong>Use <code>cargo-generate</code> Placeholders Sparingly</strong>: Limit the use of <code>cargo-generate</code> placeholders in GitHub Actions workflow files to only where necessary. This reduces the chances of conflicts and makes the workflow files easier to manage.</p>
 </li>
 <li>
-<p><strong>Liquid Prepend and Append</strong>: Use Liquid's <code>prepend</code> and <code>append</code> filters to dynamically generate the GitHub Actions syntax. This ensures that the placeholders are correctly processed by Liquid and result in the correct GitHub Actions markup.</p>
+<p><strong>Liquid Prepend and Append</strong>: Use Liquid’s <code>prepend</code> and <code>append</code> filters to dynamically generate the GitHub Actions syntax. This ensures that the placeholders are correctly processed by Liquid and result in the correct GitHub Actions markup.</p>
 <pre><code class="language-yaml">jobs:
   build:
     runs-on: ubuntu-latest
@@ -1155,13 +1175,15 @@ project_name = { prompt = "Enter project name", default = "my_project", type = "
 </li>
 </ol>
 <p>By being aware of these common issues and pitfalls, template authors can create more robust and reliable templates with <code>cargo-generate</code>. Proper handling of GitHub Actions and Liquid template language interference, as well as ensuring that all placeholders are defined, will help avoid unexpected behavior and improve the overall template generation experience.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contributing"><a class="header" href="#contributing">Contributing</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="contributing"><a class="header" href="#contributing">Contributing</a></h1>
 <p>Unless you explicitly state otherwise, any contribution intentionally
 submitted for inclusion in the work by you, as defined in the Apache-2.0
-license, shall be dual licensed as noted in <a href="license.html">License</a>, without any additional terms or
+license, shall be dual licensed as noted in <a href="#license">License</a>, without any additional terms or
 conditions.
 If you want to contribute to <code>cargo-generate</code>, please see <a href="https://github.com/cargo-generate/cargo-generate/blob/6085896e7025bdbd5690a8cb2b3d4259cf9f825f/CONTRIBUTING.md">CONTRIBUTING.md</a>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="license"><a class="header" href="#license">License</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="license"><a class="header" href="#license">License</a></h1>
 <p>Licensed, at your option, under either of the following licences:</p>
 <ul>
 <li>Apache License, Version 2.0, (<a href="https://github.com/cargo-generate/cargo-generate/blob/main/LICENSE-APACHE">LICENSE-APACHE</a> or <a href="https://www.apache.org/licenses/LICENSE-2.0">apache.org/licenses/LICENSE-2.0</a>)</li>
@@ -1185,6 +1207,11 @@ If you want to contribute to <code>cargo-generate</code>, please see <a href="ht
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -1193,13 +1220,13 @@ If you want to contribute to <code>cargo-generate</code>, please see <a href="ht
         </script>
 
 
-        <script src="elasticlunr.min.js"></script>
-        <script src="mark.min.js"></script>
-        <script src="searcher.js"></script>
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-c2a407aa.js"></script>
 
-        <script src="clipboard.min.js"></script>
-        <script src="highlight.js"></script>
-        <script src="book.js"></script>
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 
