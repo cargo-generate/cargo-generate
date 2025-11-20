@@ -45,6 +45,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.23.3...HEAD)
 
+## [0.23.7] 2025-11-20
+
+[0.23.7]: https://github.com/cargo-generate/cargo-generate/compare/0.23.5...0.23.7
+
+### ✨ Features
+
+- Impl suggestion for codegen-units to make the bin smaller see #1542 ([#1588](https://github.com/cargo-generate/cargo-generate/issues/1588))
+- Be less restrictive with `tempfile` dependency ([#1591](https://github.com/cargo-generate/cargo-generate/issues/1591))
+
+### 🤕 Fixes
+
+- Support array placeholder access in Rhai scripts ([#1590](https://github.com/cargo-generate/cargo-generate/issues/1590))
+
+
 ## [0.23.6] 2025-11-19
 
 [0.23.6]: https://github.com/cargo-generate/cargo-generate/compare/0.23.5...0.23.6
