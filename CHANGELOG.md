@@ -47,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.23.7] 2025-11-20
 
-[0.23.7]: https://github.com/cargo-generate/cargo-generate/compare/0.23.5...0.23.7
+[0.23.7]: https://github.com/cargo-generate/cargo-generate/compare/0.23.6...0.23.7
 
 ### ✨ Features
 
