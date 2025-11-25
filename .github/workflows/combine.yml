@@ -6,7 +6,7 @@ jobs:
   combine-prs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: maadhattah/combine-dependabot-prs@main
         with:
           branchPrefix: "dependabot"
