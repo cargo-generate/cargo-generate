@@ -9,6 +9,7 @@ use liquid::ValueView;
 use log::debug;
 use rhai::EvalAltResult;
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 use std::{env, path::Path};
 
 use crate::emoji;
@@ -46,15 +47,27 @@ pub fn execute_hooks(context: &RhaiHooksContext, scripts: &[String]) -> Result<(
     Ok(())
 }
 
-fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engine) -> Result<()> {
+fn evaluate_scripts(
+    template_dir: &Path,
+    scripts: &[String],
+    mut engine: rhai::Engine,
+) -> Result<()> {
     let cwd = env::current_dir()?;
     let _ = CleanupJob::new(move || {
         env::set_current_dir(cwd).ok();
     });
     env::set_current_dir(template_dir)?;
 
+    // Capture rhai print() output so it flows through cliclack
+    let print_buf: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let buf = print_buf.clone();
+    engine.on_print(move |s| {
+        buf.lock().unwrap().push(s.to_string());
+    });
+
     for script in scripts {
         let script: PathBuf = script.into();
+        print_buf.lock().unwrap().clear();
 
         let result = engine
             .eval_file::<rhai::plugin::Dynamic>(script.clone())
@@ -67,31 +80,29 @@ fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engin
                     style(script.display()).yellow(),
                 )
             })?;
+
+        // Show captured print output in a cliclack note box
+        let printed = print_buf.lock().unwrap().clone();
+        if !printed.is_empty() {
+            let content = printed
+                .iter()
+                .map(|line| format!("  {line}"))
+                .collect::<Vec<_>>()
+                .join("\n");
+            cliclack::note(
+                format!("Script: {}", script.display()),
+                content,
+            )?;
+        }
+
         match result.into_string() {
             Ok(output) => {
                 if !output.is_empty() {
-                    println!(
-                        "{} {} {}",
-                        emoji::SPARKLE,
-                        style(format!(
-                            "Script `{}` executed successfully and returned output:",
-                            script.display()
-                        ))
-                        .bold()
-                        .green(),
-                        style(output).yellow()
-                    );
-                } else {
-                    println!(
-                        "{} {}",
-                        emoji::WRENCH,
-                        style(format!(
-                            "Script `{}` executed successfully with no output.",
-                            script.display()
-                        ))
-                        .bold()
-                        .green()
-                    );
+                    cliclack::log::info(format!(
+                        "Script `{}` returned: {}",
+                        script.display(),
+                        output
+                    ))?;
                 }
             }
             Err(e) => {
