@@ -251,7 +251,7 @@ pub fn walk_dir(
             })
             .collect::<Vec<_>>()
             .join("\n");
-        cliclack::note("Generating template", lines)?;
+        cliclack::note("Generating template", format!("{lines}\n"))?;
     }
 
     if files_with_errors.is_empty() {
