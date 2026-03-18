@@ -13,13 +13,13 @@ fn it_can_use_a_plain_folder() {
         .assert()
         .success()
         .stdout(
-            predicates::str::contains("Done!")
-                .and(predicates::str::contains(format!(
-                    "Favorite `{}` not found in config, using it as a local path",
-                    template.path().display()
-                )))
-                .from_utf8(),
-        );
+            predicates::str::contains(format!(
+                "Favorite `{}` not found in config, using it as a local path",
+                template.path().display()
+            ))
+            .from_utf8(),
+        )
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let repo = git2::Repository::open(dir.path().join("foobar-project")).unwrap();
     let references = repo.references().unwrap().count();
@@ -38,7 +38,7 @@ fn it_can_use_a_specified_path() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let repo = git2::Repository::open(dir.path().join("foobar-project")).unwrap();
     let references = repo.references().unwrap().count();
@@ -58,7 +58,7 @@ fn it_substitutes_projectname_in_cargo_toml() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/Cargo.toml")
@@ -91,7 +91,7 @@ version = "0.1.0"
         .env("CARGO_NAME", "Author")
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/Cargo.toml")
@@ -117,7 +117,7 @@ fn it_substitutes_os_arch() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.read("foobar-project/some-file").contains(&format!(
         "{}-{}",
@@ -139,7 +139,7 @@ fn it_keeps_snake_case_projectname() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar_project/Cargo.toml")
@@ -167,7 +167,7 @@ extern crate {{crate_name}};
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let file = dir.read("foobar-project/main.rs");
     assert!(file.contains("foobar_project"));
@@ -187,7 +187,7 @@ fn short_commands_work() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/Cargo.toml")
@@ -204,7 +204,7 @@ fn it_can_generate_inside_existing_repository() -> anyhow::Result<()> {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
     assert!(dir.read("outer/Cargo.toml").contains("outer"));
     let outer_project_dir = dir.path().join("outer");
     let outer_repo = git2::Repository::discover(&outer_project_dir)?;
@@ -215,7 +215,7 @@ fn it_can_generate_inside_existing_repository() -> anyhow::Result<()> {
         .current_dir(&outer_project_dir)
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
     assert!(dir.read("outer/inner/Cargo.toml").contains("inner"));
     let inner_project_dir = outer_project_dir.join("inner");
     let inner_repo = git2::Repository::discover(inner_project_dir)?;
@@ -239,7 +239,7 @@ fn it_can_generate_into_cwd() -> anyhow::Result<()> {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
     assert!(dir.read("Cargo.toml").contains("my-proj"));
 
     assert!(
@@ -265,7 +265,7 @@ fn it_can_generate_into_existing_git_dir() -> anyhow::Result<()> {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
     assert!(dir.read("Cargo.toml").contains("my-proj"));
     assert!(
         dir.read(".git/config").contains("foobar"),
@@ -288,7 +288,7 @@ fn it_can_generate_at_given_path() -> anyhow::Result<()> {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
     assert!(dir
         .read("destination/my-proj/Cargo.toml")
         .contains("my-proj"));
@@ -354,7 +354,7 @@ fn it_allows_user_defined_projectname_when_passing_force_flag() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar_project/Cargo.toml")
@@ -386,7 +386,7 @@ fn it_removes_files_listed_in_genignore() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("foobar-project/notme.sh"));
     assert!(dir.exists("foobar-project/deleteme.sh").not());
@@ -437,7 +437,7 @@ fn it_always_removes_genignore_file() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("foobar-project/.genignore").not());
 }
@@ -467,7 +467,7 @@ fn it_always_removes_cargo_ok_file() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("foobar-project/.cargo-ok").not());
 }
@@ -498,7 +498,7 @@ fn it_removes_genignore_files_before_substitution() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("foobar-project/.cicd_workflow").not());
 }
@@ -544,7 +544,7 @@ fn it_does_not_remove_files_from_outside_project_dir() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(fs::metadata(&dangerous_file)
         .expect("should exist")
@@ -582,7 +582,7 @@ fn errant_ignore_entry_doesnt_affect_template_files() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(fs::metadata(
         template
@@ -623,7 +623,7 @@ fn it_loads_a_submodule() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/Cargo.toml")
@@ -663,7 +663,7 @@ fn it_allows_relative_paths() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/Cargo.toml")
@@ -691,7 +691,7 @@ fn it_respects_template_branch_name() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     Command::new("git")
         .arg("status")
@@ -713,9 +713,13 @@ fn it_doesnt_warn_with_neither_config_nor_ignore() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Removed:").count(0).from_utf8())
-        .stdout(predicates::str::contains("neither").count(0).from_utf8())
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(
+            predicates::str::contains("Removed:")
+                .count(0)
+                .and(predicates::str::contains("neither").count(0))
+                .and(predicates::str::contains("Done!"))
+                .from_utf8(),
+        );
 }
 
 #[test]
@@ -733,7 +737,7 @@ fn it_processes_dot_github_directory_files() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert_eq!(dir.read("foobar-project/.github/foo.txt"), "foobar-project");
 }
@@ -768,7 +772,7 @@ _This README was generated with [cargo-readme](https://github.com/livioribeiro/c
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let template = dir.read("foobar-project/README.tpl");
     assert!(template.contains("{{badges}}"));
@@ -793,7 +797,7 @@ fn it_uses_vsc_none_to_avoid_initializing_repository() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/Cargo.toml")
@@ -825,7 +829,7 @@ version = "0.1.0"
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let cargo_toml = dir.read("foobar-project/Cargo.toml");
     assert!(cargo_toml.contains("this is a lib"));
@@ -854,7 +858,7 @@ version = "0.1.0"
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let cargo_toml = dir.read("foobar-project/Cargo.toml");
     assert!(cargo_toml.contains("this is a bin"));
@@ -884,7 +888,7 @@ version = "0.1.0"
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.read("foobar-project/Cargo.toml").contains("fart"));
 }
@@ -913,7 +917,7 @@ version = "0.1.0"
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(
         dir.read("foobar-project/Cargo.toml")
@@ -939,7 +943,7 @@ fn error_message_for_invalid_repo_or_user() {
         .assert()
         .failure()
         .stderr(
-            predicates::str::contains(r#"Error: Please check if the Git user / repository exists"#)
+            predicates::str::contains(r#"Please check if the Git user / repository exists"#)
                 .from_utf8(),
         );
 }

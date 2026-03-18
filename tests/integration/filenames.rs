@@ -23,7 +23,7 @@ fn it_substitutes_filename() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(
         dir.exists("foobar-project/main.rs"),
@@ -96,7 +96,7 @@ fn assert_liquid_paths(location: Location) {
         .current_dir(target.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(
         target.exists("foobar-project/README.md"),

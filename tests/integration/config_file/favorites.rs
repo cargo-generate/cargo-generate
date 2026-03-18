@@ -119,7 +119,7 @@ fn favorite_with_subfolder() -> anyhow::Result<()> {
         .current_dir(working_dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(working_dir.read("outer/Cargo.toml").contains("outer"));
     Ok(())
@@ -139,7 +139,7 @@ fn it_can_use_favorites() {
         .current_dir(working_dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(Repository::open(working_dir.path().join("favorite-project")).is_ok());
     assert!(working_dir
@@ -162,7 +162,7 @@ fn a_favorite_can_set_vcs_to_none_by_default() {
         .current_dir(working_dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(Repository::open(working_dir.path().join("favorite-project")).is_err());
 }
@@ -232,7 +232,7 @@ fn favorites_can_use_default_values() {
         .current_dir(working_dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(working_dir
         .read("my-project/Cargo.toml")
@@ -298,7 +298,7 @@ fn favorites_default_value_can_be_overridden_by_environment() {
         )
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(working_dir
         .read("my-project/Cargo.toml")
@@ -342,7 +342,7 @@ fn favorite_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.read("Cargo.toml").contains("my-proj"));
     assert!(!dir.path().join(".git").exists());
