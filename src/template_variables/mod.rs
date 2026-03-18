@@ -98,9 +98,7 @@ fn read_template_values_from_definitions(
                     let key = cap.get(1).unwrap().as_str().to_string();
                     let value = cap.get(2).map(|s| s.as_str()).unwrap_or("").to_owned();
 
-                    let _ = cliclack::log::info(format!(
-                        "{key}: {value:?} (value from CLI)"
-                    ));
+                    let _ = cliclack::log::info(format!("{key}: {value:?} (value from CLI)"));
                     template_values.insert(key, Value::from(value));
                     Ok(template_values)
                 },

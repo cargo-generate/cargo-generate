@@ -163,7 +163,9 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
         Err(e) => {
             // Strip emoji prefixes from the error message for clean cliclack display
             let msg = format!("{e:#}");
-            let msg = msg.trim_start_matches(emoji::ERROR.to_string().as_str()).trim();
+            let msg = msg
+                .trim_start_matches(emoji::ERROR.to_string().as_str())
+                .trim();
             let _ = cliclack::outro_cancel(msg);
             Err(e)
         }
@@ -665,9 +667,7 @@ fn read_default_variable_value_from_template(slot: &TemplateSlots) -> Result<Str
         _ => return Err(()),
     };
     let (key, value) = (&slot.var_name, &default_value);
-    let _ = cliclack::log::info(format!(
-        "{key}: {value:?} (default value from template)"
-    ));
+    let _ = cliclack::log::info(format!("{key}: {value:?} (default value from template)"));
     Ok(default_value)
 }
 

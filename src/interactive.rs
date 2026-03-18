@@ -276,10 +276,7 @@ fn handle_multi_select_input(
         None => {
             let mut ms = cliclack::multiselect(&prompt.raw).required(false);
             for choice in &entry.choices {
-                let is_default = entry
-                    .default
-                    .as_ref()
-                    .is_some_and(|d| d.contains(choice));
+                let is_default = entry.default.as_ref().is_some_and(|d| d.contains(choice));
                 let hint = if is_default { "default" } else { "" };
                 ms = ms.item(choice.clone(), choice, hint);
             }

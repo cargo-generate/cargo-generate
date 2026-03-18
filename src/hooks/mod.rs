@@ -89,10 +89,7 @@ fn evaluate_scripts(
                 .map(|line| format!("  {line}"))
                 .collect::<Vec<_>>()
                 .join("\n");
-            cliclack::note(
-                format!("Script: {}", script.display()),
-                content,
-            )?;
+            cliclack::note(format!("Script: {}", script.display()), content)?;
         }
 
         match result.into_string() {
