@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-772488ef.js";
+            window.path_to_searchindex_js = "../searchindex-327bf47a.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-43149f74.js"></script>
@@ -181,15 +181,23 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="usage"><a class="header" href="#usage">Usage</a></h1>
-<p>Standard usage is to pass a <code>--git</code> flag to <code>cargo generate</code> or short <code>cargo gen</code>. This will prompt you to enter the name of your project.</p>
+<p>Standard usage is to pass a git repository to <code>cargo generate</code> or short <code>cargo gen</code>. This will prompt you to enter the name of your project.</p>
 <blockquote>
 <p>⚠️ NOTE: <code>cargo gen</code> requires a <a href="#cargo-gen---alias">cargo alias configuration</a></p>
 </blockquote>
-<pre><code class="language-sh">cargo generate username-on-github/mytemplate
+<pre><code class="language-sh"># full git url
+cargo generate --git https://github.com/username-on-github/mytemplate.git
+
+# shorthand for github (org/repo expands to https://github.com/org/repo.git)
+# note: if a local directory with that name exists, it is used as a path instead
+cargo generate --git username-on-github/mytemplate
 # is the same as
+cargo generate username-on-github/mytemplate
+
+# prefixed shorthand (works with --git or as positional argument)
 cargo generate gh:username-on-github/mytemplate
 # is the same as
-cargo generate --git https://github.com/username-on-github/mytemplate.git
+cargo generate --git gh:username-on-github/mytemplate
 </code></pre>
 <p>If you have your templates not GitHub then you can leverage the lazy abbreviation prefixes:</p>
 <pre><code class="language-sh"># for gitlab.com
