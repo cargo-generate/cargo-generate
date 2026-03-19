@@ -9,6 +9,7 @@ Standard usage is to pass a git repository to `cargo generate` or short `cargo g
 cargo generate --git https://github.com/username-on-github/mytemplate.git
 
 # shorthand for github (org/repo expands to https://github.com/org/repo.git)
+# note: if a local directory with that name exists, it is used as a path instead
 cargo generate --git username-on-github/mytemplate
 # is the same as
 cargo generate username-on-github/mytemplate
