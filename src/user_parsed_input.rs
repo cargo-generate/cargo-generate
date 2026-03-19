@@ -118,8 +118,18 @@ impl UserParsedInput {
 
         // --git
         if let Some(git_url) = args.template_path.git() {
+            let resolved_url = abbreviated_git_url_to_full_remote(git_url.as_ref())
+                .or_else(|| {
+                    // Only try org/repo → github expansion when the value isn't a local path
+                    if local_path(git_url.as_ref()).is_none() {
+                        abbreviated_github(git_url.as_ref())
+                    } else {
+                        None
+                    }
+                })
+                .unwrap_or_else(|| git_url.as_ref().to_owned());
             let git_user_in = GitUserInput::new(
-                git_url,
+                &resolved_url,
                 args.template_path.branch(),
                 args.template_path.tag(),
                 args.template_path.revision(),
@@ -543,5 +553,77 @@ mod tests {
             "https://github.com/org/repo.git"
         );
         assert!(&abbreviated_github("path/to/a/sth").is_none());
+    }
+
+    /// Helper to build a `GenerateArgs` with `--git <value>` and resolve via `try_from_args_and_config`,
+    /// returning the resolved git URL from the resulting `TemplateLocation`.
+    fn resolve_git_flag(git_value: &str) -> String {
+        let args = GenerateArgs {
+            destination: Some(std::path::PathBuf::from("/tmp")),
+            template_path: crate::TemplatePath {
+                git: Some(git_value.to_owned()),
+                ..crate::TemplatePath::default()
+            },
+            ..GenerateArgs::default()
+        };
+        let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
+        match parsed.location() {
+            TemplateLocation::Git(git) => git.url().to_owned(),
+            TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
+        }
+    }
+
+    #[test]
+    fn git_flag_full_url() {
+        // cargo generate --git https://github.com/username-on-github/mytemplate.git
+        assert_eq!(
+            resolve_git_flag("https://github.com/username-on-github/mytemplate.git"),
+            "https://github.com/username-on-github/mytemplate.git"
+        );
+    }
+
+    #[test]
+    fn git_flag_org_repo_shorthand() {
+        // cargo generate --git username-on-github/mytemplate
+        assert_eq!(
+            resolve_git_flag("username-on-github/mytemplate"),
+            "https://github.com/username-on-github/mytemplate.git"
+        );
+    }
+
+    #[test]
+    fn git_flag_gh_prefix() {
+        // cargo generate --git gh:username-on-github/mytemplate
+        assert_eq!(
+            resolve_git_flag("gh:username-on-github/mytemplate"),
+            "https://github.com/username-on-github/mytemplate.git"
+        );
+    }
+
+    #[test]
+    fn git_flag_gl_prefix() {
+        // cargo generate --git gl:username-on-gitlab/mytemplate
+        assert_eq!(
+            resolve_git_flag("gl:username-on-gitlab/mytemplate"),
+            "https://gitlab.com/username-on-gitlab/mytemplate.git"
+        );
+    }
+
+    #[test]
+    fn git_flag_bb_prefix() {
+        // cargo generate --git bb:username-on-bitbucket/mytemplate
+        assert_eq!(
+            resolve_git_flag("bb:username-on-bitbucket/mytemplate"),
+            "https://bitbucket.org/username-on-bitbucket/mytemplate.git"
+        );
+    }
+
+    #[test]
+    fn git_flag_sr_prefix() {
+        // cargo generate --git sr:username-on-sourcehut/mytemplate
+        assert_eq!(
+            resolve_git_flag("sr:username-on-sourcehut/mytemplate"),
+            "https://git.sr.ht/~username-on-sourcehut/mytemplate"
+        );
     }
 }
