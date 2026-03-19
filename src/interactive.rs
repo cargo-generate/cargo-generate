@@ -87,12 +87,16 @@ pub fn prompt_and_check_variable(
 
 pub fn variable(variable: &TemplateSlots, provided_value: Option<&impl ToString>) -> Result<Value> {
     let user_entry = prompt_and_check_variable(variable, provided_value.map(|v| v.to_string()))?;
-    match &variable.var_info {
+    string_to_liquid_value(&user_entry, &variable.var_info)
+}
+
+fn string_to_liquid_value(user_entry: &str, var_info: &VarInfo) -> Result<Value> {
+    match var_info {
         VarInfo::Bool { .. } => {
             let as_bool = user_entry.parse::<bool>()?;
             Ok(Value::Scalar(as_bool.into()))
         }
-        VarInfo::String { .. } => Ok(Value::Scalar(user_entry.into())),
+        VarInfo::String { .. } => Ok(Value::Scalar(user_entry.to_string().into())),
         VarInfo::Array { .. } => {
             let items = if user_entry.is_empty() {
                 Vec::new()
@@ -360,5 +364,167 @@ fn open_editor(initial_content: &str) -> Result<Option<String>> {
         Ok(None)
     } else {
         Ok(Some(content))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // --- parse_list ---
+
+    #[test]
+    fn parse_list_empty_string() {
+        assert!(parse_list("").is_empty());
+    }
+
+    #[test]
+    fn parse_list_single_item() {
+        assert_eq!(parse_list("foo"), vec!["foo"]);
+    }
+
+    #[test]
+    fn parse_list_multiple_items() {
+        assert_eq!(parse_list("a,b,c"), vec!["a", "b", "c"]);
+    }
+
+    #[test]
+    fn parse_list_trailing_comma() {
+        assert_eq!(parse_list("a,b,"), vec!["a", "b"]);
+    }
+
+    #[test]
+    fn parse_list_leading_comma() {
+        assert_eq!(parse_list(",a,b"), vec!["a", "b"]);
+    }
+
+    #[test]
+    fn parse_list_consecutive_commas() {
+        assert_eq!(parse_list("a,,b"), vec!["a", "b"]);
+    }
+
+    // --- check_provided_selections ---
+
+    #[test]
+    fn check_selections_all_valid() {
+        let choices = vec!["a".into(), "b".into(), "c".into()];
+        assert_eq!(
+            check_provided_selections("a,c", &choices),
+            Ok(vec!["a".into(), "c".into()])
+        );
+    }
+
+    #[test]
+    fn check_selections_some_invalid() {
+        let choices = vec!["a".into(), "b".into()];
+        assert_eq!(
+            check_provided_selections("a,x,y", &choices),
+            Err(vec!["x".into(), "y".into()])
+        );
+    }
+
+    #[test]
+    fn check_selections_all_invalid() {
+        let choices = vec!["a".into()];
+        assert_eq!(
+            check_provided_selections("x,y", &choices),
+            Err(vec!["x".into(), "y".into()])
+        );
+    }
+
+    #[test]
+    fn check_selections_empty_input() {
+        let choices = vec!["a".into()];
+        assert_eq!(check_provided_selections("", &choices), Ok(Vec::new()));
+    }
+
+    #[test]
+    fn check_selections_single_valid() {
+        let choices = vec!["a".into(), "b".into()];
+        assert_eq!(
+            check_provided_selections("b", &choices),
+            Ok(vec!["b".into()])
+        );
+    }
+
+    // --- string_to_liquid_value ---
+
+    #[test]
+    fn liquid_value_bool_true() {
+        let info = VarInfo::Bool { default: None };
+        let val = string_to_liquid_value("true", &info).unwrap();
+        assert_eq!(val, Value::Scalar(true.into()));
+    }
+
+    #[test]
+    fn liquid_value_bool_false() {
+        let info = VarInfo::Bool { default: None };
+        let val = string_to_liquid_value("false", &info).unwrap();
+        assert_eq!(val, Value::Scalar(false.into()));
+    }
+
+    #[test]
+    fn liquid_value_bool_invalid() {
+        let info = VarInfo::Bool { default: None };
+        assert!(string_to_liquid_value("not_a_bool", &info).is_err());
+    }
+
+    #[test]
+    fn liquid_value_string() {
+        let info = VarInfo::String {
+            entry: Box::new(StringEntry {
+                default: None,
+                kind: StringKind::String,
+                regex: None,
+            }),
+        };
+        let val = string_to_liquid_value("hello", &info).unwrap();
+        assert_eq!(val, Value::Scalar("hello".to_string().into()));
+    }
+
+    #[test]
+    fn liquid_value_array_multiple() {
+        let info = VarInfo::Array {
+            entry: Box::new(ArrayEntry {
+                default: None,
+                choices: vec![],
+            }),
+        };
+        let val = string_to_liquid_value("a,b,c", &info).unwrap();
+        assert_eq!(
+            val,
+            Value::Array(vec![
+                Value::Scalar("a".to_string().into()),
+                Value::Scalar("b".to_string().into()),
+                Value::Scalar("c".to_string().into()),
+            ])
+        );
+    }
+
+    #[test]
+    fn liquid_value_array_empty() {
+        let info = VarInfo::Array {
+            entry: Box::new(ArrayEntry {
+                default: None,
+                choices: vec![],
+            }),
+        };
+        let val = string_to_liquid_value("", &info).unwrap();
+        assert_eq!(val, Value::Array(vec![]));
+    }
+
+    #[test]
+    fn liquid_value_array_single() {
+        let info = VarInfo::Array {
+            entry: Box::new(ArrayEntry {
+                default: None,
+                choices: vec![],
+            }),
+        };
+        let val = string_to_liquid_value("only", &info).unwrap();
+        assert_eq!(
+            val,
+            Value::Array(vec![Value::Scalar("only".to_string().into())])
+        );
     }
 }

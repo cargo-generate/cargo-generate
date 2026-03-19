@@ -38,9 +38,7 @@ fn list_favorites_shows_defined_favorites() {
 
 #[test]
 fn list_favorites_shows_warning_when_none_defined() {
-    let config_dir = tempdir()
-        .file("config.toml", "[favorites]\n")
-        .build();
+    let config_dir = tempdir().file("config.toml", "[favorites]\n").build();
 
     let dir = tempdir().build();
     binary()
