@@ -119,7 +119,14 @@ impl UserParsedInput {
         // --git
         if let Some(git_url) = args.template_path.git() {
             let resolved_url = abbreviated_git_url_to_full_remote(git_url.as_ref())
-                .or_else(|| abbreviated_github(git_url.as_ref()))
+                .or_else(|| {
+                    // Only try org/repo → github expansion when the value isn't a local path
+                    if local_path(git_url.as_ref()).is_none() {
+                        abbreviated_github(git_url.as_ref())
+                    } else {
+                        None
+                    }
+                })
                 .unwrap_or_else(|| git_url.as_ref().to_owned());
             let git_user_in = GitUserInput::new(
                 &resolved_url,
