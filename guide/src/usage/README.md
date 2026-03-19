@@ -1,15 +1,22 @@
 # Usage
 
-Standard usage is to pass a `--git` flag to `cargo generate` or short `cargo gen`. This will prompt you to enter the name of your project.
+Standard usage is to pass a git repository to `cargo generate` or short `cargo gen`. This will prompt you to enter the name of your project.
 
 > ⚠️ NOTE: `cargo gen` requires a [cargo alias configuration](#cargo-gen---alias)
 
 ```sh
-cargo generate username-on-github/mytemplate
+# full git url
+cargo generate --git https://github.com/username-on-github/mytemplate.git
+
+# shorthand for github (org/repo expands to https://github.com/org/repo.git)
+cargo generate --git username-on-github/mytemplate
 # is the same as
+cargo generate username-on-github/mytemplate
+
+# prefixed shorthand (works with --git or as positional argument)
 cargo generate gh:username-on-github/mytemplate
 # is the same as
-cargo generate --git https://github.com/username-on-github/mytemplate.git
+cargo generate --git gh:username-on-github/mytemplate
 ```
 
 If you have your templates not GitHub then you can leverage the lazy abbreviation prefixes:
