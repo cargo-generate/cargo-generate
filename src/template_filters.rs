@@ -23,7 +23,7 @@ use crate::{
 
 macro_rules! create_case_filter {
     ($name:literal, $kebab_name:ident, $expr:expr) => {
-        paste::paste! {
+        pastey::paste! {
             #[derive(Clone, ParseFilter, FilterReflection)]
             #[filter(
                 name = $name,
