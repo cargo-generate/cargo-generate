@@ -26,7 +26,7 @@ fn it_only_processes_include_files_in_config() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/included")
@@ -64,7 +64,7 @@ fn it_doesnt_process_excluded_files_in_config() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/excluded")
@@ -102,7 +102,7 @@ fn it_doesnt_process_excluded_files_in_templated_paths() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/foobar-project/excluded")
@@ -149,7 +149,7 @@ fn it_warns_on_include_and_exclude_in_config() {
         .assert()
         .success()
         .stdout(predicates::str::contains("both").from_utf8())
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/Cargo.toml")

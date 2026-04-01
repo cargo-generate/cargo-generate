@@ -34,7 +34,7 @@ fn it_can_conditionally_include_files() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(!dir.exists("foobar-project/included"));
 }
@@ -71,7 +71,7 @@ fn it_can_conditionally_include_files2() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/included")
@@ -116,7 +116,7 @@ fn it_can_ask_placeholders_in_multiple_levels() {
         .current_dir(dir.path())
         .assert()
         .failure()
-        .stderr(predicates::str::contains("Error:").from_utf8());
+        .stderr(predicates::str::contains("v2").from_utf8());
 }
 
 #[test]
@@ -152,7 +152,7 @@ fn it_supports_conditions_in_multiple_levels() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
     assert!(dir.exists("foobar-project/included").not());
 }
 
@@ -216,7 +216,7 @@ fn it_supports_conditions_with_creepy_shit_inside() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/included")
