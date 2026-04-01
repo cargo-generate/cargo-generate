@@ -626,4 +626,32 @@ mod tests {
             "https://git.sr.ht/~username-on-sourcehut/mytemplate"
         );
     }
+
+    #[test]
+    fn git_flag_local_path_takes_precedence_over_org_repo() {
+        // When --git receives a value matching org/repo that also exists as a
+        // local directory, it must be kept as-is rather than expanded to github.
+        let workspace = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir_all(workspace.path().join("myorg/myrepo")).unwrap();
+
+        let args = GenerateArgs {
+            destination: Some(workspace.path().to_path_buf()),
+            template_path: crate::TemplatePath {
+                git: Some("myorg/myrepo".to_owned()),
+                ..crate::TemplatePath::default()
+            },
+            ..GenerateArgs::default()
+        };
+
+        // set cwd so that local_path("myorg/myrepo") finds the directory
+        std::env::set_current_dir(workspace.path()).unwrap();
+        let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
+        // restore to a known-good directory (avoids poisoning other tests)
+        std::env::set_current_dir(std::env::temp_dir()).unwrap();
+
+        match parsed.location() {
+            TemplateLocation::Git(git) => assert_eq!(git.url(), "myorg/myrepo"),
+            TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
+        }
+    }
 }
