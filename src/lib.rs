@@ -233,7 +233,7 @@ fn test_expanded_template(template_dir: &PathBuf, args: Option<Vec<String>>) -> 
     );
     std::process::Command::new(cmd)
         .args(cmd_args)
-        .args(args.unwrap_or_default().into_iter())
+        .args(args.unwrap_or_default())
         .spawn()?
         .wait()?
         .success()
