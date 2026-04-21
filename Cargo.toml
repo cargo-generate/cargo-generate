@@ -38,7 +38,7 @@ openssl = { version = "~0.10", optional = true }
 pastey = "~0.2"
 regex = "~1.12"
 remove_dir_all = "~1.0"
-rhai = "~1.23"
+rhai = "~1.24"
 sanitize-filename = "~0.6"
 semver = { version = "~1.0", features = ["serde"] }
 serde = { version = "~1.0", features = ["derive"] }
