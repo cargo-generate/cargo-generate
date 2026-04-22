@@ -18,7 +18,7 @@ Only files that are **not** listed in the exclude settings will be templated.
 
 > ⚠️ NOTE: invalid characters for a filename or directory name will be sanitized after template substitution. Invalid is e.g. `/` or `\`.
 
-> ⚠️ **Deprecated** in favor of using [ignore in `cargo-generate.toml`](#Ignoring-files)
+> ⚠️ **Deprecated** in favor of using [ignore in `cargo-generate.toml`](https://cargo-generate.github.io/cargo-generate/templates/ignoring.html)
 >
 > You can also add a `.genignore` file to your template. The files listed in the `.genignore` file
 > will be removed from the local machine when `cargo-generate` is run on the end user's machine.
