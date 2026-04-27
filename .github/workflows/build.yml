@@ -52,7 +52,7 @@ jobs:
           default: true
           profile: minimal
           components: clippy, rustfmt
-      - uses: mozilla-actions/sccache-action@v0.0.9
+      - uses: mozilla-actions/sccache-action@v0.0.10
       - run: cargo check
 
   lint:
@@ -74,7 +74,7 @@ jobs:
           default: true
           profile: minimal
           components: clippy, rustfmt
-      - uses: mozilla-actions/sccache-action@v0.0.9
+      - uses: mozilla-actions/sccache-action@v0.0.10
       - run: cargo ${{ matrix['cargo-cmd'] }}
 
   tests:
@@ -94,7 +94,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           default: true
           profile: minimal
-      - uses: mozilla-actions/sccache-action@v0.0.9
+      - uses: mozilla-actions/sccache-action@v0.0.10
       - name: git test setup preparation
         run: |
           git config --global user.email "you@example.com"
@@ -185,7 +185,7 @@ jobs:
           chmod 644 $HOME/.ssh/known_hosts
           ssh-add $HOME/.ssh/id_rsa
           ssh-add -l
-      - uses: mozilla-actions/sccache-action@v0.0.9
+      - uses: mozilla-actions/sccache-action@v0.0.10
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage
@@ -217,7 +217,7 @@ jobs:
           toolchain: stable
           default: true
           profile: minimal
-      - uses: mozilla-actions/sccache-action@v0.0.9
+      - uses: mozilla-actions/sccache-action@v0.0.10
       - name: audit
         uses: actions-rs/audit-check@v1
         continue-on-error: true
@@ -235,7 +235,7 @@ jobs:
           toolchain: stable
           default: true
           profile: minimal
-      - uses: mozilla-actions/sccache-action@v0.0.9
+      - uses: mozilla-actions/sccache-action@v0.0.10
       - run: cargo publish --dry-run
 
   docs:
@@ -249,7 +249,7 @@ jobs:
           toolchain: stable
           default: true
           profile: minimal
-      - uses: mozilla-actions/sccache-action@v0.0.9
+      - uses: mozilla-actions/sccache-action@v0.0.10
       - name: check documentation
         env:
           RUSTDOCFLAGS: -D warnings
