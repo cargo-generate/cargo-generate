@@ -122,12 +122,12 @@ dependencies = [
 
 [[package]]
 name = "auth-git2"
-version = "0.5.8"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4888bf91cce63baf1670512d0f12b5d636179a4abbad6504812ac8ab124b3efe"
+checksum = "aec364a6ee335b23a7e77703100f5103965810f91a9ef6319a004a7e7b8e2b66"
 dependencies = [
  "dirs",
- "git2 0.21.0",
+ "git2",
  "terminal-prompt",
 ]
 
@@ -190,7 +190,7 @@ dependencies = [
  "dialoguer",
  "env_logger",
  "fs-err",
- "git2 0.20.4",
+ "git2",
  "gix-config",
  "heck",
  "home",
@@ -223,17 +223,18 @@ dependencies = [
 
 [[package]]
 name = "cargo-util-schemas"
-version = "0.10.2"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f714efe9b56ea4bed06b499396e77b68db663a55b16dc3f144d5a5a0dc19788c"
+checksum = "73d08f8ffc65abe86dffd3497839adee21cbe3f3b19c17987aa5267998adcf77"
 dependencies = [
+ "jiff",
  "semver",
  "serde",
  "serde-untagged",
  "serde-value",
  "thiserror",
  "toml",
- "unicode-xid",
+ "unicode-ident",
  "url",
 ]
 
@@ -263,9 +264,9 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
 name = "clap"
-version = "4.5.61"
+version = "4.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52fa72306bb30daf11bc97773431628e5b4916e97aaa74b7d3f625d4d495da02"
+checksum = "1ddb117e43bbf7dacf0a4190fef4d345b9bad68dfc649cb349e7d17d28428e51"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -273,9 +274,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.61"
+version = "4.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2071365c5c56eae7d77414029dde2f4f4ba151cf68d5a3261c9a40de428ace93"
+checksum = "714a53001bf66416adb0e2ef5ac857140e7dc3a0c48fb28b2f10762fc4b5069f"
 dependencies = [
  "anstream",
  "anstyle",
@@ -286,9 +287,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.5.61"
+version = "4.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dec5be1eea072311774b7b84ded287adbd9f293f9d23456817605c6042f4f5e0"
+checksum = "f2ce8604710f6733aa641a2b3731eaa1e8b3d9973d5e3565da11800813f997a9"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -686,21 +687,6 @@ dependencies = [
 
 [[package]]
 name = "git2"
-version = "0.20.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b88256088d75a56f8ecfa070513a775dd9107f6530ef14919dac831af9cfe2b"
-dependencies = [
- "bitflags",
- "libc",
- "libgit2-sys",
- "log",
- "openssl-probe",
- "openssl-sys",
- "url",
-]
-
-[[package]]
-name = "git2"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ddddbf932745a6be37109b6112d3ee09696106f848449069d3a57bba937ab82e"
@@ -709,6 +695,9 @@ dependencies = [
  "libc",
  "libgit2-sys",
  "log",
+ "openssl-probe",
+ "openssl-sys",
+ "url",
 ]
 
 [[package]]
