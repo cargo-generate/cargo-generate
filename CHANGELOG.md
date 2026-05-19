@@ -45,6 +45,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/v0.23.3...HEAD)
 
+## [0.23.9] 2026-05-19
+
+[0.23.9]: https://github.com/cargo-generate/cargo-generate/compare/0.23.5...0.23.9
+
+### 🛠️ Maintenance
+
+- Fix typos in guide ([#1653](https://github.com/cargo-generate/cargo-generate/issues/1653))
+- Update git2-* related deps ([#1669](https://github.com/cargo-generate/cargo-generate/issues/1669))
+
+### 🤕 Fixes
+
+- Satisfy Rust 1.95.0 clippy useless_conversion ([#1657](https://github.com/cargo-generate/cargo-generate/issues/1657))
+
+
 ## [0.23.8] 2026-04-01
 
 [0.23.8]: https://github.com/cargo-generate/cargo-generate/compare/0.23.5...0.23.8
