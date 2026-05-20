@@ -21,7 +21,7 @@ fn it_always_removes_config_file() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(!dir.exists("foobar-project/cargo-generate.toml"));
 }
@@ -47,8 +47,12 @@ fn it_doesnt_warn_on_config_with_no_ignore() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("neither").count(0).from_utf8())
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(
+            predicates::str::contains("neither")
+                .count(0)
+                .and(predicates::str::contains("Done!"))
+                .from_utf8(),
+        );
 
     assert!(!dir.exists("foobar-project/cargo-generate.toml"));
 }
@@ -76,7 +80,7 @@ fn a_template_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("Cargo.toml"));
     assert!(!dir.path().join(".git").exists());
@@ -106,7 +110,7 @@ fn vsc_none_can_be_specified_in_the_template() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/Cargo.toml")

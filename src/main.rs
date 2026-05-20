@@ -20,8 +20,9 @@ fn main() -> Result<()> {
 
     if args.list_favorites {
         list_favorites(&args)?;
-    } else {
-        generate(args)?;
+    } else if generate(args).is_err() {
+        // Error already displayed via cliclack::outro_cancel
+        std::process::exit(1);
     }
 
     Ok(())

@@ -2,6 +2,120 @@ use crate::helpers::prelude::*;
 
 use cargo_generate::Vcs;
 
+#[test]
+fn list_favorites_shows_defined_favorites() {
+    let config_dir = tempdir()
+        .file(
+            "config.toml",
+            indoc! {r#"
+                [favorites.my-template]
+                description = "A cool template"
+                git = "https://example.com/repo.git"
+
+                [favorites.another-one]
+                description = "Another template"
+                git = "https://example.com/other.git"
+            "#},
+        )
+        .build();
+
+    let dir = tempdir().build();
+    binary()
+        .arg("--config")
+        .arg(config_dir.path().join("config.toml"))
+        .arg("--list-favorites")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stderr(
+            predicates::str::contains("another-one")
+                .and(predicates::str::contains("A cool template"))
+                .and(predicates::str::contains("my-template"))
+                .and(predicates::str::contains("Another template"))
+                .from_utf8(),
+        );
+}
+
+#[test]
+fn list_favorites_shows_warning_when_none_defined() {
+    let config_dir = tempdir().file("config.toml", "[favorites]\n").build();
+
+    let dir = tempdir().build();
+    binary()
+        .arg("--config")
+        .arg(config_dir.path().join("config.toml"))
+        .arg("--list-favorites")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stderr(predicates::str::contains("No favorites defined").from_utf8());
+}
+
+#[test]
+fn list_favorites_filters_by_prefix() {
+    let config_dir = tempdir()
+        .file(
+            "config.toml",
+            indoc! {r#"
+                [favorites.rust-web]
+                description = "Rust web template"
+                git = "https://example.com/web.git"
+
+                [favorites.rust-cli]
+                description = "Rust CLI template"
+                git = "https://example.com/cli.git"
+
+                [favorites.python-flask]
+                description = "Python Flask template"
+                git = "https://example.com/flask.git"
+            "#},
+        )
+        .build();
+
+    let dir = tempdir().build();
+    binary()
+        .arg("--config")
+        .arg(config_dir.path().join("config.toml"))
+        .arg("--list-favorites")
+        .arg("rust")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stderr(
+            predicates::str::contains("rust-web")
+                .and(predicates::str::contains("rust-cli"))
+                .from_utf8(),
+        )
+        .stderr(predicates::str::contains("python-flask").not().from_utf8());
+}
+
+#[test]
+fn list_favorites_shows_no_description_fallback() {
+    let config_dir = tempdir()
+        .file(
+            "config.toml",
+            indoc! {r#"
+                [favorites.bare-template]
+                git = "https://example.com/bare.git"
+            "#},
+        )
+        .build();
+
+    let dir = tempdir().build();
+    binary()
+        .arg("--config")
+        .arg(config_dir.path().join("config.toml"))
+        .arg("--list-favorites")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stderr(
+            predicates::str::contains("bare-template")
+                .and(predicates::str::contains("no description"))
+                .from_utf8(),
+        );
+}
+
 fn create_favorite_config(
     name: &str,
     template_path: &Project,
@@ -119,7 +233,7 @@ fn favorite_with_subfolder() -> anyhow::Result<()> {
         .current_dir(working_dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(working_dir.read("outer/Cargo.toml").contains("outer"));
     Ok(())
@@ -139,7 +253,7 @@ fn it_can_use_favorites() {
         .current_dir(working_dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(Repository::open(working_dir.path().join("favorite-project")).is_ok());
     assert!(working_dir
@@ -162,7 +276,7 @@ fn a_favorite_can_set_vcs_to_none_by_default() {
         .current_dir(working_dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(Repository::open(working_dir.path().join("favorite-project")).is_err());
 }
@@ -232,7 +346,7 @@ fn favorites_can_use_default_values() {
         .current_dir(working_dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(working_dir
         .read("my-project/Cargo.toml")
@@ -298,7 +412,7 @@ fn favorites_default_value_can_be_overridden_by_environment() {
         )
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(working_dir
         .read("my-project/Cargo.toml")
@@ -342,7 +456,7 @@ fn favorite_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.read("Cargo.toml").contains("my-proj"));
     assert!(!dir.path().join(".git").exists());

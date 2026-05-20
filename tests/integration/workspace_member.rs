@@ -31,7 +31,7 @@ fn it_should_add_a_new_project_to_the_workspace_members() {
         .current_dir(workspace_project.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(workspace_project.exists("a/Cargo.toml"));
     assert!(workspace_project
@@ -82,7 +82,7 @@ fn it_should_skip_workspace_when_no_workspace_flag_is_set() {
         .current_dir(workspace_project.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(workspace_project.exists("a/Cargo.toml"));
     assert!(workspace_project

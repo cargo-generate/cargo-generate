@@ -1,6 +1,5 @@
 use anyhow::{bail, Context, Result};
 use console::style;
-use indicatif::{MultiProgress, ProgressBar};
 use liquid::model::KString;
 use liquid::{Parser, ParserBuilder};
 use liquid_core::{Object, Value};
@@ -17,7 +16,6 @@ use crate::emoji;
 use crate::filenames::substitute_filename;
 use crate::hooks::PoisonError;
 use crate::include_exclude::*;
-use crate::progressbar::spinner;
 use crate::template_filters::*;
 use crate::template_variables::{
     get_authors, get_os_arch, Authors, CrateName, ProjectDir, ProjectName,
@@ -114,6 +112,14 @@ fn is_within_cargo_project(project_dir: &Path) -> bool {
 }
 
 #[allow(clippy::too_many_arguments)]
+enum FileResult {
+    Done(String),
+    Skipped(String),
+    Ignored(String),
+    RhaiFilter(String),
+}
+
+#[allow(clippy::too_many_arguments)]
 pub fn walk_dir(
     template_config: &mut TemplateConfig,
     project_dir: &Path,
@@ -121,7 +127,6 @@ pub fn walk_dir(
     liquid_object: &LiquidObjectResource,
     rhai_engine: Parser,
     rhai_filter_files: &Arc<Mutex<Vec<PathBuf>>>,
-    mp: &mut MultiProgress,
     quiet: bool,
 ) -> Result<()> {
     fn is_git_metadata(entry: &DirEntry) -> bool {
@@ -132,7 +137,6 @@ pub fn walk_dir(
     }
 
     let matcher = Matcher::new(template_config, project_dir, hook_files)?;
-    let spinner_style = spinner();
 
     let mut files_with_errors = Vec::new();
     let files = WalkDir::new(project_dir)
@@ -143,24 +147,13 @@ pub fn walk_dir(
         .filter(|e| !is_git_metadata(e))
         .filter(|e| e.path() != project_dir)
         .collect::<Vec<_>>();
-    let total = files.len().to_string();
-    for (progress, entry) in files.into_iter().enumerate() {
-        let pb = mp.add(ProgressBar::new(50));
-        pb.set_style(spinner_style.clone());
-        pb.set_prefix(format!(
-            "[{:width$}/{}]",
-            progress + 1,
-            total,
-            width = total.len()
-        ));
+    let mut results = Vec::new();
 
-        if quiet {
-            pb.set_draw_target(indicatif::ProgressDrawTarget::hidden());
-        }
-
+    for entry in &files {
         let filename = entry.path();
         let relative_path = filename.strip_prefix(project_dir)?;
-        let filename_display = relative_path.display();
+        let filename_display = relative_path.display().to_string();
+
         // Attempt to NOT process files used as liquid rhai filters.
         // Only works if filter file has been used before an attempt to process it!
         if rhai_filter_files
@@ -169,13 +162,9 @@ pub fn walk_dir(
             .iter()
             .any(|rhai_filter| relative_path.eq(rhai_filter.as_path()))
         {
-            pb.finish_with_message(format!(
-                "Skipped: {filename_display} - used as Rhai filter!"
-            ));
+            results.push(FileResult::RhaiFilter(filename_display));
             continue;
         }
-
-        pb.set_message(format!("Processing: {filename_display}"));
 
         match matcher.should_include(relative_path) {
             ShouldInclude::Include => {
@@ -196,9 +185,8 @@ pub fn walk_dir(
                                             style(filename.display()).bold()
                                         )
                                     })?;
-                            pb.inc(25);
                             let relative_path = new_filename.strip_prefix(project_dir)?;
-                            let f = relative_path.display();
+                            let f = relative_path.display().to_string();
                             fs::create_dir_all(new_filename.parent().unwrap()).unwrap();
                             fs::write(new_filename.as_path(), new_contents).with_context(|| {
                                 format!(
@@ -211,30 +199,24 @@ pub fn walk_dir(
                             if filename != new_filename {
                                 fs::remove_file(filename)?;
                             }
-                            pb.inc(50);
-                            pb.finish_with_message(format!("Done: {f}"));
+                            results.push(FileResult::Done(f));
                         }
                     }
                 } else {
                     let new_filename = substitute_filename(filename, &rhai_engine, liquid_object)?;
                     let relative_path = new_filename.strip_prefix(project_dir)?;
-                    let f = relative_path.display();
-                    pb.inc(50);
+                    let f = relative_path.display().to_string();
                     if filename != new_filename {
                         fs::remove_dir_all(filename)?;
                     }
-                    pb.inc(50);
-                    pb.finish_with_message(format!("Done: {f}"));
+                    results.push(FileResult::Done(f));
                 }
             }
             ShouldInclude::Exclude => {
                 let new_filename = substitute_filename(filename, &rhai_engine, liquid_object)?;
-                let mut f = filename_display;
-                // Check if the file to exclude is in a templated path
-                // If it is, we need to copy it to the new location
-                if filename != new_filename {
+                let f = if filename != new_filename {
                     let relative_path = new_filename.strip_prefix(project_dir)?;
-                    f = relative_path.display();
+                    let f = relative_path.display().to_string();
                     fs::create_dir_all(new_filename.parent().unwrap()).unwrap();
                     fs::copy(filename, new_filename.as_path()).with_context(|| {
                         format!(
@@ -244,16 +226,32 @@ pub fn walk_dir(
                             style(new_filename.display()).bold()
                         )
                     })?;
-                    pb.inc(50);
                     fs::remove_file(filename)?;
-                    pb.inc(50);
-                }
-                pb.finish_with_message(format!("Skipped: {f}"));
+                    f
+                } else {
+                    filename_display
+                };
+                results.push(FileResult::Skipped(f));
             }
             ShouldInclude::Ignore => {
-                pb.finish_with_message(format!("Ignored: {filename_display}"));
+                results.push(FileResult::Ignored(filename_display));
             }
         }
+    }
+
+    // Show file results in a cliclack note box
+    if !quiet {
+        let lines: String = results
+            .iter()
+            .map(|r| match r {
+                FileResult::Done(f) => format!("  {}  {f}", style("●").green()),
+                FileResult::Skipped(f) => format!("  {}  {f} (skipped)", style("○").dim()),
+                FileResult::Ignored(f) => format!("  {}  {f} (ignored)", style("○").dim()),
+                FileResult::RhaiFilter(f) => format!("  {}  {f} (rhai filter)", style("○").dim()),
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        cliclack::note("Generating template", format!("{lines}\n"))?;
     }
 
     if files_with_errors.is_empty() {

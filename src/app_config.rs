@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-use console::style;
 use serde::Deserialize;
 use std::{
     collections::HashMap,
@@ -7,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::{info, Vcs};
+use crate::Vcs;
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
@@ -57,7 +56,7 @@ impl TryFrom<&Path> for AppConfig {
         Ok(if cfg.trim().is_empty() {
             Self::default()
         } else {
-            info!("Using application config: {}", style(path.display()).bold());
+            let _ = cliclack::log::info(format!("Using application config: {}", path.display()));
             toml::from_str(&cfg)?
         })
     }

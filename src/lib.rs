@@ -35,7 +35,6 @@ mod hooks;
 mod ignore_me;
 mod include_exclude;
 mod interactive;
-mod progressbar;
 mod project_variables;
 mod template;
 mod template_filters;
@@ -58,7 +57,6 @@ use hooks::{execute_hooks, RhaiHooksContext};
 use ignore_me::remove_dir_files;
 use interactive::{prompt_and_check_variable, LIST_SEP};
 use log::Record;
-use log::{info, warn};
 use project_variables::{StringEntry, StringKind, TemplateSlots, VarInfo};
 use std::{
     cell::RefCell,
@@ -70,6 +68,59 @@ use std::{
 };
 use tempfile::TempDir;
 use user_parsed_input::{TemplateLocation, UserParsedInput};
+
+/// Shorten a path for display: replace home dir with `~/`, abbreviate all
+/// intermediate directories to their first character, but keep the last
+/// two components (parent + leaf) intact.
+///
+/// Example: `/Users/me/workspaces/rust/cargo-generate-org/cargo-generate/foo`
+///       -> `~/w/r/c/cargo-generate/foo`
+fn shorten_path(path: &Path) -> String {
+    let home_dir = home::home_dir();
+    let path = home_dir
+        .as_ref()
+        .and_then(|home| {
+            path.strip_prefix(home)
+                .ok()
+                .map(|p| PathBuf::from("~").join(p))
+        })
+        .unwrap_or_else(|| path.to_path_buf());
+
+    let components: Vec<&std::ffi::OsStr> = path
+        .components()
+        .filter_map(|c| match c {
+            std::path::Component::Normal(s) => Some(s),
+            _ => None,
+        })
+        .collect();
+
+    let len = components.len();
+    if len <= 2 {
+        return path.display().to_string();
+    }
+
+    // keep_count = 2: parent dir + leaf name
+    let keep_count = 2;
+    let mut parts: Vec<String> = Vec::with_capacity(len);
+
+    // Check if path started with ~
+    let has_tilde = path.starts_with("~");
+
+    for (i, comp) in components.iter().enumerate() {
+        let s = comp.to_string_lossy();
+        if i == 0 && has_tilde && s == "~" {
+            parts.push("~".to_string());
+        } else if i < len - keep_count {
+            // abbreviate to first char
+            parts.push(s.chars().next().unwrap_or('.').to_string());
+        } else {
+            parts.push(s.to_string());
+        }
+    }
+
+    let sep = std::path::MAIN_SEPARATOR;
+    parts.join(&sep.to_string())
+}
 use workspace_member::WorkspaceMemberStatus;
 
 use crate::git::tmp_dir;
@@ -88,19 +139,40 @@ pub fn log_formatter(
     buf: &mut Formatter,
     record: &Record,
 ) -> std::result::Result<(), std::io::Error> {
-    let prefix = match record.level() {
-        log::Level::Error => format!("{} ", emoji::ERROR),
-        log::Level::Warn => format!("{} ", emoji::WARN),
-        _ => "".to_string(),
-    };
+    writeln!(buf, "{}", record.args())
+}
 
-    writeln!(buf, "{}{}", prefix, record.args())
+fn random_intro() -> &'static str {
+    const INTROS: &[&str] = &[
+        "🦀 Let's get Rusty!",
+        "🧪 Brewing a fresh project...",
+        "🚀 Generating awesomeness...",
+        "🍳 Cooking up a new project...",
+        "⚡ Forging your next masterpiece...",
+    ];
+    INTROS[fastrand::usize(..INTROS.len())]
 }
 
 /// # Panics
 pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     let _working_dir_scope = ScopedWorkingDirectory::default();
+    cliclack::intro(random_intro())?;
 
+    match generate_inner(args) {
+        Ok(path) => Ok(path),
+        Err(e) => {
+            // Strip emoji prefixes from the error message for clean cliclack display
+            let msg = format!("{e:#}");
+            let msg = msg
+                .trim_start_matches(emoji::ERROR.to_string().as_str())
+                .trim();
+            let _ = cliclack::outro_cancel(msg);
+            Err(e)
+        }
+    }
+}
+
+fn generate_inner(args: GenerateArgs) -> Result<PathBuf> {
     let app_config = AppConfig::try_from(app_config_path(&args.config)?.as_path())?;
 
     // mash AppConfig and CLI arguments together into UserParsedInput
@@ -125,10 +197,7 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
         .unwrap_or(false)
         && !user_parsed_input.init
     {
-        warn!(
-            "{}",
-            style("Template specifies --init, while not specified on the command line. Output location is affected!").bold().red(),
-        );
+        cliclack::log::warning("Template specifies --init, while not specified on the command line. Output location is affected!")?;
 
         user_parsed_input.init = true;
     };
@@ -158,12 +227,10 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
             match workspace_member::add_to_workspace(&project_path)? {
                 WorkspaceMemberStatus::Added(workspace_cargo_toml) => {
                     should_initialize_git = with_force;
-                    info!(
-                        "{} {} `{}`",
-                        emoji::WRENCH,
-                        style("Project added as member to workspace").bold(),
-                        style(workspace_cargo_toml.display()).bold().yellow(),
-                    );
+                    cliclack::log::info(format!(
+                        "Project added as member to workspace `{}`",
+                        workspace_cargo_toml.display()
+                    ))?;
                 }
                 WorkspaceMemberStatus::NoWorkspaceFound => {
                     // not an issue, just a notification
@@ -175,22 +242,14 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     };
 
     if should_initialize_git {
-        info!(
-            "{} {}",
-            emoji::WRENCH,
-            style("Initializing a fresh Git repository").bold()
-        );
-
+        cliclack::log::info("Initializing a fresh Git repository")?;
         git::init(&target_path, branch.as_deref(), with_force)?;
     }
 
-    info!(
-        "{} {} {} {}",
-        emoji::SPARKLE,
-        style("Done!").bold().green(),
-        style("New project created").bold(),
-        style(&target_path.display()).underlined()
-    );
+    cliclack::outro(format!(
+        "Done! New project created {}",
+        shorten_path(&target_path)
+    ))?;
 
     Ok(target_path)
 }
@@ -200,26 +259,17 @@ fn copy_expanded_template(
     project_dir: PathBuf,
     user_parsed_input: UserParsedInput,
 ) -> Result<PathBuf> {
-    info!(
-        "{} {} `{}`{}",
-        emoji::WRENCH,
-        style("Moving generated files into:").bold(),
-        style(project_dir.display()).bold().yellow(),
-        style("...").bold()
-    );
+    cliclack::log::info(format!(
+        "Moving generated files into: {}",
+        shorten_path(&project_dir)
+    ))?;
     copy_files_recursively(template_dir, &project_dir, user_parsed_input.overwrite())?;
 
     Ok(project_dir)
 }
 
 fn test_expanded_template(template_dir: &PathBuf, args: Option<Vec<String>>) -> Result<PathBuf> {
-    info!(
-        "{} {}{}{}",
-        emoji::WRENCH,
-        style("Running \"").bold(),
-        style("cargo test"),
-        style("\" ...").bold(),
-    );
+    cliclack::log::info("Running \"cargo test\" ...")?;
     std::env::set_current_dir(template_dir)?;
     let (cmd, cmd_args) = std::env::var("CARGO_GENERATE_TEST_CMD").map_or_else(
         |_| (String::from("cargo"), vec![String::from("test")]),
@@ -481,26 +531,12 @@ fn expand_template(
 
     set_project_name_variables(&liquid_object, &destination, &project_name, &crate_name)?;
 
-    info!(
-        "{} {} {}",
-        emoji::WRENCH,
-        style(format!("Destination: {destination}")).bold(),
-        style("...").bold()
-    );
-    info!(
-        "{} {} {}",
-        emoji::WRENCH,
-        style(format!("project-name: {project_name}")).bold(),
-        style("...").bold()
-    );
-    project_variables::show_project_variables_with_value(&liquid_object, config);
-
-    info!(
-        "{} {} {}",
-        emoji::WRENCH,
-        style("Generating template").bold(),
-        style("...").bold()
-    );
+    cliclack::log::info(format!(
+        "Destination: {}",
+        shorten_path(destination.as_ref())
+    ))?;
+    cliclack::log::info(format!("project-name: {project_name}"))?;
+    project_variables::show_project_variables_with_value(&liquid_object, config)?;
 
     // evaluate config for placeholders and and any that are undefined
     fill_placeholders_and_merge_conditionals(
@@ -525,7 +561,6 @@ fn expand_template(
     let mut template_config = config.template.take().unwrap_or_default();
 
     ignore_me::remove_unneeded_files(template_dir, &template_config.ignore, args.verbose)?;
-    let mut pbar = progressbar::new();
 
     let rhai_filter_files = Arc::new(Mutex::new(vec![]));
     let rhai_engine = create_liquid_engine(
@@ -542,7 +577,6 @@ fn expand_template(
         &liquid_object,
         rhai_engine,
         &rhai_filter_files,
-        &mut pbar,
         args.quiet,
     );
 
@@ -551,7 +585,7 @@ fn expand_template(
         Err(e) => {
             // Don't print the error twice
             if !args.quiet && args.continue_on_error {
-                warn!("{e}");
+                let _ = cliclack::log::warning(format!("{e}"));
             }
             if !args.continue_on_error {
                 return Err(e);
@@ -633,11 +667,7 @@ fn read_default_variable_value_from_template(slot: &TemplateSlots) -> Result<Str
         _ => return Err(()),
     };
     let (key, value) = (&slot.var_name, &default_value);
-    info!(
-        "{} {} (default value from template)",
-        emoji::WRENCH,
-        style(format!("{key}: {value:?}")).bold(),
-    );
+    let _ = cliclack::log::info(format!("{key}: {value:?} (default value from template)"));
     Ok(default_value)
 }
 

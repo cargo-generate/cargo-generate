@@ -23,7 +23,7 @@ version = "0.1.0"
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/Cargo.toml")
@@ -121,7 +121,7 @@ without_suffix = {{crate_name | split: "_" | first}}
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let cargo_toml = dir.read("foobar-project/filters.txt");
     assert!(cargo_toml.contains("kebab_case = some-text"));

@@ -2,11 +2,9 @@
 
 use crate::{
     app_config::{app_config_path, AppConfig, FavoriteConfig},
-    emoji, GenerateArgs,
+    GenerateArgs,
 };
 use anyhow::Result;
-use console::style;
-use log::info;
 
 pub fn list_favorites(args: &GenerateArgs) -> Result<()> {
     let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
@@ -30,30 +28,27 @@ pub fn list_favorites(args: &GenerateArgs) -> Result<()> {
     };
 
     if data.is_empty() {
-        info!(
-            "{} {}",
-            emoji::WARN,
-            style("No favorites defined").bold().red()
-        );
+        cliclack::log::warning("No favorites defined")?;
         return Ok(());
     }
 
-    info!("{} {}", emoji::WRENCH, style("Possible favorites:").bold());
     let longest_key = data.iter().map(|(k, _)| k.len()).max().unwrap_or(0);
     let longest_key = ((longest_key + 5) / 4) * 4;
-    data.iter().for_each(|(key, conf)| {
-        info!(
-            "    {} {}:{}{}",
-            emoji::DIAMOND,
-            style(key).bold(),
-            " ".repeat(longest_key - key.len()),
-            conf.description
-                .as_ref()
-                .cloned()
-                .unwrap_or_else(|| "no description".into())
-        );
-    });
-    info!("{} {}", emoji::SPARKLE, style("Done").bold().green());
+    let lines: Vec<String> = data
+        .iter()
+        .map(|(key, conf)| {
+            format!(
+                "  {}{}{}",
+                key,
+                " ".repeat(longest_key - key.len()),
+                conf.description
+                    .as_ref()
+                    .cloned()
+                    .unwrap_or_else(|| "no description".into())
+            )
+        })
+        .collect();
+    cliclack::note("Favorites", lines.join("\n"))?;
 
     Ok(())
 }

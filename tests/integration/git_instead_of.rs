@@ -23,13 +23,12 @@ fn should_read_the_instead_of_config_and_rewrite_an_git_at_url_to_https() {
         .assert()
         .success()
         .stdout(
-            predicates::str::contains("Done!").from_utf8().and(
-                predicates::str::contains(
-                    "gitconfig 'insteadOf' lead to this url: https://github.com/rustwasm/wasm-pack-template.git",
-                )
-                .from_utf8(),
-            ),
-        );
+            predicates::str::contains(
+                "gitconfig 'insteadOf' lead to this url: https://github.com/rustwasm/wasm-pack-template.git",
+            )
+            .from_utf8(),
+        )
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let cargo_toml = target.read("foobar-project/Cargo.toml");
     assert!(cargo_toml.contains("foobar-project"));
@@ -58,13 +57,12 @@ fn should_read_the_instead_of_config_and_rewrite_an_ssh_url_to_https() {
         .assert()
         .success()
         .stdout(
-            predicates::str::contains("Done!").from_utf8().and(
-                predicates::str::contains(
-                    "gitconfig 'insteadOf' lead to this url: https://github.com/rustwasm/wasm-pack-template.git",
-                )
-                .from_utf8(),
-            ),
-        );
+            predicates::str::contains(
+                "gitconfig 'insteadOf' lead to this url: https://github.com/rustwasm/wasm-pack-template.git",
+            )
+            .from_utf8(),
+        )
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let cargo_toml = target.read("foobar-project/Cargo.toml");
     assert!(cargo_toml.contains("foobar-project"));
