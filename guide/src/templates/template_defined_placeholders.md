@@ -122,4 +122,4 @@ placeholder2 = "default value for favorite"
 
 ## Further examples
 
-You can find further examples in the [example-templates folder](/example-templates/) that provide some template provided placeholders.
+You can find further examples in the [example-templates folder](https://github.com/cargo-generate/cargo-generate/tree/main/example-templates) that provide some template provided placeholders.
