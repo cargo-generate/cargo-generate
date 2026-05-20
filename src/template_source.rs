@@ -164,6 +164,39 @@ impl TemplateSource {
         // 7. Catch-all — let git produce the clearer error.
         Self::RemoteUrl(input.to_owned())
     }
+
+    /// User-facing label preserving the form the user typed. Used in
+    /// warnings, log lines, error messages.
+    pub fn display_label(&self) -> std::borrow::Cow<'_, str> {
+        use std::borrow::Cow;
+        match self {
+            Self::HostShorthand { host, owner_repo } => {
+                let prefix = match host {
+                    GitHost::GitHub => "gh",
+                    GitHost::GitLab => "gl",
+                    GitHost::Bitbucket => "bb",
+                    GitHost::SourceHut => "sr",
+                };
+                Cow::Owned(format!("{prefix}:{owner_repo}"))
+            }
+            Self::GithubOwnerRepo { owner, repo } => Cow::Owned(format!("{owner}/{repo}")),
+            Self::RemoteUrl(url) => Cow::Borrowed(url.as_str()),
+            Self::LocalRelative(p) | Self::LocalAbsolute(p) => {
+                Cow::Owned(p.display().to_string())
+            }
+            Self::Favorite(inner) => Cow::Owned(format!("favorite → {}", inner.display_label())),
+        }
+    }
+
+    /// Whether this source should be acquired by cloning vs copying.
+    /// Favorites delegate to their inner source.
+    pub fn is_remote(&self) -> bool {
+        match self {
+            Self::HostShorthand { .. } | Self::GithubOwnerRepo { .. } | Self::RemoteUrl(_) => true,
+            Self::LocalRelative(_) | Self::LocalAbsolute(_) => false,
+            Self::Favorite(inner) => inner.is_remote(),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -495,5 +528,67 @@ mod tests {
         // The exact deep structure doesn't matter; what matters is that
         // classify terminates and produces something well-formed.
         assert!(matches!(s, TemplateSource::Favorite(_)));
+    }
+
+    #[test]
+    fn display_label_host_shorthand() {
+        let s = TemplateSource::HostShorthand {
+            host: GitHost::GitHub,
+            owner_repo: "o/r".to_owned(),
+        };
+        assert_eq!(s.display_label(), "gh:o/r");
+    }
+    #[test]
+    fn display_label_owner_repo() {
+        let s = TemplateSource::GithubOwnerRepo {
+            owner: "o".to_owned(),
+            repo: "r".to_owned(),
+        };
+        assert_eq!(s.display_label(), "o/r");
+    }
+    #[test]
+    fn display_label_remote_url() {
+        let s = TemplateSource::RemoteUrl("https://x/y".to_owned());
+        assert_eq!(s.display_label(), "https://x/y");
+    }
+    #[test]
+    fn display_label_local_relative() {
+        let s = TemplateSource::LocalRelative(PathBuf::from("./t"));
+        assert_eq!(s.display_label(), "./t");
+    }
+    #[test]
+    fn display_label_local_absolute() {
+        let s = TemplateSource::LocalAbsolute(PathBuf::from("/abs/t"));
+        assert_eq!(s.display_label(), "/abs/t");
+    }
+    #[test]
+    fn display_label_favorite_wraps_inner() {
+        let s = TemplateSource::Favorite(Box::new(TemplateSource::GithubOwnerRepo {
+            owner: "o".to_owned(),
+            repo: "r".to_owned(),
+        }));
+        assert_eq!(s.display_label(), "favorite → o/r");
+    }
+
+    #[test]
+    fn is_remote_for_each_variant() {
+        assert!(TemplateSource::HostShorthand {
+            host: GitHost::GitHub,
+            owner_repo: "o/r".to_owned()
+        }
+        .is_remote());
+        assert!(TemplateSource::GithubOwnerRepo {
+            owner: "o".to_owned(),
+            repo: "r".to_owned()
+        }
+        .is_remote());
+        assert!(TemplateSource::RemoteUrl("x".to_owned()).is_remote());
+        assert!(!TemplateSource::LocalRelative(PathBuf::from("./t")).is_remote());
+        assert!(!TemplateSource::LocalAbsolute(PathBuf::from("/t")).is_remote());
+        // Favorite delegates to inner
+        assert!(
+            TemplateSource::Favorite(Box::new(TemplateSource::RemoteUrl("x".to_owned())))
+                .is_remote()
+        );
     }
 }
