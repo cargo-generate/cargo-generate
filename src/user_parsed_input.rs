@@ -457,6 +457,24 @@ impl GitUserInput {
         }
     }
 
+    /// Build a `GitUserInput` from a resolved URL and the cargo-generate
+    /// clone options. Used by `TemplateSource::into_template_location`.
+    pub fn with_url_and_clone_opts(
+        url: String,
+        opts: &crate::template_source::CloneOptions,
+    ) -> Self {
+        Self::new(
+            &url,
+            opts.branch.as_ref(),
+            opts.tag.as_ref(),
+            opts.revision.as_ref(),
+            opts.ssh_identity.clone(),
+            opts.gitconfig.clone(),
+            opts.force_git_init,
+            opts.skip_submodules,
+        )
+    }
+
     // when git was used as abbreviation but other flags still could be passed
     fn with_git_url_and_args(url: &impl AsRef<str>, args: &GenerateArgs) -> Self {
         Self::new(

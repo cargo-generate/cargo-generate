@@ -4,6 +4,19 @@
 
 use std::path::PathBuf;
 
+/// Options threaded into git clones for remote sources. Local sources
+/// ignore these. Used by `TemplateSource::into_template_location`.
+#[derive(Debug, Clone, Default)]
+pub struct CloneOptions {
+    pub branch: Option<String>,
+    pub tag: Option<String>,
+    pub revision: Option<String>,
+    pub ssh_identity: Option<PathBuf>,
+    pub gitconfig: Option<PathBuf>,
+    pub force_git_init: bool,
+    pub skip_submodules: bool,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum GitHost {
@@ -186,6 +199,38 @@ impl TemplateSource {
             }
             Self::Favorite(inner) => Cow::Owned(format!("favorite → {}", inner.display_label())),
         }
+    }
+
+    /// Adapter producing the legacy `TemplateLocation`. `clone_opts` are
+    /// threaded through to `GitUserInput::new` for remote variants;
+    /// ignored for local variants. Once consumers migrate, this method
+    /// goes away.
+    pub fn into_template_location(
+        self,
+        clone_opts: &CloneOptions,
+    ) -> crate::user_parsed_input::TemplateLocation {
+        use crate::user_parsed_input::{GitUserInput, TemplateLocation};
+        match self {
+            Self::HostShorthand { host, owner_repo } => TemplateLocation::Git(
+                GitUserInput::with_url_and_clone_opts(host.to_url(&owner_repo), clone_opts),
+            ),
+            Self::GithubOwnerRepo { owner, repo } => TemplateLocation::Git(
+                GitUserInput::with_url_and_clone_opts(
+                    format!("https://github.com/{owner}/{repo}.git"),
+                    clone_opts,
+                ),
+            ),
+            Self::RemoteUrl(url) => TemplateLocation::Git(
+                GitUserInput::with_url_and_clone_opts(url, clone_opts),
+            ),
+            Self::LocalAbsolute(p) | Self::LocalRelative(p) => TemplateLocation::Path(p),
+            Self::Favorite(inner) => inner.into_template_location(clone_opts),
+        }
+    }
+
+    #[cfg(test)]
+    fn into_template_location_for_test(self) -> crate::user_parsed_input::TemplateLocation {
+        self.into_template_location(&CloneOptions::default())
     }
 
     /// Whether this source should be acquired by cloning vs copying.
@@ -568,6 +613,47 @@ mod tests {
             repo: "r".to_owned(),
         }));
         assert_eq!(s.display_label(), "favorite → o/r");
+    }
+
+    use crate::user_parsed_input::TemplateLocation;
+
+    #[test]
+    fn into_template_location_maps_host_shorthand_to_git_url() {
+        let s = TemplateSource::HostShorthand {
+            host: GitHost::GitHub,
+            owner_repo: "o/r".to_owned(),
+        };
+        match s.into_template_location_for_test() {
+            TemplateLocation::Git(g) => assert_eq!(g.url(), "https://github.com/o/r.git"),
+            TemplateLocation::Path(_) => panic!("expected Git"),
+        }
+    }
+    #[test]
+    fn into_template_location_maps_owner_repo_to_git_url() {
+        let s = TemplateSource::GithubOwnerRepo {
+            owner: "o".to_owned(),
+            repo: "r".to_owned(),
+        };
+        match s.into_template_location_for_test() {
+            TemplateLocation::Git(g) => assert_eq!(g.url(), "https://github.com/o/r.git"),
+            TemplateLocation::Path(_) => panic!("expected Git"),
+        }
+    }
+    #[test]
+    fn into_template_location_maps_remote_url_verbatim() {
+        let s = TemplateSource::RemoteUrl("ssh://git@x/y.git".to_owned());
+        match s.into_template_location_for_test() {
+            TemplateLocation::Git(g) => assert_eq!(g.url(), "ssh://git@x/y.git"),
+            TemplateLocation::Path(_) => panic!("expected Git"),
+        }
+    }
+    #[test]
+    fn into_template_location_maps_local_to_path() {
+        let s = TemplateSource::LocalAbsolute(PathBuf::from("/abs"));
+        match s.into_template_location_for_test() {
+            TemplateLocation::Path(p) => assert_eq!(p, Path::new("/abs")),
+            TemplateLocation::Git(_) => panic!("expected Path"),
+        }
     }
 
     #[test]
