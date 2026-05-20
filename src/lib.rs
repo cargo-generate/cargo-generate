@@ -148,7 +148,7 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     };
 
     let target_path = if user_parsed_input.test() {
-        test_expanded_template(args.other_args)?
+        test_expanded_template(&template_dir, args.other_args)?
     } else {
         let project_path = copy_expanded_template(template_dir, project_dir, user_parsed_input)?;
 
@@ -210,7 +210,7 @@ fn copy_expanded_template(
     Ok(project_dir)
 }
 
-fn test_expanded_template(args: Option<Vec<String>>) -> Result<PathBuf> {
+fn test_expanded_template(template_dir: &Path, args: Option<Vec<String>>) -> Result<PathBuf> {
     info!(
         "{} {}{}{}",
         emoji::WRENCH,
@@ -229,6 +229,7 @@ fn test_expanded_template(args: Option<Vec<String>>) -> Result<PathBuf> {
         },
     );
     std::process::Command::new(cmd)
+        .current_dir(template_dir)
         .args(cmd_args)
         .args(args.unwrap_or_default())
         .spawn()?
