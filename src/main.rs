@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use anyhow::Result;
 use cargo_generate::{generate, list_favorites, Cli};
 use clap::Parser;

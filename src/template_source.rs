@@ -34,11 +34,11 @@ pub enum TemplateSource {
     RemoteUrl(String),
     LocalRelative(PathBuf),
     LocalAbsolute(PathBuf),
-    Favorite(Box<TemplateSource>),
+    Favorite(Box<Self>),
 }
 
 impl GitHost {
-    pub fn to_url(&self, owner_repo: &str) -> String {
+    pub fn to_url(self, owner_repo: &str) -> String {
         match self {
             Self::GitHub => format!("https://github.com/{owner_repo}.git"),
             Self::GitLab => format!("https://gitlab.com/{owner_repo}.git"),
@@ -103,11 +103,7 @@ fn parse_owner_repo(s: &str) -> Option<(String, String)> {
     let repo_ok = repo
         .chars()
         .all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.'));
-    if owner_ok && repo_ok {
-        Some((owner.to_owned(), repo.to_owned()))
-    } else {
-        None
-    }
+    (owner_ok && repo_ok).then(|| (owner.to_owned(), repo.to_owned()))
 }
 
 impl TemplateSource {
@@ -180,6 +176,7 @@ impl TemplateSource {
 
     /// User-facing label preserving the form the user typed. Used in
     /// warnings, log lines, error messages.
+    #[allow(dead_code)]
     pub fn display_label(&self) -> std::borrow::Cow<'_, str> {
         use std::borrow::Cow;
         match self {
@@ -252,6 +249,7 @@ impl TemplateSource {
 
     /// Whether this source should be acquired by cloning vs copying.
     /// Favorites delegate to their inner source.
+    #[allow(dead_code)]
     pub fn is_remote(&self) -> bool {
         match self {
             Self::HostShorthand { .. } | Self::GithubOwnerRepo { .. } | Self::RemoteUrl(_) => true,
