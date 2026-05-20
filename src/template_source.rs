@@ -71,6 +71,32 @@ fn looks_like_url(s: &str) -> bool {
     false
 }
 
+fn parse_owner_repo(s: &str) -> Option<(String, String)> {
+    // Require exactly one `/`, both sides nonempty, owner side doesn't
+    // start with `.` (which would be a relative path form).
+    let (owner, repo) = s.split_once('/')?;
+    if owner.is_empty() || repo.is_empty() {
+        return None;
+    }
+    if repo.contains('/') {
+        return None;
+    }
+    if owner.starts_with('.') {
+        return None;
+    }
+    let owner_ok = owner
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.'));
+    let repo_ok = repo
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.'));
+    if owner_ok && repo_ok {
+        Some((owner.to_owned(), repo.to_owned()))
+    } else {
+        None
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -171,5 +197,44 @@ mod tests {
     #[test]
     fn looks_like_url_rejects_host_prefix() {
         assert!(!looks_like_url("gh:owner/repo"));
+    }
+
+    #[test]
+    fn parse_owner_repo_simple() {
+        assert_eq!(
+            parse_owner_repo("owner/repo"),
+            Some(("owner".to_owned(), "repo".to_owned()))
+        );
+    }
+    #[test]
+    fn parse_owner_repo_with_dashes_and_dots() {
+        assert_eq!(
+            parse_owner_repo("my-org/my.repo"),
+            Some(("my-org".to_owned(), "my.repo".to_owned()))
+        );
+    }
+    #[test]
+    fn parse_owner_repo_rejects_relative_dot_prefix() {
+        assert_eq!(parse_owner_repo("./path"), None);
+    }
+    #[test]
+    fn parse_owner_repo_rejects_double_dot() {
+        assert_eq!(parse_owner_repo("../path"), None);
+    }
+    #[test]
+    fn parse_owner_repo_rejects_three_segments() {
+        assert_eq!(parse_owner_repo("a/b/c"), None);
+    }
+    #[test]
+    fn parse_owner_repo_rejects_leading_slash() {
+        assert_eq!(parse_owner_repo("/abs/path"), None);
+    }
+    #[test]
+    fn parse_owner_repo_rejects_trailing_slash() {
+        assert_eq!(parse_owner_repo("owner/"), None);
+    }
+    #[test]
+    fn parse_owner_repo_rejects_no_slash() {
+        assert_eq!(parse_owner_repo("ownerrepo"), None);
     }
 }
