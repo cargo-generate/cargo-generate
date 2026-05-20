@@ -416,4 +416,84 @@ mod tests {
         // verbatim input, NOT wrapped in Favorite.
         assert_eq!(s, TemplateSource::RemoteUrl("just-a-name".to_owned()));
     }
+
+    use crate::app_config::FavoriteConfig;
+    use std::collections::HashMap;
+
+    fn config_with_favorite(name: &str, fav: FavoriteConfig) -> AppConfig {
+        let mut map = HashMap::new();
+        map.insert(name.to_owned(), fav);
+        AppConfig {
+            favorites: Some(map),
+            ..AppConfig::default()
+        }
+    }
+
+    #[test]
+    fn classify_favorite_with_git_string_recurses() {
+        let cfg = config_with_favorite(
+            "myfave",
+            FavoriteConfig {
+                git: Some("gh:owner/repo".to_owned()),
+                ..FavoriteConfig::default()
+            },
+        );
+        let s = TemplateSource::classify("myfave", &cfg, Path::new("/tmp"));
+        assert_eq!(
+            s,
+            TemplateSource::Favorite(Box::new(TemplateSource::HostShorthand {
+                host: GitHost::GitHub,
+                owner_repo: "owner/repo".to_owned(),
+            }))
+        );
+    }
+
+    #[test]
+    fn classify_favorite_with_absolute_path() {
+        use std::path::PathBuf;
+        let cfg = config_with_favorite(
+            "myfave",
+            FavoriteConfig {
+                path: Some(PathBuf::from("/abs/template")),
+                ..FavoriteConfig::default()
+            },
+        );
+        let s = TemplateSource::classify("myfave", &cfg, Path::new("/tmp"));
+        assert_eq!(
+            s,
+            TemplateSource::Favorite(Box::new(TemplateSource::LocalAbsolute(
+                PathBuf::from("/abs/template")
+            )))
+        );
+    }
+
+    #[test]
+    fn classify_favorite_cycle_bounded_falls_back() {
+        // Two favorites pointing at each other; cycle bound prevents
+        // infinite recursion. After the depth limit we stop following
+        // favorites and the last name is treated as a non-favorite.
+        let mut map = HashMap::new();
+        map.insert(
+            "a".to_owned(),
+            FavoriteConfig {
+                git: Some("b".to_owned()),
+                ..FavoriteConfig::default()
+            },
+        );
+        map.insert(
+            "b".to_owned(),
+            FavoriteConfig {
+                git: Some("a".to_owned()),
+                ..FavoriteConfig::default()
+            },
+        );
+        let cfg = AppConfig {
+            favorites: Some(map),
+            ..AppConfig::default()
+        };
+        let s = TemplateSource::classify("a", &cfg, Path::new("/tmp"));
+        // The exact deep structure doesn't matter; what matters is that
+        // classify terminates and produces something well-formed.
+        assert!(matches!(s, TemplateSource::Favorite(_)));
+    }
 }
