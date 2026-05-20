@@ -35,6 +35,19 @@ impl GitHost {
     }
 }
 
+fn strip_host_prefix(s: &str) -> Option<(GitHost, &str)> {
+    let prefix = s.get(..3)?;
+    let rest = s.get(3..)?;
+    let host = match prefix {
+        "gh:" => GitHost::GitHub,
+        "gl:" => GitHost::GitLab,
+        "bb:" => GitHost::Bitbucket,
+        "sr:" => GitHost::SourceHut,
+        _ => return None,
+    };
+    Some((host, rest))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -69,5 +82,34 @@ mod tests {
             GitHost::SourceHut.to_url("user/repo"),
             "https://git.sr.ht/~user/repo"
         );
+    }
+
+    #[test]
+    fn strip_host_prefix_recognizes_gh() {
+        assert_eq!(strip_host_prefix("gh:o/r"), Some((GitHost::GitHub, "o/r")));
+    }
+    #[test]
+    fn strip_host_prefix_recognizes_gl() {
+        assert_eq!(strip_host_prefix("gl:o/r"), Some((GitHost::GitLab, "o/r")));
+    }
+    #[test]
+    fn strip_host_prefix_recognizes_bb() {
+        assert_eq!(strip_host_prefix("bb:o/r"), Some((GitHost::Bitbucket, "o/r")));
+    }
+    #[test]
+    fn strip_host_prefix_recognizes_sr() {
+        assert_eq!(strip_host_prefix("sr:u/r"), Some((GitHost::SourceHut, "u/r")));
+    }
+    #[test]
+    fn strip_host_prefix_rejects_unknown_prefix() {
+        assert_eq!(strip_host_prefix("xx:o/r"), None);
+    }
+    #[test]
+    fn strip_host_prefix_rejects_short_input() {
+        assert_eq!(strip_host_prefix("gh"), None);
+    }
+    #[test]
+    fn strip_host_prefix_rejects_bare_owner_repo() {
+        assert_eq!(strip_host_prefix("owner/repo"), None);
     }
 }
