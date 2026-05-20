@@ -153,17 +153,17 @@ impl Filter for RhaiFilter {
         };
 
         let engine = create_rhai_engine(&context);
-        let file_path = PathBuf::from(input.to_kstr().to_string());
+        let script_name = input.to_kstr().to_string();
+        let file_path = self.template_dir.join(&script_name);
         if !file_path.exists() {
             warn!(
                 "{} {} {}",
                 style("Filter script").bold().yellow(),
-                style(file_path.display()).bold().red(),
+                style(&script_name).bold().red(),
                 style("not found").bold().yellow(),
             );
             return Err(liquid_core::Error::with_msg(format!(
-                "Filter script {} not found",
-                file_path.display()
+                "Filter script {script_name} not found"
             )));
         }
         self.rhai_filter_files

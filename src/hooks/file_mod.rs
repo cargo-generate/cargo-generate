@@ -140,7 +140,6 @@ mod tests {
         let tmp_dir = prepare_file_system();
         let context = prepare_context(&tmp_dir);
         let engine = create_rhai_engine(&context);
-        std::env::set_current_dir(tmp_dir.path()).unwrap();
 
         let files = engine.eval::<Array>("file::listdir()").unwrap();
         assert_eq!(files.len(), 2);
@@ -158,7 +157,6 @@ mod tests {
         let tmp_dir = prepare_file_system();
         let context = prepare_context(&tmp_dir);
         let engine = create_rhai_engine(&context);
-        std::env::set_current_dir(tmp_dir.path()).unwrap();
 
         // cover the other listdir function with one path argument
         let files = engine.eval::<Array>(r#"file::listdir(".")"#).unwrap();
@@ -179,7 +177,6 @@ mod tests {
         let tmp_dir = prepare_file_system();
         let context = prepare_context(&tmp_dir);
         let engine = create_rhai_engine(&context);
-        std::env::set_current_dir(tmp_dir.path()).unwrap();
 
         let path_argument = "../../../../etc";
         engine
@@ -194,7 +191,6 @@ mod tests {
         let tmp_dir = prepare_file_system();
         let context = prepare_context(&tmp_dir);
         let engine = create_rhai_engine(&context);
-        std::env::set_current_dir(tmp_dir.path()).unwrap();
 
         let path_argument = "////../../../../etc";
         engine

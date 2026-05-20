@@ -398,9 +398,6 @@ pub fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> Option<String
             "bb:" => Some(format!("https://bitbucket.org/{}.git", &git[3..])),
             "gh:" => Some(format!("https://github.com/{}.git", &git[3..])),
             "sr:" => Some(format!("https://git.sr.ht/~{}", &git[3..])),
-            short_cut_maybe if is_abbreviated_github(short_cut_maybe) => {
-                Some(format!("https://github.com/{short_cut_maybe}.git"))
-            }
             _ => None,
         }
     } else {
@@ -625,6 +622,35 @@ mod tests {
             resolve_git_flag("sr:username-on-sourcehut/mytemplate"),
             "https://git.sr.ht/~username-on-sourcehut/mytemplate"
         );
+    }
+
+    #[test]
+    fn git_flag_relative_path_resolves_to_local_directory() {
+        // When --git receives a relative path like `./path` that exists as a
+        // local directory, it must be kept as-is rather than being interpreted
+        // as a remote URL or expanded to github.
+        let workspace = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir_all(workspace.path().join("path")).unwrap();
+
+        let args = GenerateArgs {
+            destination: Some(workspace.path().to_path_buf()),
+            template_path: crate::TemplatePath {
+                git: Some("./path".to_owned()),
+                ..crate::TemplatePath::default()
+            },
+            ..GenerateArgs::default()
+        };
+
+        // set cwd so that local_path("./path") finds the directory
+        std::env::set_current_dir(workspace.path()).unwrap();
+        let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
+        // restore to a known-good directory (avoids poisoning other tests)
+        std::env::set_current_dir(std::env::temp_dir()).unwrap();
+
+        match parsed.location() {
+            TemplateLocation::Git(git) => assert_eq!(git.url(), "./path"),
+            TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
+        }
     }
 
     #[test]

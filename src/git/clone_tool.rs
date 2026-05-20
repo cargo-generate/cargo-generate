@@ -1,3 +1,4 @@
+use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
@@ -6,6 +7,10 @@ use auth_git2::GitAuthenticator;
 use console::style;
 use git2::{build::RepoBuilder, Config, FetchOptions, ProxyOptions, Repository};
 use log::debug;
+
+fn interactive_auth_allowed() -> bool {
+    std::io::stdin().is_terminal() && std::io::stderr().is_terminal()
+}
 
 use crate::emoji::WRENCH;
 
@@ -28,11 +33,14 @@ impl<'cb> RepoCloneBuilder<'cb> {
         #[cfg(windows)]
         let authenticator = GitAuthenticator::default().try_ssh_agent(true);
         #[cfg(not(windows))]
-        let authenticator = GitAuthenticator::default()
-            .try_ssh_agent(true)
-            .add_default_ssh_keys()
-            .prompt_ssh_key_password(true)
-            .try_password_prompt(3);
+        let authenticator = {
+            let interactive = interactive_auth_allowed();
+            GitAuthenticator::default()
+                .try_ssh_agent(true)
+                .add_default_ssh_keys()
+                .prompt_ssh_key_password(interactive)
+                .try_password_prompt(if interactive { 3 } else { 0 })
+        };
 
         Self {
             builder: RepoBuilder::new(),
@@ -85,11 +93,12 @@ impl<'cb> RepoCloneBuilder<'cb> {
                 style("for git-ssh checkout").bold()
             );
 
+            let interactive = interactive_auth_allowed();
             self.authenticator = self
                 .authenticator
                 .add_ssh_key_from_file(identity_path, None)
-                .try_password_prompt(3)
-                .prompt_ssh_key_password(true)
+                .try_password_prompt(if interactive { 3 } else { 0 })
+                .prompt_ssh_key_password(interactive);
         }
 
         Ok(self)

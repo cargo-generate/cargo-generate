@@ -7,9 +7,10 @@ use heck::{
 };
 use liquid::ValueView;
 use log::debug;
+use rhai::module_resolvers::FileModuleResolver;
 use rhai::EvalAltResult;
+use std::path::Path;
 use std::path::PathBuf;
-use std::{env, path::Path};
 
 use crate::emoji;
 use crate::template::LiquidObjectResource;
@@ -22,21 +23,7 @@ mod variable_mod;
 
 type HookResult<T> = std::result::Result<T, Box<EvalAltResult>>;
 
-struct CleanupJob<F: FnOnce()>(Option<F>);
-
 pub use context::RhaiHooksContext;
-
-impl<F: FnOnce()> CleanupJob<F> {
-    pub const fn new(f: F) -> Self {
-        Self(Some(f))
-    }
-}
-
-impl<F: FnOnce()> Drop for CleanupJob<F> {
-    fn drop(&mut self) {
-        self.0.take().unwrap()();
-    }
-}
 
 pub fn execute_hooks(context: &RhaiHooksContext, scripts: &[String]) -> Result<()> {
     debug!("executing rhai with context: {context:?}");
@@ -47,14 +34,8 @@ pub fn execute_hooks(context: &RhaiHooksContext, scripts: &[String]) -> Result<(
 }
 
 fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engine) -> Result<()> {
-    let cwd = env::current_dir()?;
-    let _ = CleanupJob::new(move || {
-        env::set_current_dir(cwd).ok();
-    });
-    env::set_current_dir(template_dir)?;
-
     for script in scripts {
-        let script: PathBuf = script.into();
+        let script: PathBuf = template_dir.join(script);
 
         let result = engine
             .eval_file::<rhai::plugin::Dynamic>(script.clone())
@@ -142,44 +123,43 @@ pub fn evaluate_script<T: Clone + 'static>(
 pub fn create_rhai_engine(context: &RhaiHooksContext) -> rhai::Engine {
     let mut engine = rhai::Engine::new();
 
-    // register modules
-    let module = variable_mod::create_module(&context.liquid_object);
-    engine.register_static_module("variable", module.into());
-
-    let module = file_mod::create_module(&context.working_directory);
-    engine.register_static_module("file", module.into());
-
-    let module = system_mod::create_module(
+    let var_mod = variable_mod::create_module(&context.liquid_object);
+    let file_mod = file_mod::create_module(&context.working_directory);
+    let system_mod = system_mod::create_module(
         context.working_directory.clone(),
         context.allow_commands,
         context.silent,
     );
-    engine.register_static_module("system", module.into());
-
-    let module = env_mod::create_module(Environment {
+    let env_mod = env_mod::create_module(Environment {
         working_directory: context.working_directory.clone(),
         destination_directory: context.destination_directory.clone(),
     });
-    engine.register_static_module("env", module.into());
 
-    // register functions for changing case
-    engine.register_fn("to_kebab_case", |str: &str| str.to_kebab_case());
-    engine.register_fn("to_lower_camel_case", |str: &str| str.to_lower_camel_case());
-    engine.register_fn("to_pascal_case", |str: &str| str.to_pascal_case());
-    engine.register_fn("to_shouty_kebab_case", |str: &str| {
-        str.to_shouty_kebab_case()
-    });
-    engine.register_fn("to_shouty_snake_case", |str: &str| {
-        str.to_shouty_snake_case()
-    });
-    engine.register_fn("to_snake_case", |str: &str| str.to_snake_case());
-    engine.register_fn("to_title_case", |str: &str| str.to_title_case());
-    engine.register_fn("to_upper_camel_case", |str: &str| str.to_upper_camel_case());
-
-    // other free-standing functions
-    engine.register_fn("abort", |error: &str| -> HookResult<String> {
-        Err(error.into())
-    });
+    engine
+        .set_module_resolver(FileModuleResolver::new_with_path(
+            &context.working_directory,
+        ))
+        .register_static_module("variable", var_mod.into())
+        .register_static_module("file", file_mod.into())
+        .register_static_module("system", system_mod.into())
+        .register_static_module("env", env_mod.into())
+        // register functions for changing case
+        .register_fn("to_kebab_case", |str: &str| str.to_kebab_case())
+        .register_fn("to_lower_camel_case", |str: &str| str.to_lower_camel_case())
+        .register_fn("to_pascal_case", |str: &str| str.to_pascal_case())
+        .register_fn("to_shouty_kebab_case", |str: &str| {
+            str.to_shouty_kebab_case()
+        })
+        .register_fn("to_shouty_snake_case", |str: &str| {
+            str.to_shouty_snake_case()
+        })
+        .register_fn("to_snake_case", |str: &str| str.to_snake_case())
+        .register_fn("to_title_case", |str: &str| str.to_title_case())
+        .register_fn("to_upper_camel_case", |str: &str| str.to_upper_camel_case())
+        // other free-standing functions
+        .register_fn("abort", |error: &str| -> HookResult<String> {
+            Err(error.into())
+        });
 
     engine
 }

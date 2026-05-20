@@ -933,7 +933,7 @@ fn error_message_for_invalid_repo_or_user() {
     let dir = tempdir().build();
 
     binary()
-        .arg_git("sassman/cli-template-rs-xx")
+        .arg_git("my-org/my-repo")
         .arg_name("favorite-project")
         .current_dir(dir.path())
         .assert()
