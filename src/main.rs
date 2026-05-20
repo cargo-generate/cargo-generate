@@ -46,13 +46,13 @@ fn resolve_args() -> cargo_generate::GenerateArgs {
 
     args.other_args = Some(other_args);
     if args.template_path.test {
-        args.template_path.path = Some(
-            args.template_path
-                .auto_path
-                .take()
-                .map(|sub| PathBuf::from(".").join(sub).display().to_string())
-                .unwrap_or_else(|| String::from(".")),
-        );
+        if args.template_path.auto_path.is_none() {
+            args.template_path.path = Some(String::from("."));
+        }
+        // If auto_path is set, leave it alone — try_from_args_and_config's
+        // resolver (classify) decides whether it's a local dir or a remote
+        // spec. This stops --test from hijacking github shorthands away from
+        // the resolver.
         if args.name.is_none() {
             args.name = names::Generator::default().next();
         }
