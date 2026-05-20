@@ -248,42 +248,25 @@ impl UserParsedInput {
         }
 
         // there is no specified favorite in configuration
-        // this part try to guess what user wanted in order:
+        // auto_path with no configured favorite name → classify it
+        let cwd = env::current_dir().unwrap_or_else(|_| ".".into());
+        let source = crate::template_source::TemplateSource::classify(
+            fav_name,
+            &app_config,
+            &cwd,
+        );
+        let clone_opts = crate::template_source::CloneOptions {
+            branch: args.template_path.branch().map(|s| s.as_ref().to_owned()),
+            tag: args.template_path.tag().map(|s| s.as_ref().to_owned()),
+            revision: args.template_path.revision().map(|s| s.as_ref().to_owned()),
+            ssh_identity,
+            gitconfig: args.gitconfig.clone(),
+            force_git_init: args.force_git_init,
+            skip_submodules: args.skip_submodules,
+        };
+        let temp_location = source.into_template_location(&clone_opts);
 
-        // 1. look for abbreviations like gh:, gl: etc.
-        let temp_location = abbreviated_git_url_to_full_remote(fav_name).map(|git_url| {
-            let git_user_in = GitUserInput::with_git_url_and_args(&git_url, args);
-            TemplateLocation::from(git_user_in)
-        });
-
-        // 2. check if template directory exist
-        let temp_location =
-            temp_location.or_else(|| local_path(fav_name).map(TemplateLocation::from));
-
-        // 3. check if the input is in form org/repo<> (map to github)
-        let temp_location = temp_location.or_else(|| {
-            abbreviated_github(fav_name).map(|git_url| {
-                let git_user_in = GitUserInput::with_git_url_and_args(&git_url, args);
-                TemplateLocation::from(git_user_in)
-            })
-        });
-
-        // 4. assume user wanted use --git
-        let temp_location = temp_location.unwrap_or_else(|| {
-            let git_user_in = GitUserInput::new(
-                &fav_name,
-                args.template_path.branch(),
-                args.template_path.tag(),
-                args.template_path.revision(),
-                ssh_identity,
-                args.gitconfig.clone(),
-                args.force_git_init,
-                args.skip_submodules,
-            );
-            TemplateLocation::from(git_user_in)
-        });
-
-        // Print information what happened to user
+        // Print information about what happened (preserve the existing warn!)
         let location_msg = match &temp_location {
             TemplateLocation::Git(git_user_input) => {
                 format!("git repository: {}", style(git_user_input.url()).bold())
