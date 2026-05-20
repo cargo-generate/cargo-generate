@@ -119,18 +119,20 @@ impl TemplateSource {
         // 1. Configured favorite name (only when within recursion budget).
         if depth <= FAVORITE_RECURSION_LIMIT {
             if let Some(fav) = app_config.get_favorite_cfg(input) {
-                let inner = if let Some(git) = fav.git.as_deref() {
-                    Self::classify_with_depth(git, app_config, cwd, depth + 1)
-                } else if let Some(p) = fav.path.as_ref() {
-                    if p.is_absolute() {
+                if let Some(git) = fav.git.as_deref() {
+                    let inner = Self::classify_with_depth(git, app_config, cwd, depth + 1);
+                    return Self::Favorite(Box::new(inner));
+                }
+                if let Some(p) = fav.path.as_ref() {
+                    let inner = if p.is_absolute() {
                         Self::LocalAbsolute(p.clone())
                     } else {
                         Self::LocalRelative(cwd.join(p))
-                    }
-                } else {
-                    Self::RemoteUrl(input.to_owned())
-                };
-                return Self::Favorite(Box::new(inner));
+                    };
+                    return Self::Favorite(Box::new(inner));
+                }
+                // Malformed favorite (neither git nor path) — fall through to
+                // non-favorite classification rules below.
             }
         }
 
@@ -395,5 +397,23 @@ mod tests {
     #[test]
     fn parse_owner_repo_rejects_no_slash() {
         assert_eq!(parse_owner_repo("ownerrepo"), None);
+    }
+
+    #[test]
+    fn classify_malformed_favorite_falls_through_to_non_favorite() {
+        use crate::app_config::FavoriteConfig;
+        use std::collections::HashMap;
+        let mut favorites = HashMap::new();
+        // Malformed favorite: name is set but neither git nor path is.
+        favorites.insert("just-a-name".to_owned(), FavoriteConfig::default());
+        let cfg = AppConfig {
+            favorites: Some(favorites),
+            ..AppConfig::default()
+        };
+        let cwd = tempfile::TempDir::new().unwrap();
+        let s = TemplateSource::classify("just-a-name", &cfg, cwd.path());
+        // No `/`, no scheme, no local dir → catch-all RemoteUrl with the
+        // verbatim input, NOT wrapped in Favorite.
+        assert_eq!(s, TemplateSource::RemoteUrl("just-a-name".to_owned()));
     }
 }
