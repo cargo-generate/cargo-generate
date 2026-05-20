@@ -8,7 +8,6 @@ use std::{
 
 use crate::absolute_path::AbsolutePathExt;
 use console::style;
-use regex::Regex;
 
 use crate::{app_config::AppConfig, template_variables::CrateType, GenerateArgs, Vcs};
 use log::warn;
@@ -363,38 +362,6 @@ impl UserParsedInput {
     }
 }
 
-/// favorite can be in form with abbreviation what means that input is git repository
-/// if so, the 3rd character would be a semicolon
-pub fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> Option<String> {
-    let git = git.as_ref();
-    if git.len() >= 3 {
-        match &git[..3] {
-            "gl:" => Some(format!("https://gitlab.com/{}.git", &git[3..])),
-            "bb:" => Some(format!("https://bitbucket.org/{}.git", &git[3..])),
-            "gh:" => Some(format!("https://github.com/{}.git", &git[3..])),
-            "sr:" => Some(format!("https://git.sr.ht/~{}", &git[3..])),
-            _ => None,
-        }
-    } else {
-        None
-    }
-}
-
-fn is_abbreviated_github(fav: &str) -> bool {
-    let org_repo_regex = Regex::new(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_%-]+$").unwrap();
-    org_repo_regex.is_match(fav)
-}
-
-// favorite can be in form of org/repo what should be parsed as github.com
-pub fn abbreviated_github(fav: &str) -> Option<String> {
-    is_abbreviated_github(fav).then(|| format!("https://github.com/{fav}.git"))
-}
-
-pub fn local_path(fav: &str) -> Option<PathBuf> {
-    let path = PathBuf::from(fav);
-    (path.exists() && path.is_dir()).then_some(path)
-}
-
 // Template should be cloned with git
 #[derive(Debug)]
 pub struct GitUserInput {
@@ -450,20 +417,6 @@ impl GitUserInput {
         )
     }
 
-    // when git was used as abbreviation but other flags still could be passed
-    fn with_git_url_and_args(url: &impl AsRef<str>, args: &GenerateArgs) -> Self {
-        Self::new(
-            url,
-            args.template_path.branch(),
-            args.template_path.tag(),
-            args.template_path.revision(),
-            args.ssh_identity.clone(),
-            args.gitconfig.clone(),
-            args.force_git_init,
-            args.skip_submodules,
-        )
-    }
-
     pub fn url(&self) -> &str {
         self.url.as_ref()
     }
@@ -514,36 +467,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn should_support_colon_abbreviations() {
-        assert_eq!(
-            &abbreviated_git_url_to_full_remote("gh:foo/bar").unwrap(),
-            "https://github.com/foo/bar.git"
-        );
-        assert_eq!(
-            &abbreviated_git_url_to_full_remote("bb:foo/bar").unwrap(),
-            "https://bitbucket.org/foo/bar.git"
-        );
-        assert_eq!(
-            &abbreviated_git_url_to_full_remote("gl:foo/bar").unwrap(),
-            "https://gitlab.com/foo/bar.git"
-        );
-        assert_eq!(
-            &abbreviated_git_url_to_full_remote("sr:foo/bar").unwrap(),
-            "https://git.sr.ht/~foo/bar"
-        );
-        assert!(&abbreviated_git_url_to_full_remote("foo/bar").is_none());
-    }
-
-    #[test]
-    fn should_appreviation_org_repo_to_github() {
-        assert_eq!(
-            &abbreviated_github("org/repo").unwrap(),
-            "https://github.com/org/repo.git"
-        );
-        assert!(&abbreviated_github("path/to/a/sth").is_none());
-    }
 
     /// Helper to build a `GenerateArgs` with `--git <value>` and resolve via `try_from_args_and_config`,
     /// returning the resolved git URL from the resulting `TemplateLocation`.
