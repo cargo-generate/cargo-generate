@@ -626,57 +626,45 @@ mod tests {
 
     #[test]
     fn git_flag_relative_path_resolves_to_local_directory() {
-        // When --git receives a relative path like `./path` that exists as a
-        // local directory, it must be kept as-is rather than being interpreted
-        // as a remote URL or expanded to github.
-        let workspace = tempfile::TempDir::new().unwrap();
-        std::fs::create_dir_all(workspace.path().join("path")).unwrap();
-
+        // When --git receives a relative path like `./example-templates/hooks`
+        // that exists as a local directory, it must be kept as-is rather than
+        // being interpreted as a remote URL or expanded to github.
+        // `cargo test` sets cwd to the crate root, so this path resolves.
         let args = GenerateArgs {
-            destination: Some(workspace.path().to_path_buf()),
             template_path: crate::TemplatePath {
-                git: Some("./path".to_owned()),
+                git: Some("./example-templates/hooks".to_owned()),
                 ..crate::TemplatePath::default()
             },
             ..GenerateArgs::default()
         };
 
-        // set cwd so that local_path("./path") finds the directory
-        std::env::set_current_dir(workspace.path()).unwrap();
         let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
-        // restore to a known-good directory (avoids poisoning other tests)
-        std::env::set_current_dir(std::env::temp_dir()).unwrap();
 
         match parsed.location() {
-            TemplateLocation::Git(git) => assert_eq!(git.url(), "./path"),
+            TemplateLocation::Git(git) => {
+                assert_eq!(git.url(), "./example-templates/hooks")
+            }
             TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
         }
     }
 
     #[test]
     fn git_flag_local_path_takes_precedence_over_org_repo() {
-        // When --git receives a value matching org/repo that also exists as a
-        // local directory, it must be kept as-is rather than expanded to github.
-        let workspace = tempfile::TempDir::new().unwrap();
-        std::fs::create_dir_all(workspace.path().join("myorg/myrepo")).unwrap();
-
+        // When --git receives a value matching the org/repo shape that also
+        // exists as a local directory, it must be kept as-is rather than
+        // expanded to github. `example-templates/hooks` doubles as a real
+        // path under the crate root and a valid `org/repo` shape.
         let args = GenerateArgs {
-            destination: Some(workspace.path().to_path_buf()),
             template_path: crate::TemplatePath {
-                git: Some("myorg/myrepo".to_owned()),
+                git: Some("example-templates/hooks".to_owned()),
                 ..crate::TemplatePath::default()
             },
             ..GenerateArgs::default()
         };
 
-        // set cwd so that local_path("myorg/myrepo") finds the directory
-        std::env::set_current_dir(workspace.path()).unwrap();
         let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
-        // restore to a known-good directory (avoids poisoning other tests)
-        std::env::set_current_dir(std::env::temp_dir()).unwrap();
-
         match parsed.location() {
-            TemplateLocation::Git(git) => assert_eq!(git.url(), "myorg/myrepo"),
+            TemplateLocation::Git(git) => assert_eq!(git.url(), "example-templates/hooks"),
             TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
         }
     }
