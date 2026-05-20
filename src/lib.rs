@@ -39,6 +39,7 @@ mod progressbar;
 mod project_variables;
 mod template;
 mod template_filters;
+mod template_source;
 mod template_variables;
 mod user_parsed_input;
 mod workspace_member;
