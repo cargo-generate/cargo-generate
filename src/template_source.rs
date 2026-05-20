@@ -228,6 +228,23 @@ impl TemplateSource {
         }
     }
 
+    /// Like `into_template_location` but forces local paths through git clone.
+    /// Used by the `--git` flag, which means "use git even for local paths"
+    /// so that branch/tag/ssh-identity options are honoured.
+    pub fn into_git_template_location(
+        self,
+        clone_opts: &CloneOptions,
+    ) -> crate::user_parsed_input::TemplateLocation {
+        use crate::user_parsed_input::{GitUserInput, TemplateLocation};
+        match self {
+            Self::LocalAbsolute(p) | Self::LocalRelative(p) => TemplateLocation::Git(
+                GitUserInput::with_url_and_clone_opts(p.display().to_string(), clone_opts),
+            ),
+            Self::Favorite(inner) => inner.into_git_template_location(clone_opts),
+            other => other.into_template_location(clone_opts),
+        }
+    }
+
     #[cfg(test)]
     fn into_template_location_for_test(self) -> crate::user_parsed_input::TemplateLocation {
         self.into_template_location(&CloneOptions::default())

@@ -118,33 +118,25 @@ impl UserParsedInput {
 
         // --git
         if let Some(git_url) = args.template_path.git() {
-            let resolved_url = abbreviated_git_url_to_full_remote(git_url.as_ref())
-                .or_else(|| {
-                    // Only try org/repo → github expansion when the value isn't a local path
-                    if local_path(git_url.as_ref()).is_none() {
-                        abbreviated_github(git_url.as_ref())
-                    } else {
-                        None
-                    }
-                })
-                .unwrap_or_else(|| git_url.as_ref().to_owned());
-            let git_user_in = GitUserInput::new(
-                &resolved_url,
-                args.template_path.branch(),
-                args.template_path.tag(),
-                args.template_path.revision(),
-                ssh_identity,
-                args.gitconfig.clone(),
-                args.force_git_init,
-                args.skip_submodules,
+            let cwd = env::current_dir().unwrap_or_else(|_| ".".into());
+            let source = crate::template_source::TemplateSource::classify(
+                git_url.as_ref(),
+                &app_config,
+                &cwd,
             );
+            let clone_opts = crate::template_source::CloneOptions {
+                branch: args.template_path.branch().map(|s| s.as_ref().to_owned()),
+                tag: args.template_path.tag().map(|s| s.as_ref().to_owned()),
+                revision: args.template_path.revision().map(|s| s.as_ref().to_owned()),
+                ssh_identity: ssh_identity.clone(),
+                gitconfig: args.gitconfig.clone(),
+                force_git_init: args.force_git_init,
+                skip_submodules: args.skip_submodules,
+            };
             return Self {
                 name: args.name.clone(),
-                template_location: git_user_in.into(),
-                subfolder: args
-                    .template_path
-                    .subfolder()
-                    .map(|s| s.as_ref().to_owned()),
+                template_location: source.into_git_template_location(&clone_opts),
+                subfolder: args.template_path.subfolder().map(|s| s.as_ref().to_owned()),
                 template_values: default_values,
                 vcs: args.vcs.unwrap_or(DEFAULT_VCS),
                 init: args.init,
@@ -645,8 +637,9 @@ mod tests {
     #[test]
     fn git_flag_relative_path_resolves_to_local_directory() {
         // When --git receives a relative path like `./example-templates/hooks`
-        // that exists as a local directory, it must be kept as-is rather than
-        // being interpreted as a remote URL or expanded to github.
+        // that exists as a local directory, it must remain a Git location so
+        // that branch/tag/ssh-identity options are honoured (git clone accepts
+        // file-system paths). It must NOT be expanded to a remote URL.
         // `cargo test` sets cwd to the crate root, so this path resolves.
         let args = GenerateArgs {
             template_path: crate::TemplatePath {
@@ -660,7 +653,11 @@ mod tests {
 
         match parsed.location() {
             TemplateLocation::Git(git) => {
-                assert_eq!(git.url(), "./example-templates/hooks")
+                assert!(
+                    git.url().ends_with("example-templates/hooks"),
+                    "expected url ending in example-templates/hooks, got {}",
+                    git.url()
+                );
             }
             TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
         }
@@ -669,8 +666,8 @@ mod tests {
     #[test]
     fn git_flag_local_path_takes_precedence_over_org_repo() {
         // When --git receives a value matching the org/repo shape that also
-        // exists as a local directory, it must be kept as-is rather than
-        // expanded to github. `example-templates/hooks` doubles as a real
+        // exists as a local directory, it must be kept as a Git location rather
+        // than expanded to github. `example-templates/hooks` doubles as a real
         // path under the crate root and a valid `org/repo` shape.
         let args = GenerateArgs {
             template_path: crate::TemplatePath {
@@ -682,7 +679,13 @@ mod tests {
 
         let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
         match parsed.location() {
-            TemplateLocation::Git(git) => assert_eq!(git.url(), "example-templates/hooks"),
+            TemplateLocation::Git(git) => {
+                assert!(
+                    git.url().ends_with("example-templates/hooks"),
+                    "expected url ending in example-templates/hooks, got {}",
+                    git.url()
+                );
+            }
             TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
         }
     }
