@@ -48,6 +48,29 @@ fn strip_host_prefix(s: &str) -> Option<(GitHost, &str)> {
     Some((host, rest))
 }
 
+fn looks_like_url(s: &str) -> bool {
+    if s.starts_with("https://")
+        || s.starts_with("http://")
+        || s.starts_with("ssh://")
+        || s.starts_with("git://")
+        || s.starts_with("file://")
+    {
+        return true;
+    }
+    // scp-style `git@host:path`: a `user@host:rest` form where the colon
+    // is BEFORE the first slash (URLs and paths put `/` before `:`).
+    if let Some(at) = s.find('@') {
+        if let Some(colon_offset) = s[at..].find(':') {
+            let colon = at + colon_offset;
+            let slash = s.find('/').unwrap_or(s.len());
+            if colon < slash {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -111,5 +134,42 @@ mod tests {
     #[test]
     fn strip_host_prefix_rejects_bare_owner_repo() {
         assert_eq!(strip_host_prefix("owner/repo"), None);
+    }
+
+    #[test]
+    fn looks_like_url_https() {
+        assert!(looks_like_url("https://github.com/owner/repo.git"));
+    }
+    #[test]
+    fn looks_like_url_http() {
+        assert!(looks_like_url("http://example.com/repo.git"));
+    }
+    #[test]
+    fn looks_like_url_ssh_scheme() {
+        assert!(looks_like_url("ssh://git@github.com/owner/repo.git"));
+    }
+    #[test]
+    fn looks_like_url_git_scheme() {
+        assert!(looks_like_url("git://github.com/owner/repo.git"));
+    }
+    #[test]
+    fn looks_like_url_scp_style() {
+        assert!(looks_like_url("git@github.com:owner/repo.git"));
+    }
+    #[test]
+    fn looks_like_url_rejects_owner_repo() {
+        assert!(!looks_like_url("owner/repo"));
+    }
+    #[test]
+    fn looks_like_url_rejects_relative_path() {
+        assert!(!looks_like_url("./template"));
+    }
+    #[test]
+    fn looks_like_url_rejects_absolute_path() {
+        assert!(!looks_like_url("/Users/me/template"));
+    }
+    #[test]
+    fn looks_like_url_rejects_host_prefix() {
+        assert!(!looks_like_url("gh:owner/repo"));
     }
 }
