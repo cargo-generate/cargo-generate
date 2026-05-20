@@ -97,9 +97,168 @@ fn parse_owner_repo(s: &str) -> Option<(String, String)> {
     }
 }
 
+impl TemplateSource {
+    /// Classify a raw template input into a `TemplateSource`. See the
+    /// design doc for the precedence rules; ordering here is intentional.
+    pub fn classify(
+        input: &str,
+        app_config: &crate::app_config::AppConfig,
+        cwd: &std::path::Path,
+    ) -> Self {
+        Self::classify_with_depth(input, app_config, cwd, 0)
+    }
+
+    fn classify_with_depth(
+        input: &str,
+        app_config: &crate::app_config::AppConfig,
+        cwd: &std::path::Path,
+        depth: u8,
+    ) -> Self {
+        const FAVORITE_RECURSION_LIMIT: u8 = 8;
+
+        // 1. Configured favorite name (only when within recursion budget).
+        if depth <= FAVORITE_RECURSION_LIMIT {
+            if let Some(fav) = app_config.get_favorite_cfg(input) {
+                let inner = if let Some(git) = fav.git.as_deref() {
+                    Self::classify_with_depth(git, app_config, cwd, depth + 1)
+                } else if let Some(p) = fav.path.as_ref() {
+                    if p.is_absolute() {
+                        Self::LocalAbsolute(p.clone())
+                    } else {
+                        Self::LocalRelative(cwd.join(p))
+                    }
+                } else {
+                    Self::RemoteUrl(input.to_owned())
+                };
+                return Self::Favorite(Box::new(inner));
+            }
+        }
+
+        // 2. Host prefix
+        if let Some((host, rest)) = strip_host_prefix(input) {
+            return Self::HostShorthand {
+                host,
+                owner_repo: rest.to_owned(),
+            };
+        }
+        // 3. Full URL
+        if looks_like_url(input) {
+            return Self::RemoteUrl(input.to_owned());
+        }
+        // 4. Absolute path
+        let p = std::path::Path::new(input);
+        if p.is_absolute() {
+            return Self::LocalAbsolute(p.to_path_buf());
+        }
+        // 5. Relative path that exists as a directory
+        let resolved = cwd.join(p);
+        if resolved.is_dir() {
+            return Self::LocalRelative(resolved);
+        }
+        // 6. Bare owner/repo → github
+        if let Some((owner, repo)) = parse_owner_repo(input) {
+            return Self::GithubOwnerRepo { owner, repo };
+        }
+        // 7. Catch-all — let git produce the clearer error.
+        Self::RemoteUrl(input.to_owned())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::app_config::AppConfig;
+    use std::path::Path;
+
+    fn empty_config() -> AppConfig {
+        AppConfig::default()
+    }
+
+    #[test]
+    fn classify_host_shorthand() {
+        let s = TemplateSource::classify("gh:owner/repo", &empty_config(), Path::new("/tmp"));
+        assert_eq!(
+            s,
+            TemplateSource::HostShorthand {
+                host: GitHost::GitHub,
+                owner_repo: "owner/repo".to_owned()
+            }
+        );
+    }
+
+    #[test]
+    fn classify_https_url() {
+        let s = TemplateSource::classify(
+            "https://github.com/owner/repo.git",
+            &empty_config(),
+            Path::new("/tmp"),
+        );
+        assert_eq!(
+            s,
+            TemplateSource::RemoteUrl("https://github.com/owner/repo.git".to_owned())
+        );
+    }
+
+    #[test]
+    fn classify_scp_url() {
+        let s = TemplateSource::classify(
+            "git@github.com:owner/repo.git",
+            &empty_config(),
+            Path::new("/tmp"),
+        );
+        assert_eq!(
+            s,
+            TemplateSource::RemoteUrl("git@github.com:owner/repo.git".to_owned())
+        );
+    }
+
+    #[test]
+    fn classify_absolute_path() {
+        let s = TemplateSource::classify("/Users/me/template", &empty_config(), Path::new("/tmp"));
+        assert_eq!(
+            s,
+            TemplateSource::LocalAbsolute(PathBuf::from("/Users/me/template"))
+        );
+    }
+
+    #[test]
+    fn classify_existing_relative_dir() {
+        let cwd = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir_all(cwd.path().join("template")).unwrap();
+        let s = TemplateSource::classify("./template", &empty_config(), cwd.path());
+        assert_eq!(s, TemplateSource::LocalRelative(cwd.path().join("template")));
+    }
+
+    #[test]
+    fn classify_owner_repo_when_no_local_dir() {
+        let cwd = tempfile::TempDir::new().unwrap();
+        let s = TemplateSource::classify("owner/repo", &empty_config(), cwd.path());
+        assert_eq!(
+            s,
+            TemplateSource::GithubOwnerRepo {
+                owner: "owner".to_owned(),
+                repo: "repo".to_owned()
+            }
+        );
+    }
+
+    #[test]
+    fn classify_relative_dir_beats_owner_repo() {
+        let cwd = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir_all(cwd.path().join("owner/repo")).unwrap();
+        let s = TemplateSource::classify("owner/repo", &empty_config(), cwd.path());
+        assert_eq!(
+            s,
+            TemplateSource::LocalRelative(cwd.path().join("owner/repo"))
+        );
+    }
+
+    #[test]
+    fn classify_fallback_to_remote_url() {
+        let cwd = tempfile::TempDir::new().unwrap();
+        let s = TemplateSource::classify("garbage~~~", &empty_config(), cwd.path());
+        assert_eq!(s, TemplateSource::RemoteUrl("garbage~~~".to_owned()));
+    }
 
     #[test]
     fn git_host_to_url_github() {
