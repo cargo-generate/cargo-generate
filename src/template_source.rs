@@ -306,11 +306,15 @@ mod tests {
 
     #[test]
     fn classify_absolute_path() {
-        let s = TemplateSource::classify("/Users/me/template", &empty_config(), Path::new("/tmp"));
-        assert_eq!(
-            s,
-            TemplateSource::LocalAbsolute(PathBuf::from("/Users/me/template"))
-        );
+        // Windows requires a drive letter for `Path::is_absolute()`;
+        // a leading `/` alone is "rooted but not absolute."
+        let input = if cfg!(windows) {
+            r"C:\Users\me\template"
+        } else {
+            "/Users/me/template"
+        };
+        let s = TemplateSource::classify(input, &empty_config(), Path::new("/tmp"));
+        assert_eq!(s, TemplateSource::LocalAbsolute(PathBuf::from(input)));
     }
 
     #[test]
@@ -550,19 +554,22 @@ mod tests {
     #[test]
     fn classify_favorite_with_absolute_path() {
         use std::path::PathBuf;
+        let abs = if cfg!(windows) {
+            r"C:\abs\template"
+        } else {
+            "/abs/template"
+        };
         let cfg = config_with_favorite(
             "myfave",
             FavoriteConfig {
-                path: Some(PathBuf::from("/abs/template")),
+                path: Some(PathBuf::from(abs)),
                 ..FavoriteConfig::default()
             },
         );
         let s = TemplateSource::classify("myfave", &cfg, Path::new("/tmp"));
         assert_eq!(
             s,
-            TemplateSource::Favorite(Box::new(TemplateSource::LocalAbsolute(PathBuf::from(
-                "/abs/template"
-            ))))
+            TemplateSource::Favorite(Box::new(TemplateSource::LocalAbsolute(PathBuf::from(abs))))
         );
     }
 
