@@ -210,7 +210,7 @@ impl TemplateSource {
             ),
             Self::GithubOwnerRepo { owner, repo } => {
                 TemplateLocation::Git(GitUserInput::with_url_and_clone_opts(
-                    format!("https://github.com/{owner}/{repo}.git"),
+                    GitHost::GitHub.to_url(&format!("{owner}/{repo}")),
                     clone_opts,
                 ))
             }

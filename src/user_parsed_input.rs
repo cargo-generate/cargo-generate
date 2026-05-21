@@ -100,6 +100,8 @@ impl UserParsedInput {
             })
             .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
 
+        let cwd = env::current_dir().unwrap_or_else(|_| ".".into());
+
         let mut default_values = app_config.values.clone().unwrap_or_default();
 
         let ssh_identity = app_config
@@ -117,21 +119,12 @@ impl UserParsedInput {
 
         // --git
         if let Some(git_url) = args.template_path.git() {
-            let cwd = env::current_dir().unwrap_or_else(|_| ".".into());
             let source = crate::template_source::TemplateSource::classify(
                 git_url.as_ref(),
                 &app_config,
                 &cwd,
             );
-            let clone_opts = crate::template_source::CloneOptions {
-                branch: args.template_path.branch().map(|s| s.as_ref().to_owned()),
-                tag: args.template_path.tag().map(|s| s.as_ref().to_owned()),
-                revision: args.template_path.revision().map(|s| s.as_ref().to_owned()),
-                ssh_identity: ssh_identity.clone(),
-                gitconfig: args.gitconfig.clone(),
-                force_git_init: args.force_git_init,
-                skip_submodules: args.skip_submodules,
-            };
+            let clone_opts = clone_opts_from_args(args, ssh_identity.clone());
             return Self {
                 name: args.name.clone(),
                 template_location: source.into_git_template_location(&clone_opts),
@@ -251,17 +244,8 @@ impl UserParsedInput {
 
         // there is no specified favorite in configuration
         // auto_path with no configured favorite name → classify it
-        let cwd = env::current_dir().unwrap_or_else(|_| ".".into());
         let source = crate::template_source::TemplateSource::classify(fav_name, &app_config, &cwd);
-        let clone_opts = crate::template_source::CloneOptions {
-            branch: args.template_path.branch().map(|s| s.as_ref().to_owned()),
-            tag: args.template_path.tag().map(|s| s.as_ref().to_owned()),
-            revision: args.template_path.revision().map(|s| s.as_ref().to_owned()),
-            ssh_identity,
-            gitconfig: args.gitconfig.clone(),
-            force_git_init: args.force_git_init,
-            skip_submodules: args.skip_submodules,
-        };
+        let clone_opts = clone_opts_from_args(args, ssh_identity);
         let temp_location = source.into_template_location(&clone_opts);
 
         // Print information about what happened (preserve the existing warn!)
@@ -438,6 +422,21 @@ impl GitUserInput {
 
     pub fn gitconfig(&self) -> Option<&Path> {
         self.gitconfig.as_deref()
+    }
+}
+
+fn clone_opts_from_args(
+    args: &GenerateArgs,
+    ssh_identity: Option<PathBuf>,
+) -> crate::template_source::CloneOptions {
+    crate::template_source::CloneOptions {
+        branch: args.template_path.branch().map(|s| s.as_ref().to_owned()),
+        tag: args.template_path.tag().map(|s| s.as_ref().to_owned()),
+        revision: args.template_path.revision().map(|s| s.as_ref().to_owned()),
+        ssh_identity,
+        gitconfig: args.gitconfig.clone(),
+        force_git_init: args.force_git_init,
+        skip_submodules: args.skip_submodules,
     }
 }
 
