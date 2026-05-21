@@ -193,7 +193,7 @@ fn it_fails_when_it_cant_execute_system_command() {
         .file(
             "system-script.rhai",
             indoc! {r#"
-                let output = system::command("dummy_command_that_doesn't_exist", ["dummy_arg"]);
+                let output = system::command("dummy_command_that_doesnt_exist", ["dummy_arg"]);
             "#},
         )
         .file(
@@ -215,15 +215,7 @@ fn it_fails_when_it_cant_execute_system_command() {
         .current_dir(dir.path())
         .assert()
         .failure()
-        .stderr(
-            // TODO: This error message is different on MacOS and Linux. We should unify it.
-            predicates::str::contains(if cfg!(target_os = "macos") {
-                "System command `dummy_command_that_doesn't_exist dummy_arg` failed to execute"
-            } else {
-                "Failed executing script: system-script.rhai"
-            })
-            .from_utf8(),
-        );
+        .stderr("dummy_command_that_doesnt_exist: command not found");
 }
 
 #[test]
