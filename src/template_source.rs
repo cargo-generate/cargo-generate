@@ -1,6 +1,5 @@
 //! Classified template source: where the template comes from, validated
-//! at construction time. See
-//! `docs/superpowers/specs/2026-05-20-template-source-classifier-design.md`.
+//! at construction time.
 
 use std::path::PathBuf;
 
