@@ -153,36 +153,26 @@ impl Filter for RhaiFilter {
         };
 
         let engine = create_rhai_engine(&context);
-        let file_path = PathBuf::from(input.to_kstr().to_string());
-        if !file_path.exists() {
-            warn!(
-                "{} {} {}",
-                style("Filter script").bold().yellow(),
-                style(file_path.display()).bold().red(),
-                style("not found").bold().yellow(),
-            );
-            return Err(liquid_core::Error::with_msg(format!(
-                "Filter script {} not found",
-                file_path.display()
-            )));
-        }
+        let script_name = input.to_kstr().to_string();
+        let file_path = self.template_dir.join(&script_name);
         self.rhai_filter_files
             .lock()
             .map_err(|_| liquid_core::Error::with_msg(PoisonError.to_string()))?
             .push(file_path.clone());
 
-        let result = engine.eval_file::<String>(file_path.clone());
-        match result {
+        match engine.eval_file::<String>(file_path) {
             Ok(r) => Ok(Value::Scalar(model::Scalar::from(r))),
             Err(err) => {
                 warn!(
                     "{} {} {} {}",
                     style("Filter script").bold().yellow(),
-                    style(file_path.display()).bold().red(),
-                    style("contained error").bold().yellow(),
+                    style(&script_name).bold().red(),
+                    style("not found or failed:").bold().yellow(),
                     style(err.to_string()).bold().red(),
                 );
-                Err(liquid_core::Error::with_msg(err.to_string()))
+                Err(liquid_core::Error::with_msg(format!(
+                    "Filter script {script_name} not found or failed: {err}"
+                )))
             }
         }
     }
