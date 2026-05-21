@@ -958,9 +958,7 @@ fn test_flag_with_github_shorthand_clones_remote() {
         .assert()
         .failure()
         .stderr(
-            predicates::str::contains(
-                "Please check if the Git user / repository exists",
-            )
-            .from_utf8(),
+            predicates::str::contains("Please check if the Git user / repository exists")
+                .from_utf8(),
         );
 }

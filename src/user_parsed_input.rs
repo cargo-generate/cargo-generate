@@ -135,7 +135,10 @@ impl UserParsedInput {
             return Self {
                 name: args.name.clone(),
                 template_location: source.into_git_template_location(&clone_opts),
-                subfolder: args.template_path.subfolder().map(|s| s.as_ref().to_owned()),
+                subfolder: args
+                    .template_path
+                    .subfolder()
+                    .map(|s| s.as_ref().to_owned()),
                 template_values: default_values,
                 vcs: args.vcs.unwrap_or(DEFAULT_VCS),
                 init: args.init,
@@ -249,11 +252,7 @@ impl UserParsedInput {
         // there is no specified favorite in configuration
         // auto_path with no configured favorite name → classify it
         let cwd = env::current_dir().unwrap_or_else(|_| ".".into());
-        let source = crate::template_source::TemplateSource::classify(
-            fav_name,
-            &app_config,
-            &cwd,
-        );
+        let source = crate::template_source::TemplateSource::classify(fav_name, &app_config, &cwd);
         let clone_opts = crate::template_source::CloneOptions {
             branch: args.template_path.branch().map(|s| s.as_ref().to_owned()),
             tag: args.template_path.tag().map(|s| s.as_ref().to_owned()),

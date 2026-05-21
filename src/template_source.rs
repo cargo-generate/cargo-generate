@@ -191,9 +191,7 @@ impl TemplateSource {
             }
             Self::GithubOwnerRepo { owner, repo } => Cow::Owned(format!("{owner}/{repo}")),
             Self::RemoteUrl(url) => Cow::Borrowed(url.as_str()),
-            Self::LocalRelative(p) | Self::LocalAbsolute(p) => {
-                Cow::Owned(p.display().to_string())
-            }
+            Self::LocalRelative(p) | Self::LocalAbsolute(p) => Cow::Owned(p.display().to_string()),
             Self::Favorite(inner) => Cow::Owned(format!("favorite → {}", inner.display_label())),
         }
     }
@@ -211,15 +209,15 @@ impl TemplateSource {
             Self::HostShorthand { host, owner_repo } => TemplateLocation::Git(
                 GitUserInput::with_url_and_clone_opts(host.to_url(&owner_repo), clone_opts),
             ),
-            Self::GithubOwnerRepo { owner, repo } => TemplateLocation::Git(
-                GitUserInput::with_url_and_clone_opts(
+            Self::GithubOwnerRepo { owner, repo } => {
+                TemplateLocation::Git(GitUserInput::with_url_and_clone_opts(
                     format!("https://github.com/{owner}/{repo}.git"),
                     clone_opts,
-                ),
-            ),
-            Self::RemoteUrl(url) => TemplateLocation::Git(
-                GitUserInput::with_url_and_clone_opts(url, clone_opts),
-            ),
+                ))
+            }
+            Self::RemoteUrl(url) => {
+                TemplateLocation::Git(GitUserInput::with_url_and_clone_opts(url, clone_opts))
+            }
             Self::LocalAbsolute(p) | Self::LocalRelative(p) => TemplateLocation::Path(p),
             Self::Favorite(inner) => inner.into_template_location(clone_opts),
         }
@@ -321,7 +319,10 @@ mod tests {
         let cwd = tempfile::TempDir::new().unwrap();
         std::fs::create_dir_all(cwd.path().join("template")).unwrap();
         let s = TemplateSource::classify("./template", &empty_config(), cwd.path());
-        assert_eq!(s, TemplateSource::LocalRelative(cwd.path().join("template")));
+        assert_eq!(
+            s,
+            TemplateSource::LocalRelative(cwd.path().join("template"))
+        );
     }
 
     #[test]
@@ -397,11 +398,17 @@ mod tests {
     }
     #[test]
     fn strip_host_prefix_recognizes_bb() {
-        assert_eq!(strip_host_prefix("bb:o/r"), Some((GitHost::Bitbucket, "o/r")));
+        assert_eq!(
+            strip_host_prefix("bb:o/r"),
+            Some((GitHost::Bitbucket, "o/r"))
+        );
     }
     #[test]
     fn strip_host_prefix_recognizes_sr() {
-        assert_eq!(strip_host_prefix("sr:u/r"), Some((GitHost::SourceHut, "u/r")));
+        assert_eq!(
+            strip_host_prefix("sr:u/r"),
+            Some((GitHost::SourceHut, "u/r"))
+        );
     }
     #[test]
     fn strip_host_prefix_rejects_unknown_prefix() {
@@ -554,9 +561,9 @@ mod tests {
         let s = TemplateSource::classify("myfave", &cfg, Path::new("/tmp"));
         assert_eq!(
             s,
-            TemplateSource::Favorite(Box::new(TemplateSource::LocalAbsolute(
-                PathBuf::from("/abs/template")
-            )))
+            TemplateSource::Favorite(Box::new(TemplateSource::LocalAbsolute(PathBuf::from(
+                "/abs/template"
+            ))))
         );
     }
 
