@@ -215,7 +215,15 @@ fn it_fails_when_it_cant_execute_system_command() {
         .current_dir(dir.path())
         .assert()
         .failure()
-        .stderr("dummy_command_that_doesnt_exist: command not found");
+        .stderr(
+            // TODO: This error message is different on MacOS and Linux. We should unify it.
+            predicates::str::contains(if cfg!(target_os = "macos") {
+                "dummy_command_that_doesnt_exist: command not found"
+            } else {
+                "dummy_command_that_doesnt_exist: not found"
+            })
+            .from_utf8(),
+        );
 }
 
 #[test]
