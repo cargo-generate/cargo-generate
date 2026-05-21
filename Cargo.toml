@@ -21,8 +21,11 @@ clap = { version = "~4.6", features = ["derive", "wrap_help"] }
 console = "~0.16"
 dialoguer = "~0.12"
 env_logger = "~0.11"
-fs-err = "~3.2"
-gix-config = "~0.48"
+fs-err = "~3.3"
+gix-config = "~0.56"
+# gix-config 0.56's transitive deps need gix-hash with a hash-kind feature enabled;
+# otherwise gix-hash's Kind enum is empty and the crate fails to compile.
+gix-hash = { version = "~0.25", default-features = false, features = ["sha1"] }
 heck = "~0.5"
 home = "~0.5"
 ignore = "~0.4"
@@ -38,14 +41,14 @@ openssl = { version = "~0.10", optional = true }
 pastey = "~0.2"
 regex = "~1.12"
 remove_dir_all = "~1.0"
-rhai = "~1.23"
+rhai = "~1.24"
 sanitize-filename = "~0.6"
 semver = { version = "~1.0", features = ["serde"] }
 serde = { version = "~1.0", features = ["derive"] }
 tempfile = "3.27.0"
 thiserror = "~2.0"
 time = "~0.3"
-toml = { version = "~0.9", features = ["preserve_order"] }
+toml = { version = "~1.1", features = ["preserve_order"] }
 walkdir = "~2.5"
 cargo-util-schemas = "~0.13"
 

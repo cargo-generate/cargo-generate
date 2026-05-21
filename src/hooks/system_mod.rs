@@ -174,7 +174,6 @@ mod tests {
             allow_commands: true,
             silent: true,
         };
-        std::env::set_current_dir(&context.working_directory).unwrap();
         let engine = create_rhai_engine(&context);
 
         let pwd = engine.eval::<String>(r#"system::command("pwd")"#).unwrap();
@@ -225,7 +224,6 @@ mod tests {
             silent: true,
         };
         let engine = create_rhai_engine(&context);
-        std::env::set_current_dir(tmp_dir.path()).unwrap();
 
         engine
             .eval::<String>(r#"system::command("nonexistent_command")"#)
@@ -246,7 +244,6 @@ mod tests {
             silent: true,
         };
         let engine = create_rhai_engine(&context);
-        std::env::set_current_dir(tmp_dir.path()).unwrap();
 
         engine
             .eval::<String>(r#"system::command("echo", ["hello"])"#)

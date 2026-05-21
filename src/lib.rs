@@ -39,6 +39,7 @@ mod progressbar;
 mod project_variables;
 mod template;
 mod template_filters;
+mod template_source;
 mod template_variables;
 mod user_parsed_input;
 mod workspace_member;
@@ -99,8 +100,6 @@ pub fn log_formatter(
 
 /// # Panics
 pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
-    let _working_dir_scope = ScopedWorkingDirectory::default();
-
     let app_config = AppConfig::try_from(app_config_path(&args.config)?.as_path())?;
 
     // mash AppConfig and CLI arguments together into UserParsedInput
@@ -212,7 +211,7 @@ fn copy_expanded_template(
     Ok(project_dir)
 }
 
-fn test_expanded_template(template_dir: &PathBuf, args: Option<Vec<String>>) -> Result<PathBuf> {
+fn test_expanded_template(template_dir: &Path, args: Option<Vec<String>>) -> Result<PathBuf> {
     info!(
         "{} {}{}{}",
         emoji::WRENCH,
@@ -220,7 +219,6 @@ fn test_expanded_template(template_dir: &PathBuf, args: Option<Vec<String>>) -> 
         style("cargo test"),
         style("\" ...").bold(),
     );
-    std::env::set_current_dir(template_dir)?;
     let (cmd, cmd_args) = std::env::var("CARGO_GENERATE_TEST_CMD").map_or_else(
         |_| (String::from("cargo"), vec![String::from("test")]),
         |env_test_cmd| {
@@ -232,6 +230,7 @@ fn test_expanded_template(template_dir: &PathBuf, args: Option<Vec<String>>) -> 
         },
     );
     std::process::Command::new(cmd)
+        .current_dir(template_dir)
         .args(cmd_args)
         .args(args.unwrap_or_default())
         .spawn()?
@@ -774,21 +773,6 @@ fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::
         }
     }
     Ok(())
-}
-
-#[derive(Debug)]
-struct ScopedWorkingDirectory(PathBuf);
-
-impl Default for ScopedWorkingDirectory {
-    fn default() -> Self {
-        Self(env::current_dir().unwrap())
-    }
-}
-
-impl Drop for ScopedWorkingDirectory {
-    fn drop(&mut self) {
-        env::set_current_dir(&self.0).unwrap();
-    }
 }
 
 #[cfg(test)]
