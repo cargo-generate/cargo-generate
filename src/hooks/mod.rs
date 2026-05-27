@@ -38,7 +38,7 @@ fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engin
         let script: PathBuf = template_dir.join(script);
 
         let result = engine
-            .eval_file::<rhai::plugin::Dynamic>(script.clone())
+            .eval_file::<rhai::Dynamic>(script.clone())
             .map_err(|e| anyhow::anyhow!(e.to_string()))
             .with_context(|| {
                 format!(
