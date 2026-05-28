@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.23.10...HEAD)
 
+## [0.23.11] 2026-05-27
+
+[0.23.11]: https://github.com/cargo-generate/cargo-generate/compare/0.23.10...0.23.11
+
+### 🛠️ Maintenance
+
+- Bump rhai from 1.24.0 to 1.25.0 ([#1677](https://github.com/cargo-generate/cargo-generate/issues/1677))
+
+
 ## [0.23.10] 2026-05-21
 
 [0.23.10]: https://github.com/cargo-generate/cargo-generate/compare/0.23.5...0.23.10
