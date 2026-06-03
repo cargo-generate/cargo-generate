@@ -22,7 +22,7 @@ console = "~0.16"
 dialoguer = "~0.12"
 env_logger = "~0.11"
 fs-err = "~3.3"
-gix-config = "~0.56"
+gix-config = "~0.57"
 # gix-config 0.56's transitive deps need gix-hash with a hash-kind feature enabled;
 # otherwise gix-hash's Kind enum is empty and the crate fails to compile.
 gix-hash = { version = "~0.25", default-features = false, features = ["sha1"] }
