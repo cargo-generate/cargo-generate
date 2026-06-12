@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.23.10...HEAD)
 
+## [0.23.12] 2026-06-12
+
+[0.23.12]: https://github.com/cargo-generate/cargo-generate/compare/0.23.11...0.23.12
+
+### 🤕 Fixes
+
+- Resolve conflicting From trait implementations for Prompt and TemplateLocation ([#1688](https://github.com/cargo-generate/cargo-generate/issues/1688))
+- Hook files left in generated output (regression in v0.23.10) ([#1685](https://github.com/cargo-generate/cargo-generate/issues/1685))
+
+
 ## [0.23.11] 2026-05-27
 
 [0.23.11]: https://github.com/cargo-generate/cargo-generate/compare/0.23.10...0.23.11
