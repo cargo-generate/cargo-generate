@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.23.10...HEAD)
 
+## [0.23.13] 2026-06-12
+
+[0.23.13]: https://github.com/cargo-generate/cargo-generate/compare/0.23.12...0.23.13
+
+### 🛠️ Maintenance
+
+- Update Cargo.lock dependencies
+
+
 ## [0.23.12] 2026-06-12
 
 [0.23.12]: https://github.com/cargo-generate/cargo-generate/compare/0.23.11...0.23.12
