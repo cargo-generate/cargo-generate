@@ -561,7 +561,10 @@ fn expand_template(
     // run post-hooks
     execute_hooks(&context, &config.get_post_hooks())?;
 
-    // remove all hook and filter files as they are never part of the template output
+    // remove all hook and filter files as they are never part of the template output.
+    // Hook files are configured as relative names, so anchor them to `template_dir`;
+    // `remove_dir_files` checks `Path::exists`, which would otherwise resolve them
+    // against the process CWD (the rhai filter files are already absolute).
     let rhai_filter_files = rhai_filter_files
         .lock()
         .unwrap()
@@ -571,7 +574,7 @@ fn expand_template(
     remove_dir_files(
         all_hook_files
             .into_iter()
-            .map(PathBuf::from)
+            .map(|hook_file| template_dir.join(hook_file))
             .chain(rhai_filter_files),
         false,
     );
