@@ -56,9 +56,21 @@ impl Prompt {
     }
 }
 
-impl<T: AsRef<str>> From<T> for Prompt {
-    fn from(value: T) -> Self {
-        Self::new(value.as_ref(), None)
+impl From<&str> for Prompt {
+    fn from(value: &str) -> Self {
+        Self::new(value, None)
+    }
+}
+
+impl From<String> for Prompt {
+    fn from(value: String) -> Self {
+        Self::new(&value, None)
+    }
+}
+
+impl From<&String> for Prompt {
+    fn from(value: &String) -> Self {
+        Self::new(value, None)
     }
 }
 

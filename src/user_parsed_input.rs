@@ -453,12 +453,39 @@ impl From<GitUserInput> for TemplateLocation {
     }
 }
 
-impl<T> From<T> for TemplateLocation
-where
-    T: AsRef<Path>,
-{
-    fn from(source: T) -> Self {
-        Self::Path(PathBuf::from(source.as_ref()))
+impl From<PathBuf> for TemplateLocation {
+    fn from(source: PathBuf) -> Self {
+        Self::Path(source)
+    }
+}
+
+impl From<&PathBuf> for TemplateLocation {
+    fn from(source: &PathBuf) -> Self {
+        Self::Path(source.clone())
+    }
+}
+
+impl From<&std::path::Path> for TemplateLocation {
+    fn from(source: &std::path::Path) -> Self {
+        Self::Path(PathBuf::from(source))
+    }
+}
+
+impl From<&str> for TemplateLocation {
+    fn from(source: &str) -> Self {
+        Self::Path(PathBuf::from(source))
+    }
+}
+
+impl From<String> for TemplateLocation {
+    fn from(source: String) -> Self {
+        Self::Path(PathBuf::from(source))
+    }
+}
+
+impl From<&String> for TemplateLocation {
+    fn from(source: &String) -> Self {
+        Self::Path(PathBuf::from(source))
     }
 }
 
@@ -470,7 +497,7 @@ mod tests {
     /// returning the resolved git URL from the resulting `TemplateLocation`.
     fn resolve_git_flag(git_value: &str) -> String {
         let args = GenerateArgs {
-            destination: Some(std::path::PathBuf::from("/tmp")),
+            destination: Some(PathBuf::from("/tmp")),
             template_path: crate::TemplatePath {
                 git: Some(git_value.to_owned()),
                 ..crate::TemplatePath::default()
