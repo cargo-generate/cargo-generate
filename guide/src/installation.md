@@ -4,7 +4,7 @@
 By default, cargo-generate uses vendored sources for `libgit2` and OpenSSL that is installed on your system.
 
 ```sh
-cargo install cargo-generate
+cargo install cargo-generate --locked
 ```
 
 This requires the following dependencies on your system:
