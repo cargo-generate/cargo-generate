@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.23.10...HEAD)
 
+## [0.23.13] 2026-06-13
+
+[0.23.13]: https://github.com/cargo-generate/cargo-generate/compare/0.23.12...0.23.13
+
+### 🛠️ Maintenance
+
+- Update cargo install command to use --locked option ([#1695](https://github.com/cargo-generate/cargo-generate/issues/1695))
+- Modify cargo-generate installation command ([#1697](https://github.com/cargo-generate/cargo-generate/issues/1697))
+
+
 ## [0.23.12] 2026-06-12
 
 [0.23.12]: https://github.com/cargo-generate/cargo-generate/compare/0.23.11...0.23.12
