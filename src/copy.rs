@@ -38,7 +38,7 @@ pub fn copy_files_recursively(
             // todo: maybe we better emit a warning but continue processing the other files
             let _ = ui::warning(format!(
                 "{} {} `{}`",
-                crate::emoji::INFO,
+                crate::emoji::WARN,
                 style("[Skipping] Symbolic links not supported")
                     .bold()
                     .red(),

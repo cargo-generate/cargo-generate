@@ -123,7 +123,7 @@ fn handle_string_input(
         }
         bail!(
             "{} {} \"{}\" {}",
-            emoji::INFO,
+            emoji::WARN,
             style("Sorry,").bold().red(),
             style(&value).bold().yellow(),
             style(format!("is not a valid value for {var_name}"))
@@ -197,7 +197,7 @@ fn handle_choice_input(
             } else {
                 bail!(
                     "{} {} \"{}\" {}",
-                    emoji::INFO,
+                    emoji::WARN,
                     style("Sorry,").bold().red(),
                     style(&value).bold().yellow(),
                     style(format!("is not a valid value for {var_name}"))
@@ -273,7 +273,7 @@ fn handle_multi_select_input(
 
             bail!(
                 "{} {} \"{}\" {}",
-                emoji::INFO,
+                emoji::WARN,
                 style("Sorry,").bold().red(),
                 style(&s.join(LIST_SEP)).bold().yellow(),
                 style(err_string).bold().red(),
