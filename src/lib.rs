@@ -40,6 +40,8 @@ mod ignore_me;
 mod include_exclude;
 mod interactive;
 mod project_variables;
+#[cfg(not(feature = "ui-next"))]
+mod progressbar;
 mod template;
 mod template_filters;
 mod template_source;

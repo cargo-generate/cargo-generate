@@ -20,6 +20,7 @@ use crate::template_filters::*;
 use crate::template_variables::{
     get_authors, get_os_arch, Authors, CrateName, ProjectDir, ProjectName,
 };
+#[cfg(feature = "ui-next")]
 use crate::ui;
 use crate::user_parsed_input::UserParsedInput;
 
@@ -112,7 +113,7 @@ fn is_within_cargo_project(project_dir: &Path) -> bool {
         .any(|folder| folder.join("Cargo.toml").exists())
 }
 
-#[allow(clippy::too_many_arguments)]
+#[cfg(feature = "ui-next")]
 enum FileResult {
     Done(String),
     Skipped(String),
@@ -120,6 +121,16 @@ enum FileResult {
     RhaiFilter(String),
 }
 
+fn is_git_metadata(entry: &DirEntry) -> bool {
+    entry
+        .path()
+        .components()
+        .any(|c| c == std::path::Component::Normal(".git".as_ref()))
+}
+
+/// Classic backend: live per-file spinner with `[NNN/TTT]` prefix via
+/// indicatif MultiProgress. Matches the historical cargo-generate output.
+#[cfg(not(feature = "ui-next"))]
 #[allow(clippy::too_many_arguments)]
 pub fn walk_dir(
     template_config: &mut TemplateConfig,
@@ -130,13 +141,151 @@ pub fn walk_dir(
     rhai_filter_files: &Arc<Mutex<Vec<PathBuf>>>,
     quiet: bool,
 ) -> Result<()> {
-    fn is_git_metadata(entry: &DirEntry) -> bool {
-        entry
-            .path()
-            .components()
-            .any(|c| c == std::path::Component::Normal(".git".as_ref()))
+    use crate::progressbar;
+    use indicatif::{ProgressBar, ProgressDrawTarget};
+
+    let matcher = Matcher::new(template_config, project_dir, hook_files)?;
+    let mp = progressbar::new();
+    let spinner_style = progressbar::spinner();
+
+    let mut files_with_errors = Vec::new();
+    let files = WalkDir::new(project_dir)
+        .sort_by_file_name()
+        .contents_first(true)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| !is_git_metadata(e))
+        .filter(|e| e.path() != project_dir)
+        .collect::<Vec<_>>();
+    let total = files.len().to_string();
+    for (progress, entry) in files.into_iter().enumerate() {
+        let pb = mp.add(ProgressBar::new(50));
+        pb.set_style(spinner_style.clone());
+        pb.set_prefix(format!(
+            "[{:width$}/{}]",
+            progress + 1,
+            total,
+            width = total.len()
+        ));
+
+        if quiet {
+            pb.set_draw_target(ProgressDrawTarget::hidden());
+        }
+
+        let filename = entry.path();
+        let relative_path = filename.strip_prefix(project_dir)?;
+        let filename_display = relative_path.display();
+        if rhai_filter_files
+            .lock()
+            .map_err(|_| PoisonError)?
+            .iter()
+            .any(|rhai_filter| relative_path.eq(rhai_filter.as_path()))
+        {
+            pb.finish_with_message(format!(
+                "Skipped: {filename_display} - used as Rhai filter!"
+            ));
+            continue;
+        }
+
+        pb.set_message(format!("Processing: {filename_display}"));
+
+        match matcher.should_include(relative_path) {
+            ShouldInclude::Include => {
+                if entry.file_type().is_file() {
+                    match template_process_file(liquid_object, &rhai_engine, filename) {
+                        Err(e) => {
+                            files_with_errors
+                                .push((relative_path.display().to_string(), e.clone()));
+                        }
+                        Ok(new_contents) => {
+                            let new_filename =
+                                substitute_filename(filename, &rhai_engine, liquid_object)
+                                    .with_context(|| {
+                                        format!(
+                                            "{} {} `{}`",
+                                            emoji::ERROR,
+                                            style("Error templating a filename").bold().red(),
+                                            style(filename.display()).bold()
+                                        )
+                                    })?;
+                            pb.inc(25);
+                            let relative_path = new_filename.strip_prefix(project_dir)?;
+                            let f = relative_path.display();
+                            fs::create_dir_all(new_filename.parent().unwrap()).unwrap();
+                            fs::write(new_filename.as_path(), new_contents).with_context(|| {
+                                format!(
+                                    "{} {} `{}`",
+                                    emoji::ERROR,
+                                    style("Error writing rendered file.").bold().red(),
+                                    style(new_filename.display()).bold()
+                                )
+                            })?;
+                            if filename != new_filename {
+                                fs::remove_file(filename)?;
+                            }
+                            pb.inc(50);
+                            pb.finish_with_message(format!("Done: {f}"));
+                        }
+                    }
+                } else {
+                    let new_filename = substitute_filename(filename, &rhai_engine, liquid_object)?;
+                    let relative_path = new_filename.strip_prefix(project_dir)?;
+                    let f = relative_path.display();
+                    pb.inc(50);
+                    if filename != new_filename {
+                        fs::remove_dir_all(filename)?;
+                    }
+                    pb.inc(50);
+                    pb.finish_with_message(format!("Done: {f}"));
+                }
+            }
+            ShouldInclude::Exclude => {
+                let new_filename = substitute_filename(filename, &rhai_engine, liquid_object)?;
+                let mut f = filename_display;
+                if filename != new_filename {
+                    let relative_path = new_filename.strip_prefix(project_dir)?;
+                    f = relative_path.display();
+                    fs::create_dir_all(new_filename.parent().unwrap()).unwrap();
+                    fs::copy(filename, new_filename.as_path()).with_context(|| {
+                        format!(
+                            "{} {} `{}`",
+                            emoji::ERROR,
+                            style("Error copying file.").bold().red(),
+                            style(new_filename.display()).bold()
+                        )
+                    })?;
+                    pb.inc(50);
+                    fs::remove_file(filename)?;
+                    pb.inc(50);
+                }
+                pb.finish_with_message(format!("Skipped: {f}"));
+            }
+            ShouldInclude::Ignore => {
+                pb.finish_with_message(format!("Ignored: {filename_display}"));
+            }
+        }
     }
 
+    if files_with_errors.is_empty() {
+        Ok(())
+    } else {
+        bail!(print_files_with_errors_warning(files_with_errors))
+    }
+}
+
+/// ui-next backend: batch the per-file outcome into a single cliclack note
+/// box at the end of the walk so it plays nice with the surrounding frame.
+#[cfg(feature = "ui-next")]
+#[allow(clippy::too_many_arguments)]
+pub fn walk_dir(
+    template_config: &mut TemplateConfig,
+    project_dir: &Path,
+    hook_files: &[String],
+    liquid_object: &LiquidObjectResource,
+    rhai_engine: Parser,
+    rhai_filter_files: &Arc<Mutex<Vec<PathBuf>>>,
+    quiet: bool,
+) -> Result<()> {
     let matcher = Matcher::new(template_config, project_dir, hook_files)?;
 
     let mut files_with_errors = Vec::new();
@@ -155,8 +304,6 @@ pub fn walk_dir(
         let relative_path = filename.strip_prefix(project_dir)?;
         let filename_display = relative_path.display().to_string();
 
-        // Attempt to NOT process files used as liquid rhai filters.
-        // Only works if filter file has been used before an attempt to process it!
         if rhai_filter_files
             .lock()
             .map_err(|_| PoisonError)?
