@@ -12,14 +12,14 @@ fn it_can_use_a_plain_folder() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(
+        .stderr(
             predicates::str::contains(format!(
                 "Favorite `{}` not found in config, using it as a local path",
                 template.path().display()
             ))
+            .and(predicates::str::contains("Done!"))
             .from_utf8(),
-        )
-        .stderr(predicates::str::contains("Done!").from_utf8());
+        );
 
     let repo = git2::Repository::open(dir.path().join("foobar-project")).unwrap();
     let references = repo.references().unwrap().count();

@@ -9,8 +9,7 @@ use std::{
 use crate::absolute_path::AbsolutePathExt;
 use console::style;
 
-use crate::{app_config::AppConfig, template_variables::CrateType, GenerateArgs, Vcs};
-use log::warn;
+use crate::{app_config::AppConfig, template_variables::CrateType, ui, GenerateArgs, Vcs};
 
 #[derive(Debug)]
 #[cfg(test)]
@@ -248,7 +247,6 @@ impl UserParsedInput {
         let clone_opts = clone_opts_from_args(args, ssh_identity);
         let temp_location = source.into_template_location(&clone_opts);
 
-        // Print information about what happened (preserve the existing warn!)
         let location_msg = match &temp_location {
             TemplateLocation::Git(git_user_input) => {
                 format!("git repository: {}", style(git_user_input.url()).bold())
@@ -257,11 +255,11 @@ impl UserParsedInput {
                 format!("local path: {}", style(path.display()).bold())
             }
         };
-        warn!(
+        let _ = ui::warning(format!(
             "Favorite `{}` not found in config, using it as a {}",
             style(&fav_name).bold(),
             location_msg
-        );
+        ));
 
         Self {
             name: args.name.clone(),
