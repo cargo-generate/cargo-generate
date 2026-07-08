@@ -266,6 +266,13 @@ pub fn walk_dir(
         }
     }
 
+    // finish_with_message leaves the cursor at end-of-line (wide_msg template
+    // fills to terminal width). Without an explicit newline the next status
+    // line from lib.rs would glue itself to the last pb line.
+    if !quiet {
+        eprintln!();
+    }
+
     if files_with_errors.is_empty() {
         Ok(())
     } else {
