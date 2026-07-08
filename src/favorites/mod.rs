@@ -2,13 +2,13 @@
 //! feature.
 
 #[cfg(not(feature = "ui-next"))]
-mod classic;
+mod ui_classic;
 #[cfg(feature = "ui-next")]
-mod next;
+mod ui_next;
 
 #[cfg(not(feature = "ui-next"))]
 #[allow(deprecated)]
-pub use classic::*;
+pub use ui_classic::*;
 
 #[cfg(feature = "ui-next")]
-pub use next::*;
+pub use ui_next::*;

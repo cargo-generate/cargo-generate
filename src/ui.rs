@@ -1,15 +1,15 @@
 //! Thin facade around status-style output.
 //!
 //! Two backends are available:
-//! - `classic` (default): plain println/eprintln with `console` styling.
-//! - `next` (behind the `ui-next` feature): [`cliclack`] structured output.
+//! - `ui_classic` (default): plain println/eprintln with `console` styling.
+//! - `ui_next` (behind the `ui-next` feature): [`cliclack`] structured output.
 //!
 //! Public entry points keep identical signatures so call-sites don't branch.
 
 use anyhow::Result;
 
 #[cfg(not(feature = "ui-next"))]
-mod classic {
+mod ui_classic {
     use super::Result;
     use crate::emoji;
     use console::style;
@@ -51,7 +51,7 @@ mod classic {
 }
 
 #[cfg(feature = "ui-next")]
-mod next {
+mod ui_next {
     use super::Result;
 
     pub fn intro(msg: impl AsRef<str>) -> Result<()> {
@@ -86,6 +86,6 @@ mod next {
 }
 
 #[cfg(not(feature = "ui-next"))]
-pub use classic::*;
+pub use ui_classic::*;
 #[cfg(feature = "ui-next")]
-pub use next::*;
+pub use ui_next::*;
