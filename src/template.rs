@@ -247,7 +247,7 @@ pub fn walk_dir(
             .iter()
             .enumerate()
             .map(|(i, r)| {
-                let counter = style(format!("[{:width$}/{total}]", i + 1)).dim();
+                let counter = style(format!("[{:0width$}/{total:0width$}]", i + 1)).dim();
                 match r {
                     FileResult::Done(f) => format!("  {counter} {}  {f}", style("●").green()),
                     FileResult::Skipped(f) => {
