@@ -242,7 +242,7 @@ pub fn walk_dir(
 
     if !quiet {
         let total = results.len();
-        let width = total.to_string().len();
+        let width = total.to_string().len().max(3);
         let lines: String = results
             .iter()
             .enumerate()
