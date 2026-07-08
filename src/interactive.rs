@@ -1,13 +1,14 @@
 use crate::{
     emoji,
     project_variables::{ArrayEntry, Prompt, StringEntry, StringKind, TemplateSlots, VarInfo},
+    ui,
 };
 use anyhow::{anyhow, bail, Result};
 use console::style;
 use liquid_core::Value;
 use std::{
     borrow::Cow,
-    io::{stdin, Read, Write},
+    io::{stdin, Read},
     str::FromStr,
 };
 
@@ -35,22 +36,15 @@ pub fn user_question(
     kind: &StringKind,
 ) -> Result<String> {
     match kind {
-        StringKind::String => {
-            let mut input = cliclack::input(&prompt.raw);
-            if let Some(s) = default {
-                input = input.default_input(s).placeholder(s);
-            }
-            let result: String = input.interact()?;
-            Ok(result)
-        }
+        StringKind::String => ui::input(&prompt.raw, default.as_deref(), None),
         StringKind::Editor => {
-            cliclack::log::info(format!("{} (in Editor)", &prompt.raw))?;
-            open_editor(&prompt.with_default)?
+            ui::info(format!("{} (in Editor)", &prompt.raw))?;
+            ui::editor(&prompt.with_default)?
                 .or_else(|| default.clone())
                 .ok_or_else(|| anyhow!("Aborted Editor without saving!"))
         }
         StringKind::Text => {
-            cliclack::log::info(format!("{} (press Ctrl+d to stop reading)", &prompt.raw))?;
+            ui::info(format!("{} (press Ctrl+d to stop reading)", &prompt.raw))?;
             let mut buffer = String::new();
             stdin().read_to_string(&mut buffer)?;
             Ok(buffer)
@@ -140,23 +134,18 @@ fn handle_string_input(
 
     match &entry.kind {
         StringKind::String => {
-            let mut input = cliclack::input(&prompt.raw);
-            if let Some(s) = &entry.default {
-                input = input.default_input(s).placeholder(s);
-            }
-            if let Some(regex) = &entry.regex {
-                let regex = regex.clone();
+            let validator = entry.regex.clone().map(|regex| {
                 let vn = var_name.to_string();
-                input = input.validate(move |val: &String| {
+                let v: ui::Validator = Box::new(move |val: &str| {
                     if regex.is_match(val) {
                         Ok(())
                     } else {
-                        Err(format!("\"{}\" is not a valid value for {}", val, vn))
+                        Err(format!("\"{val}\" is not a valid value for {vn}"))
                     }
                 });
-            }
-            let result: String = input.interact()?;
-            Ok(result)
+                v
+            });
+            ui::input(&prompt.raw, entry.default.as_deref(), validator)
         }
         kind @ (StringKind::Editor | StringKind::Text) => {
             let mut prompt: Cow<'_, Prompt> = Cow::Borrowed(prompt);
@@ -178,7 +167,7 @@ fn handle_string_input(
                             );
                         }
                         _ => {
-                            cliclack::log::warning(format!(
+                            ui::warning(format!(
                                 "\"{}\" is not a valid value for {}",
                                 &user_entry, var_name
                             ))?;
@@ -218,25 +207,12 @@ fn handle_choice_input(
             }
         }
         None => {
-            let default_value = entry
+            let initial = entry
                 .default
                 .as_ref()
-                .and_then(|d| choices.iter().find(|c| *c == d).cloned())
-                .unwrap_or_else(|| choices[0].clone());
-
-            let mut select = cliclack::select(&prompt.raw);
-            for choice in choices {
-                let hint = if *choice == default_value {
-                    "default"
-                } else {
-                    ""
-                };
-                select = select.item(choice.clone(), choice, hint);
-            }
-            select = select.initial_value(default_value);
-
-            let chosen: String = select.interact()?;
-            Ok(chosen)
+                .and_then(|d| choices.iter().position(|c| c == d))
+                .unwrap_or(0);
+            ui::select(&prompt.raw, choices, initial)
         }
     }
 }
@@ -274,26 +250,14 @@ fn handle_multi_select_input(
     prompt: &Prompt,
 ) -> Result<String> {
     let val = match provided_value {
-        // value is just provided
         Some(value) => value,
-        // no value is provided so we have to be smarter
         None => {
-            let mut ms = cliclack::multiselect(&prompt.raw).required(false);
-            for choice in &entry.choices {
-                let is_default = entry.default.as_ref().is_some_and(|d| d.contains(choice));
-                let hint = if is_default { "default" } else { "" };
-                ms = ms.item(choice.clone(), choice, hint);
-            }
-            if let Some(defaults) = &entry.default {
-                let initial: Vec<String> = defaults
-                    .iter()
-                    .filter(|d| entry.choices.contains(d))
-                    .cloned()
-                    .collect();
-                ms = ms.initial_values(initial);
-            }
-
-            let chosen: Vec<String> = ms.interact()?;
+            let flags: Vec<bool> = entry
+                .choices
+                .iter()
+                .map(|c| entry.default.as_ref().is_some_and(|d| d.contains(c)))
+                .collect();
+            let chosen = ui::multiselect(&prompt.raw, &entry.choices, &flags)?;
             chosen.join(LIST_SEP)
         }
     };
@@ -329,41 +293,9 @@ fn handle_bool_input(
             Ok(value.to_string())
         }
         None => {
-            let chosen: bool = cliclack::confirm(&prompt.raw)
-                .initial_value(default.unwrap_or(false))
-                .interact()?;
+            let chosen = ui::confirm(&prompt.raw, default.unwrap_or(false))?;
             Ok(chosen.to_string())
         }
-    }
-}
-
-fn open_editor(initial_content: &str) -> Result<Option<String>> {
-    let editor = std::env::var("VISUAL")
-        .or_else(|_| std::env::var("EDITOR"))
-        .unwrap_or_else(|_| {
-            if cfg!(windows) {
-                "notepad".to_string()
-            } else {
-                "vi".to_string()
-            }
-        });
-
-    let mut tmp = tempfile::Builder::new().suffix(".txt").tempfile()?;
-    write!(tmp, "{}", initial_content)?;
-    tmp.flush()?;
-
-    let path = tmp.path().to_owned();
-    let status = std::process::Command::new(&editor).arg(&path).status()?;
-
-    if !status.success() {
-        return Ok(None);
-    }
-
-    let content = fs_err::read_to_string(&path)?;
-    if content == initial_content {
-        Ok(None)
-    } else {
-        Ok(Some(content))
     }
 }
 

@@ -2,7 +2,7 @@
 
 use crate::{
     app_config::{app_config_path, AppConfig, FavoriteConfig},
-    GenerateArgs,
+    ui, GenerateArgs,
 };
 use anyhow::Result;
 
@@ -28,7 +28,7 @@ pub fn list_favorites(args: &GenerateArgs) -> Result<()> {
     };
 
     if data.is_empty() {
-        cliclack::log::warning("No favorites defined")?;
+        ui::warning("No favorites defined")?;
         return Ok(());
     }
 
@@ -48,7 +48,7 @@ pub fn list_favorites(args: &GenerateArgs) -> Result<()> {
             )
         })
         .collect();
-    cliclack::note("Favorites", lines.join("\n"))?;
+    ui::note("Favorites", lines.join("\n"))?;
 
     Ok(())
 }
