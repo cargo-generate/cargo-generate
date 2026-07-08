@@ -30,19 +30,19 @@ mod classic {
     }
 
     pub fn info(msg: impl AsRef<str>) -> Result<()> {
-        eprintln!("{} {}", emoji::DIAMOND, msg.as_ref());
+        eprintln!("{} {}", emoji::INFO, msg.as_ref());
         Ok(())
     }
 
     pub fn warning(msg: impl AsRef<str>) -> Result<()> {
-        eprintln!("{} {}", emoji::WARN, style(msg.as_ref()).yellow());
+        eprintln!("{} {}", emoji::INFO, style(msg.as_ref()).yellow());
         Ok(())
     }
 
     pub fn note(title: impl AsRef<str>, content: impl AsRef<str>) -> Result<()> {
         eprintln!(
             "\n{} {}\n{}\n",
-            emoji::DIAMOND,
+            emoji::INFO,
             style(title.as_ref()).bold().cyan(),
             content.as_ref()
         );
