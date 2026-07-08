@@ -240,15 +240,26 @@ pub fn walk_dir(
         }
     }
 
-    // Show file results in a cliclack note box
     if !quiet {
+        let total = results.len();
+        let width = total.to_string().len();
         let lines: String = results
             .iter()
-            .map(|r| match r {
-                FileResult::Done(f) => format!("  {}  {f}", style("●").green()),
-                FileResult::Skipped(f) => format!("  {}  {f} (skipped)", style("○").dim()),
-                FileResult::Ignored(f) => format!("  {}  {f} (ignored)", style("○").dim()),
-                FileResult::RhaiFilter(f) => format!("  {}  {f} (rhai filter)", style("○").dim()),
+            .enumerate()
+            .map(|(i, r)| {
+                let counter = style(format!("[{:width$}/{total}]", i + 1)).dim();
+                match r {
+                    FileResult::Done(f) => format!("  {counter} {}  {f}", style("●").green()),
+                    FileResult::Skipped(f) => {
+                        format!("  {counter} {}  {f} (skipped)", style("○").dim())
+                    }
+                    FileResult::Ignored(f) => {
+                        format!("  {counter} {}  {f} (ignored)", style("○").dim())
+                    }
+                    FileResult::RhaiFilter(f) => {
+                        format!("  {counter} {}  {f} (rhai filter)", style("○").dim())
+                    }
+                }
             })
             .collect::<Vec<_>>()
             .join("\n");
