@@ -27,12 +27,12 @@ fn it_uses_ssh_identity_from_defaults_config() {
         .current_dir(working_dir.path())
         .assert()
         .success()
-        .stdout(
+        .stderr(
             predicates::str::contains("Using private key: ")
                 .and(predicates::str::contains("fake_ssh_identity"))
+                .and(predicates::str::contains("Done!"))
                 .from_utf8(),
-        )
-        .stderr(predicates::str::contains("Done!").from_utf8());
+        );
 
     assert!(working_dir
         .read("foo/Cargo.toml")

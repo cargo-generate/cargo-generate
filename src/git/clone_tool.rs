@@ -13,6 +13,7 @@ fn interactive_auth_allowed() -> bool {
 }
 
 use crate::emoji::WRENCH;
+use crate::ui;
 
 use super::gitconfig;
 use super::gitconfig::find_gitconfig;
@@ -84,14 +85,14 @@ impl<'cb> RepoCloneBuilder<'cb> {
     pub fn with_ssh_identity(mut self, identity_path: Option<&Path>) -> Result<Self> {
         if let Some(identity_path) = identity_path {
             let identity_path = utils::canonicalize_path(identity_path)?;
-            log::info!(
+            let _ = ui::info(format!(
                 "{} `{}` {}",
                 style("Using private key:").bold(),
                 style(format_args!("{}", identity_path.display()))
                     .bold()
                     .yellow(),
                 style("for git-ssh checkout").bold()
-            );
+            ));
 
             let interactive = self.interactive;
             self.authenticator = self

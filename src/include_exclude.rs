@@ -1,7 +1,7 @@
 use crate::config::{TemplateConfig, CONFIG_FILE_NAME};
 use anyhow::Result;
 use ignore::gitignore::{Gitignore, GitignoreBuilder};
-use log::warn;
+use crate::ui;
 use std::path::Path;
 
 #[derive(Default)]
@@ -26,11 +26,11 @@ impl Matcher {
     ) -> Result<Self> {
         if template_config.include.is_some() && template_config.exclude.is_some() {
             template_config.exclude = None;
-            warn!(
+            let _ = ui::warning(format!(
                 "Your {CONFIG_FILE_NAME} contains both an include and exclude list. \
                     Only the include list will be considered. \
                     You should remove the exclude list for clarity"
-            )
+            ));
         }
 
         let kind = match (&template_config.exclude, &template_config.include) {

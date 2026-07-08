@@ -1,6 +1,8 @@
 use anyhow::{bail, Ok, Result};
 use console::style;
-use log::{debug, warn};
+use log::debug;
+
+use crate::ui;
 use std::{
     fs::{copy, read_dir, remove_file},
     path::Path,
@@ -34,14 +36,14 @@ pub fn copy_files_recursively(
             copy_file(&src_entry.path(), dst_path, overwrite)?;
         } else {
             // todo: maybe we better emit a warning but continue processing the other files
-            warn!(
+            let _ = ui::warning(format!(
                 "{} {} `{}`",
                 crate::emoji::WARN,
                 style("[Skipping] Symbolic links not supported")
                     .bold()
                     .red(),
                 style(src_entry.path().display()).bold(),
-            )
+            ));
         }
     }
 
@@ -110,12 +112,12 @@ fn safe_copy(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
 /// It does not error if the file already exists.
 fn safe_copy_skip_existing(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
     if dst_path.exists() && !overwrite {
-        warn!(
+        let _ = ui::warning(format!(
             "{} `{}` {}",
             style("[Skipping] File already exists").bold().yellow(),
             style(dst_path.display()).bold(),
             style("and `--overwrite` was not passed")
-        );
+        ));
         return Ok(());
     }
 

@@ -8,7 +8,7 @@ use console::style;
 
 use crate::template_variables::project_name::sanitize_project_name;
 use crate::{emoji, user_parsed_input::UserParsedInput};
-use log::warn;
+use crate::ui;
 
 use super::project_name_input::ProjectNameInput;
 
@@ -51,14 +51,14 @@ impl TryFrom<(&ProjectNameInput, &UserParsedInput)> for ProjectDir {
             {
                 let renamed_project_name = sanitize_project_name(name.as_str());
                 if renamed_project_name != name {
-                    warn!(
+                    let _ = ui::warning(format!(
                         "{} `{}` {} `{}`{}",
                         style("Renaming project called").bold(),
                         style(name).bold().yellow(),
                         style("to").bold(),
                         style(&renamed_project_name).bold().green(),
                         style("...").bold()
-                    );
+                    ));
                 }
                 renamed_project_name
             }

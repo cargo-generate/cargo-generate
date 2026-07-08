@@ -5,7 +5,7 @@ use std::{
 };
 
 use anyhow::{anyhow, bail, Context, Result};
-use log::warn;
+use crate::ui;
 
 #[derive(Debug, PartialEq)]
 pub enum WorkspaceMemberStatus {
@@ -71,10 +71,10 @@ impl Workspace {
         };
 
         if members.contains(&member.name) {
-            warn!(
+            let _ = ui::warning(format!(
                 "Project `{}` is already a member of the workspace",
                 member.name
-            );
+            ));
             return Ok(());
         }
 

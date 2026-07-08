@@ -1,5 +1,5 @@
 use ignore::WalkBuilder;
-use log::{info, warn};
+use crate::ui;
 use remove_dir_all::*;
 use std::fs::remove_file;
 use std::{
@@ -86,18 +86,18 @@ pub fn remove_dir_files(files: impl IntoIterator<Item = impl Into<PathBuf>>, ver
         if item.is_dir() {
             remove_dir_all(&item).unwrap();
             if verbose {
-                info!("{ignore_message}");
+                let _ = ui::info(&ignore_message);
             }
         } else if item.is_file() {
             remove_file(&item).unwrap();
             if verbose {
-                info!("{ignore_message}");
+                let _ = ui::info(&ignore_message);
             }
         } else {
-            warn!(
+            let _ = ui::warning(format!(
                 "The given paths are neither files nor directories! {}",
                 &item.display()
-            );
+            ));
         }
     }
 }

@@ -417,7 +417,7 @@ fn it_prints_ignored_files_with_verbose() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("deleteme.trash").from_utf8());
+        .stderr(predicates::str::contains("deleteme.trash").from_utf8());
 }
 
 #[test]

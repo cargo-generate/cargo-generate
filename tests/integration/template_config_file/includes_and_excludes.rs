@@ -148,8 +148,11 @@ fn it_warns_on_include_and_exclude_in_config() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("both").from_utf8())
-        .stderr(predicates::str::contains("Done!").from_utf8());
+        .stderr(
+            predicates::str::contains("both")
+                .and(predicates::str::contains("Done!"))
+                .from_utf8(),
+        );
 
     assert!(dir
         .read("foobar-project/Cargo.toml")
