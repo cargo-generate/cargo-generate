@@ -8,7 +8,6 @@ use std::{
 
 use crate::absolute_path::AbsolutePathExt;
 use console::style;
-use regex::Regex;
 
 use crate::{app_config::AppConfig, template_variables::CrateType, GenerateArgs, Vcs};
 use log::warn;
@@ -101,6 +100,8 @@ impl UserParsedInput {
             })
             .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
 
+        let cwd = env::current_dir().unwrap_or_else(|_| ".".into());
+
         let mut default_values = app_config.values.clone().unwrap_or_default();
 
         let ssh_identity = app_config
@@ -118,29 +119,15 @@ impl UserParsedInput {
 
         // --git
         if let Some(git_url) = args.template_path.git() {
-            let resolved_url = abbreviated_git_url_to_full_remote(git_url.as_ref())
-                .or_else(|| {
-                    // Only try org/repo → github expansion when the value isn't a local path
-                    if local_path(git_url.as_ref()).is_none() {
-                        abbreviated_github(git_url.as_ref())
-                    } else {
-                        None
-                    }
-                })
-                .unwrap_or_else(|| git_url.as_ref().to_owned());
-            let git_user_in = GitUserInput::new(
-                &resolved_url,
-                args.template_path.branch(),
-                args.template_path.tag(),
-                args.template_path.revision(),
-                ssh_identity,
-                args.gitconfig.clone(),
-                args.force_git_init,
-                args.skip_submodules,
+            let source = crate::template_source::TemplateSource::classify(
+                git_url.as_ref(),
+                &app_config,
+                &cwd,
             );
+            let clone_opts = clone_opts_from_args(args, ssh_identity.clone());
             return Self {
                 name: args.name.clone(),
-                template_location: git_user_in.into(),
+                template_location: source.into_git_template_location(&clone_opts),
                 subfolder: args
                     .template_path
                     .subfolder()
@@ -256,42 +243,12 @@ impl UserParsedInput {
         }
 
         // there is no specified favorite in configuration
-        // this part try to guess what user wanted in order:
+        // auto_path with no configured favorite name → classify it
+        let source = crate::template_source::TemplateSource::classify(fav_name, &app_config, &cwd);
+        let clone_opts = clone_opts_from_args(args, ssh_identity);
+        let temp_location = source.into_template_location(&clone_opts);
 
-        // 1. look for abbreviations like gh:, gl: etc.
-        let temp_location = abbreviated_git_url_to_full_remote(fav_name).map(|git_url| {
-            let git_user_in = GitUserInput::with_git_url_and_args(&git_url, args);
-            TemplateLocation::from(git_user_in)
-        });
-
-        // 2. check if template directory exist
-        let temp_location =
-            temp_location.or_else(|| local_path(fav_name).map(TemplateLocation::from));
-
-        // 3. check if the input is in form org/repo<> (map to github)
-        let temp_location = temp_location.or_else(|| {
-            abbreviated_github(fav_name).map(|git_url| {
-                let git_user_in = GitUserInput::with_git_url_and_args(&git_url, args);
-                TemplateLocation::from(git_user_in)
-            })
-        });
-
-        // 4. assume user wanted use --git
-        let temp_location = temp_location.unwrap_or_else(|| {
-            let git_user_in = GitUserInput::new(
-                &fav_name,
-                args.template_path.branch(),
-                args.template_path.tag(),
-                args.template_path.revision(),
-                ssh_identity,
-                args.gitconfig.clone(),
-                args.force_git_init,
-                args.skip_submodules,
-            );
-            TemplateLocation::from(git_user_in)
-        });
-
-        // Print information what happened to user
+        // Print information about what happened (preserve the existing warn!)
         let location_msg = match &temp_location {
             TemplateLocation::Git(git_user_input) => {
                 format!("git repository: {}", style(git_user_input.url()).bold())
@@ -388,41 +345,6 @@ impl UserParsedInput {
     }
 }
 
-/// favorite can be in form with abbreviation what means that input is git repository
-/// if so, the 3rd character would be a semicolon
-pub fn abbreviated_git_url_to_full_remote(git: impl AsRef<str>) -> Option<String> {
-    let git = git.as_ref();
-    if git.len() >= 3 {
-        match &git[..3] {
-            "gl:" => Some(format!("https://gitlab.com/{}.git", &git[3..])),
-            "bb:" => Some(format!("https://bitbucket.org/{}.git", &git[3..])),
-            "gh:" => Some(format!("https://github.com/{}.git", &git[3..])),
-            "sr:" => Some(format!("https://git.sr.ht/~{}", &git[3..])),
-            short_cut_maybe if is_abbreviated_github(short_cut_maybe) => {
-                Some(format!("https://github.com/{short_cut_maybe}.git"))
-            }
-            _ => None,
-        }
-    } else {
-        None
-    }
-}
-
-fn is_abbreviated_github(fav: &str) -> bool {
-    let org_repo_regex = Regex::new(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_%-]+$").unwrap();
-    org_repo_regex.is_match(fav)
-}
-
-// favorite can be in form of org/repo what should be parsed as github.com
-pub fn abbreviated_github(fav: &str) -> Option<String> {
-    is_abbreviated_github(fav).then(|| format!("https://github.com/{fav}.git"))
-}
-
-pub fn local_path(fav: &str) -> Option<PathBuf> {
-    let path = PathBuf::from(fav);
-    (path.exists() && path.is_dir()).then_some(path)
-}
-
 // Template should be cloned with git
 #[derive(Debug)]
 pub struct GitUserInput {
@@ -460,17 +382,21 @@ impl GitUserInput {
         }
     }
 
-    // when git was used as abbreviation but other flags still could be passed
-    fn with_git_url_and_args(url: &impl AsRef<str>, args: &GenerateArgs) -> Self {
+    /// Build a `GitUserInput` from a resolved URL and the cargo-generate
+    /// clone options. Used by `TemplateSource::into_template_location`.
+    pub fn with_url_and_clone_opts(
+        url: String,
+        opts: &crate::template_source::CloneOptions,
+    ) -> Self {
         Self::new(
-            url,
-            args.template_path.branch(),
-            args.template_path.tag(),
-            args.template_path.revision(),
-            args.ssh_identity.clone(),
-            args.gitconfig.clone(),
-            args.force_git_init,
-            args.skip_submodules,
+            &url,
+            opts.branch.as_ref(),
+            opts.tag.as_ref(),
+            opts.revision.as_ref(),
+            opts.ssh_identity.clone(),
+            opts.gitconfig.clone(),
+            opts.force_git_init,
+            opts.skip_submodules,
         )
     }
 
@@ -499,6 +425,21 @@ impl GitUserInput {
     }
 }
 
+fn clone_opts_from_args(
+    args: &GenerateArgs,
+    ssh_identity: Option<PathBuf>,
+) -> crate::template_source::CloneOptions {
+    crate::template_source::CloneOptions {
+        branch: args.template_path.branch().map(|s| s.as_ref().to_owned()),
+        tag: args.template_path.tag().map(|s| s.as_ref().to_owned()),
+        revision: args.template_path.revision().map(|s| s.as_ref().to_owned()),
+        ssh_identity,
+        gitconfig: args.gitconfig.clone(),
+        force_git_init: args.force_git_init,
+        skip_submodules: args.skip_submodules,
+    }
+}
+
 // Distinguish between plain copy and clone
 #[derive(Debug)]
 pub enum TemplateLocation {
@@ -512,12 +453,39 @@ impl From<GitUserInput> for TemplateLocation {
     }
 }
 
-impl<T> From<T> for TemplateLocation
-where
-    T: AsRef<Path>,
-{
-    fn from(source: T) -> Self {
-        Self::Path(PathBuf::from(source.as_ref()))
+impl From<PathBuf> for TemplateLocation {
+    fn from(source: PathBuf) -> Self {
+        Self::Path(source)
+    }
+}
+
+impl From<&PathBuf> for TemplateLocation {
+    fn from(source: &PathBuf) -> Self {
+        Self::Path(source.clone())
+    }
+}
+
+impl From<&std::path::Path> for TemplateLocation {
+    fn from(source: &std::path::Path) -> Self {
+        Self::Path(PathBuf::from(source))
+    }
+}
+
+impl From<&str> for TemplateLocation {
+    fn from(source: &str) -> Self {
+        Self::Path(PathBuf::from(source))
+    }
+}
+
+impl From<String> for TemplateLocation {
+    fn from(source: String) -> Self {
+        Self::Path(PathBuf::from(source))
+    }
+}
+
+impl From<&String> for TemplateLocation {
+    fn from(source: &String) -> Self {
+        Self::Path(PathBuf::from(source))
     }
 }
 
@@ -525,41 +493,11 @@ where
 mod tests {
     use super::*;
 
-    #[test]
-    fn should_support_colon_abbreviations() {
-        assert_eq!(
-            &abbreviated_git_url_to_full_remote("gh:foo/bar").unwrap(),
-            "https://github.com/foo/bar.git"
-        );
-        assert_eq!(
-            &abbreviated_git_url_to_full_remote("bb:foo/bar").unwrap(),
-            "https://bitbucket.org/foo/bar.git"
-        );
-        assert_eq!(
-            &abbreviated_git_url_to_full_remote("gl:foo/bar").unwrap(),
-            "https://gitlab.com/foo/bar.git"
-        );
-        assert_eq!(
-            &abbreviated_git_url_to_full_remote("sr:foo/bar").unwrap(),
-            "https://git.sr.ht/~foo/bar"
-        );
-        assert!(&abbreviated_git_url_to_full_remote("foo/bar").is_none());
-    }
-
-    #[test]
-    fn should_appreviation_org_repo_to_github() {
-        assert_eq!(
-            &abbreviated_github("org/repo").unwrap(),
-            "https://github.com/org/repo.git"
-        );
-        assert!(&abbreviated_github("path/to/a/sth").is_none());
-    }
-
     /// Helper to build a `GenerateArgs` with `--git <value>` and resolve via `try_from_args_and_config`,
     /// returning the resolved git URL from the resulting `TemplateLocation`.
     fn resolve_git_flag(git_value: &str) -> String {
         let args = GenerateArgs {
-            destination: Some(std::path::PathBuf::from("/tmp")),
+            destination: Some(PathBuf::from("/tmp")),
             template_path: crate::TemplatePath {
                 git: Some(git_value.to_owned()),
                 ..crate::TemplatePath::default()
@@ -628,29 +566,57 @@ mod tests {
     }
 
     #[test]
-    fn git_flag_local_path_takes_precedence_over_org_repo() {
-        // When --git receives a value matching org/repo that also exists as a
-        // local directory, it must be kept as-is rather than expanded to github.
-        let workspace = tempfile::TempDir::new().unwrap();
-        std::fs::create_dir_all(workspace.path().join("myorg/myrepo")).unwrap();
-
+    fn git_flag_relative_path_resolves_to_local_directory() {
+        // When --git receives a relative path like `./example-templates/hooks`
+        // that exists as a local directory, it must remain a Git location so
+        // that branch/tag/ssh-identity options are honoured (git clone accepts
+        // file-system paths). It must NOT be expanded to a remote URL.
+        // `cargo test` sets cwd to the crate root, so this path resolves.
         let args = GenerateArgs {
-            destination: Some(workspace.path().to_path_buf()),
             template_path: crate::TemplatePath {
-                git: Some("myorg/myrepo".to_owned()),
+                git: Some("./example-templates/hooks".to_owned()),
                 ..crate::TemplatePath::default()
             },
             ..GenerateArgs::default()
         };
 
-        // set cwd so that local_path("myorg/myrepo") finds the directory
-        std::env::set_current_dir(workspace.path()).unwrap();
         let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
-        // restore to a known-good directory (avoids poisoning other tests)
-        std::env::set_current_dir(std::env::temp_dir()).unwrap();
 
         match parsed.location() {
-            TemplateLocation::Git(git) => assert_eq!(git.url(), "myorg/myrepo"),
+            TemplateLocation::Git(git) => {
+                assert!(
+                    git.url().ends_with("example-templates/hooks"),
+                    "expected url ending in example-templates/hooks, got {}",
+                    git.url()
+                );
+            }
+            TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
+        }
+    }
+
+    #[test]
+    fn git_flag_local_path_takes_precedence_over_org_repo() {
+        // When --git receives a value matching the org/repo shape that also
+        // exists as a local directory, it must be kept as a Git location rather
+        // than expanded to github. `example-templates/hooks` doubles as a real
+        // path under the crate root and a valid `org/repo` shape.
+        let args = GenerateArgs {
+            template_path: crate::TemplatePath {
+                git: Some("example-templates/hooks".to_owned()),
+                ..crate::TemplatePath::default()
+            },
+            ..GenerateArgs::default()
+        };
+
+        let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
+        match parsed.location() {
+            TemplateLocation::Git(git) => {
+                assert!(
+                    git.url().ends_with("example-templates/hooks"),
+                    "expected url ending in example-templates/hooks, got {}",
+                    git.url()
+                );
+            }
             TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
         }
     }

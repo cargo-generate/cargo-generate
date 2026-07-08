@@ -937,13 +937,32 @@ fn error_message_for_invalid_repo_or_user() {
     let dir = tempdir().build();
 
     binary()
-        .arg_git("sassman/cli-template-rs-xx")
+        .arg_git("my-org/my-repo")
         .arg_name("favorite-project")
         .current_dir(dir.path())
         .assert()
         .failure()
         .stderr(
             predicates::str::contains(r#"Please check if the Git user / repository exists"#)
+                .from_utf8(),
+        );
+}
+
+#[test]
+fn test_flag_with_github_shorthand_clones_remote() {
+    // `cargo generate <owner/repo> --test` should attempt a github clone
+    // when no matching local directory exists. We assert the failure mode
+    // is "git user / repository not found" (clone attempted), NOT
+    // "No such file or directory" (treated as a local path).
+    let dir = tempdir().build();
+    binary()
+        .arg("not-a-real-org/definitely-does-not-exist")
+        .arg("--test")
+        .current_dir(dir.path())
+        .assert()
+        .failure()
+        .stderr(
+            predicates::str::contains("Please check if the Git user / repository exists")
                 .from_utf8(),
         );
 }

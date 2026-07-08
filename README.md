@@ -36,7 +36,7 @@ GitHub.
 ### Installation
 
 ```sh
-cargo install cargo-generate
+cargo install cargo-generate --locked
 ```
 
 or if you have [no time, use cargo-binstall](https://github.com/cargo-bins/cargo-binstall):

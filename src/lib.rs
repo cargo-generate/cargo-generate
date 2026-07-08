@@ -1,4 +1,8 @@
 #![doc = include_str!("../README.md")]
+// The classic UI (default backend) is marked #[deprecated] so downstream
+// consumers see the signal. Internal call-sites use whichever backend is
+// active, so silence the propagation here.
+#![allow(deprecated)]
 #![warn(
     //clippy::cargo_common_metadata,
     clippy::branches_sharing_code,
@@ -38,7 +42,9 @@ mod interactive;
 mod project_variables;
 mod template;
 mod template_filters;
+mod template_source;
 mod template_variables;
+mod ui;
 mod user_parsed_input;
 mod workspace_member;
 
@@ -142,6 +148,7 @@ pub fn log_formatter(
     writeln!(buf, "{}", record.args())
 }
 
+#[cfg(feature = "ui-next")]
 fn random_intro() -> &'static str {
     const INTROS: &[&str] = &[
         "🦀 Let's get Rusty!",
@@ -153,20 +160,23 @@ fn random_intro() -> &'static str {
     INTROS[fastrand::usize(..INTROS.len())]
 }
 
+#[cfg(not(feature = "ui-next"))]
+const fn random_intro() -> &'static str {
+    "cargo generate"
+}
+
 /// # Panics
 pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
-    let _working_dir_scope = ScopedWorkingDirectory::default();
-    cliclack::intro(random_intro())?;
+    ui::intro(random_intro())?;
 
     match generate_inner(args) {
         Ok(path) => Ok(path),
         Err(e) => {
-            // Strip emoji prefixes from the error message for clean cliclack display
             let msg = format!("{e:#}");
             let msg = msg
                 .trim_start_matches(emoji::ERROR.to_string().as_str())
                 .trim();
-            let _ = cliclack::outro_cancel(msg);
+            let _ = ui::outro_cancel(msg);
             Err(e)
         }
     }
@@ -197,7 +207,7 @@ fn generate_inner(args: GenerateArgs) -> Result<PathBuf> {
         .unwrap_or(false)
         && !user_parsed_input.init
     {
-        cliclack::log::warning("Template specifies --init, while not specified on the command line. Output location is affected!")?;
+        ui::warning("Template specifies --init, while not specified on the command line. Output location is affected!")?;
 
         user_parsed_input.init = true;
     };
@@ -227,7 +237,7 @@ fn generate_inner(args: GenerateArgs) -> Result<PathBuf> {
             match workspace_member::add_to_workspace(&project_path)? {
                 WorkspaceMemberStatus::Added(workspace_cargo_toml) => {
                     should_initialize_git = with_force;
-                    cliclack::log::info(format!(
+                    ui::info(format!(
                         "Project added as member to workspace `{}`",
                         workspace_cargo_toml.display()
                     ))?;
@@ -242,11 +252,11 @@ fn generate_inner(args: GenerateArgs) -> Result<PathBuf> {
     };
 
     if should_initialize_git {
-        cliclack::log::info("Initializing a fresh Git repository")?;
+        ui::info("Initializing a fresh Git repository")?;
         git::init(&target_path, branch.as_deref(), with_force)?;
     }
 
-    cliclack::outro(format!(
+    ui::outro(format!(
         "Done! New project created {}",
         shorten_path(&target_path)
     ))?;
@@ -259,7 +269,7 @@ fn copy_expanded_template(
     project_dir: PathBuf,
     user_parsed_input: UserParsedInput,
 ) -> Result<PathBuf> {
-    cliclack::log::info(format!(
+    ui::info(format!(
         "Moving generated files into: {}",
         shorten_path(&project_dir)
     ))?;
@@ -268,9 +278,8 @@ fn copy_expanded_template(
     Ok(project_dir)
 }
 
-fn test_expanded_template(template_dir: &PathBuf, args: Option<Vec<String>>) -> Result<PathBuf> {
-    cliclack::log::info("Running \"cargo test\" ...")?;
-    std::env::set_current_dir(template_dir)?;
+fn test_expanded_template(template_dir: &Path, args: Option<Vec<String>>) -> Result<PathBuf> {
+    ui::info("Running \"cargo test\" ...")?;
     let (cmd, cmd_args) = std::env::var("CARGO_GENERATE_TEST_CMD").map_or_else(
         |_| (String::from("cargo"), vec![String::from("test")]),
         |env_test_cmd| {
@@ -282,6 +291,7 @@ fn test_expanded_template(template_dir: &PathBuf, args: Option<Vec<String>>) -> 
         },
     );
     std::process::Command::new(cmd)
+        .current_dir(template_dir)
         .args(cmd_args)
         .args(args.unwrap_or_default())
         .spawn()?
@@ -531,11 +541,11 @@ fn expand_template(
 
     set_project_name_variables(&liquid_object, &destination, &project_name, &crate_name)?;
 
-    cliclack::log::info(format!(
+    ui::info(format!(
         "Destination: {}",
         shorten_path(destination.as_ref())
     ))?;
-    cliclack::log::info(format!("project-name: {project_name}"))?;
+    ui::info(format!("project-name: {project_name}"))?;
     project_variables::show_project_variables_with_value(&liquid_object, config)?;
 
     // evaluate config for placeholders and and any that are undefined
@@ -585,7 +595,7 @@ fn expand_template(
         Err(e) => {
             // Don't print the error twice
             if !args.quiet && args.continue_on_error {
-                let _ = cliclack::log::warning(format!("{e}"));
+                let _ = ui::warning(format!("{e}"));
             }
             if !args.continue_on_error {
                 return Err(e);
@@ -596,7 +606,10 @@ fn expand_template(
     // run post-hooks
     execute_hooks(&context, &config.get_post_hooks())?;
 
-    // remove all hook and filter files as they are never part of the template output
+    // remove all hook and filter files as they are never part of the template output.
+    // Hook files are configured as relative names, so anchor them to `template_dir`;
+    // `remove_dir_files` checks `Path::exists`, which would otherwise resolve them
+    // against the process CWD (the rhai filter files are already absolute).
     let rhai_filter_files = rhai_filter_files
         .lock()
         .unwrap()
@@ -606,7 +619,7 @@ fn expand_template(
     remove_dir_files(
         all_hook_files
             .into_iter()
-            .map(PathBuf::from)
+            .map(|hook_file| template_dir.join(hook_file))
             .chain(rhai_filter_files),
         false,
     );
@@ -664,10 +677,14 @@ fn read_default_variable_value_from_template(slot: &TemplateSlots) -> Result<Str
             } => default.clone(),
             _ => return Err(()),
         },
+        VarInfo::Array { entry } => match &entry.default {
+            Some(default) => default.join(LIST_SEP),
+            None => return Err(()),
+        },
         _ => return Err(()),
     };
     let (key, value) = (&slot.var_name, &default_value);
-    let _ = cliclack::log::info(format!("{key}: {value:?} (default value from template)"));
+    let _ = ui::info(format!("{key}: {value:?} (default value from template)"));
     Ok(default_value)
 }
 
@@ -804,21 +821,6 @@ fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::
         }
     }
     Ok(())
-}
-
-#[derive(Debug)]
-struct ScopedWorkingDirectory(PathBuf);
-
-impl Default for ScopedWorkingDirectory {
-    fn default() -> Self {
-        Self(env::current_dir().unwrap())
-    }
-}
-
-impl Drop for ScopedWorkingDirectory {
-    fn drop(&mut self) {
-        env::set_current_dir(&self.0).unwrap();
-    }
 }
 
 #[cfg(test)]

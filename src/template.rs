@@ -20,6 +20,7 @@ use crate::template_filters::*;
 use crate::template_variables::{
     get_authors, get_os_arch, Authors, CrateName, ProjectDir, ProjectName,
 };
+use crate::ui;
 use crate::user_parsed_input::UserParsedInput;
 
 pub type LiquidObjectResource = Arc<Mutex<RefCell<Object>>>;
@@ -251,7 +252,7 @@ pub fn walk_dir(
             })
             .collect::<Vec<_>>()
             .join("\n");
-        cliclack::note("Generating template", format!("{lines}\n"))?;
+        ui::note("Generating template", format!("{lines}\n"))?;
     }
 
     if files_with_errors.is_empty() {

@@ -1,5 +1,47 @@
 use crate::helpers::prelude::*;
 
+// Regression test for #1671: hook scripts must be removed from the generated
+// output, and the removal must not touch a like-named file in the process CWD.
+#[test]
+fn it_removes_hook_files_from_output_without_touching_cwd() {
+    let template = tempdir()
+        .file(
+            "post-script.rhai",
+            indoc! {r#"
+            file::rename("RENAME-ME", "renamed");
+        "#},
+        )
+        .file("RENAME-ME", "content")
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+            [hooks]
+            post = ["post-script.rhai"]
+            "#},
+        )
+        .init_git()
+        .build();
+
+    // The directory we run from contains a decoy with the same name as the hook.
+    // Before the fix, the relative removal resolved against this CWD and deleted it.
+    let dir = tempdir().file("post-script.rhai", "decoy").build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("script-project")
+        .current_dir(dir.path())
+        .assert()
+        .success();
+
+    // The hook ran...
+    assert!(dir.exists("script-project/renamed"));
+    // ...the hook script is gone from the output...
+    assert!(!dir.exists("script-project/post-script.rhai"));
+    // ...and the like-named decoy in the CWD was left untouched.
+    assert!(dir.exists("post-script.rhai"));
+    assert!(dir.read("post-script.rhai").contains("decoy"));
+}
+
 #[test]
 fn it_runs_all_hook_types() {
     let template = tempdir()
@@ -193,7 +235,7 @@ fn it_fails_when_it_cant_execute_system_command() {
         .file(
             "system-script.rhai",
             indoc! {r#"
-                let output = system::command("dummy_command_that_doesn't_exist", ["dummy_arg"]);
+                let output = system::command("dummy_command_that_doesnt_exist", ["dummy_arg"]);
             "#},
         )
         .file(
@@ -218,9 +260,11 @@ fn it_fails_when_it_cant_execute_system_command() {
         .stderr(
             // TODO: This error message is different on MacOS and Linux. We should unify it.
             predicates::str::contains(if cfg!(target_os = "macos") {
-                "System command `dummy_command_that_doesn't_exist dummy_arg` failed to execute"
+                "dummy_command_that_doesnt_exist: command not found"
+            } else if cfg!(target_os = "windows") {
+                "is not recognized as an internal or external command"
             } else {
-                "Failed executing script: system-script.rhai"
+                "dummy_command_that_doesnt_exist: not found"
             })
             .from_utf8(),
         );

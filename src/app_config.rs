@@ -6,6 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::ui;
 use crate::Vcs;
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
@@ -56,7 +57,7 @@ impl TryFrom<&Path> for AppConfig {
         Ok(if cfg.trim().is_empty() {
             Self::default()
         } else {
-            let _ = cliclack::log::info(format!("Using application config: {}", path.display()));
+            let _ = ui::info(format!("Using application config: {}", path.display()));
             toml::from_str(&cfg)?
         })
     }

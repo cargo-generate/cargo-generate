@@ -1,4 +1,5 @@
 use anyhow::Result;
+use console::style;
 use indexmap::IndexMap;
 use liquid_core::model::map::Entry;
 use liquid_core::{Value, ValueView};
@@ -7,8 +8,10 @@ use thiserror::Error;
 
 use crate::{
     config::{Config, TemplateSlotsTable},
+    emoji,
     interactive::LIST_SEP,
     template::LiquidObjectResource,
+    ui,
 };
 
 #[derive(Debug)]
@@ -19,13 +22,24 @@ pub struct TemplateSlots {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Prompt {
     pub(crate) raw: String,
+    pub(crate) styled: String,
+    pub(crate) styled_with_default: String,
     pub(crate) with_default: String,
 }
 impl Prompt {
     pub(crate) fn new(prompt: impl Into<String>, default: Option<String>) -> Self {
         let prompt = prompt.into();
+        let styled = format!("{} {}", emoji::SHRUG, style(&prompt).bold());
+        let styled_with_default = format!(
+            "{styled}{}",
+            default
+                .as_ref()
+                .map(|default| format!(" [default: {}]", style(default).bold()))
+                .unwrap_or_default()
+        );
         let with_default = format!(
             "{prompt}{}",
             default
@@ -35,14 +49,28 @@ impl Prompt {
         );
         Self {
             raw: prompt,
+            styled,
+            styled_with_default,
             with_default,
         }
     }
 }
 
-impl<T: AsRef<str>> From<T> for Prompt {
-    fn from(value: T) -> Self {
-        Self::new(value.as_ref(), None)
+impl From<&str> for Prompt {
+    fn from(value: &str) -> Self {
+        Self::new(value, None)
+    }
+}
+
+impl From<String> for Prompt {
+    fn from(value: String) -> Self {
+        Self::new(&value, None)
+    }
+}
+
+impl From<&String> for Prompt {
+    fn from(value: &String) -> Self {
+        Self::new(value, None)
     }
 }
 
@@ -170,7 +198,7 @@ pub fn show_project_variables_with_value(
             .unwrap()
             .to_kstr()
             .to_string();
-        cliclack::log::info(format!(
+        ui::info(format!(
             "{name}: {value:?} (placeholder provided by cli argument)"
         ))?;
     }
