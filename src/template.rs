@@ -157,15 +157,14 @@ pub fn walk_dir(
         .filter(|e| !is_git_metadata(e))
         .filter(|e| e.path() != project_dir)
         .collect::<Vec<_>>();
-    let total = files.len().to_string();
+    let total = files.len();
+    let width = total.to_string().len().max(3);
     for (progress, entry) in files.into_iter().enumerate() {
         let pb = mp.add(ProgressBar::new(50));
         pb.set_style(spinner_style.clone());
         pb.set_prefix(format!(
-            "[{:width$}/{}]",
+            "[{:0width$}/{total:0width$}]",
             progress + 1,
-            total,
-            width = total.len()
         ));
 
         if quiet {
