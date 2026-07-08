@@ -111,6 +111,39 @@ fn it_uses_array_defaults_in_silent_mode() {
 }
 
 #[test]
+fn it_fails_for_arrays_without_defaults_in_silent_mode() {
+    let template = tempdir()
+        .with_default_manifest()
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [template]
+                [placeholders.formats]
+                type = "array"
+                prompt = "Which MCU to target?"
+                choices = ["esp32", "esp32c2", "esp32c3", "esp32c6", "esp32s2", "esp32s3"]
+
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg("--silent")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
+        .current_dir(dir.path())
+        .assert()
+        .failure()
+        .stderr(contains(
+            "variable `formats` is missing default value in config file running in silent mode",
+        ));
+}
+
+#[test]
 fn it_fails_on_invalid_multi_choices() {
     let template = tempdir()
         .with_default_manifest()
