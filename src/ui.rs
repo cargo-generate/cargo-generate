@@ -14,13 +14,8 @@ mod classic {
     use crate::emoji;
     use console::style;
 
-    pub fn intro(msg: impl AsRef<str>) -> Result<()> {
-        eprintln!(
-            "{} {} {}",
-            emoji::SPARKLE,
-            style(msg.as_ref()).bold(),
-            emoji::SPARKLE
-        );
+    pub fn intro(_msg: impl AsRef<str>) -> Result<()> {
+        // classic UI historically has no banner at startup
         Ok(())
     }
 
