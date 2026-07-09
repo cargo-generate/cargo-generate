@@ -234,3 +234,71 @@ fn it_supports_conditions_with_creepy_shit_inside() {
         .read("foobar-project/included")
         .contains("styling3 = Tailwind"));
 }
+
+#[test]
+fn it_supports_array_contains_in_conditionals() {
+    let template = tempdir()
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [placeholders.features]
+                type = "array"
+                prompt = "Which features should be enabled?"
+                choices = ["serde", "async"]
+                default = ["serde"]
+
+                [conditional.'features.contains("serde")']
+                ignore = ["without-serde"]
+            "#},
+        )
+        .file("without-serde", "no serde")
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg("--silent")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.exists("foobar-project/without-serde").not());
+}
+
+#[test]
+fn it_supports_array_is_empty_in_conditionals() {
+    let template = tempdir()
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [placeholders.targets]
+                type = "array"
+                prompt = "Which targets should be enabled?"
+                choices = ["linux", "windows"]
+                default = []
+
+                [conditional.'targets.is_empty']
+                ignore = ["with-targets"]
+            "#},
+        )
+        .file("with-targets", "targets selected")
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg("--silent")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert!(dir.exists("foobar-project/with-targets").not());
+}

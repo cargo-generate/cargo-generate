@@ -286,7 +286,7 @@ fn rhai_to_liquid_value(val: Dynamic) -> HookResult<Value> {
         })
 }
 
-fn liquid_to_rhai_value(val: Value) -> HookResult<Dynamic> {
+pub(super) fn liquid_to_rhai_value(val: Value) -> HookResult<Dynamic> {
     match val {
         Value::Scalar(scalar) => {
             // Try to convert to bool first, then to string

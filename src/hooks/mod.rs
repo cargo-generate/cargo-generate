@@ -5,7 +5,6 @@ use heck::{
     ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase, ToShoutySnakeCase, ToSnakeCase,
     ToTitleCase, ToUpperCamelCase,
 };
-use liquid::ValueView;
 use log::debug;
 use rhai::module_resolvers::FileModuleResolver;
 use rhai::EvalAltResult;
@@ -103,16 +102,9 @@ pub fn evaluate_script<T: Clone + 'static>(
                 .map_err(|_| PoisonError::new_eval_alt_result())?
                 .borrow()
                 .get(name)
+                .cloned()
                 .map_or(Ok(None), |value| {
-                    Ok(value.as_view().as_scalar().map(|scalar| {
-                        scalar.to_bool().map_or_else(
-                            || {
-                                let v = scalar.to_kstr();
-                                v.as_str().into()
-                            },
-                            |v| v.into(),
-                        )
-                    }))
+                    variable_mod::liquid_to_rhai_value(value).map(Some)
                 })
         }
     });
