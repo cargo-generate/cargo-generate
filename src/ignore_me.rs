@@ -82,7 +82,7 @@ pub fn remove_dir_files(files: impl IntoIterator<Item = impl Into<PathBuf>>, ver
         .map(|i| i.into() as PathBuf)
         .filter(|file| file.exists())
     {
-        let ignore_message = format!("Ignoring: {}", &item.display());
+        let ignore_message = format!("Ignoring: {}", item.display());
         if item.is_dir() {
             remove_dir_all(&item).unwrap();
             if verbose {
@@ -96,7 +96,7 @@ pub fn remove_dir_files(files: impl IntoIterator<Item = impl Into<PathBuf>>, ver
         } else {
             warn!(
                 "The given paths are neither files nor directories! {}",
-                &item.display()
+                item.display()
             );
         }
     }
