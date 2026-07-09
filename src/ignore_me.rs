@@ -101,3 +101,24 @@ pub fn remove_dir_files(files: impl IntoIterator<Item = impl Into<PathBuf>>, ver
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::remove_dir_files;
+    use std::fs;
+
+    #[test]
+    fn remove_dir_files_removes_existing_files_and_directories() {
+        let temp = tempfile::tempdir().unwrap();
+        let file = temp.path().join("generated.txt");
+        let dir = temp.path().join("generated-dir");
+        fs::write(&file, "generated").unwrap();
+        fs::create_dir(&dir).unwrap();
+        fs::write(dir.join("nested.txt"), "nested").unwrap();
+
+        remove_dir_files([file.as_path(), dir.as_path()], true);
+
+        assert!(!file.exists());
+        assert!(!dir.exists());
+    }
+}
