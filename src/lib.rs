@@ -244,7 +244,11 @@ fn prepare_local_template(
     source_template: &UserParsedInput,
 ) -> Result<(TempDir, PathBuf, Option<String>), anyhow::Error> {
     let (temp_dir, branch) = get_source_template_into_temp(source_template.location())?;
-    let template_folder = resolve_template_dir(&temp_dir, source_template.subfolder())?;
+    let template_folder = resolve_template_dir(
+        &temp_dir,
+        source_template.subfolder(),
+        source_template.silent(),
+    )?;
 
     Ok((temp_dir, template_folder, branch))
 }
@@ -297,10 +301,29 @@ fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
 }
 
 /// resolve the template location for the actual template to expand
-fn resolve_template_dir(template_base_dir: &TempDir, subfolder: Option<&str>) -> Result<PathBuf> {
+fn resolve_template_dir(
+    template_base_dir: &TempDir,
+    subfolder: Option<&str>,
+    silent: bool,
+) -> Result<PathBuf> {
     let template_dir = resolve_template_dir_subfolder(template_base_dir.path(), subfolder)?;
     auto_locate_template_dir(template_dir, &mut |slots| {
-        prompt_and_check_variable(slots, None)
+        if silent {
+            read_default_variable_value_from_template(slots).map_err(|()| {
+                anyhow!(
+                    "{} {}",
+                    emoji::ERROR,
+                    style(format!(
+                        "Option `--silent` provided, but `{}` has no default value.",
+                        slots.var_name
+                    ))
+                    .bold()
+                    .red()
+                )
+            })
+        } else {
+            prompt_and_check_variable(slots, None)
+        }
     })
 }
 
@@ -787,7 +810,7 @@ mod tests {
     use crate::{
         auto_locate_template_dir, extract_toml_string,
         project_variables::{StringKind, VarInfo},
-        tmp_dir,
+        resolve_template_dir, tmp_dir,
     };
     use anyhow::anyhow;
     use std::{
@@ -861,6 +884,27 @@ mod tests {
         })?
         .canonicalize()?;
         let expected = tmp.path().join("sub2").canonicalize()?;
+
+        assert_eq!(expected, actual);
+        Ok(())
+    }
+
+    #[test]
+    fn resolve_template_dir_uses_default_subtemplate_in_silent_mode() -> anyhow::Result<()> {
+        let tmp = tmp_dir().unwrap();
+        create_file(
+            &tmp,
+            "cargo-generate.toml",
+            indoc::indoc! {r#"
+                [template]
+                sub_templates = ["sub1", "sub2"]
+            "#},
+        )?;
+        create_file(&tmp, "sub1/Cargo.toml", "")?;
+        create_file(&tmp, "sub2/Cargo.toml", "")?;
+
+        let actual = resolve_template_dir(&tmp, None, true)?.canonicalize()?;
+        let expected = tmp.path().join("sub1").canonicalize()?;
 
         assert_eq!(expected, actual);
         Ok(())
