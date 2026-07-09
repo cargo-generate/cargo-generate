@@ -67,10 +67,7 @@ impl<'cb> RepoCloneBuilder<'cb> {
             self.gitconfig = Some(Config::open(gitconfig.as_path())?);
 
             if let Some(url) = gitconfig::resolve_instead_url(&self.url, gitconfig)? {
-                debug!(
-                    "{} gitconfig 'insteadOf' lead to this url: {}",
-                    &WRENCH, url
-                );
+                debug!("{} gitconfig 'insteadOf' lead to this url: {}", WRENCH, url);
                 self.url = url;
             }
         }
