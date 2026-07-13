@@ -39,7 +39,7 @@ log = "~0.4"
 names = { version = "~0.14", default-features = false }
 openssl = { version = "~0.10", optional = true }
 pastey = "~0.2"
-regex = "~1.12"
+regex = "~1.13"
 remove_dir_all = "~1.0"
 rhai = "~1.25"
 sanitize-filename = "~0.6"
