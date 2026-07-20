@@ -12,6 +12,14 @@ fn interactive_auth_allowed() -> bool {
     std::io::stdin().is_terminal() && std::io::stderr().is_terminal()
 }
 
+fn is_http_repo_url(url: &str) -> bool {
+    url.starts_with("http://") || url.starts_with("https://")
+}
+
+fn should_limit_fetch_depth(url: &str, requires_full_history: bool) -> bool {
+    is_http_repo_url(url) && !requires_full_history
+}
+
 use crate::emoji::WRENCH;
 
 use super::gitconfig;
@@ -25,6 +33,7 @@ pub struct RepoCloneBuilder<'cb> {
     skip_submodules: bool,
     destination_path: Option<PathBuf>,
     tag_or_revision: Option<String>,
+    requires_full_history: bool,
     gitconfig: Option<Config>,
     interactive: bool,
 }
@@ -48,6 +57,7 @@ impl<'cb> RepoCloneBuilder<'cb> {
             skip_submodules: false,
             destination_path: None,
             tag_or_revision: None,
+            requires_full_history: false,
             gitconfig: None,
             interactive,
         }
@@ -114,6 +124,7 @@ impl<'cb> RepoCloneBuilder<'cb> {
     pub fn with_tag(mut self, tag: Option<&str>) -> Self {
         if let Some(tag) = tag {
             self.tag_or_revision = Some(tag.to_owned());
+            self.requires_full_history = false;
         }
 
         self
@@ -124,6 +135,7 @@ impl<'cb> RepoCloneBuilder<'cb> {
     pub fn with_revision(mut self, revision: Option<&str>) -> Self {
         if let Some(revision) = revision {
             self.tag_or_revision = Some(revision.to_owned());
+            self.requires_full_history = true;
         }
 
         self
@@ -165,9 +177,9 @@ impl GitCloneCmd<'_> {
         let url = self.builder.url.clone();
 
         let is_ssh_repo = url.starts_with("ssh}://") || url.starts_with("git@");
-        let is_http_repo = url.starts_with("http://") || url.starts_with("https://");
+        let is_http_repo = is_http_repo_url(&url);
 
-        if is_http_repo {
+        if should_limit_fetch_depth(&url, self.builder.requires_full_history) {
             let mut proxy_options = ProxyOptions::new();
             proxy_options.auto();
 
@@ -227,5 +239,56 @@ impl GitCloneCmd<'_> {
         }
 
         Ok(repo)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{should_limit_fetch_depth, RepoCloneBuilder};
+
+    #[test]
+    fn http_clones_are_shallow_by_default() {
+        assert!(should_limit_fetch_depth(
+            "https://github.com/example/template",
+            false
+        ));
+    }
+
+    #[test]
+    fn revision_clones_skip_shallow_http_fetch() {
+        assert!(!should_limit_fetch_depth(
+            "https://github.com/example/template",
+            true
+        ));
+    }
+
+    #[test]
+    fn non_http_clones_do_not_set_fetch_depth() {
+        assert!(!should_limit_fetch_depth("git@example.com:repo.git", false));
+    }
+
+    #[test]
+    fn revision_clones_require_full_history() {
+        let builder =
+            RepoCloneBuilder::new("https://github.com/example/template").with_revision(Some("abc"));
+
+        assert!(builder.requires_full_history);
+    }
+
+    #[test]
+    fn tag_clones_can_stay_shallow() {
+        let builder =
+            RepoCloneBuilder::new("https://github.com/example/template").with_tag(Some("v1.0.0"));
+
+        assert!(!builder.requires_full_history);
+    }
+
+    #[test]
+    fn tag_overrides_previous_revision_history_requirement() {
+        let builder = RepoCloneBuilder::new("https://github.com/example/template")
+            .with_revision(Some("abc"))
+            .with_tag(Some("v1.0.0"));
+
+        assert!(!builder.requires_full_history);
     }
 }
