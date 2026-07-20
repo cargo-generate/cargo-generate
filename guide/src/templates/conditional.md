@@ -4,6 +4,8 @@ Using `cargo-generate.toml`, values and some [`Rhai`] syntax, the template autho
 
 `include`, `exclude`, `ignore` and `placeholders` can all be used in sections that are only used based upon the value of one or more values, possibly input by the user using the interactive prompt (if the values in question are defined as placeholders in the non-conditional section).
 
+The condition inside `conditional.'...'` is evaluated as a [`Rhai`] expression. Placeholder arrays are exposed as Rhai arrays, so array helpers such as `.is_empty` and `.contains("serde")` can be used in these expressions.
+
 Using the following example, `cargo-generate` will ask for the `license`, and depending on the `--lib` | `--bin` flags it'll as for the `hypervisor` and `network_enabled` values. It will then continue to expand the template, ignoring the `src/main.rs` file (and thus excluding it from the output) in case `--lib` was specified.
 
 The example is broken up in order to explain each section.
@@ -79,3 +81,5 @@ ignore = [ "LICENSE-MIT.txt" ]
 This last conditional block is simply to ignore the unneeded license files, based upon the users choice for the `license` variable.
 
 > ⚠️ Note that `include` and `exclude` are still mutually exclusive even if they are in different, but included, conditional sections.
+
+[`Rhai`]: https://rhai.rs/book/
