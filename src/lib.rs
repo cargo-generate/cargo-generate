@@ -244,7 +244,11 @@ fn prepare_local_template(
     source_template: &UserParsedInput,
 ) -> Result<(TempDir, PathBuf, Option<String>), anyhow::Error> {
     let (temp_dir, branch) = get_source_template_into_temp(source_template.location())?;
-    let template_folder = resolve_template_dir(&temp_dir, source_template.subfolder())?;
+    let template_folder = resolve_template_dir(
+        &temp_dir,
+        source_template.subfolder(),
+        source_template.silent(),
+    )?;
 
     Ok((temp_dir, template_folder, branch))
 }
@@ -297,10 +301,39 @@ fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
 }
 
 /// resolve the template location for the actual template to expand
-fn resolve_template_dir(template_base_dir: &TempDir, subfolder: Option<&str>) -> Result<PathBuf> {
+fn resolve_template_dir(
+    template_base_dir: &TempDir,
+    subfolder: Option<&str>,
+    silent: bool,
+) -> Result<PathBuf> {
     let template_dir = resolve_template_dir_subfolder(template_base_dir.path(), subfolder)?;
     auto_locate_template_dir(template_dir, &mut |slots| {
-        prompt_and_check_variable(slots, None)
+        select_sub_template(slots, silent, |slots| {
+            prompt_and_check_variable(slots, None)
+        })
+    })
+}
+
+fn select_sub_template(
+    slots: &TemplateSlots,
+    silent: bool,
+    prompt: impl FnOnce(&TemplateSlots) -> Result<String>,
+) -> Result<String> {
+    if !silent {
+        return prompt(slots);
+    }
+
+    read_default_variable_value_from_template(slots).map_err(|()| {
+        anyhow!(
+            "{} {}",
+            emoji::ERROR,
+            style(format!(
+                "Option `--silent` provided, but `{}` has no default value.",
+                slots.var_name
+            ))
+            .bold()
+            .red()
+        )
     })
 }
 
@@ -786,8 +819,8 @@ fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::
 mod tests {
     use crate::{
         auto_locate_template_dir, extract_toml_string,
-        project_variables::{StringKind, VarInfo},
-        tmp_dir,
+        project_variables::{StringEntry, StringKind, TemplateSlots, VarInfo},
+        resolve_template_dir, select_sub_template, tmp_dir,
     };
     use anyhow::anyhow;
     use std::{
@@ -864,6 +897,77 @@ mod tests {
 
         assert_eq!(expected, actual);
         Ok(())
+    }
+
+    #[test]
+    fn resolve_template_dir_uses_default_subtemplate_in_silent_mode() -> anyhow::Result<()> {
+        let tmp = tmp_dir().unwrap();
+        create_file(
+            &tmp,
+            "cargo-generate.toml",
+            indoc::indoc! {r#"
+                [template]
+                sub_templates = ["sub1", "sub2"]
+            "#},
+        )?;
+        create_file(&tmp, "sub1/Cargo.toml", "")?;
+        create_file(&tmp, "sub2/Cargo.toml", "")?;
+
+        let actual = resolve_template_dir(&tmp, None, true)?.canonicalize()?;
+        let expected = tmp.path().join("sub1").canonicalize()?;
+
+        assert_eq!(expected, actual);
+        Ok(())
+    }
+
+    #[test]
+    fn select_sub_template_uses_configured_default_in_silent_mode() -> anyhow::Result<()> {
+        let slot = sub_template_slot(Some("sub1"));
+
+        let actual = select_sub_template(&slot, true, |_| {
+            unreachable!("silent mode should not prompt")
+        })?;
+
+        assert_eq!("sub1", actual);
+        Ok(())
+    }
+
+    #[test]
+    fn select_sub_template_errors_without_default_in_silent_mode() {
+        let slot = sub_template_slot(None);
+
+        let err = select_sub_template(&slot, true, |_| Ok("sub2".into())).unwrap_err();
+
+        let message = err.to_string();
+        assert!(message.contains("Option `--silent` provided"));
+        assert!(message.contains("`Template` has no default value"));
+    }
+
+    #[test]
+    fn select_sub_template_prompts_outside_silent_mode() -> anyhow::Result<()> {
+        let slot = sub_template_slot(Some("sub1"));
+
+        let actual = select_sub_template(&slot, false, |slots| {
+            assert_eq!("Template", slots.var_name);
+            Ok("sub2".into())
+        })?;
+
+        assert_eq!("sub2", actual);
+        Ok(())
+    }
+
+    fn sub_template_slot(default: Option<&str>) -> TemplateSlots {
+        TemplateSlots {
+            prompt: "Which sub-template should be expanded?".into(),
+            var_name: "Template".into(),
+            var_info: VarInfo::String {
+                entry: Box::new(StringEntry {
+                    default: default.map(str::to_owned),
+                    kind: StringKind::Choices(vec!["sub1".into(), "sub2".into()]),
+                    regex: None,
+                }),
+            },
+        }
     }
 
     #[test]

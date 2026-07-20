@@ -46,6 +46,52 @@ fn it_can_use_a_specified_path() {
 }
 
 #[test]
+fn it_uses_the_default_subtemplate_in_silent_mode() {
+    let template = tempdir()
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [template]
+                sub_templates = ["sub1", "sub2"]
+            "#},
+        )
+        .file(
+            "sub1/Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "first subtemplate"
+                version = "0.1.0"
+            "#},
+        )
+        .file("sub1/source.txt", "sub1")
+        .file(
+            "sub2/Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "second subtemplate"
+                version = "0.1.0"
+            "#},
+        )
+        .file("sub2/source.txt", "sub2")
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg("--silent")
+        .arg_name("foobar-project")
+        .arg_path(template.path())
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Done!").from_utf8());
+
+    assert_eq!("sub1", dir.read("foobar-project/source.txt"));
+}
+
+#[test]
 fn it_substitutes_projectname_in_cargo_toml() {
     let template = tempdir().init_default_template().build();
 

@@ -82,7 +82,7 @@ pub fn remove_dir_files(files: impl IntoIterator<Item = impl Into<PathBuf>>, ver
         .map(|i| i.into() as PathBuf)
         .filter(|file| file.exists())
     {
-        let ignore_message = format!("Ignoring: {}", &item.display());
+        let ignore_message = format!("Ignoring: {}", item.display());
         if item.is_dir() {
             remove_dir_all(&item).unwrap();
             if verbose {
@@ -96,8 +96,29 @@ pub fn remove_dir_files(files: impl IntoIterator<Item = impl Into<PathBuf>>, ver
         } else {
             warn!(
                 "The given paths are neither files nor directories! {}",
-                &item.display()
+                item.display()
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::remove_dir_files;
+    use std::fs;
+
+    #[test]
+    fn remove_dir_files_removes_existing_files_and_directories() {
+        let temp = tempfile::tempdir().unwrap();
+        let file = temp.path().join("generated.txt");
+        let dir = temp.path().join("generated-dir");
+        fs::write(&file, "generated").unwrap();
+        fs::create_dir(&dir).unwrap();
+        fs::write(dir.join("nested.txt"), "nested").unwrap();
+
+        remove_dir_files([file.as_path(), dir.as_path()], true);
+
+        assert!(!file.exists());
+        assert!(!dir.exists());
     }
 }
