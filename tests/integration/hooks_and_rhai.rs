@@ -1,5 +1,7 @@
 use crate::helpers::prelude::*;
 
+const UNIX_MKDIR_ERROR_PATTERN: &str = r"System command `mkdir invalid_/.dir_name` failed to execute: mkdir: .*No such file or directory";
+
 // Regression test for #1671: hook scripts must be removed from the generated
 // output, and the removal must not touch a like-named file in the process CWD.
 #[test]
@@ -213,20 +215,27 @@ fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
         .assert()
         .failure()
         .stderr(
-            if cfg!(target_os = "linux") {
-                predicates::str::is_match(
-                    r"System command `mkdir invalid_/.dir_name` failed to execute: mkdir: cannot create directory [‘']invalid_/\.dir_name[’']: No such file or directory"
-                ).unwrap().from_utf8()
-            } else if cfg!(target_os = "macos") {
-                predicates::str::is_match(
-                    r"System command `mkdir invalid_/.dir_name` failed to execute: mkdir: invalid_: No such file or directory"
-                ).unwrap().from_utf8()
-            } else { // Windows
+            if cfg!(unix) {
+                predicates::str::is_match(UNIX_MKDIR_ERROR_PATTERN)
+                    .unwrap()
+                    .from_utf8()
+            } else {
                 predicates::str::is_match(
                     r"System command `mkdir invalid_/.dir_name` failed to execute: The syntax of the command is incorrect\."
                 ).unwrap().from_utf8()
             }
         );
+}
+
+#[test]
+fn unix_mkdir_error_pattern_accepts_gnu_and_bsd_output() {
+    let predicate = predicates::str::is_match(UNIX_MKDIR_ERROR_PATTERN).unwrap();
+    assert!(predicate.eval(
+        "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: cannot create directory 'invalid_/.dir_name': No such file or directory"
+    ));
+    assert!(predicate.eval(
+        "System command `mkdir invalid_/.dir_name` failed to execute: mkdir: invalid_: No such file or directory"
+    ));
 }
 
 #[test]
