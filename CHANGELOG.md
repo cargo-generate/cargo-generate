@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.23.10...HEAD)
 
+## [0.23.14] 2026-07-21
+
+[0.23.14]: https://github.com/cargo-generate/cargo-generate/compare/0.23.13...0.23.14
+
+### 🛠️ Maintenance
+
+- Bump bstr from 1.12.3 to 1.13.0 ([#1730](https://github.com/cargo-generate/cargo-generate/issues/1730))
+- Bump ignore from 0.4.27 to 0.4.31 ([#1729](https://github.com/cargo-generate/cargo-generate/issues/1729))
+
+### 🤕 Fixes
+
+- Use default sub-template in silent mode ([#1718](https://github.com/cargo-generate/cargo-generate/issues/1718))
+- Fetch full history for revision checkouts ([#1717](https://github.com/cargo-generate/cargo-generate/issues/1717))
+- Support array placeholders in conditionals ([#1716](https://github.com/cargo-generate/cargo-generate/issues/1716))
+
+
 ## [0.23.13] 2026-07-08
 
 [0.23.13]: https://github.com/cargo-generate/cargo-generate/compare/0.23.12...0.23.13
