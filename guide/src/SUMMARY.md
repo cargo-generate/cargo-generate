@@ -16,6 +16,7 @@
   - [Hooks](templates/scripting.md)
     - [Hook types](templates/scripting.hook-types.md)
     - [Rhai extensions](templates/scripting.rhai-extensions.md)
+    - [System commands](templates/scripting.system-commands.md)
     - [Mini example](templates/scripting.mini-example.md)
   - [Authoring](templates/authoring.md)
   - [Common Pitfalls](templates/pitfalls.md)
