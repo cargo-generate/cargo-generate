@@ -9,7 +9,7 @@ use time::OffsetDateTime;
 
 use crate::{
     interactive::prompt_and_check_variable,
-    project_variables::{StringEntry, StringKind, TemplateSlots, VarInfo},
+    project_variables::{Choice, StringEntry, StringKind, TemplateSlots, VarInfo},
 };
 
 use super::HookResult;
@@ -70,7 +70,7 @@ fn run_command(
                     var_info: VarInfo::String {
                         entry: Box::new(StringEntry {
                             default: Some("no".into()),
-                            kind: StringKind::Choices(vec!["yes".into(), "no".into()]),
+                            kind: StringKind::Choices(vec![Choice::new("yes"), Choice::new("no")]),
                             regex: None,
                         }),
                     },

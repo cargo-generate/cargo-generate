@@ -60,7 +60,7 @@ use ignore_me::remove_dir_files;
 use interactive::{prompt_and_check_variable, LIST_SEP};
 use log::Record;
 use log::{info, warn};
-use project_variables::{StringEntry, StringKind, TemplateSlots, VarInfo};
+use project_variables::{Choice, StringEntry, StringKind, TemplateSlots, VarInfo};
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -408,7 +408,7 @@ fn auto_locate_template_dir(
                         kind: StringKind::Choices(
                             config_paths
                                 .into_iter()
-                                .map(|p| p.display().to_string())
+                                .map(|p| Choice::new(p.display().to_string()))
                                 .collect(),
                         ),
                         regex: None,
@@ -442,7 +442,9 @@ fn resolve_configured_sub_templates(
                     var_info: VarInfo::String {
                         entry: Box::new(StringEntry {
                             default: Some(sub_templates[0].clone()),
-                            kind: StringKind::Choices(sub_templates.clone()),
+                            kind: StringKind::Choices(
+                                sub_templates.iter().cloned().map(Choice::new).collect(),
+                            ),
                             regex: None,
                         }),
                     },
@@ -819,7 +821,7 @@ fn check_cargo_generate_version(template_config: &Config) -> Result<(), anyhow::
 mod tests {
     use crate::{
         auto_locate_template_dir, extract_toml_string,
-        project_variables::{StringEntry, StringKind, TemplateSlots, VarInfo},
+        project_variables::{Choice, StringEntry, StringKind, TemplateSlots, VarInfo},
         resolve_template_dir, select_sub_template, tmp_dir,
     };
     use anyhow::anyhow;
@@ -885,7 +887,10 @@ mod tests {
             VarInfo::String { entry } => {
                 if let StringKind::Choices(choices) = entry.kind.clone() {
                     let expected = vec!["sub1".to_string(), "sub2".to_string()];
-                    assert_eq!(expected, choices);
+                    assert_eq!(
+                        expected,
+                        choices.iter().map(|c| c.value.clone()).collect::<Vec<_>>()
+                    );
                     Ok("sub2".to_string())
                 } else {
                     anyhow::bail!("Missing choices")
@@ -963,7 +968,7 @@ mod tests {
             var_info: VarInfo::String {
                 entry: Box::new(StringEntry {
                     default: default.map(str::to_owned),
-                    kind: StringKind::Choices(vec!["sub1".into(), "sub2".into()]),
+                    kind: StringKind::Choices(vec![Choice::new("sub1"), Choice::new("sub2")]),
                     regex: None,
                 }),
             },
@@ -1013,7 +1018,7 @@ mod tests {
                     expected
                         .into_iter()
                         .zip(choices.iter())
-                        .for_each(|(a, b)| assert_eq!(a, b));
+                        .for_each(|(a, b)| assert_eq!(a, b.value));
                     Ok(answer.to_string())
                 } else {
                     anyhow::bail!("Missing choices")
@@ -1052,7 +1057,10 @@ mod tests {
                         Path::new("dir2").join("dir2_2").to_string(),
                         "dir4".to_string(),
                     ];
-                    assert_eq!(expected, choices);
+                    assert_eq!(
+                        expected,
+                        choices.iter().map(|c| c.value.clone()).collect::<Vec<_>>()
+                    );
                     Ok("dir4".to_string())
                 } else {
                     anyhow::bail!("Missing choices")

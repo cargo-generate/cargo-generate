@@ -259,3 +259,118 @@ fn it_renders_arrays_as_list() {
         r#"["esp32", "esp32c6"]"#
     );
 }
+
+#[test]
+fn it_uses_choice_value_not_label_in_silent_mode() {
+    let template = tempdir()
+        .with_default_manifest()
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [template]
+                [placeholders.version]
+                type = "string"
+                prompt = "Which version?"
+                choices = [
+                    { value = "recommended", label = "1.3.7 (recommended)" },
+                    { value = "experimental", label = "1.4.3 (experimental)" },
+                ]
+                default = "recommended"
+            "#},
+        )
+        .file("selected_version", "{{ version }}")
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg("--silent")
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
+        .current_dir(dir.path())
+        .assert()
+        .success();
+
+    // The template receives the choice value, never the display label.
+    assert_eq!(dir.read("foobar-project/selected_version"), "recommended");
+}
+
+#[test]
+fn it_uses_value_label_choices_for_arrays() {
+    let template = tempdir()
+        .with_default_manifest()
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [template]
+                [placeholders.features]
+                type = "array"
+                prompt = "Which features?"
+                choices = [
+                    { value = "serde", label = "Serde (serialization)" },
+                    { value = "logging", label = "Logging (tracing)" },
+                    "async",
+                ]
+            "#},
+        )
+        .file(
+            "features_as_list",
+            indoc! {r#"
+                [{%- for f in features -%}
+                    "{{ f }}"{% unless forloop.last %}, {% endunless -%}
+                {%- endfor -%}]"#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
+        .args(["--define", "features=serde,async"])
+        .current_dir(dir.path())
+        .assert()
+        .success();
+
+    assert_eq!(
+        dir.read("foobar-project/features_as_list"),
+        r#"["serde", "async"]"#
+    );
+}
+
+#[test]
+fn it_rejects_a_choice_label_provided_as_a_value() {
+    let template = tempdir()
+        .with_default_manifest()
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [template]
+                [placeholders.version]
+                type = "string"
+                prompt = "Which version?"
+                choices = [
+                    { value = "recommended", label = "1.3.7 (recommended)" },
+                    { value = "experimental", label = "1.4.3 (experimental)" },
+                ]
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
+        .args(["--define", "version=1.3.7 (recommended)"])
+        .current_dir(dir.path())
+        .assert()
+        .failure()
+        .stderr(contains("is not a valid value for version"));
+}

@@ -13,7 +13,7 @@ placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], def
 
 - `placeholder_name`: The name of the placeholder.
 - `prompt`: The prompt message displayed to the user during project creation.
-- `choices` (optional): A list of predefined choices for the placeholder value.
+- `choices` (optional): A list of predefined choices for the placeholder value. Each entry is either a plain string or a `{ value = "...", label = "..." }` table (see [Choices with display labels](#choices-with-display-labels)).
 - `default` (optional): The default value for the placeholder if no user input is provided.
 - `regex` (optional and only for string-like types): The entered value is validated against this regex.
 - `type`: The data type of the placeholder value (see [Supported Types](#supported-types)).
@@ -23,6 +23,30 @@ placeholder_name = { prompt = "Enter your name", choices = ["Alice", "Bob"], def
 - **Prompt**: With the `prompt` will be displayed it to the user during project creation, prompting them to provide a value for the placeholder.
 - **Choices**: If `choices` are specified, `cargo-generate` will present them as options to the user, restricting the input to the predefined choices and provide more convenience.
 - **Default Value**: If a `default` value is provided and the user does not provide input, `cargo-generate` will use the default value for the placeholder.
+
+## Choices with display labels
+
+By default each choice is a plain string that serves both as the option shown to the user and as the value substituted into the template. When you want to show a friendlier prompt than the value itself, a choice may instead be written as a table with an explicit `value` and an optional display `label`:
+
+```toml
+[placeholders.version]
+type = "string"
+prompt = "Which version?"
+choices = [
+    { value = "recommended",  label = "1.3.7 (recommended)"  },
+    { value = "experimental", label = "1.4.3 (experimental)" },
+    "older",
+]
+default = "recommended"
+```
+
+The `label` is only used when prompting; the template (and the `default`, `--define` and regex checks) always sees the `value`:
+
+```liquid
+{% if version == "recommended" %}framework = { version = "1.3.7" }{% endif %}
+```
+
+The two forms can be mixed freely within the same `choices` array, and a table without a `label` behaves exactly like the plain-string form. Both `string` and `array` (multi-select) placeholders support labelled choices.
 
 ## Supported Types
 

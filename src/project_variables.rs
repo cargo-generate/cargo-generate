@@ -86,7 +86,7 @@ pub enum VarInfo {
 #[derive(Debug, Clone)]
 pub struct ArrayEntry {
     pub(crate) default: Option<Vec<String>>,
-    pub(crate) choices: Vec<String>,
+    pub(crate) choices: Vec<Choice>,
 }
 
 #[derive(Debug, Clone)]
@@ -98,10 +98,48 @@ pub struct StringEntry {
 
 #[derive(Debug, Clone)]
 pub enum StringKind {
-    Choices(Vec<String>),
+    Choices(Vec<Choice>),
     String,
     Editor,
     Text,
+}
+
+/// A single selectable entry of a `choices` placeholder.
+///
+/// A choice can be written either as a plain string, in which case the label
+/// shown to the user and the value handed to the template are identical, or as
+/// a table carrying an explicit `value` and an optional display `label`:
+///
+/// ```toml
+/// choices = [
+///     { value = "recommended", label = "1.3.7 (recommended)" },
+///     "experimental",
+/// ]
+/// ```
+///
+/// The `label` is only ever used for display; matching against `default` and
+/// the value substituted into the template always use `value`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Choice {
+    pub(crate) value: String,
+    pub(crate) label: String,
+}
+
+impl Choice {
+    pub(crate) fn new(value: impl Into<String>) -> Self {
+        let value = value.into();
+        Self {
+            label: value.clone(),
+            value,
+        }
+    }
+
+    fn with_label(value: impl Into<String>, label: impl Into<String>) -> Self {
+        Self {
+            value: value.into(),
+            label: label.into(),
+        }
+    }
 }
 
 #[derive(Error, Debug, PartialEq)]
@@ -118,6 +156,8 @@ pub enum ConversionError {
     MissingPrompt { var_name: String },
     #[error("choices array empty for `{var_name}`")]
     EmptyChoices { var_name: String },
+    #[error("choice entry of `{var_name}` must be a string or a table with a string `value` field and an optional string `label`")]
+    InvalidChoiceEntry { var_name: String },
     #[error("default is `{default}`, but is not a valid value in choices array `{choices:?}` for `{var_name}`")]
     InvalidDefault {
         var_name: String,
@@ -412,7 +452,7 @@ fn extract_default(
     var_type: SupportedVarType,
     regex: Option<&Regex>,
     table_entry: Option<&toml::Value>,
-    choices: Option<&Vec<String>>,
+    choices: Option<&Vec<Choice>>,
 ) -> Result<Option<SupportedVarValue>, ConversionError> {
     match (table_entry, choices, var_type) {
         // no default set
@@ -444,11 +484,11 @@ fn extract_default(
             Some(choices),
             SupportedVarType::String | SupportedVarType::Editor | SupportedVarType::Text,
         ) => {
-            if !choices.contains(value) {
+            if !choices.iter().any(|c| &c.value == value) {
                 Err(ConversionError::InvalidDefault {
                     var_name: var_name.into(),
                     default: value.clone(),
-                    choices: choices.clone(),
+                    choices: choice_values(choices),
                 })
             } else {
                 if let Some(reg) = regex {
@@ -468,13 +508,16 @@ fn extract_default(
                 .filter(|f| !(f.is_table() && f.is_array()))
                 .map(|f| f.as_str().unwrap_or_default().to_string())
                 .collect();
-            if default_string_array.iter().all(|v| choices.contains(v)) {
+            if default_string_array
+                .iter()
+                .all(|v| choices.iter().any(|c| &c.value == v))
+            {
                 Ok(Some(SupportedVarValue::Array(default_string_array.clone())))
             } else {
                 Err(ConversionError::InvalidDefault {
                     var_name: var_name.into(),
                     default: default_string_array.join(LIST_SEP),
-                    choices: choices.clone(),
+                    choices: choice_values(choices),
                 })
             }
         }
@@ -494,19 +537,55 @@ fn extract_default(
     }
 }
 
+/// Collect the raw values of a set of choices, discarding the display labels.
+fn choice_values(choices: &[Choice]) -> Vec<String> {
+    choices.iter().map(|c| c.value.clone()).collect()
+}
+
+/// Turn a single `choices` array entry into a [`Choice`].
+///
+/// Accepts either a plain string (value == label) or a table with a string
+/// `value` and an optional string `label`.
+fn convert_choice_entry(var_name: &str, entry: &toml::Value) -> Result<Choice, ConversionError> {
+    match entry {
+        toml::Value::String(s) => Ok(Choice::new(s.clone())),
+        toml::Value::Table(table) => {
+            let value = match table.get("value") {
+                Some(toml::Value::String(value)) => value.clone(),
+                _ => {
+                    return Err(ConversionError::InvalidChoiceEntry {
+                        var_name: var_name.into(),
+                    })
+                }
+            };
+            match table.get("label") {
+                Some(toml::Value::String(label)) => Ok(Choice::with_label(value, label.clone())),
+                None => Ok(Choice::new(value)),
+                Some(_) => Err(ConversionError::InvalidChoiceEntry {
+                    var_name: var_name.into(),
+                }),
+            }
+        }
+        _ => Err(ConversionError::InvalidChoiceEntry {
+            var_name: var_name.into(),
+        }),
+    }
+}
+
 fn extract_choices(
     var_name: &str,
     var_type: SupportedVarType,
     regex: Option<&Regex>,
     table_entry: Option<&toml::Value>,
-) -> Result<Option<Vec<String>>, ConversionError> {
+) -> Result<Option<Vec<Choice>>, ConversionError> {
     match (table_entry, var_type) {
         (
             None,
             SupportedVarType::Bool
             | SupportedVarType::Editor
             | SupportedVarType::Text
-            | SupportedVarType::Array,
+            | SupportedVarType::Array
+            | SupportedVarType::String,
         ) => Ok(None),
         (Some(_), SupportedVarType::Bool | SupportedVarType::Editor | SupportedVarType::Text) => {
             Err(ConversionError::UnsupportedChoices {
@@ -518,74 +597,33 @@ fn extract_choices(
                 var_name: var_name.into(),
             })
         }
-        (Some(toml::Value::Array(arr)), SupportedVarType::Array) => {
-            let converted = arr
+        (Some(toml::Value::Array(arr)), SupportedVarType::String | SupportedVarType::Array) => {
+            let choices = arr
                 .iter()
-                .map(|entry| match entry {
-                    toml::Value::String(s) => Ok(s.clone()),
-                    _ => Err(()),
-                })
-                .collect::<Vec<_>>();
-            if converted.iter().any(|v| v.is_err()) {
-                return Err(ConversionError::WrongTypeParameter {
-                    var_name: var_name.into(),
-                    parameter: "choices".to_string(),
-                    correct_type: "String Array".to_string(),
-                });
-            }
+                .map(|entry| convert_choice_entry(var_name, entry))
+                .collect::<Result<Vec<Choice>, _>>()?;
 
-            let strings = converted
-                .iter()
-                .cloned()
-                .map(|v| v.unwrap())
-                .collect::<Vec<_>>();
-            Ok(Some(strings))
-        }
-        (Some(_), SupportedVarType::Array) => Err(ConversionError::WrongTypeParameter {
-            var_name: var_name.into(),
-            parameter: "choices".to_string(),
-            correct_type: "String Array".to_string(),
-        }),
-        (Some(toml::Value::Array(arr)), SupportedVarType::String) => {
-            // Checks if very entry in the array is a String
-            let converted = arr
-                .iter()
-                .map(|entry| match entry {
-                    toml::Value::String(s) => Ok(s.clone()),
-                    _ => Err(()),
-                })
-                .collect::<Vec<_>>();
-            if converted.iter().any(|v| v.is_err()) {
-                return Err(ConversionError::WrongTypeParameter {
-                    var_name: var_name.into(),
-                    parameter: "choices".to_string(),
-                    correct_type: "String Array".to_string(),
-                });
-            }
-
-            let strings = converted
-                .iter()
-                .cloned()
-                .map(|v| v.unwrap())
-                .collect::<Vec<_>>();
-            // check if regex matches every choice
-            if let Some(reg) = regex {
-                if strings.iter().any(|v| !reg.is_match(v)) {
-                    return Err(ConversionError::RegexDoesntMatchField {
-                        var_name: var_name.into(),
-                        field: "choices".to_string(),
-                    });
+            // check that the regex matches every choice value (string type only)
+            if var_type == SupportedVarType::String {
+                if let Some(reg) = regex {
+                    if choices.iter().any(|c| !reg.is_match(&c.value)) {
+                        return Err(ConversionError::RegexDoesntMatchField {
+                            var_name: var_name.into(),
+                            field: "choices".to_string(),
+                        });
+                    }
                 }
             }
 
-            Ok(Some(strings))
+            Ok(Some(choices))
         }
-        (Some(_), SupportedVarType::String) => Err(ConversionError::WrongTypeParameter {
-            var_name: var_name.into(),
-            parameter: "choices".to_string(),
-            correct_type: "String Array".to_string(),
-        }),
-        (None, SupportedVarType::String) => Ok(None),
+        (Some(_), SupportedVarType::String | SupportedVarType::Array) => {
+            Err(ConversionError::WrongTypeParameter {
+                var_name: var_name.into(),
+                parameter: "choices".to_string(),
+                correct_type: "String Array".to_string(),
+            })
+        }
     }
 }
 
@@ -747,7 +785,7 @@ mod tests {
     }
 
     #[test]
-    fn choices_array_cant_have_anything_but_strings() {
+    fn choices_array_cant_have_anything_but_strings_or_tables() {
         let result = extract_choices(
             "foo",
             SupportedVarType::String,
@@ -760,10 +798,8 @@ mod tests {
 
         assert_eq!(
             result,
-            Err(ConversionError::WrongTypeParameter {
+            Err(ConversionError::InvalidChoiceEntry {
                 var_name: "foo".into(),
-                parameter: "choices".into(),
-                correct_type: "String Array".into()
             })
         );
     }
@@ -780,7 +816,10 @@ mod tests {
             ])),
         );
 
-        assert_eq!(result, Ok(Some(vec!["bar".to_string(), "zoo".to_string()])));
+        assert_eq!(
+            result,
+            Ok(Some(vec![Choice::new("bar"), Choice::new("zoo")]))
+        );
     }
 
     #[test]
@@ -822,7 +861,135 @@ mod tests {
 
         assert_eq!(
             result,
-            Ok(Some(vec!["bar0".to_string(), "zoo".to_string()]))
+            Ok(Some(vec![Choice::new("bar0"), Choice::new("zoo")]))
+        );
+    }
+
+    fn choice_table(value: Option<&str>, label: Option<&str>) -> toml::Value {
+        let mut map = toml::map::Map::new();
+        if let Some(value) = value {
+            map.insert("value".into(), toml::Value::String(value.into()));
+        }
+        if let Some(label) = label {
+            map.insert("label".into(), toml::Value::String(label.into()));
+        }
+        toml::Value::Table(map)
+    }
+
+    #[test]
+    fn choices_accept_value_label_tables_mixed_with_plain_strings() {
+        let result = extract_choices(
+            "foo",
+            SupportedVarType::String,
+            None,
+            Some(&toml::Value::Array(vec![
+                choice_table(Some("recommended"), Some("1.3.7 (recommended)")),
+                toml::Value::String("experimental".into()),
+            ])),
+        );
+
+        assert_eq!(
+            result,
+            Ok(Some(vec![
+                Choice::with_label("recommended", "1.3.7 (recommended)"),
+                Choice::new("experimental"),
+            ]))
+        );
+    }
+
+    #[test]
+    fn choice_table_without_label_defaults_label_to_value() {
+        let result = extract_choices(
+            "foo",
+            SupportedVarType::String,
+            None,
+            Some(&toml::Value::Array(vec![choice_table(Some("bar"), None)])),
+        );
+
+        assert_eq!(result, Ok(Some(vec![Choice::new("bar")])));
+    }
+
+    #[test]
+    fn choice_table_without_value_is_error() {
+        let result = extract_choices(
+            "foo",
+            SupportedVarType::String,
+            None,
+            Some(&toml::Value::Array(vec![choice_table(
+                None,
+                Some("just a label"),
+            )])),
+        );
+
+        assert_eq!(
+            result,
+            Err(ConversionError::InvalidChoiceEntry {
+                var_name: "foo".into(),
+            })
+        );
+    }
+
+    #[test]
+    fn choices_regex_is_checked_against_value_not_label() {
+        let valid_ident = regex::Regex::new(r"^([a-zA-Z][a-zA-Z0-9_-]+)$").unwrap();
+
+        // The value is a valid identifier while the label is not; only the
+        // value has to satisfy the regex.
+        let result = extract_choices(
+            "foo",
+            SupportedVarType::String,
+            Some(&valid_ident),
+            Some(&toml::Value::Array(vec![choice_table(
+                Some("recommended"),
+                Some("1.3.7 (recommended)"),
+            )])),
+        );
+
+        assert_eq!(
+            result,
+            Ok(Some(vec![Choice::with_label(
+                "recommended",
+                "1.3.7 (recommended)"
+            )]))
+        );
+    }
+
+    #[test]
+    fn multi_choices_accept_value_label_tables() {
+        let result = extract_choices(
+            "foo",
+            SupportedVarType::Array,
+            None,
+            Some(&toml::Value::Array(vec![
+                choice_table(Some("serde"), Some("Serde (serialization)")),
+                toml::Value::String("logging".into()),
+            ])),
+        );
+
+        assert_eq!(
+            result,
+            Ok(Some(vec![
+                Choice::with_label("serde", "Serde (serialization)"),
+                Choice::new("logging"),
+            ]))
+        );
+    }
+
+    #[test]
+    fn default_is_matched_against_choice_value_not_label() {
+        let choices = vec![Choice::with_label("recommended", "1.3.7 (recommended)")];
+
+        let result = extract_default(
+            "foo",
+            SupportedVarType::String,
+            None,
+            Some(&toml::Value::String("recommended".to_string())),
+            Some(&choices),
+        );
+
+        assert_eq!(
+            result,
+            Ok(Some(SupportedVarValue::String("recommended".into())))
         );
     }
 
@@ -846,7 +1013,7 @@ mod tests {
     }
 
     #[test]
-    fn multi_choices_is_not_array_string_is_error() {
+    fn multi_choices_table_without_value_is_error() {
         let result = extract_choices(
             "foo",
             SupportedVarType::Array,
@@ -859,10 +1026,8 @@ mod tests {
 
         assert_eq!(
             result,
-            Err(ConversionError::WrongTypeParameter {
+            Err(ConversionError::InvalidChoiceEntry {
                 var_name: "foo".into(),
-                parameter: "choices".into(),
-                correct_type: "String Array".into()
             })
         );
     }
@@ -876,7 +1041,7 @@ mod tests {
             Some(&toml::Value::Array(vec![toml::Value::String(
                 "true".into(),
             )])),
-            Some(&vec!["bar0".to_string()]),
+            Some(&vec![Choice::new("bar0")]),
         );
 
         assert_eq!(
@@ -978,7 +1143,7 @@ mod tests {
             SupportedVarType::String,
             None,
             Some(&toml::Value::String("bar".to_string())),
-            Some(&vec!["zoo".to_string(), "far".to_string()]),
+            Some(&vec![Choice::new("zoo"), Choice::new("far")]),
         );
 
         assert_eq!(
@@ -998,7 +1163,7 @@ mod tests {
             SupportedVarType::String,
             None,
             Some(&toml::Value::String("bar".to_string())),
-            Some(&vec!["zoo".to_string(), "bar".to_string()]),
+            Some(&vec![Choice::new("zoo"), Choice::new("bar")]),
         );
 
         assert_eq!(result, Ok(Some(SupportedVarValue::String("bar".into()))))
@@ -1013,7 +1178,7 @@ mod tests {
             SupportedVarType::String,
             Some(&valid_ident),
             Some(&toml::Value::String("bar".to_string())),
-            Some(&vec!["zoo".to_string(), "bar".to_string()]),
+            Some(&vec![Choice::new("zoo"), Choice::new("bar")]),
         );
 
         assert_eq!(result, Ok(Some(SupportedVarValue::String("bar".into()))))

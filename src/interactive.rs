@@ -1,6 +1,8 @@
 use crate::{
     emoji,
-    project_variables::{ArrayEntry, Prompt, StringEntry, StringKind, TemplateSlots, VarInfo},
+    project_variables::{
+        ArrayEntry, Choice, Prompt, StringEntry, StringKind, TemplateSlots, VarInfo,
+    },
 };
 use anyhow::{anyhow, bail, Result};
 use console::style;
@@ -179,13 +181,13 @@ fn handle_string_input(
 fn handle_choice_input(
     provided_value: Option<String>,
     var_name: &str,
-    choices: &Vec<String>,
+    choices: &[Choice],
     entry: &StringEntry,
     prompt: &Prompt,
 ) -> Result<String> {
     match provided_value {
         Some(value) => {
-            if choices.contains(&value) {
+            if choices.iter().any(|c| c.value == value) {
                 Ok(value)
             } else {
                 bail!(
@@ -200,17 +202,19 @@ fn handle_choice_input(
             }
         }
         None => {
-            let default = entry
-                .default
-                .as_ref()
-                .map_or(0, |default| choices.binary_search(default).unwrap_or(0));
+            let default = entry.default.as_ref().map_or(0, |default| {
+                choices
+                    .iter()
+                    .position(|c| &c.value == default)
+                    .unwrap_or(0)
+            });
             let chosen = Select::with_theme(&ColorfulTheme::default())
-                .items(choices)
+                .items(choices.iter().map(|c| &c.label).collect::<Vec<_>>())
                 .with_prompt(&prompt.styled)
                 .default(default)
                 .interact()?;
 
-            Ok(choices.index(chosen).to_string())
+            Ok(choices[chosen].value.clone())
         }
     }
 }
@@ -226,14 +230,16 @@ fn parse_list(provided_value: &str) -> Vec<String> {
 
 fn check_provided_selections(
     provided_value: &str,
-    choices: &[String],
+    choices: &[Choice],
 ) -> Result<Vec<String>, Vec<String>> {
     let list = parse_list(provided_value);
     if list.is_empty() {
         return Ok(Vec::new());
     }
-    let (ok_entries, bad_entries): (Vec<String>, Vec<String>) =
-        list.iter().cloned().partition(|e| choices.contains(e));
+    let (ok_entries, bad_entries): (Vec<String>, Vec<String>) = list
+        .iter()
+        .cloned()
+        .partition(|e| choices.iter().any(|c| &c.value == e));
     if bad_entries.is_empty() {
         Ok(ok_entries)
     } else {
@@ -260,13 +266,13 @@ fn handle_multi_select_input(
                 }
                 Some(default_choices) => {
                     for choice in &entry.choices {
-                        selected_by_default.push(default_choices.contains(choice));
+                        selected_by_default.push(default_choices.contains(&choice.value));
                     }
                 }
             };
 
             let choice_indices = MultiSelect::with_theme(&ColorfulTheme::default())
-                .items(&entry.choices)
+                .items(entry.choices.iter().map(|c| &c.label).collect::<Vec<_>>())
                 .with_prompt(&prompt.styled)
                 .defaults(&selected_by_default)
                 .interact()?;
@@ -274,7 +280,7 @@ fn handle_multi_select_input(
             choice_indices
                 .iter()
                 .filter_map(|idx| entry.choices.get(*idx))
-                .cloned()
+                .map(|c| c.value.clone())
                 .collect::<Vec<String>>()
                 .join(LIST_SEP)
         }
