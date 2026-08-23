@@ -1,3 +1,7 @@
+// Superseded by `crate::gix` — kept here temporarily so the migration diff stays reviewable.
+// The follow-up cleanup commit deletes this file entirely.
+#![allow(dead_code)]
+
 use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 

@@ -35,10 +35,10 @@ impl Project {
         self.path().join(path).exists()
     }
 
-    /// Returns the commit SHAs of the commits in the current branch.
+    /// Returns the commit SHAs of the commits in the current branch (full 40-char form).
     pub fn commit_shas(&self) -> Vec<String> {
         std::process::Command::new("git")
-            .args(["log", "--format=%h"])
+            .args(["log", "--format=%H"])
             .current_dir(self.path())
             .output()
             .expect("failed to execute `git log`")

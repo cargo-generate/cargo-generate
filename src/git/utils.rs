@@ -2,10 +2,9 @@ use anyhow::Context;
 use anyhow::Result;
 use std::path::{Path, PathBuf};
 
-use git2::Repository;
 use tempfile::TempDir;
 
-use super::clone_tool::RepoCloneBuilder;
+use crate::gix::RepoCloneBuilder;
 
 pub fn tmp_dir() -> std::io::Result<tempfile::TempDir> {
     tempfile::Builder::new().prefix("cargo-generate").tempdir()
@@ -31,7 +30,7 @@ pub fn home() -> Result<PathBuf> {
     home::home_dir().context("$HOME was not set")
 }
 
-// clone git repository into temp using libgit2
+// clone git repository into temp using gix
 pub fn clone_git_template_into_temp(
     git_url: &str,
     branch: Option<&str>,
@@ -43,7 +42,7 @@ pub fn clone_git_template_into_temp(
 ) -> anyhow::Result<(TempDir, Option<String>)> {
     let git_clone_dir = tmp_dir()?;
 
-    let repo = RepoCloneBuilder::new(git_url)
+    let branch = RepoCloneBuilder::new(git_url)
         .with_branch(branch)
         .with_ssh_identity(identity)?
         .with_submodules(!skip_submodules)
@@ -54,32 +53,11 @@ pub fn clone_git_template_into_temp(
         .build()?
         .do_clone()?;
 
-    let branch = get_branch_name_repo(&repo).ok();
-
-    Ok((git_clone_dir, branch))
+    Ok((git_clone_dir, Some(branch)))
 }
 
 pub fn try_get_branch_from_path(git: impl AsRef<Path>) -> Option<String> {
-    Repository::open(git)
-        .ok()
-        .and_then(|repo| get_branch_name_repo(&repo).ok())
-}
-
-/// thanks to @extrawurst for pointing this out
-/// <https://github.com/extrawurst/gitui/blob/master/asyncgit/src/sync/branch/mod.rs#L38>
-fn get_branch_name_repo(repo: &Repository) -> anyhow::Result<String> {
-    let iter = repo.branches(None)?;
-
-    for b in iter {
-        let b = b?;
-
-        if b.0.is_head() {
-            let name = b.0.name()?.unwrap_or("");
-            return Ok(name.into());
-        }
-    }
-
-    anyhow::bail!("A repo has no Head")
+    crate::gix::try_get_branch_from_path(git)
 }
 
 #[test]
