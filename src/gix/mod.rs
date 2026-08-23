@@ -77,6 +77,15 @@ impl RepoCloneBuilderImpl {
             None => prepare_clone,
         };
 
+        if let Some(identity) = self.identity_file.as_deref() {
+            // gix has no in-process ssh stack — it shells out to `ssh`.
+            // Setting core.sshCommand mirrors what `GIT_SSH_COMMAND=ssh -i <key>` does for real git.
+            prepare_clone = prepare_clone.with_in_memory_config_overrides([format!(
+                "core.sshCommand=ssh -i {}",
+                sh_single_quote(&identity.display().to_string())
+            )]);
+        }
+
         let (mut prepare_checkout, _) = prepare_clone
             .fetch_then_checkout(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)?;
 
@@ -99,6 +108,12 @@ impl RepoCloneBuilderImpl {
 
         Ok(branch)
     }
+}
+
+/// POSIX single-quote escape: wrap in `'…'`, and split-escape any embedded `'`.
+/// The `sh -c` interpreter that `gix` uses for `core.sshCommand` will unquote this back.
+fn sh_single_quote(s: &str) -> String {
+    format!("'{}'", s.replace('\'', "'\\''"))
 }
 
 #[cfg(test)]
@@ -151,6 +166,21 @@ mod tests {
 
         assert_eq!(branch, "feat/1037-gix-as-git2-successor");
         assert!(metadata(dst.path().join(".git")).is_err());
+    }
+
+    #[test]
+    fn sh_single_quote_wraps_plain_paths() {
+        assert_eq!(sh_single_quote("/home/user/.ssh/id_ed25519"), "'/home/user/.ssh/id_ed25519'");
+    }
+
+    #[test]
+    fn sh_single_quote_escapes_embedded_single_quote() {
+        assert_eq!(sh_single_quote("/path/it's/key"), "'/path/it'\\''s/key'");
+    }
+
+    #[test]
+    fn sh_single_quote_preserves_spaces() {
+        assert_eq!(sh_single_quote("/home/some user/id_rsa"), "'/home/some user/id_rsa'");
     }
 
     #[test]
