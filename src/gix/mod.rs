@@ -172,8 +172,8 @@ impl GitCloneCmd {
             .main_worktree(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)
             .context("Checkout of worktree failed")?;
 
-        if !skip_submodules && repo.submodules()?.is_some() {
-            init_and_update_submodules(&dest)?;
+        if !skip_submodules {
+            init_and_update_submodules(&repo, &dest, identity_file.as_deref())?;
         }
 
         let branch = match repo.head_name()? {
@@ -188,27 +188,62 @@ impl GitCloneCmd {
     }
 }
 
-/// Initialize + update submodules by shelling out to `git`.
-/// gix 0.87 has no high-level submodule init/update API; git is universally available
-/// on machines that already use submodules, so this is a pragmatic bridge.
-fn init_and_update_submodules(worktree: &Path) -> Result<()> {
-    // `protocol.file.allow=always` matches git2's default; without it, modern git
-    // rejects `file://` submodules (CVE-2022-39253), breaking local template setups.
-    let status = std::process::Command::new("git")
-        .args([
-            "-c",
-            "protocol.file.allow=always",
-            "submodule",
-            "update",
-            "--init",
-            "--recursive",
-        ])
-        .current_dir(worktree)
-        .status()
-        .context("Failed to invoke `git submodule update` — is git installed?")?;
-    if !status.success() {
-        anyhow::bail!("`git submodule update --init --recursive` failed with {status}");
+/// Initialize + update submodules recursively using gix only.
+///
+/// For each active submodule we clone its url pinned at the SHA the superproject
+/// recorded (via `Submodule::head_id()`), recurse into it, then strip its `.git`
+/// dir — the template semantics of cargo-generate never want inner history.
+///
+/// gix 0.87 has no high-level submodule init/update API (see gitoxide#2387);
+/// this is our own take. The parent's ssh identity override is inherited so
+/// private submodules work when the parent clone did.
+fn init_and_update_submodules(
+    super_repo: &gix::Repository,
+    super_worktree: &Path,
+    identity: Option<&Path>,
+) -> Result<()> {
+    let Some(submodules) = super_repo.submodules()? else {
+        return Ok(());
+    };
+
+    for sub in submodules {
+        // Deliberately skip `sub.is_active()` — that checks `.git/config`, which is
+        // empty right after clone (`git submodule init` is what populates it).
+        // Templates want every declared submodule initialized.
+        let sub_name = sub.name().to_string();
+        let sub_rel_path = gix::path::from_bstring(sub.path()?);
+        let sub_abs_path = super_worktree.join(&sub_rel_path);
+        let sub_url = sub.url()?;
+        let pinned = sub.head_id().ok().flatten();
+
+        let mut prepare = prepare_clone(sub_url, &sub_abs_path)
+            .with_context(|| format!("Failed to prepare submodule '{sub_name}'"))?;
+        if let Some(sha) = pinned {
+            prepare = prepare
+                .with_revision(Some(sha.to_string()))
+                .with_context(|| format!("Failed to pin submodule '{sub_name}' to {sha}"))?;
+        }
+        if let Some(identity) = identity {
+            prepare = prepare.with_in_memory_config_overrides([format!(
+                "core.sshCommand=ssh -i {}",
+                sh_single_quote(&identity.display().to_string())
+            )]);
+        }
+
+        let (mut checkout, _) = prepare
+            .fetch_then_checkout(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)
+            .with_context(|| format!("Failed to fetch submodule '{sub_name}'"))?;
+        let (sub_repo, _) = checkout
+            .main_worktree(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)
+            .with_context(|| format!("Failed to checkout submodule '{sub_name}'"))?;
+
+        // Recurse *before* stripping .git so nested submodules can be read.
+        init_and_update_submodules(&sub_repo, &sub_abs_path, identity)?;
+
+        remove_history(&sub_abs_path)
+            .with_context(|| format!("Failed to strip .git from submodule '{sub_name}'"))?;
     }
+
     Ok(())
 }
 
