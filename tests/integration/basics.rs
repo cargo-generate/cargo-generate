@@ -21,8 +21,8 @@ fn it_can_use_a_plain_folder() {
                 .from_utf8(),
         );
 
-    let repo = git2::Repository::open(dir.path().join("foobar-project")).unwrap();
-    let references = repo.references().unwrap().count();
+    let repo = gix::open(dir.path().join("foobar-project")).unwrap();
+    let references = repo.references().unwrap().all().unwrap().count();
     assert_eq!(0, references);
 }
 
@@ -40,8 +40,8 @@ fn it_can_use_a_specified_path() {
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    let repo = git2::Repository::open(dir.path().join("foobar-project")).unwrap();
-    let references = repo.references().unwrap().count();
+    let repo = gix::open(dir.path().join("foobar-project")).unwrap();
+    let references = repo.references().unwrap().all().unwrap().count();
     assert_eq!(0, references);
 }
 
@@ -253,7 +253,7 @@ fn it_can_generate_inside_existing_repository() -> anyhow::Result<()> {
         .stdout(predicates::str::contains("Done!").from_utf8());
     assert!(dir.read("outer/Cargo.toml").contains("outer"));
     let outer_project_dir = dir.path().join("outer");
-    let outer_repo = git2::Repository::discover(&outer_project_dir)?;
+    let outer_repo = gix::discover(&outer_project_dir)?;
 
     binary()
         .arg_git(template.path())
@@ -264,8 +264,8 @@ fn it_can_generate_inside_existing_repository() -> anyhow::Result<()> {
         .stdout(predicates::str::contains("Done!").from_utf8());
     assert!(dir.read("outer/inner/Cargo.toml").contains("inner"));
     let inner_project_dir = outer_project_dir.join("inner");
-    let inner_repo = git2::Repository::discover(inner_project_dir)?;
-    assert_eq!(outer_repo.path(), inner_repo.path());
+    let inner_repo = gix::discover(inner_project_dir)?;
+    assert_eq!(outer_repo.git_dir(), inner_repo.git_dir());
     Ok(())
 }
 
@@ -844,7 +844,7 @@ fn it_uses_vsc_none_to_avoid_initializing_repository() {
     assert!(dir
         .read("foobar-project/Cargo.toml")
         .contains("foobar-project"));
-    assert!(Repository::open(dir.path().join("foobar-project")).is_err());
+    assert!(gix::open(dir.path().join("foobar-project")).is_err());
 }
 
 #[test]
