@@ -141,7 +141,19 @@ impl GitCloneCmd {
 
         let url =
             url::parse(url_str.as_str()).with_context(|| format!("Invalid git url: {url_str}"))?;
-        let mut prepare_clone = prepare_clone(url, &dest)
+
+        // gix's `with_revision` only accepts a full 40-char SHA (or a `refs/…`).
+        // Short SHAs — which `git`, `git2`, and cargo-generate's users all accept —
+        // are resolved here via a bare peek clone.
+        let target = match target {
+            Some(CheckoutTarget::Revision(rev)) if looks_like_short_sha(&rev) => {
+                let full = peek_resolve_short_sha(&url, &rev, identity_file.as_deref())?;
+                Some(CheckoutTarget::Revision(full))
+            }
+            other => other,
+        };
+
+        let mut prepare_clone = prepare_clone(url.clone(), &dest)
             .context("Please check if the Git user / repository exists.")?;
 
         prepare_clone = match target {
@@ -173,7 +185,7 @@ impl GitCloneCmd {
             .context("Checkout of worktree failed")?;
 
         if !skip_submodules {
-            init_and_update_submodules(&repo, &dest, identity_file.as_deref())?;
+            init_and_update_submodules(&repo, &dest, &url, identity_file.as_deref())?;
         }
 
         let branch = match repo.head_name()? {
@@ -200,6 +212,7 @@ impl GitCloneCmd {
 fn init_and_update_submodules(
     super_repo: &gix::Repository,
     super_worktree: &Path,
+    super_url: &gix::Url,
     identity: Option<&Path>,
 ) -> Result<()> {
     let Some(submodules) = super_repo.submodules()? else {
@@ -213,10 +226,10 @@ fn init_and_update_submodules(
         let sub_name = sub.name().to_string();
         let sub_rel_path = gix::path::from_bstring(sub.path()?);
         let sub_abs_path = super_worktree.join(&sub_rel_path);
-        let sub_url = sub.url()?;
+        let sub_url = resolve_submodule_url(super_url, sub.url()?);
         let pinned = sub.head_id().ok().flatten();
 
-        let mut prepare = prepare_clone(sub_url, &sub_abs_path)
+        let mut prepare = prepare_clone(sub_url.clone(), &sub_abs_path)
             .with_context(|| format!("Failed to prepare submodule '{sub_name}'"))?;
         if let Some(sha) = pinned {
             prepare = prepare
@@ -238,13 +251,76 @@ fn init_and_update_submodules(
             .with_context(|| format!("Failed to checkout submodule '{sub_name}'"))?;
 
         // Recurse *before* stripping .git so nested submodules can be read.
-        init_and_update_submodules(&sub_repo, &sub_abs_path, identity)?;
+        init_and_update_submodules(&sub_repo, &sub_abs_path, &sub_url, identity)?;
 
         remove_history(&sub_abs_path)
             .with_context(|| format!("Failed to strip .git from submodule '{sub_name}'"))?;
     }
 
     Ok(())
+}
+
+/// Resolve a submodule url written as `./foo` or `../bar` against the parent's origin.
+/// Non-relative urls (http/ssh/git/file with an absolute path) are returned unchanged.
+///
+/// `gix_url` parses relative paths as `Scheme::File` with the raw path preserved, so we
+/// detect the relative shape from there and manipulate the parent's serialized url form
+/// with git's classic "pop last path component per `../`" rule.
+fn resolve_submodule_url(parent: &gix::Url, sub: gix::Url) -> gix::Url {
+    if sub.scheme != gix::url::Scheme::File {
+        return sub;
+    }
+    let sub_path = sub.path.to_string();
+    if !sub_path.starts_with("./") && !sub_path.starts_with("../") {
+        return sub;
+    }
+    let parent_str = parent.to_bstring().to_string();
+    let joined = join_relative_url(&parent_str, &sub_path);
+    gix::url::parse(joined.as_str()).unwrap_or(sub)
+}
+
+fn join_relative_url(parent: &str, rel: &str) -> String {
+    let mut base = parent.trim_end_matches('/').to_owned();
+    let mut rest = rel;
+    while let Some(stripped) = rest.strip_prefix("../") {
+        if let Some(pos) = base.rfind('/') {
+            base.truncate(pos);
+        }
+        rest = stripped;
+    }
+    if let Some(stripped) = rest.strip_prefix("./") {
+        rest = stripped;
+    }
+    format!("{base}/{rest}")
+}
+
+/// A short SHA is 1..40 lowercase-hex chars — anything else (`HEAD`, `refs/…`,
+/// full 40-char SHA) is passed straight to gix.
+fn looks_like_short_sha(s: &str) -> bool {
+    !s.is_empty() && s.len() < 40 && s.bytes().all(|b| b.is_ascii_hexdigit())
+}
+
+/// Resolve a short SHA to its full 40-char form by doing a bare peek clone in a
+/// tempdir. gix's `PrepareFetch::with_revision` rejects anything that isn't a
+/// full SHA (or `refs/…`), so we can't ask it to expand for us.
+fn peek_resolve_short_sha(url: &gix::Url, short: &str, identity: Option<&Path>) -> Result<String> {
+    let scratch =
+        tempfile::tempdir().context("Failed to create scratch dir for revision resolve")?;
+    let mut prepare = gix::prepare_clone_bare(url.clone(), scratch.path())
+        .context("Failed to prepare peek clone for short-SHA resolution")?;
+    if let Some(identity) = identity {
+        prepare = prepare.with_in_memory_config_overrides([format!(
+            "core.sshCommand=ssh -i {}",
+            sh_single_quote(&identity.display().to_string())
+        )]);
+    }
+    let (repo, _) = prepare
+        .fetch_only(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)
+        .with_context(|| format!("Peek clone to resolve revision '{short}' failed"))?;
+    let id = repo
+        .rev_parse_single(short)
+        .with_context(|| format!("Revision '{short}' could not be resolved on the remote"))?;
+    Ok(id.detach().to_string())
 }
 
 fn is_http_repo_url(url: &str) -> bool {
@@ -375,5 +451,37 @@ mod tests {
     #[test]
     fn non_http_clones_do_not_set_fetch_depth() {
         assert!(!should_limit_fetch_depth("git@example.com:repo.git", false));
+    }
+
+    #[test]
+    fn join_relative_url_appends_dot_slash() {
+        assert_eq!(
+            join_relative_url("https://github.com/foo/bar.git", "./baz.git"),
+            "https://github.com/foo/bar.git/baz.git"
+        );
+    }
+
+    #[test]
+    fn join_relative_url_walks_up_with_dot_dot_slash() {
+        assert_eq!(
+            join_relative_url("https://github.com/foo/bar.git", "../baz.git"),
+            "https://github.com/foo/baz.git"
+        );
+    }
+
+    #[test]
+    fn join_relative_url_walks_up_twice() {
+        assert_eq!(
+            join_relative_url("https://github.com/foo/bar/child.git", "../../shared.git"),
+            "https://github.com/foo/shared.git"
+        );
+    }
+
+    #[test]
+    fn join_relative_url_handles_file_path_parents() {
+        assert_eq!(
+            join_relative_url("/tmp/parent-repo", "../shared.git"),
+            "/tmp/shared.git"
+        );
     }
 }

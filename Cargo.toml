@@ -29,6 +29,7 @@ gix-hash = { version = "~0.26", default-features = false, features = ["sha1"] }
 # for the gix module, that will be a drop-in replacement for git2
 gix = { version = "~0.87", default-features = false, features = [
     "sha1",
+    "revision",
     "worktree-mutation",
     "blocking-http-transport-reqwest-rust-tls-trust-dns",
 ] }
