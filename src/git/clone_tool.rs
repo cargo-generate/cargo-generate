@@ -76,7 +76,7 @@ impl<'cb> RepoCloneBuilder<'cb> {
     pub fn with_gitconfig(mut self, gitcfg: Option<&Path>) -> Result<Self> {
         if let Some(gitconfig) = gitcfg
             .map(|p| p.to_owned())
-            .or_else(|| find_gitconfig().map_or(None, |gitconfig| gitconfig))
+            .or_else(|| find_gitconfig().unwrap_or(None))
         {
             self.gitconfig = Some(Config::open(gitconfig.as_path())?);
 
