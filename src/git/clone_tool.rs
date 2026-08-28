@@ -1,3 +1,7 @@
+// Superseded by `crate::gix` — kept here temporarily so the migration diff stays reviewable.
+// The follow-up cleanup commit deletes this file entirely.
+#![allow(dead_code)]
+
 use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 
@@ -72,7 +76,7 @@ impl<'cb> RepoCloneBuilder<'cb> {
     pub fn with_gitconfig(mut self, gitcfg: Option<&Path>) -> Result<Self> {
         if let Some(gitconfig) = gitcfg
             .map(|p| p.to_owned())
-            .or_else(|| find_gitconfig().map_or(None, |gitconfig| gitconfig))
+            .or_else(|| find_gitconfig().unwrap_or(None))
         {
             self.gitconfig = Some(Config::open(gitconfig.as_path())?);
 
@@ -176,7 +180,7 @@ impl GitCloneCmd<'_> {
 
         let url = self.builder.url.clone();
 
-        let is_ssh_repo = url.starts_with("ssh}://") || url.starts_with("git@");
+        let is_ssh_repo = url.starts_with("ssh://") || url.starts_with("git@");
         let is_http_repo = is_http_repo_url(&url);
 
         if should_limit_fetch_depth(&url, self.builder.requires_full_history) {
