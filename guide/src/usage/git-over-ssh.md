@@ -20,7 +20,7 @@ cargo generate --git git@github.com:rustwasm/wasm-pack-template.git --name mywas
 
 ## How authentication works
 
-New in version [1.0.0] is the full delegation of SSH to the system `ssh`
+New in version [0.24.0] is the full delegation of SSH to the system `ssh`
 binary (via [`gix`]). In practice that means:
 
 * `ssh-agent` is picked up automatically wherever the OS exposes it.
@@ -78,5 +78,5 @@ ssh_identity = "/home/john/.ssh/id_rsa_other"
 > ⚠️ NOTE: the CLI argument `-i` always overrules `ssh_identity` from the
 > config file.
 
-[1.0.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v1.0.0
+[0.24.0]: https://github.com/cargo-generate/cargo-generate/releases/tag/v0.24.0
 [`gix`]: https://github.com/GitoxideLabs/gitoxide
