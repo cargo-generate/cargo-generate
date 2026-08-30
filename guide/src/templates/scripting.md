@@ -14,4 +14,11 @@ pre = ["pre-script.rhai"]
 post = ["post-script.rhai"]
 ```
 
+## Running system commands
+
+Hooks can execute programs on the user's system. See [System commands] for
+configuration, examples, permission controls, and the associated security
+risks.
+
 [`Rhai`]: https://rhai.rs/book/
+[System commands]: scripting.system-commands.md
