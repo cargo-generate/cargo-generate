@@ -1,5 +1,4 @@
 use anyhow::Result;
-use git2::{Config as GitConfig, Repository as GitRepository};
 use std::env;
 
 pub struct Authors {
@@ -15,10 +14,22 @@ pub fn get_authors() -> Result<Authors> {
         variables.iter().filter_map(|var| env::var(var).ok()).next()
     }
 
-    fn discover_author() -> Result<(String, Option<String>)> {
-        let git_config = find_real_git_config();
-        let git_config = git_config.as_ref();
+    /// Look up `key` (e.g. `user.name`) via the repo config discovered from cwd,
+    /// falling back to system + global git config.
+    fn read_git_config_string(key: &str) -> Option<String> {
+        if let Ok(cwd) = env::current_dir() {
+            if let Ok(repo) = gix::discover(&cwd) {
+                if let Some(value) = repo.config_snapshot().string(key) {
+                    return Some(value.to_string());
+                }
+            }
+        }
+        gix_config::File::from_globals()
+            .ok()
+            .and_then(|file| file.string(key).map(|v| v.to_string()))
+    }
 
+    fn discover_author() -> Result<(String, Option<String>)> {
         let name_variables = [
             "CARGO_NAME",
             "GIT_AUTHOR_NAME",
@@ -28,7 +39,7 @@ pub fn get_authors() -> Result<Authors> {
             "NAME",
         ];
         let name = get_environment_variable(&name_variables[0..3])
-            .or_else(|| git_config.and_then(|g| g.get_string("user.name").ok()))
+            .or_else(|| read_git_config_string("user.name"))
             .or_else(|| get_environment_variable(&name_variables[3..]));
 
         let name = match name {
@@ -48,7 +59,7 @@ pub fn get_authors() -> Result<Authors> {
             "EMAIL",
         ];
         let email = get_environment_variable(&email_variables[0..3])
-            .or_else(|| git_config.and_then(|g| g.get_string("user.email").ok()))
+            .or_else(|| read_git_config_string("user.email"))
             .or_else(|| get_environment_variable(&email_variables[3..]));
 
         let name = name.trim().to_string();
@@ -65,18 +76,6 @@ pub fn get_authors() -> Result<Authors> {
         });
 
         Ok((name, email))
-    }
-
-    fn find_real_git_config() -> Option<GitConfig> {
-        env::current_dir().map_or_else(
-            |_| GitConfig::open_default().ok(),
-            |cwd| {
-                GitRepository::discover(cwd)
-                    .and_then(|repo| repo.config())
-                    .or_else(|_| GitConfig::open_default())
-                    .ok()
-            },
-        )
     }
 
     let author = match discover_author()? {

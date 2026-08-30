@@ -8,24 +8,25 @@ repository = "https://github.com/cargo-generate/cargo-generate"
 edition = "2021"
 include = ["src/**/*", "LICENSE-*", "*.md"]
 
-[dependencies.git2]
-default-features = false
-features = ["ssh", "https"]
-version = "~0.21"
-
 [dependencies]
 anstyle = "~1.0"
 anyhow = "~1.0"
-auth-git2 = "~0.6"
 clap = { version = "~4.6", features = ["derive", "wrap_help"] }
 console = "~0.16"
 dialoguer = "~0.12"
 env_logger = "~0.11"
 fs-err = "~3.3"
-gix-config = "~0.58"
-# gix-config 0.56's transitive deps need gix-hash with a hash-kind feature enabled;
+gix-config = "~0.60"
+# gix-config's transitive deps need gix-hash with a hash-kind feature enabled;
 # otherwise gix-hash's Kind enum is empty and the crate fails to compile.
-gix-hash = { version = "~0.25", default-features = false, features = ["sha1"] }
+gix-hash = { version = "~0.26", default-features = false, features = ["sha1"] }
+# for the gix module, that will be a drop-in replacement for git2
+gix = { version = "~0.87", default-features = false, features = [
+    "sha1",
+    "revision",
+    "worktree-mutation",
+    "blocking-http-transport-reqwest-rust-tls-trust-dns",
+] }
 heck = "~0.5"
 home = "~0.5"
 ignore = "~0.4"
@@ -37,7 +38,6 @@ liquid-derive = "~0.26"
 liquid-lib = "~0.26"
 log = "~0.4"
 names = { version = "~0.14", default-features = false }
-openssl = { version = "~0.10", optional = true }
 pastey = "~0.2"
 regex = "~1.12"
 remove_dir_all = "~1.0"
@@ -50,7 +50,7 @@ thiserror = "~2.0"
 time = "~0.3"
 toml = { version = "~1.1", features = ["preserve_order"] }
 walkdir = "~2.5"
-cargo-util-schemas = "~0.13"
+cargo-util-schemas = "~0.14"
 
 [dev-dependencies]
 assert_cmd = "~2.1"
@@ -58,11 +58,6 @@ bstr = "~1.13"
 indoc = "~2.0"
 predicates = "~3.1"
 url = "~2.5"
-
-[features]
-default = ["vendored-libgit2"]
-vendored-libgit2 = ["git2/vendored-libgit2"]
-vendored-openssl = ["openssl/vendored", "git2/vendored-openssl"]
 
 [[bin]]
 path = "src/main.rs"

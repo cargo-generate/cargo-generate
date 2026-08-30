@@ -141,7 +141,7 @@ fn it_can_use_favorites() {
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(Repository::open(working_dir.path().join("favorite-project")).is_ok());
+    assert!(gix::open(working_dir.path().join("favorite-project")).is_ok());
     assert!(working_dir
         .read("favorite-project/Cargo.toml")
         .contains(r#"description = "favorite-template""#));
@@ -164,7 +164,7 @@ fn a_favorite_can_set_vcs_to_none_by_default() {
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    assert!(Repository::open(working_dir.path().join("favorite-project")).is_err());
+    assert!(gix::open(working_dir.path().join("favorite-project")).is_err());
 }
 
 #[test]

@@ -23,6 +23,11 @@ concurrency:
 
 env:
   CARGO_INCREMENTAL: 0
+  # sccache is opt-out on Windows: after the gix migration, rustc's linker
+  # command line (MSVC toolchain paths + gix's transitive `-L native=…`
+  # entries) exceeds Windows' 32K `CreateProcess` limit when wrapped by
+  # sccache, failing with `os error 206`. Each Windows-inclusive job below
+  # clears RUSTC_WRAPPER and skips the sccache-action install.
   SCCACHE_GHA_ENABLED: "true"
   RUSTC_WRAPPER: "sccache"
 
@@ -52,7 +57,12 @@ jobs:
           default: true
           profile: minimal
           components: clippy, rustfmt
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - name: disable sccache on windows (command-line length limit)
+        if: matrix.version == 'windows-latest'
+        shell: bash
+        run: echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+      - if: matrix.version != 'windows-latest'
+        uses: mozilla-actions/sccache-action@v0.0.11
       - run: cargo check
 
   lint:
@@ -74,7 +84,12 @@ jobs:
           default: true
           profile: minimal
           components: clippy, rustfmt
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - name: disable sccache on windows (command-line length limit)
+        if: matrix.version == 'windows-latest'
+        shell: bash
+        run: echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+      - if: matrix.version != 'windows-latest'
+        uses: mozilla-actions/sccache-action@v0.0.11
       - run: cargo ${{ matrix['cargo-cmd'] }}
 
   tests:
@@ -94,7 +109,12 @@ jobs:
           toolchain: ${{ matrix.rust }}
           default: true
           profile: minimal
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - name: disable sccache on windows (command-line length limit)
+        if: matrix.version == 'windows-latest'
+        shell: bash
+        run: echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+      - if: matrix.version != 'windows-latest'
+        uses: mozilla-actions/sccache-action@v0.0.11
       - name: git test setup preparation
         run: |
           git config --global user.email "you@example.com"
@@ -185,7 +205,7 @@ jobs:
           chmod 644 $HOME/.ssh/known_hosts
           ssh-add $HOME/.ssh/id_rsa
           ssh-add -l
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - uses: mozilla-actions/sccache-action@v0.0.11
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage
@@ -217,7 +237,7 @@ jobs:
           toolchain: stable
           default: true
           profile: minimal
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - uses: mozilla-actions/sccache-action@v0.0.11
       - name: audit
         uses: actions-rs/audit-check@v1
         continue-on-error: true
@@ -235,7 +255,7 @@ jobs:
           toolchain: stable
           default: true
           profile: minimal
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - uses: mozilla-actions/sccache-action@v0.0.11
       - run: cargo publish --dry-run
 
   docs:
@@ -249,7 +269,7 @@ jobs:
           toolchain: stable
           default: true
           profile: minimal
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - uses: mozilla-actions/sccache-action@v0.0.11
       - name: check documentation
         env:
           RUSTDOCFLAGS: -D warnings

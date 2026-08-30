@@ -4,7 +4,6 @@ pub use crate::helpers::project::Project;
 pub use crate::helpers::project_builder::tempdir;
 
 pub use assert_cmd::prelude::*;
-pub use git2::Repository;
 pub use indoc::indoc;
 pub use predicates::prelude::*;
 pub use std::env;
