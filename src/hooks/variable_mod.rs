@@ -4,7 +4,7 @@ use regex::Regex;
 use rhai::{Array, Dynamic, Module};
 
 use crate::interactive::prompt_and_check_variable;
-use crate::project_variables::{StringEntry, StringKind, TemplateSlots, VarInfo};
+use crate::project_variables::{Choice, StringEntry, StringKind, TemplateSlots, VarInfo};
 use crate::template::LiquidObjectResource;
 
 use super::{HookResult, PoisonError};
@@ -199,7 +199,7 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
                             kind: StringKind::Choices(
                                 choices
                                     .iter()
-                                    .map(|d| d.to_owned().into_string().unwrap())
+                                    .map(|d| Choice::new(d.to_owned().into_string().unwrap()))
                                     .collect(),
                             ),
                             regex: None,
