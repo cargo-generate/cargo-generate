@@ -1,5 +1,5 @@
 use bstr::ByteSlice;
-use gix_config::File as GitConfig;
+use gix::config::File as GitConfig;
 
 use crate::helpers::prelude::*;
 
