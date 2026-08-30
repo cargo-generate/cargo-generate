@@ -24,7 +24,7 @@ pub fn get_authors() -> Result<Authors> {
                 }
             }
         }
-        gix_config::File::from_globals()
+        gix::config::File::from_globals()
             .ok()
             .and_then(|file| file.string(key).map(|v| v.to_string()))
     }
