@@ -141,6 +141,7 @@ impl GitCloneCmd {
 
         let url =
             url::parse(url_str.as_str()).with_context(|| format!("Invalid git url: {url_str}"))?;
+        debug!("{WRENCH} cloning `{url_str}` into `{}`", dest.display());
 
         // gix's `with_revision` only accepts a full 40-char SHA (or a `refs/…`).
         // Short SHAs — which `git`, `git2`, and cargo-generate's users all accept —
@@ -227,14 +228,25 @@ fn init_and_update_submodules(
         let sub_rel_path = gix::path::from_bstring(sub.path()?);
         let sub_abs_path = super_worktree.join(&sub_rel_path);
         let sub_url = resolve_submodule_url(super_url, sub.url()?);
+        let sub_url_str = sub_url.to_bstring().to_string();
         let pinned = sub.head_id().ok().flatten();
 
-        let mut prepare = prepare_clone(sub_url.clone(), &sub_abs_path)
-            .with_context(|| format!("Failed to prepare submodule '{sub_name}'"))?;
+        match &pinned {
+            Some(sha) => {
+                debug!("{WRENCH} submodule '{sub_name}' → {sub_url_str} @ {sha}");
+            }
+            None => debug!("{WRENCH} submodule '{sub_name}' → {sub_url_str}"),
+        }
+
+        let mut prepare = prepare_clone(sub_url.clone(), &sub_abs_path).with_context(|| {
+            format!("Failed to prepare submodule '{sub_name}' from '{sub_url_str}'")
+        })?;
         if let Some(sha) = pinned {
             prepare = prepare
                 .with_revision(Some(sha.to_string()))
-                .with_context(|| format!("Failed to pin submodule '{sub_name}' to {sha}"))?;
+                .with_context(|| {
+                    format!("Failed to pin submodule '{sub_name}' from '{sub_url_str}' to {sha}")
+                })?;
         }
         if let Some(identity) = identity {
             prepare = prepare.with_in_memory_config_overrides([format!(
@@ -245,16 +257,24 @@ fn init_and_update_submodules(
 
         let (mut checkout, _) = prepare
             .fetch_then_checkout(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)
-            .with_context(|| format!("Failed to fetch submodule '{sub_name}'"))?;
+            .with_context(|| {
+                format!("Failed to fetch submodule '{sub_name}' from '{sub_url_str}'")
+            })?;
         let (sub_repo, _) = checkout
             .main_worktree(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)
-            .with_context(|| format!("Failed to checkout submodule '{sub_name}'"))?;
+            .with_context(|| {
+                format!("Failed to checkout submodule '{sub_name}' from '{sub_url_str}'")
+            })?;
 
         // Recurse *before* stripping .git so nested submodules can be read.
         init_and_update_submodules(&sub_repo, &sub_abs_path, &sub_url, identity)?;
 
-        remove_history(&sub_abs_path)
-            .with_context(|| format!("Failed to strip .git from submodule '{sub_name}'"))?;
+        remove_history(&sub_abs_path).with_context(|| {
+            format!(
+                "Failed to strip .git from submodule '{sub_name}' at '{}'",
+                sub_abs_path.display()
+            )
+        })?;
     }
 
     Ok(())
