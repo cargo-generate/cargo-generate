@@ -1008,3 +1008,118 @@ fn test_flag_with_github_shorthand_clones_remote() {
                 .from_utf8(),
         );
 }
+
+#[test]
+fn it_overrides_builtin_authors_placeholder_via_define() {
+    let template = tempdir()
+        .file(
+            "Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "authors = {{authors}}"
+                version = "0.1.0"
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
+        .args(["--define", "authors=The Project Authors"])
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(
+            predicates::str::contains(
+                "Overriding builtin placeholder `authors` with value from `--define`",
+            )
+            .from_utf8(),
+        );
+
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("authors = The Project Authors"));
+}
+
+#[test]
+fn it_overrides_builtin_os_arch_placeholder_via_define() {
+    let template = tempdir()
+        .file(
+            "Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "os-arch = {{os-arch}}"
+                version = "0.1.0"
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
+        .args(["--define", "os-arch=custom-target"])
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(
+            predicates::str::contains(
+                "Overriding builtin placeholder `os-arch` with value from `--define`",
+            )
+            .from_utf8(),
+        );
+
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("os-arch = custom-target"));
+}
+
+#[test]
+fn it_does_not_warn_when_define_matches_user_placeholder() {
+    let template = tempdir()
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [placeholders.greeting]
+                type = "string"
+                prompt = "greeting?"
+                default = "hi"
+            "#},
+        )
+        .file(
+            "Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "{{project-name}}"
+                description = "greeting = {{greeting}}"
+                version = "0.1.0"
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("foobar-project")
+        .arg_branch("main")
+        .args(["--define", "greeting=hello"])
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("Overriding builtin placeholder").not());
+
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("greeting = hello"));
+}
