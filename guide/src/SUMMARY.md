@@ -5,6 +5,7 @@
 - [Usage](usage/README.md)
   - [Git over SSH](usage/git-over-ssh.md)
   - [.gitconfig `insteadOf`](usage/gitconfig-instead-of.md)
+- [Library Usage](library-usage.md)
 - [Favorites](favorites.md)
 - [Templates](templates/README.md)
   - [Builtin Placeholders](templates/builtin_placeholders.md)
