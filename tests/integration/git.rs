@@ -1,6 +1,5 @@
 use bstr::ByteSlice;
 use gix_config::File as GitConfig;
-use std::ops::Deref;
 
 use crate::helpers::prelude::*;
 
@@ -140,7 +139,7 @@ fn should_retrieve_an_instead_of_url() {
     let url = config
         .string_by("url", Some("ssh://git@github.com:".into()), "insteadOf")
         .unwrap();
-    assert_eq!(url.deref(), "https://github.com/");
+    assert_eq!(url, "https://github.com/");
     config
         .set_raw_value_by(
             "url",
