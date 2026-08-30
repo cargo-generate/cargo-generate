@@ -4,14 +4,12 @@ use std::path::Path;
 use std::{io, ops::Sub, thread::sleep, time::Duration};
 
 use anyhow::Result;
-use git2::{Repository, RepositoryInitOptions};
 use log::warn;
 use remove_dir_all::remove_dir_all;
 pub use utils::clone_git_template_into_temp;
 
-mod clone_tool;
-mod gitconfig;
-mod utils;
+pub mod gitconfig;
+pub mod utils;
 
 pub use utils::{tmp_dir, try_get_branch_from_path};
 
@@ -31,32 +29,33 @@ pub use utils::{tmp_dir, try_get_branch_from_path};
 // git clone --recurse-submodules --depth 1 --branch <branch> <url> <tmp_dir>
 // with --recurse-submodules being optional.
 
-type Git2Result<T> = Result<T, git2::Error>;
-
-/// Init project_dir with fresh repository on branch
+/// Init `project_dir` with a fresh repository, optionally on `branch`.
 ///
-/// Arguments:
-/// - `force` - enforce a fresh git init
-pub fn init(project_dir: &Path, branch: Option<&str>, force: bool) -> Git2Result<Repository> {
-    Repository::discover(project_dir).map_or_else(
-        |_| just_init(project_dir, branch),
-        |repo| {
-            if force {
-                Repository::open(project_dir).or_else(|_| just_init(project_dir, branch))
-            } else {
-                Ok(repo)
-            }
-        },
-    )
+/// * If `project_dir` (or an ancestor) already contains a repository and `force`
+///   is false, the existing repo is reused unchanged.
+/// * If `force` is true, we still reuse an existing repo *at* `project_dir` but
+///   init a new one when only an ancestor is a repo — that matches the previous
+///   `git2` behavior callers rely on.
+pub fn init(project_dir: &Path, branch: Option<&str>, force: bool) -> Result<()> {
+    match (gix::discover(project_dir).ok(), force) {
+        (Some(_), false) => Ok(()),
+        (Some(_), true) if gix::open(project_dir).is_ok() => Ok(()),
+        _ => just_init(project_dir, branch),
+    }
 }
 
-fn just_init(project_dir: &Path, branch: Option<&str>) -> Git2Result<Repository> {
-    let mut opts = RepositoryInitOptions::new();
-    opts.bare(false);
+fn just_init(project_dir: &Path, branch: Option<&str>) -> Result<()> {
+    let repo = gix::init(project_dir)?;
     if let Some(branch) = branch {
-        opts.initial_head(branch);
+        // gix::init has no `initial_head` option — HEAD is a plain text file
+        // (`ref: refs/heads/<branch>`), which is exactly what `git init -b <branch>`
+        // writes. Doing it by hand keeps us clear of gix's ref-transaction surface.
+        std::fs::write(
+            repo.git_dir().join("HEAD"),
+            format!("ref: refs/heads/{branch}\n"),
+        )?;
     }
-    Repository::init_opts(project_dir, &opts)
+    Ok(())
 }
 
 /// remove context of repository by removing `.git` from filesystem

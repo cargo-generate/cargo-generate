@@ -76,8 +76,8 @@ fn it_removes_git_history() {
         .success()
         .stdout(predicates::str::contains("Done!").from_utf8());
 
-    let repo = Repository::open(dir.path().join("foobar-project")).unwrap();
-    let references = repo.references().unwrap().count();
+    let repo = gix::open(dir.path().join("foobar-project")).unwrap();
+    let references = repo.references().unwrap().all().unwrap().count();
     assert_eq!(0, references);
 }
 
@@ -95,8 +95,8 @@ fn it_removes_git_history_also_on_local_templates() {
         .stdout(predicates::str::contains("Done!").from_utf8());
 
     let target_path = dir.target_path("xyz");
-    let repo = git2::Repository::open(target_path).unwrap();
-    assert_eq!(0, repo.references().unwrap().count());
+    let repo = gix::open(target_path).unwrap();
+    assert_eq!(0, repo.references().unwrap().all().unwrap().count());
 }
 
 #[test]
@@ -108,8 +108,8 @@ fn it_should_init_an_empty_git_repo_even_when_starting_from_a_repo_when_forced()
         .build();
 
     // the target path is a git repo with commits
-    let repo = Repository::open(target.path()).unwrap();
-    let references = repo.references().unwrap().count();
+    let repo = gix::open(target.path()).unwrap();
+    let references = repo.references().unwrap().all().unwrap().count();
     assert_ne!(0, references);
 
     binary()
@@ -125,8 +125,8 @@ fn it_should_init_an_empty_git_repo_even_when_starting_from_a_repo_when_forced()
     assert!(target.exists("foo/.git"));
 
     // the generated project should be an empty git repo, even if the target path was a git repo already
-    let repo = Repository::open(target.path().join("foo")).unwrap();
-    let references = repo.references().unwrap().count();
+    let repo = gix::open(target.path().join("foo")).unwrap();
+    let references = repo.references().unwrap().all().unwrap().count();
     assert_eq!(0, references);
 }
 
@@ -140,7 +140,7 @@ fn should_retrieve_an_instead_of_url() {
     let url = config
         .string_by("url", Some("ssh://git@github.com:".into()), "insteadOf")
         .unwrap();
-    assert_eq!(url.deref(), "https://github.com/");
+    assert_eq!(url.deref().as_bstr(), "https://github.com/");
     config
         .set_raw_value_by(
             "url",

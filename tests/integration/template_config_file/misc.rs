@@ -111,5 +111,5 @@ fn vsc_none_can_be_specified_in_the_template() {
     assert!(dir
         .read("foobar-project/Cargo.toml")
         .contains("foobar-project"));
-    assert!(Repository::open(dir.path().join("foobar-project")).is_err());
+    assert!(gix::open(dir.path().join("foobar-project")).is_err());
 }
