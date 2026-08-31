@@ -685,3 +685,63 @@ fn should_echo_something() {
         .success()
         .stdout(predicates::str::contains("picard").from_utf8());
 }
+
+// Reproduction for https://github.com/cargo-generate/cargo-generate/issues/1388:
+// a pre hook must be able to reach the just-copied template files in the temp
+// working folder via `system::command`, mutate them there, and have the
+// mutation flow through liquid templating into the final destination.
+//
+// Pipeline exercised:
+//   1. template file `.github/workflows/ci.yml` lands in the temp working dir
+//      as `name: ci\nrust: PLACEHOLDER_VERSION for {{project-name}}\n`
+//   2. pre-hook intercepts via `sed` (system::command, CWD == temp working
+//      dir) and rewrites `PLACEHOLDER_VERSION` -> `1.84.1`
+//   3. templating runs on the mutated content, expanding `{{project-name}}`
+//   4. the final destination file contains both changes
+#[test]
+#[cfg(unix)]
+fn it_intercepts_and_mutates_template_files_from_pre_hook() {
+    let template = tempdir()
+        .file(
+            ".github/workflows/ci.yml",
+            "name: ci\nrust: PLACEHOLDER_VERSION for {{project-name}}\n",
+        )
+        .file(
+            "pre-script.rhai",
+            indoc! {r#"
+                system::command("sed", ["-i.bak", "s/PLACEHOLDER_VERSION/1.84.1/g", ".github/workflows/ci.yml"]);
+                system::command("rm", ["-f", ".github/workflows/ci.yml.bak"]);
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [hooks]
+                pre = ["pre-script.rhai"]
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("script-project")
+        .flag_allow_commands()
+        .current_dir(dir.path())
+        .assert()
+        .success();
+
+    let final_content = dir.read("script-project/.github/workflows/ci.yml");
+    // pre-hook intercepted (PLACEHOLDER_VERSION -> 1.84.1)...
+    assert!(
+        final_content.contains("rust: 1.84.1 for"),
+        "pre-hook mutation did not reach destination: {final_content:?}",
+    );
+    // ...and templating ran on the mutated content ({{project-name}} -> script-project).
+    assert!(
+        final_content.contains("for script-project"),
+        "liquid expansion did not run on mutated content: {final_content:?}",
+    );
+}
