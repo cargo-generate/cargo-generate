@@ -1,5 +1,6 @@
 pub use crate::helpers::arg_builder::*;
 pub use crate::helpers::create_template;
+pub use crate::helpers::fake_proxy::FakeProxy;
 pub use crate::helpers::project::Project;
 pub use crate::helpers::project_builder::tempdir;
 
