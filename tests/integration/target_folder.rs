@@ -5,9 +5,11 @@ use crate::helpers::prelude::*;
 // is dramatically slowed by incremental build artifacts.
 //
 // Detection is strict: only directories carrying a `CACHEDIR.TAG` marker
-// (the convention cargo writes into every build directory) are skipped, so
-// templates that legitimately ship a `target/` directory of their own are
-// untouched.
+// are skipped, so templates that legitimately ship a `target/` directory
+// of their own are untouched. Cargo has been writing this marker into
+// every build directory since 1.46 — see
+// https://doc.rust-lang.org/cargo/CHANGELOG.html#cargo-146-2020-08-27 and
+// the introducing PR https://github.com/rust-lang/cargo/pull/8378.
 //
 // Regression test for https://github.com/cargo-generate/cargo-generate/issues/1600
 #[test]
