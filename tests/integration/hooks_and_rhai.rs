@@ -44,6 +44,62 @@ fn it_removes_hook_files_from_output_without_touching_cwd() {
     assert!(dir.read("post-script.rhai").contains("decoy"));
 }
 
+// Regression test for https://github.com/cargo-generate/cargo-generate/issues/1613:
+// a pre-script.rhai that renames the selected license file and deletes the
+// rest must succeed when the template is pulled from a git source. The
+// original report saw "OS Error 53 (Network Path was not found)" on Windows
+// in this exact shape (mirrors
+// https://github.com/Reloaded-Project/reloaded-templates-rust/blob/main/templates/general/pre-script.rhai).
+#[test]
+fn it_renames_and_deletes_files_from_git_source() {
+    let template = tempdir()
+        .file(
+            "pre-script.rhai",
+            indoc! {r#"
+            let license = variable::get("license").to_lower();
+            if license == "mit" {
+                file::rename("LICENSE-MIT", "LICENSE");
+                file::delete("LICENSE-APACHE");
+            } else {
+                file::rename("LICENSE-APACHE", "LICENSE");
+                file::delete("LICENSE-MIT");
+            }
+        "#},
+        )
+        .file("LICENSE-MIT", "MIT License text")
+        .file("LICENSE-APACHE", "Apache License text")
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+            [placeholders.license]
+            type = "string"
+            prompt = "license"
+            default = "mit"
+
+            [hooks]
+            pre = ["pre-script.rhai"]
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("script-project")
+        .arg("-d")
+        .arg("license=mit")
+        .current_dir(dir.path())
+        .assert()
+        .success();
+
+    assert!(dir.exists("script-project/LICENSE"));
+    assert!(!dir.exists("script-project/LICENSE-MIT"));
+    assert!(!dir.exists("script-project/LICENSE-APACHE"));
+    assert!(dir.read("script-project/LICENSE").contains("MIT"));
+}
+
 #[test]
 fn it_runs_all_hook_types() {
     let template = tempdir()
