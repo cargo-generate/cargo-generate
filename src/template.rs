@@ -13,6 +13,7 @@ use std::{
 use walkdir::{DirEntry, WalkDir};
 
 use crate::config::TemplateConfig;
+use crate::copy::is_cache_dir;
 use crate::emoji;
 use crate::filenames::substitute_filename;
 use crate::hooks::PoisonError;
@@ -139,6 +140,9 @@ pub fn walk_dir(
         .sort_by_file_name()
         .contents_first(true)
         .into_iter()
+        // Prune build cache directories (e.g. cargo's `target/`) before we
+        // descend, see https://github.com/cargo-generate/cargo-generate/issues/1600
+        .filter_entry(|e| !(e.file_type().is_dir() && is_cache_dir(e.path())))
         .filter_map(Result::ok)
         .filter(|e| !is_git_metadata(e))
         .filter(|e| e.path() != project_dir)
