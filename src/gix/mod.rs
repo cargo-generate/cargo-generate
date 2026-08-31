@@ -53,16 +53,19 @@ impl RepoCloneBuilder {
     }
 
     /// Uses `gitcfg` (or auto-discovered `~/.gitconfig`) to rewrite the clone url
-    /// through any matching `[url "…"] insteadOf` entries.
+    /// through any matching `[url "…"] insteadOf` entries, and to bridge
+    /// `http.proxy` / `http.noProxy` into the `ALL_PROXY` / `NO_PROXY` env vars
+    /// that gix's reqwest transport reads. Env vars set by the shell always win.
     pub fn with_gitconfig(mut self, gitcfg: Option<&Path>) -> Result<Self> {
         if let Some(gitconfig) = gitcfg
             .map(|p| p.to_owned())
             .or_else(|| gitconfig::find_gitconfig().ok().flatten())
         {
-            if let Some(url) = gitconfig::resolve_instead_url(&self.url, gitconfig)? {
+            if let Some(url) = gitconfig::resolve_instead_url(&self.url, &gitconfig)? {
                 debug!("{} gitconfig 'insteadOf' lead to this url: {}", WRENCH, url);
                 self.url = url;
             }
+            apply_proxy_from_gitconfig(&gitconfig)?;
         }
         Ok(self)
     }
@@ -141,6 +144,7 @@ impl GitCloneCmd {
 
         let url =
             url::parse(url_str.as_str()).with_context(|| format!("Invalid git url: {url_str}"))?;
+        debug!("{WRENCH} cloning `{url_str}` into `{}`", dest.display());
 
         // gix's `with_revision` only accepts a full 40-char SHA (or a `refs/…`).
         // Short SHAs — which `git`, `git2`, and cargo-generate's users all accept —
@@ -227,14 +231,25 @@ fn init_and_update_submodules(
         let sub_rel_path = gix::path::from_bstring(sub.path()?);
         let sub_abs_path = super_worktree.join(&sub_rel_path);
         let sub_url = resolve_submodule_url(super_url, sub.url()?);
+        let sub_url_str = sub_url.to_bstring().to_string();
         let pinned = sub.head_id().ok().flatten();
 
-        let mut prepare = prepare_clone(sub_url.clone(), &sub_abs_path)
-            .with_context(|| format!("Failed to prepare submodule '{sub_name}'"))?;
+        match &pinned {
+            Some(sha) => {
+                debug!("{WRENCH} submodule '{sub_name}' → {sub_url_str} @ {sha}");
+            }
+            None => debug!("{WRENCH} submodule '{sub_name}' → {sub_url_str}"),
+        }
+
+        let mut prepare = prepare_clone(sub_url.clone(), &sub_abs_path).with_context(|| {
+            format!("Failed to prepare submodule '{sub_name}' from '{sub_url_str}'")
+        })?;
         if let Some(sha) = pinned {
             prepare = prepare
                 .with_revision(Some(sha.to_string()))
-                .with_context(|| format!("Failed to pin submodule '{sub_name}' to {sha}"))?;
+                .with_context(|| {
+                    format!("Failed to pin submodule '{sub_name}' from '{sub_url_str}' to {sha}")
+                })?;
         }
         if let Some(identity) = identity {
             prepare = prepare.with_in_memory_config_overrides([format!(
@@ -245,16 +260,24 @@ fn init_and_update_submodules(
 
         let (mut checkout, _) = prepare
             .fetch_then_checkout(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)
-            .with_context(|| format!("Failed to fetch submodule '{sub_name}'"))?;
+            .with_context(|| {
+                format!("Failed to fetch submodule '{sub_name}' from '{sub_url_str}'")
+            })?;
         let (sub_repo, _) = checkout
             .main_worktree(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)
-            .with_context(|| format!("Failed to checkout submodule '{sub_name}'"))?;
+            .with_context(|| {
+                format!("Failed to checkout submodule '{sub_name}' from '{sub_url_str}'")
+            })?;
 
         // Recurse *before* stripping .git so nested submodules can be read.
         init_and_update_submodules(&sub_repo, &sub_abs_path, &sub_url, identity)?;
 
-        remove_history(&sub_abs_path)
-            .with_context(|| format!("Failed to strip .git from submodule '{sub_name}'"))?;
+        remove_history(&sub_abs_path).with_context(|| {
+            format!(
+                "Failed to strip .git from submodule '{sub_name}' at '{}'",
+                sub_abs_path.display()
+            )
+        })?;
     }
 
     Ok(())
@@ -343,6 +366,53 @@ pub fn try_get_branch_from_path(path: impl AsRef<Path>) -> Option<String> {
 /// The `sh -c` interpreter that gix uses for `core.sshCommand` will unquote this back.
 fn sh_single_quote(s: &str) -> String {
     format!("'{}'", s.replace('\'', "'\\''"))
+}
+
+/// Bridge `http.proxy` / `http.noProxy` from `gitconfig` to the env vars reqwest
+/// consults (`ALL_PROXY`, `NO_PROXY`). gix's reqwest transport does not read git
+/// config directly, so without this shim these settings are silently ignored.
+///
+/// Shell env always wins: if any of `ALL_PROXY` / `HTTPS_PROXY` / `HTTP_PROXY`
+/// is already set, the gitconfig `http.proxy` is left as-is. The reasoning is
+/// that a user who exported an env var meant those to be used, overriding would surprise them.
+fn apply_proxy_from_gitconfig(gitconfig: &Path) -> Result<()> {
+    let cfg = gitconfig::resolve_http_proxy(gitconfig)?;
+
+    if let Some(proxy) = cfg.proxy.as_deref().filter(|v| !v.is_empty()) {
+        if any_proxy_env_var_set() {
+            debug!("{WRENCH} skipping gitconfig 'http.proxy'; a proxy env var is already set");
+        } else {
+            debug!("{WRENCH} applying gitconfig 'http.proxy' -> ALL_PROXY = {proxy}");
+            // SAFETY: cargo-generate is single-threaded at this call site — the
+            // gix reqwest worker is only spawned on the first fetch, which
+            // happens later in do_clone().
+            std::env::set_var("ALL_PROXY", proxy);
+        }
+    }
+
+    if let Some(no_proxy) = cfg.no_proxy.as_deref().filter(|v| !v.is_empty()) {
+        if std::env::var_os("NO_PROXY").is_some() || std::env::var_os("no_proxy").is_some() {
+            debug!("{WRENCH} skipping gitconfig 'http.noProxy'; NO_PROXY env var is already set");
+        } else {
+            debug!("{WRENCH} applying gitconfig 'http.noProxy' -> NO_PROXY = {no_proxy}");
+            std::env::set_var("NO_PROXY", no_proxy);
+        }
+    }
+
+    Ok(())
+}
+
+fn any_proxy_env_var_set() -> bool {
+    [
+        "ALL_PROXY",
+        "all_proxy",
+        "HTTPS_PROXY",
+        "https_proxy",
+        "HTTP_PROXY",
+        "http_proxy",
+    ]
+    .iter()
+    .any(|k| std::env::var_os(k).is_some())
 }
 
 #[cfg(test)]

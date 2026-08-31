@@ -36,6 +36,24 @@ Builtin placeholders are:
 * `is_init`
     * A boolean that reflects the value of the `--init` parameter of `cargo-generate`.
 
+## Overriding builtin placeholders
+
+> Available since version [0.24.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.24.0)
+
+Builtin placeholders can be overridden on the command line via `--define`, the
+`--values-file`, or a `CARGO_GENERATE_VALUE_<NAME>` environment variable — the
+same mechanisms used for template-defined placeholders. This is useful when the
+auto-derived value (e.g. `authors` from local git config) should be pinned to a
+stable value, for example when committing the expanded template to a
+repository.
+
+```sh
+cargo generate --git … --define 'authors=The Project Authors'
+```
+
+An info message is logged whenever a builtin is overridden, so accidental
+overrides remain visible.
+
 ## Usage example
 
 ```markdown

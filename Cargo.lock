@@ -268,6 +268,7 @@ dependencies = [
  "predicates",
  "regex",
  "remove_dir_all",
+ "reqwest",
  "rhai",
  "sanitize-filename",
  "semver",

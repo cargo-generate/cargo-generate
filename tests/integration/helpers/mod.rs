@@ -3,6 +3,7 @@ use crate::helpers::project_builder::tempdir;
 use indoc::indoc;
 
 pub mod arg_builder;
+pub mod fake_proxy;
 pub mod prelude;
 pub mod project;
 pub mod project_builder;

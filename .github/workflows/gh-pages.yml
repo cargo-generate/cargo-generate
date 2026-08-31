@@ -7,25 +7,41 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
     steps:
       - uses: actions/checkout@v7
 
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v2
         with:
-          # mdbook-version: '0.4.15'
-          mdbook-version: 'latest'
+          mdbook-version: '0.5.4'
 
       - run: cd guide && mdbook build
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
-        if: ${{ github.ref == 'refs/heads/main' }}
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.CI_CARGO_GENERATE_RELEASE_GH_PAT }} 
-          publish_dir: ./guide/book
+          path: ./guide/book
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
