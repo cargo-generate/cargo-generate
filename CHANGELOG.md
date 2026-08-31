@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.23.10...HEAD)
 
+## [0.24.0] 2026-08-31
+
+### ✨ Features
+
+- Bring the gitoxide aka gix related changes to latest main ([#1460](https://github.com/cargo-generate/cargo-generate/issues/1460))
+- Support value/label choices for placeholders ([#1747](https://github.com/cargo-generate/cargo-generate/issues/1747))
+- Log submodule url + sha and embed url in error context ([#1757](https://github.com/cargo-generate/cargo-generate/issues/1757))
+- Allow --define to override builtin placeholders ([#1761](https://github.com/cargo-generate/cargo-generate/issues/1761))
+- Honor gitconfig http.proxy for http, https and socks5 ([#1762](https://github.com/cargo-generate/cargo-generate/issues/1762))
+
+### 📖 Documentation
+
+- Overhaul install + git-over-ssh chapters for gix ([#1751](https://github.com/cargo-generate/cargo-generate/issues/1751))
+- Document system command hooks ([#1733](https://github.com/cargo-generate/cargo-generate/issues/1733))
+- Add Library Usage chapter to the mdbook guide ([#1758](https://github.com/cargo-generate/cargo-generate/issues/1758))
+
+### 🛠️ Maintenance
+
+- Bump cargo-util-schemas from 0.13.0 to 0.14.2 ([#1748](https://github.com/cargo-generate/cargo-generate/issues/1748))
+- Drop gix-hash and gix-config as direct dependencies ([#1755](https://github.com/cargo-generate/cargo-generate/issues/1755))
+- Bump to the next version v0.24.0
+
+### 🤕 Fixes
+
+- Add generated crate to workspace when run from a nested folder ([#1764](https://github.com/cargo-generate/cargo-generate/issues/1764))
+- Skip CACHEDIR.TAG directories to speed up template generation ([#1763](https://github.com/cargo-generate/cargo-generate/issues/1763))
+
+
 ## [0.23.14] 2026-07-21
 
 [0.23.14]: https://github.com/cargo-generate/cargo-generate/compare/0.23.13...0.23.14
