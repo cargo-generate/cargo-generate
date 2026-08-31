@@ -619,20 +619,45 @@ fn expand_template(
     Ok(destination.as_ref().to_owned())
 }
 
+/// Builtin placeholder names that are pre-populated by cargo-generate.
+///
+/// When a value with one of these names is supplied via `--define` (or the
+/// equivalent env/values-file mechanisms), it overrides the value that was
+/// derived automatically. An info message is emitted so that accidental
+/// overrides don't go unnoticed.
+const BUILTIN_PLACEHOLDER_NAMES: &[&str] = &[
+    "authors",
+    "username",
+    "os-arch",
+    "project-name",
+    "crate_name",
+    "crate_type",
+    "within_cargo_project",
+    "is_init",
+];
+
 /// Try to add all provided `template_values` to the `liquid_object`.
 ///
-/// ## Note:
-/// Values for which a placeholder exists, should already be filled by `fill_project_variables`
+/// Values for which a placeholder exists should already be filled by
+/// `fill_project_variables`; those are skipped here. Builtin placeholders
+/// (see [`BUILTIN_PLACEHOLDER_NAMES`]) are intentionally overwritten so that
+/// `--define authors=…` and friends work — an info message is logged whenever
+/// this happens so accidental overrides are visible.
 pub(crate) fn add_missing_provided_values(
     liquid_object: &LiquidObjectResource,
     template_values: &HashMap<String, toml::Value>,
 ) -> Result<(), anyhow::Error> {
     template_values.iter().try_for_each(|(k, v)| {
-        if RefCell::borrow(&liquid_object.lock().unwrap()).contains_key(k.as_str()) {
+        let already_present =
+            RefCell::borrow(&liquid_object.lock().unwrap()).contains_key(k.as_str());
+        let is_builtin = BUILTIN_PLACEHOLDER_NAMES.contains(&k.as_str());
+
+        // A non-builtin value that is already set was filled by placeholder
+        // handling — don't clobber it.
+        if already_present && !is_builtin {
             return Ok(());
         }
-        // we have a value without a slot in the liquid object.
-        // try to create the slot from the provided value
+
         let value = match v {
             toml::Value::String(content) => liquid_core::Value::Scalar(content.clone().into()),
             toml::Value::Boolean(content) => liquid_core::Value::Scalar((*content).into()),
@@ -644,6 +669,19 @@ pub(crate) fn add_missing_provided_values(
                     .red(),
             )),
         };
+
+        if already_present && is_builtin {
+            info!(
+                "{} {}",
+                emoji::WARN,
+                style(format!(
+                    "Overriding builtin placeholder `{k}` with value from `--define`"
+                ))
+                .bold()
+                .yellow(),
+            );
+        }
+
         liquid_object
             .lock()
             .unwrap()
