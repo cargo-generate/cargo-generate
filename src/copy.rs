@@ -1,12 +1,31 @@
 use anyhow::{bail, Ok, Result};
 use console::style;
-use log::{debug, warn};
+use log::{debug, info, warn};
 use std::{
-    fs::{copy, read_dir, remove_file},
+    fs::{copy, read_dir, remove_file, File},
+    io::Read,
     path::Path,
 };
 
 pub const LIQUID_SUFFIX: &str = ".liquid";
+
+// Cache Directory Tagging Specification (https://bford.info/cachedir/).
+// Cargo writes a `CACHEDIR.TAG` file into every `target/` build directory it
+// creates, whose first 43 bytes match `CACHEDIR_TAG_SIGNATURE`. Detecting this
+// marker lets us skip build directories without misidentifying user content.
+const CACHEDIR_TAG_FILE: &str = "CACHEDIR.TAG";
+const CACHEDIR_TAG_SIGNATURE: &[u8; 43] = b"Signature: 8a477f597d28d172789f06886806bc55";
+
+/// Whether `dir` is a cache directory per the Cache Directory Tagging Spec —
+/// i.e. contains a `CACHEDIR.TAG` file whose first 43 bytes are the spec
+/// signature. Any I/O error is treated as "not a cache dir".
+pub fn is_cache_dir(dir: &Path) -> bool {
+    let Some(mut file) = File::open(dir.join(CACHEDIR_TAG_FILE)).ok() else {
+        return false;
+    };
+    let mut buf = [0u8; CACHEDIR_TAG_SIGNATURE.len()];
+    file.read_exact(&mut buf).is_ok() && &buf == CACHEDIR_TAG_SIGNATURE
+}
 
 pub fn copy_files_recursively(
     src: impl AsRef<Path>,
@@ -23,6 +42,16 @@ pub fn copy_files_recursively(
         if entry_type.is_dir() {
             // we skip the .git directory
             if filename == ".git" {
+                continue;
+            }
+            // Skip build cache directories (e.g. cargo's `target/`), walking
+            // them wastes seconds to minutes on a template with a warm build.
+            // See https://github.com/cargo-generate/cargo-generate/issues/1600
+            if is_cache_dir(&src_entry.path()) {
+                info!(
+                    "Skipping cache directory (CACHEDIR.TAG): `{}`",
+                    src_entry.path().display()
+                );
                 continue;
             }
             let dst_dir = dst_path.join(filename);

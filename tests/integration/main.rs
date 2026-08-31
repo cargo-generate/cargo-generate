@@ -12,6 +12,7 @@ mod git_over_ssh;
 mod hooks_and_rhai;
 mod proxy;
 mod public_api;
+mod target_folder;
 mod template_config_file;
 mod template_filters;
 mod workspace_member;
