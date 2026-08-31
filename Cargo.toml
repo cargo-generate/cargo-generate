@@ -39,7 +39,7 @@ regex = "~1.12"
 # the transitive reqwest that gix's blocking-http-transport-reqwest-* pulls in for our proxy support feature.
 reqwest = { version = "~0.13", default-features = false, features = ["socks"] }
 remove_dir_all = "~1.0"
-rhai = "~1.25"
+rhai = "~1.26"
 sanitize-filename = "~0.6"
 semver = { version = "~1.0", features = ["serde"] }
 serde = { version = "~1.0", features = ["derive"] }
