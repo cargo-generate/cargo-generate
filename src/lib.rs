@@ -165,8 +165,13 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
                         style(workspace_cargo_toml.display()).bold().yellow(),
                     );
                 }
-                WorkspaceMemberStatus::NoWorkspaceFound => {
-                    // not an issue, just a notification
+                WorkspaceMemberStatus::AlreadyCoveredByGlob(_)
+                | WorkspaceMemberStatus::Excluded(_)
+                | WorkspaceMemberStatus::NoWorkspaceFound => {
+                    // AlreadyCoveredByGlob: an existing glob (e.g. `crates/*`) already
+                    // includes the new project, nothing to write. Silent, matching cargo new.
+                    // Excluded: workspace_member::add_to_workspace already logged a warning.
+                    // NoWorkspaceFound: not in a workspace, nothing to do.
                 }
             }
         }
