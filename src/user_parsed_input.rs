@@ -250,6 +250,7 @@ impl UserParsedInput {
 
         // Print information about what happened (preserve the existing warn!)
         let location_msg = match &temp_location {
+            #[cfg(feature = "git")]
             Source::Git(git_user_input) => {
                 format!("git repository: {}", style(git_user_input.url()).bold())
             }
@@ -346,6 +347,7 @@ impl UserParsedInput {
 }
 
 // Template should be cloned with git
+#[cfg(feature = "git")]
 #[derive(Debug)]
 pub struct GitSource {
     url: String,
@@ -358,6 +360,7 @@ pub struct GitSource {
     pub skip_submodules: bool,
 }
 
+#[cfg(feature = "git")]
 impl GitSource {
     #[allow(clippy::too_many_arguments)]
     fn new(
@@ -440,13 +443,22 @@ fn clone_opts_from_args(
     }
 }
 
-// Distinguish between plain copy and clone
+/// Where a template comes from.
+///
+/// # Cargo features
+///
+/// The `Git` variant requires the `git` cargo feature. Without it the
+/// variant does not exist, so a git fetch cannot be expressed at all —
+/// deliberate, and the reason this API can be stricter than the
+/// `GenerateArgs` entry point, whose shape must stay invariant.
 #[derive(Debug)]
 pub enum Source {
+    #[cfg(feature = "git")]
     Git(GitSource),
     Local(PathBuf),
 }
 
+#[cfg(feature = "git")]
 impl From<GitSource> for Source {
     fn from(source: GitSource) -> Self {
         Self::Git(source)

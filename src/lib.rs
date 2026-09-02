@@ -31,6 +31,7 @@ mod emoji;
 mod favorites;
 mod filenames;
 mod git;
+#[cfg(feature = "git")]
 mod gix;
 mod hooks;
 mod ignore_me;
@@ -261,6 +262,7 @@ fn prepare_local_template(
 
 fn get_source_template_into_temp(source: &Source) -> Result<(TempDir, Option<String>)> {
     match source {
+        #[cfg(feature = "git")]
         Source::Git(git) => {
             let result = git::clone_git_template_into_temp(
                 git.url(),

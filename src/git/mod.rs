@@ -1,29 +1,42 @@
-//! Facade over git-touching operations. Runtime files (`gitconfig`,
-//! `utils`, `init`) are re-exported below, as is branch detection
-//! from `crate::gix`. Task 4 swaps those for a
-//! `#[cfg]`-selected pair (real vs `feature` stub); for now
-//! everything stays unconditional.
+//! Facade over git-touching operations.
 //!
-//! cargo-generate (as an application) wants from the git module:
-//! 1. cloning a remote
-//! 2. initializing a freshly generated template
-//! 3. removing history from a cloned template
-//!
-//! Assumptions:
-//! * `--git <url>` should only be parsed the same way `git clone <url>` would
-//! * submodules are cloned by default, but can be skipped by `--skip-submodules`
-//! * `.git` should be removed to make a clean repository
-//! * if `<url>` is a local path on the system the clone should also be done the
-//!   same way as `git clone` — there is `--path` for different behavior
+//! * `history`, `tmp`, `feature` are always compiled — fs-only, no
+//!   `gix` needed, and called from the always-compiled `Local`
+//!   template path.
+//! * `gitconfig`, `init`, `utils` are the real runtime, compiled only
+//!   with the feature, as is branch detection from `crate::gix`.
+//! * `init` and `try_get_branch_from_path` additionally have stubs in
+//!   `feature`: `Vcs::Git` is part of the invariant-shape existing API
+//!   and exists in every build, and nothing reads an inferred branch
+//!   when there is no git to init. `clone_git_template_into_temp`
+//!   needs no stub — without the feature there is no `Source::Git` to
+//!   reach it.
 
-pub mod gitconfig;
+mod feature;
 mod history;
-mod init;
 mod tmp;
+
+pub use feature::ensure_available;
+pub use history::remove_history;
+pub use tmp::tmp_dir;
+
+#[cfg(not(feature = "git"))]
+pub use feature::feature_disabled;
+#[cfg(not(feature = "git"))]
+pub use feature::init;
+#[cfg(not(feature = "git"))]
+pub use feature::try_get_branch_from_path;
+
+#[cfg(feature = "git")]
+pub mod gitconfig;
+#[cfg(feature = "git")]
+mod init;
+#[cfg(feature = "git")]
 pub mod utils;
 
+#[cfg(feature = "git")]
 pub use crate::gix::try_get_branch_from_path;
-pub use history::remove_history;
+#[cfg(feature = "git")]
 pub use init::init;
-pub use tmp::tmp_dir;
+#[cfg(feature = "git")]
 pub use utils::clone_git_template_into_temp;
