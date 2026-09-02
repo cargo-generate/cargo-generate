@@ -71,7 +71,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 use tempfile::TempDir;
-use user_parsed_input::{TemplateLocation, UserParsedInput};
+use user_parsed_input::{Source, UserParsedInput};
 use workspace_member::WorkspaceMemberStatus;
 
 use crate::git::tmp_dir;
@@ -259,11 +259,9 @@ fn prepare_local_template(
     Ok((temp_dir, template_folder, branch))
 }
 
-fn get_source_template_into_temp(
-    template_location: &TemplateLocation,
-) -> Result<(TempDir, Option<String>)> {
-    match template_location {
-        TemplateLocation::Git(git) => {
+fn get_source_template_into_temp(source: &Source) -> Result<(TempDir, Option<String>)> {
+    match source {
+        Source::Git(git) => {
             let result = git::clone_git_template_into_temp(
                 git.url(),
                 git.branch(),
@@ -279,7 +277,7 @@ fn get_source_template_into_temp(
             };
             result
         }
-        TemplateLocation::Path(path) => {
+        Source::Local(path) => {
             let temp_dir = tmp_dir()?;
             copy_files_recursively(path, temp_dir.path(), false)?;
             git::remove_history(temp_dir.path())?;

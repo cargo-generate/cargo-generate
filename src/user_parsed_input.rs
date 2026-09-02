@@ -54,7 +54,7 @@ pub struct UserParsedInput {
     name: Option<String>,
 
     // from where clone or copy template?
-    template_location: TemplateLocation,
+    template_location: Source,
 
     destination: PathBuf,
 
@@ -127,7 +127,7 @@ impl UserParsedInput {
             let clone_opts = clone_opts_from_args(args, ssh_identity.clone());
             return Self {
                 name: args.name.clone(),
-                template_location: source.into_git_template_location(&clone_opts),
+                template_location: source.into_git_source(&clone_opts),
                 subfolder: args
                     .template_path
                     .subfolder()
@@ -176,7 +176,7 @@ impl UserParsedInput {
             assert!(fav_cfg.git.is_none() || fav_cfg.path.is_none());
 
             let temp_location = fav_cfg.git.as_ref().map_or_else(
-                || fav_cfg.path.as_ref().map(TemplateLocation::from).unwrap(),
+                || fav_cfg.path.as_ref().map(Source::from).unwrap(),
                 |git_url| {
                     let branch = args
                         .template_path
@@ -193,7 +193,7 @@ impl UserParsedInput {
                         .revision()
                         .map(|s| s.as_ref().to_owned())
                         .or_else(|| fav_cfg.revision.clone());
-                    let git_user_input = GitUserInput::new(
+                    let git_user_input = GitSource::new(
                         git_url,
                         branch.as_ref(),
                         tag.as_ref(),
@@ -204,7 +204,7 @@ impl UserParsedInput {
                         args.skip_submodules,
                     );
 
-                    TemplateLocation::from(git_user_input)
+                    Source::from(git_user_input)
                 },
             );
 
@@ -246,14 +246,14 @@ impl UserParsedInput {
         // auto_path with no configured favorite name → classify it
         let source = crate::template_source::TemplateSource::classify(fav_name, &app_config, &cwd);
         let clone_opts = clone_opts_from_args(args, ssh_identity);
-        let temp_location = source.into_template_location(&clone_opts);
+        let temp_location = source.into_source(&clone_opts);
 
         // Print information about what happened (preserve the existing warn!)
         let location_msg = match &temp_location {
-            TemplateLocation::Git(git_user_input) => {
+            Source::Git(git_user_input) => {
                 format!("git repository: {}", style(git_user_input.url()).bold())
             }
-            TemplateLocation::Path(path) => {
+            Source::Local(path) => {
                 format!("local path: {}", style(path.display()).bold())
             }
         };
@@ -288,7 +288,7 @@ impl UserParsedInput {
         self.name.as_deref()
     }
 
-    pub const fn location(&self) -> &TemplateLocation {
+    pub const fn location(&self) -> &Source {
         &self.template_location
     }
 
@@ -347,7 +347,7 @@ impl UserParsedInput {
 
 // Template should be cloned with git
 #[derive(Debug)]
-pub struct GitUserInput {
+pub struct GitSource {
     url: String,
     branch: Option<String>,
     tag: Option<String>,
@@ -358,7 +358,7 @@ pub struct GitUserInput {
     pub skip_submodules: bool,
 }
 
-impl GitUserInput {
+impl GitSource {
     #[allow(clippy::too_many_arguments)]
     fn new(
         url: &impl AsRef<str>,
@@ -382,8 +382,8 @@ impl GitUserInput {
         }
     }
 
-    /// Build a `GitUserInput` from a resolved URL and the cargo-generate
-    /// clone options. Used by `TemplateSource::into_template_location`.
+    /// Build a `GitSource` from a resolved URL and the cargo-generate
+    /// clone options. Used by `TemplateSource::into_source`.
     pub fn with_url_and_clone_opts(
         url: String,
         opts: &crate::template_source::CloneOptions,
@@ -442,50 +442,50 @@ fn clone_opts_from_args(
 
 // Distinguish between plain copy and clone
 #[derive(Debug)]
-pub enum TemplateLocation {
-    Git(GitUserInput),
-    Path(PathBuf),
+pub enum Source {
+    Git(GitSource),
+    Local(PathBuf),
 }
 
-impl From<GitUserInput> for TemplateLocation {
-    fn from(source: GitUserInput) -> Self {
+impl From<GitSource> for Source {
+    fn from(source: GitSource) -> Self {
         Self::Git(source)
     }
 }
 
-impl From<PathBuf> for TemplateLocation {
+impl From<PathBuf> for Source {
     fn from(source: PathBuf) -> Self {
-        Self::Path(source)
+        Self::Local(source)
     }
 }
 
-impl From<&PathBuf> for TemplateLocation {
+impl From<&PathBuf> for Source {
     fn from(source: &PathBuf) -> Self {
-        Self::Path(source.clone())
+        Self::Local(source.clone())
     }
 }
 
-impl From<&std::path::Path> for TemplateLocation {
+impl From<&std::path::Path> for Source {
     fn from(source: &std::path::Path) -> Self {
-        Self::Path(PathBuf::from(source))
+        Self::Local(PathBuf::from(source))
     }
 }
 
-impl From<&str> for TemplateLocation {
+impl From<&str> for Source {
     fn from(source: &str) -> Self {
-        Self::Path(PathBuf::from(source))
+        Self::Local(PathBuf::from(source))
     }
 }
 
-impl From<String> for TemplateLocation {
+impl From<String> for Source {
     fn from(source: String) -> Self {
-        Self::Path(PathBuf::from(source))
+        Self::Local(PathBuf::from(source))
     }
 }
 
-impl From<&String> for TemplateLocation {
+impl From<&String> for Source {
     fn from(source: &String) -> Self {
-        Self::Path(PathBuf::from(source))
+        Self::Local(PathBuf::from(source))
     }
 }
 
@@ -494,7 +494,7 @@ mod tests {
     use super::*;
 
     /// Helper to build a `GenerateArgs` with `--git <value>` and resolve via `try_from_args_and_config`,
-    /// returning the resolved git URL from the resulting `TemplateLocation`.
+    /// returning the resolved git URL from the resulting `Source`.
     fn resolve_git_flag(git_value: &str) -> String {
         let args = GenerateArgs {
             destination: Some(PathBuf::from("/tmp")),
@@ -506,8 +506,8 @@ mod tests {
         };
         let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
         match parsed.location() {
-            TemplateLocation::Git(git) => git.url().to_owned(),
-            TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
+            Source::Git(git) => git.url().to_owned(),
+            Source::Local(p) => panic!("expected Git location, got Path: {p:?}"),
         }
     }
 
@@ -583,14 +583,14 @@ mod tests {
         let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
 
         match parsed.location() {
-            TemplateLocation::Git(git) => {
+            Source::Git(git) => {
                 assert!(
                     git.url().ends_with("example-templates/hooks"),
                     "expected url ending in example-templates/hooks, got {}",
                     git.url()
                 );
             }
-            TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
+            Source::Local(p) => panic!("expected Git location, got Path: {p:?}"),
         }
     }
 
@@ -610,14 +610,14 @@ mod tests {
 
         let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
         match parsed.location() {
-            TemplateLocation::Git(git) => {
+            Source::Git(git) => {
                 assert!(
                     git.url().ends_with("example-templates/hooks"),
                     "expected url ending in example-templates/hooks, got {}",
                     git.url()
                 );
             }
-            TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
+            Source::Local(p) => panic!("expected Git location, got Path: {p:?}"),
         }
     }
 }
