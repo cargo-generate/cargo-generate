@@ -16,7 +16,7 @@ console = "~0.16"
 dialoguer = "~0.12"
 env_logger = "~0.11"
 fs-err = "~3.3"
-gix = { version = "~0.87", default-features = false, features = [
+gix = { version = "~0.87", default-features = false, optional = true, features = [
     "sha1",
     "revision",
     "worktree-mutation",
@@ -37,7 +37,7 @@ pastey = "~0.2"
 regex = "~1.12"
 # Not imported directly, we only depend on it to union the `socks` feature into
 # the transitive reqwest that gix's blocking-http-transport-reqwest-* pulls in for our proxy support feature.
-reqwest = { version = "~0.13", default-features = false, features = ["socks"] }
+reqwest = { version = "~0.13", default-features = false, features = ["socks"], optional = true }
 remove_dir_all = "~1.0"
 rhai = "~1.26"
 sanitize-filename = "~0.6"
@@ -50,6 +50,10 @@ toml = { version = "~1.1", features = ["preserve_order"] }
 walkdir = "~2.5"
 cargo-util-schemas = "~0.14"
 glob = "~0.3"
+
+[features]
+default = ["git"]
+git = ["dep:gix", "dep:reqwest"]
 
 [dev-dependencies]
 assert_cmd = "~2.1"
