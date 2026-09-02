@@ -242,7 +242,9 @@ impl TemplateSource {
     #[cfg(not(feature = "git"))]
     pub fn into_source(
         self,
-        clone_opts: &CloneOptions,
+        // Threaded through only for signature parity with the twin above;
+        // nothing in this build reads it.
+        _clone_opts: &CloneOptions,
     ) -> anyhow::Result<crate::user_parsed_input::Source> {
         use crate::user_parsed_input::Source;
         match self {
@@ -252,7 +254,7 @@ impl TemplateSource {
                     "a template argument that resolves to a remote git repository",
                 ))
             }
-            Self::Favorite(inner) => inner.into_source(clone_opts),
+            Self::Favorite(inner) => inner.into_source(_clone_opts),
         }
     }
 
@@ -370,6 +372,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn classify_owner_repo_when_no_local_dir() {
         let cwd = tempfile::TempDir::new().unwrap();
@@ -653,6 +656,7 @@ mod tests {
         };
         assert_eq!(s.display_label(), "gh:o/r");
     }
+    #[cfg(feature = "git")]
     #[test]
     fn display_label_owner_repo() {
         let s = TemplateSource::GithubOwnerRepo {
@@ -676,6 +680,7 @@ mod tests {
         let s = TemplateSource::LocalAbsolute(PathBuf::from("/abs/t"));
         assert_eq!(s.display_label(), "/abs/t");
     }
+    #[cfg(feature = "git")]
     #[test]
     fn display_label_favorite_wraps_inner() {
         let s = TemplateSource::Favorite(Box::new(TemplateSource::GithubOwnerRepo {
@@ -685,8 +690,10 @@ mod tests {
         assert_eq!(s.display_label(), "favorite → o/r");
     }
 
+    #[cfg(feature = "git")]
     use crate::user_parsed_input::Source;
 
+    #[cfg(feature = "git")]
     #[test]
     fn into_source_maps_host_shorthand_to_git_url() {
         let s = TemplateSource::HostShorthand {
@@ -698,6 +705,7 @@ mod tests {
             Source::Local(_) => panic!("expected Git"),
         }
     }
+    #[cfg(feature = "git")]
     #[test]
     fn into_source_maps_owner_repo_to_git_url() {
         let s = TemplateSource::GithubOwnerRepo {
@@ -709,6 +717,7 @@ mod tests {
             Source::Local(_) => panic!("expected Git"),
         }
     }
+    #[cfg(feature = "git")]
     #[test]
     fn into_source_maps_remote_url_verbatim() {
         let s = TemplateSource::RemoteUrl("ssh://git@x/y.git".to_owned());
@@ -717,6 +726,7 @@ mod tests {
             Source::Local(_) => panic!("expected Git"),
         }
     }
+    #[cfg(feature = "git")]
     #[test]
     fn into_source_maps_local_to_path() {
         let s = TemplateSource::LocalAbsolute(PathBuf::from("/abs"));
@@ -726,6 +736,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn is_remote_for_each_variant() {
         assert!(TemplateSource::HostShorthand {

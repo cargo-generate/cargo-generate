@@ -1,4 +1,5 @@
 use crate::helpers::prelude::*;
+#[cfg(feature = "git")]
 #[test]
 fn it_accepts_default_template_values() {
     let config_dir = tempdir()
@@ -38,6 +39,7 @@ fn it_accepts_default_template_values() {
         .contains(r#"value = "default value""#));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_accepts_template_values_file_from_environment() {
     let config_dir = tempdir()
@@ -87,6 +89,7 @@ fn it_accepts_template_values_file_from_environment() {
     assert!(random_toml.contains("value = \"env-file-value\""));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_accepts_bool_in_file() {
     let template = tempdir()
@@ -130,6 +133,7 @@ fn it_accepts_bool_in_file() {
     assert!(dir.exists("foobar-project/included").not());
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_accepts_individual_template_values_from_environment() {
     let template = tempdir()
@@ -168,6 +172,7 @@ fn it_accepts_individual_template_values_from_environment() {
     assert!(random_toml.contains("value = \"env-def-value\""));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_accepts_template_values_file_via_flag() {
     let template = tempdir()
@@ -204,6 +209,7 @@ fn it_accepts_template_values_file_via_flag() {
     assert!(random_toml.contains("value = \"file-value\""));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_accepts_individual_template_values_via_flag() {
     let template = tempdir()
@@ -241,6 +247,7 @@ fn it_accepts_individual_template_values_via_flag() {
     assert!(random_toml.contains("value = \"def-value\""));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_accepts_empty_define_variables() {
     let template = tempdir()

@@ -1,3 +1,8 @@
+// Which helpers a build needs depends on the `git` cargo feature: most of
+// the suite is gated on it, so a feature-off build legitimately leaves
+// parts of the harness unused.
+#![allow(dead_code)]
+
 use crate::helpers::project::Project;
 use crate::helpers::project_builder::tempdir;
 use indoc::indoc;

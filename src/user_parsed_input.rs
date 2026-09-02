@@ -615,6 +615,7 @@ mod tests {
 
     /// Helper to build a `GenerateArgs` with `--git <value>` and resolve via `try_from_args_and_config`,
     /// returning the resolved git URL from the resulting `Source`.
+    #[cfg(feature = "git")]
     fn resolve_git_flag(git_value: &str) -> String {
         let args = GenerateArgs {
             destination: Some(PathBuf::from("/tmp")),
@@ -632,6 +633,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_full_url() {
         // cargo generate --git https://github.com/username-on-github/mytemplate.git
@@ -641,6 +643,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_org_repo_shorthand() {
         // cargo generate --git username-on-github/mytemplate
@@ -650,6 +653,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_gh_prefix() {
         // cargo generate --git gh:username-on-github/mytemplate
@@ -659,6 +663,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_gl_prefix() {
         // cargo generate --git gl:username-on-gitlab/mytemplate
@@ -668,6 +673,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_bb_prefix() {
         // cargo generate --git bb:username-on-bitbucket/mytemplate
@@ -677,6 +683,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_sr_prefix() {
         // cargo generate --git sr:username-on-sourcehut/mytemplate
@@ -686,6 +693,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_relative_path_resolves_to_local_directory() {
         // When --git receives a relative path like `./example-templates/hooks`
@@ -716,6 +724,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_local_path_takes_precedence_over_org_repo() {
         // When --git receives a value matching the org/repo shape that also
