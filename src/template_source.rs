@@ -6,6 +6,9 @@ use std::path::PathBuf;
 /// Options threaded into git clones for remote sources. Local sources
 /// ignore these. Used by `TemplateSource::into_source`.
 #[derive(Debug, Clone, Default)]
+// Read only when building a `GitSource`; without the `git` feature the
+// struct is still threaded through `into_source` for signature parity.
+#[cfg_attr(not(feature = "git"), allow(dead_code))]
 pub struct CloneOptions {
     pub branch: Option<String>,
     pub tag: Option<String>,
@@ -37,6 +40,7 @@ pub enum TemplateSource {
 }
 
 impl GitHost {
+    #[cfg_attr(not(feature = "git"), allow(dead_code))]
     pub fn to_url(self, owner_repo: &str) -> String {
         match self {
             Self::GitHub => format!("https://github.com/{owner_repo}.git"),

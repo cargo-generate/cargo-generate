@@ -87,6 +87,18 @@ pub fn init(
     ))
 }
 
+/// Stand-in for `gitconfig::read_config_string` without the feature.
+///
+/// Reading `user.name` / `user.email` out of git config is a *fallback*
+/// in a chain that starts with environment variables — nobody asked for
+/// git, so this degrades to `None` rather than bailing, exactly like the
+/// default VCS degrades to `Vcs::None`.
+#[cfg(not(feature = "git"))]
+#[allow(clippy::missing_const_for_fn)]
+pub fn read_config_string(_key: &str, _cwd: &std::path::Path) -> Option<String> {
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -108,6 +120,15 @@ mod tests {
         assert!(
             err.contains("`git` cargo feature"),
             "names the feature: {err}"
+        );
+    }
+
+    #[cfg(not(feature = "git"))]
+    #[test]
+    fn read_config_string_is_none_without_the_feature() {
+        assert_eq!(
+            read_config_string("user.name", std::path::Path::new(".")),
+            None
         );
     }
 

@@ -16,6 +16,21 @@ pub struct HttpProxyConfig {
     pub no_proxy: Option<String>,
 }
 
+/// Look up `key` (e.g. `user.name`) via the repo config discovered from
+/// `cwd`, falling back to the system + global git config.
+///
+/// Returns `None` when the key is unset or no config can be read.
+pub fn read_config_string(key: &str, cwd: &Path) -> Option<String> {
+    if let Ok(repo) = gix::discover(cwd) {
+        if let Some(value) = repo.config_snapshot().string(key) {
+            return Some(value.to_string());
+        }
+    }
+    GitConfigParser::from_globals()
+        .ok()
+        .and_then(|file| file.string(key).map(|v| v.to_string()))
+}
+
 pub fn find_gitconfig() -> Result<Option<PathBuf>> {
     let gitconfig = home().map(|home| home.join(".gitconfig"))?;
     if gitconfig.exists() {

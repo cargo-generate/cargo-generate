@@ -37,6 +37,11 @@ pub mod utils;
 #[cfg(feature = "git")]
 pub use crate::gix::try_get_branch_from_path;
 #[cfg(feature = "git")]
+pub use gitconfig::read_config_string;
+#[cfg(feature = "git")]
 pub use init::init;
 #[cfg(feature = "git")]
 pub use utils::clone_git_template_into_temp;
+
+#[cfg(not(feature = "git"))]
+pub use feature::read_config_string;

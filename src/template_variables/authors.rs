@@ -16,17 +16,14 @@ pub fn get_authors() -> Result<Authors> {
 
     /// Look up `key` (e.g. `user.name`) via the repo config discovered from cwd,
     /// falling back to system + global git config.
+    ///
+    /// Without the `git` cargo feature this yields `None` and the
+    /// surrounding environment-variable chain takes over — reading git
+    /// config is a fallback nobody asked for, so it degrades instead of
+    /// failing.
     fn read_git_config_string(key: &str) -> Option<String> {
-        if let Ok(cwd) = env::current_dir() {
-            if let Ok(repo) = gix::discover(&cwd) {
-                if let Some(value) = repo.config_snapshot().string(key) {
-                    return Some(value.to_string());
-                }
-            }
-        }
-        gix::config::File::from_globals()
-            .ok()
-            .and_then(|file| file.string(key).map(|v| v.to_string()))
+        let cwd = env::current_dir().ok()?;
+        crate::git::read_config_string(key, &cwd)
     }
 
     fn discover_author() -> Result<(String, Option<String>)> {

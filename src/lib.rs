@@ -54,7 +54,9 @@ pub use args::*;
 use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
-use copy::{copy_files_recursively, LIQUID_SUFFIX};
+use copy::copy_files_recursively;
+#[cfg(feature = "git")]
+use copy::LIQUID_SUFFIX;
 use env_logger::fmt::Formatter;
 use fs_err as fs;
 use hooks::{execute_hooks, RhaiHooksContext};
@@ -290,6 +292,9 @@ fn get_source_template_into_temp(source: &Source) -> Result<(TempDir, Option<Str
 }
 
 /// remove .liquid suffixes from git templates for parity with path templates
+///
+/// Only reachable from the `Source::Git` arm, which the `git` feature gates.
+#[cfg(feature = "git")]
 fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
     for entry in fs::read_dir(dir.as_ref())? {
         let entry = entry?;
