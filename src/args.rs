@@ -141,11 +141,21 @@ pub struct GenerateArgs {
     pub bin: bool,
 
     /// Use a different ssh identity
-    #[arg(short = 'i', long = "identity", value_parser, value_name="IDENTITY", help_heading = heading::GIT_PARAMETERS)]
+    ///
+    /// **Needs the `git` cargo feature.** The field exists in every
+    /// build — a `default-features = false` build declares and parses it
+    /// exactly the same way — but supplying a value fails with an error
+    /// telling you how to enable the feature.
+    #[arg(short = 'i', long = "identity", value_parser, value_name="IDENTITY", long_help = None, help_heading = heading::GIT_PARAMETERS)]
     pub ssh_identity: Option<PathBuf>,
 
     /// Use a different gitconfig file, if omitted the usual $HOME/.gitconfig will be used
-    #[arg(long = "gitconfig", value_parser, value_name="GITCONFIG_FILE", help_heading = heading::GIT_PARAMETERS)]
+    ///
+    /// **Needs the `git` cargo feature.** The field exists in every
+    /// build — a `default-features = false` build declares and parses it
+    /// exactly the same way — but supplying a value fails with an error
+    /// telling you how to enable the feature.
+    #[arg(long = "gitconfig", value_parser, value_name="GITCONFIG_FILE", long_help = None, help_heading = heading::GIT_PARAMETERS)]
     pub gitconfig: Option<PathBuf>,
 
     /// Define a value for use during template expansion. E.g `--define foo=bar`
@@ -162,7 +172,12 @@ pub struct GenerateArgs {
     pub destination: Option<PathBuf>,
 
     /// Will enforce a fresh git init on the generated project
-    #[arg(long, action, help_heading = heading::OUTPUT_PARAMETERS)]
+    ///
+    /// **Needs the `git` cargo feature.** The field exists in every
+    /// build — a `default-features = false` build declares and parses it
+    /// exactly the same way — but supplying a value fails with an error
+    /// telling you how to enable the feature.
+    #[arg(long, action, long_help = None, help_heading = heading::OUTPUT_PARAMETERS)]
     pub force_git_init: bool,
 
     /// Allows running system commands without being prompted. Warning: Setting this flag will
@@ -176,7 +191,12 @@ pub struct GenerateArgs {
     pub overwrite: bool,
 
     /// Skip downloading git submodules (if there are any)
-    #[arg(long, action, help_heading = heading::GIT_PARAMETERS)]
+    ///
+    /// **Needs the `git` cargo feature.** The field exists in every
+    /// build — a `default-features = false` build declares and parses it
+    /// exactly the same way — but supplying a value fails with an error
+    /// telling you how to enable the feature.
+    #[arg(long, action, long_help = None, help_heading = heading::GIT_PARAMETERS)]
     pub skip_submodules: bool,
 
     /// Skip automatic workspace member addition. When set, the generated project will not be added
@@ -246,19 +266,51 @@ pub struct TemplatePath {
     ///
     /// Note that cargo generate will first attempt to interpret the `owner/repo` form as a
     /// relative path and only try a GitHub URL if the local path doesn't exist.
-    #[arg(short, long, group("SpecificPath"), help_heading = heading::TEMPLATE_SELECTION)]
+    ///
+    /// **Needs the `git` cargo feature.** The field exists in every
+    /// build — a `default-features = false` build declares and parses it
+    /// exactly the same way — but supplying a value fails with an error
+    /// telling you how to enable the feature.
+    #[arg(
+        short,
+        long,
+        group("SpecificPath"),
+        // Spelled out so the rustdoc note below about the `git` cargo feature
+        // stays out of `--help`; this is verbatim the CLI text from before.
+        long_help = "Git repository to clone template from. Can be a URL (like \
+                     `https://github.com/rust-cli/cli-template`), a path (relative or absolute), or an \
+                     `owner/repo` abbreviated GitHub URL (like `rust-cli/cli-template`).\n\n\
+                     Note that cargo generate will first attempt to interpret the `owner/repo` form as a \
+                     relative path and only try a GitHub URL if the local path doesn't exist.",
+        help_heading = heading::TEMPLATE_SELECTION
+    )]
     pub git: Option<String>,
 
     /// Branch to use when installing from git
-    #[arg(short, long, conflicts_with_all = ["revision", "tag"], help_heading = heading::GIT_PARAMETERS)]
+    ///
+    /// **Needs the `git` cargo feature.** The field exists in every
+    /// build — a `default-features = false` build declares and parses it
+    /// exactly the same way — but supplying a value fails with an error
+    /// telling you how to enable the feature.
+    #[arg(short, long, conflicts_with_all = ["revision", "tag"], long_help = None, help_heading = heading::GIT_PARAMETERS)]
     pub branch: Option<String>,
 
     /// Tag to use when installing from git
-    #[arg(short, long, conflicts_with_all = ["revision", "branch"], help_heading = heading::GIT_PARAMETERS)]
+    ///
+    /// **Needs the `git` cargo feature.** The field exists in every
+    /// build — a `default-features = false` build declares and parses it
+    /// exactly the same way — but supplying a value fails with an error
+    /// telling you how to enable the feature.
+    #[arg(short, long, conflicts_with_all = ["revision", "branch"], long_help = None, help_heading = heading::GIT_PARAMETERS)]
     pub tag: Option<String>,
 
     /// Git revision to use when installing from git (e.g. a commit hash)
-    #[arg(short, long, conflicts_with_all = ["tag", "branch"], alias = "rev", help_heading = heading::GIT_PARAMETERS)]
+    ///
+    /// **Needs the `git` cargo feature.** The field exists in every
+    /// build — a `default-features = false` build declares and parses it
+    /// exactly the same way — but supplying a value fails with an error
+    /// telling you how to enable the feature.
+    #[arg(short, long, conflicts_with_all = ["tag", "branch"], alias = "rev", long_help = None, help_heading = heading::GIT_PARAMETERS)]
     pub revision: Option<String>,
 
     /// Local path to copy the template from. Can not be specified together with --git.
@@ -324,6 +376,10 @@ impl TemplatePath {
 #[derive(Debug, Parser, Clone, Copy, PartialEq, Eq, Deserialize)]
 pub enum Vcs {
     None,
+    /// **Needs the `git` cargo feature.** The variant exists in every
+    /// build — a `default-features = false` build declares and parses it
+    /// exactly the same way — but supplying a value fails with an error
+    /// telling you how to enable the feature.
     Git,
 }
 
