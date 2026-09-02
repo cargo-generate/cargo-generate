@@ -198,9 +198,18 @@ impl TemplateSource {
     /// Adapter producing a `Source`. `clone_opts` are threaded through
     /// to `GitSource::new` for remote variants; ignored for local
     /// variants.
-    pub fn into_source(self, clone_opts: &CloneOptions) -> crate::user_parsed_input::Source {
+    ///
+    /// # Errors
+    ///
+    /// Never errors with the `git` feature enabled. See the
+    /// `cfg(not(feature = "git"))` twin below.
+    #[cfg(feature = "git")]
+    pub fn into_source(
+        self,
+        clone_opts: &CloneOptions,
+    ) -> anyhow::Result<crate::user_parsed_input::Source> {
         use crate::user_parsed_input::{GitSource, Source};
-        match self {
+        Ok(match self {
             Self::HostShorthand { host, owner_repo } => Source::Git(
                 GitSource::with_url_and_clone_opts(host.to_url(&owner_repo), clone_opts),
             ),
@@ -214,6 +223,31 @@ impl TemplateSource {
                 Source::Git(GitSource::with_url_and_clone_opts(url, clone_opts))
             }
             Self::LocalAbsolute(p) | Self::LocalRelative(p) => Source::Local(p),
+            Self::Favorite(inner) => inner.into_source(clone_opts)?,
+        })
+    }
+
+    /// See the `cfg(feature = "git")` twin above. Local sources still
+    /// resolve; anything that would need a clone bails, naming what the
+    /// user actually typed rather than the classifier that noticed.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the source resolves to a remote git
+    /// repository, which this build cannot fetch.
+    #[cfg(not(feature = "git"))]
+    pub fn into_source(
+        self,
+        clone_opts: &CloneOptions,
+    ) -> anyhow::Result<crate::user_parsed_input::Source> {
+        use crate::user_parsed_input::Source;
+        match self {
+            Self::LocalAbsolute(p) | Self::LocalRelative(p) => Ok(Source::Local(p)),
+            Self::HostShorthand { .. } | Self::GithubOwnerRepo { .. } | Self::RemoteUrl(_) => {
+                Err(crate::git::feature_disabled(
+                    "a template argument that resolves to a remote git repository",
+                ))
+            }
             Self::Favorite(inner) => inner.into_source(clone_opts),
         }
     }
@@ -221,20 +255,31 @@ impl TemplateSource {
     /// Like `into_source` but forces local paths through git clone.
     /// Used by the `--git` flag, which means "use git even for local paths"
     /// so that branch/tag/ssh-identity options are honoured.
-    pub fn into_git_source(self, clone_opts: &CloneOptions) -> crate::user_parsed_input::Source {
+    ///
+    /// Produces only git sources, so it exists with the feature only —
+    /// there is no feature-off twin to pair it with.
+    ///
+    /// # Errors
+    ///
+    /// Propagates errors from `into_source`.
+    #[cfg(feature = "git")]
+    pub fn into_git_source(
+        self,
+        clone_opts: &CloneOptions,
+    ) -> anyhow::Result<crate::user_parsed_input::Source> {
         use crate::user_parsed_input::{GitSource, Source};
         match self {
-            Self::LocalAbsolute(p) | Self::LocalRelative(p) => Source::Git(
+            Self::LocalAbsolute(p) | Self::LocalRelative(p) => Ok(Source::Git(
                 GitSource::with_url_and_clone_opts(p.display().to_string(), clone_opts),
-            ),
+            )),
             Self::Favorite(inner) => inner.into_git_source(clone_opts),
             other => other.into_source(clone_opts),
         }
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, feature = "git"))]
     fn into_source_for_test(self) -> crate::user_parsed_input::Source {
-        self.into_source(&CloneOptions::default())
+        self.into_source(&CloneOptions::default()).unwrap()
     }
 
     /// Whether this source should be acquired by cloning vs copying.

@@ -105,7 +105,8 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     let app_config = AppConfig::try_from(app_config_path(&args.config)?.as_path())?;
 
     // mash AppConfig and CLI arguments together into UserParsedInput
-    let mut user_parsed_input = UserParsedInput::try_from_args_and_config(app_config, &args);
+    let mut user_parsed_input = UserParsedInput::try_from_args_and_config(app_config, &args)?;
+    user_parsed_input.ensure_git_feature_available()?;
     // let ENV vars provide values we don't have yet
     user_parsed_input
         .template_values_mut()
