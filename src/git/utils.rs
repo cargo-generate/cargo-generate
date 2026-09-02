@@ -6,10 +6,6 @@ use tempfile::TempDir;
 
 use crate::gix::RepoCloneBuilder;
 
-pub fn tmp_dir() -> std::io::Result<tempfile::TempDir> {
-    tempfile::Builder::new().prefix("cargo-generate").tempdir()
-}
-
 /// deals with `~/` and `$HOME/` prefixes
 pub fn canonicalize_path(p: impl AsRef<Path>) -> Result<PathBuf> {
     let p = p.as_ref();
@@ -40,7 +36,7 @@ pub fn clone_git_template_into_temp(
     gitconfig: Option<&Path>,
     skip_submodules: bool,
 ) -> anyhow::Result<(TempDir, Option<String>)> {
-    let git_clone_dir = tmp_dir()?;
+    let git_clone_dir = super::tmp_dir()?;
 
     let branch = RepoCloneBuilder::new(git_url)
         .with_branch(branch)
@@ -54,10 +50,6 @@ pub fn clone_git_template_into_temp(
         .do_clone()?;
 
     Ok((git_clone_dir, Some(branch)))
-}
-
-pub fn try_get_branch_from_path(git: impl AsRef<Path>) -> Option<String> {
-    crate::gix::try_get_branch_from_path(git)
 }
 
 #[test]
