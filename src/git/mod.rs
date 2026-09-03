@@ -9,7 +9,7 @@
 //! [`history`], [`feature`].
 //!
 //! Feature-gated — the git runtime and its `gix` dependency:
-//! [`gitconfig`], [`gix`], [`init`], [`utils`], and branch detection.
+//! [`gitconfig`], [`gix`], [`init`], [`clone`], and branch detection.
 //!
 //! [`feature`] holds the "this build has no git" error and the
 //! stand-ins the always-compiled callers need: [`init`], because
@@ -36,18 +36,18 @@ pub use feature::read_config_string;
 pub use feature::try_get_branch_from_path;
 
 #[cfg(feature = "git")]
+mod clone;
+#[cfg(feature = "git")]
 pub mod gitconfig;
 #[cfg(feature = "git")]
 pub mod gix;
 #[cfg(feature = "git")]
 mod init;
 #[cfg(feature = "git")]
-pub mod utils;
+pub use clone::clone_git_template_into_temp;
 #[cfg(feature = "git")]
 pub use gitconfig::read_config_string;
 #[cfg(feature = "git")]
 pub use gix::try_get_branch_from_path;
 #[cfg(feature = "git")]
 pub use init::init;
-#[cfg(feature = "git")]
-pub use utils::clone_git_template_into_temp;

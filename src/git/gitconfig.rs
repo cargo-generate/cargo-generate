@@ -3,7 +3,7 @@
 //! Locates the active `.gitconfig` and resolves the settings cloning
 //! honors: `url.<base>.insteadOf` rewrites and http/https/socks proxies.
 
-use crate::git::utils::home;
+use crate::utils::home;
 use anyhow::Context;
 use anyhow::Result;
 use gix::config::{File as GitConfigParser, Source};

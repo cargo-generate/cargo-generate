@@ -15,7 +15,8 @@ use gix::url;
 use log::{debug, info};
 
 use crate::emoji::WRENCH;
-use crate::git::{gitconfig, remove_history, utils};
+use crate::git::{gitconfig, remove_history};
+use crate::utils::canonicalize_path;
 
 type BranchName = String;
 
@@ -73,7 +74,7 @@ impl RepoCloneBuilder {
 
     pub fn with_ssh_identity(mut self, identity_path: Option<&Path>) -> Result<Self> {
         if let Some(identity_path) = identity_path {
-            let identity_path = utils::canonicalize_path(identity_path)?;
+            let identity_path = canonicalize_path(identity_path)?;
             info!(
                 "{} `{}` {}",
                 style("Using private key:").bold(),
@@ -113,7 +114,7 @@ impl RepoCloneBuilder {
     }
 
     pub fn with_destination(mut self, destination_path: impl AsRef<Path>) -> Result<Self> {
-        self.destination_path = Some(utils::canonicalize_path(destination_path.as_ref())?);
+        self.destination_path = Some(canonicalize_path(destination_path.as_ref())?);
         Ok(self)
     }
 
