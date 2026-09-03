@@ -82,7 +82,7 @@ pub fn prepare_local_template(source_template: &UserParsedInput) -> Result<Fetch
 }
 
 fn get_source_template_into_temp(source: &Source) -> Result<FetchedSource> {
-    match source {
+    let fetched = match source {
         #[cfg(feature = "git")]
         Source::Git(git) => {
             let fetched = git::clone_git_template_into_temp(
@@ -93,29 +93,41 @@ fn get_source_template_into_temp(source: &Source) -> Result<FetchedSource> {
                 git.identity(),
                 git.gitconfig(),
                 git.skip_submodules,
-            );
-            if let Ok(ref fetched) = fetched {
-                git::remove_history(fetched.root())?;
-                strip_liquid_suffixes(fetched.root())?;
-            };
+            )?;
+            git::remove_history(fetched.root())?;
             fetched
         }
         Source::Local(path) => {
             let root = tmp_dir()?;
             copy_files_recursively(path, root.path(), false)?;
             git::remove_history(root.path())?;
-            Ok(FetchedSource::new(root, try_get_branch_from_path(path)))
+            FetchedSource::new(root, try_get_branch_from_path(path))
         }
-    }
+    };
+
+    // Both arms materialize verbatim; the one liquid pass runs here so
+    // a local folder and a clone of the same template cannot diverge.
+    strip_liquid_suffixes(fetched.root())?;
+
+    Ok(fetched)
 }
 
-/// remove .liquid suffixes from git templates for parity with path templates
-///
-/// Only reachable from the `Source::Git` arm, which the `git` feature gates.
-#[cfg(feature = "git")]
-fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
-    use crate::copy::LIQUID_SUFFIX;
+/// The suffix marking a file that should be rendered rather than copied
+/// verbatim: `README.md.liquid` becomes `README.md`.
+const LIQUID_SUFFIX: &str = ".liquid";
 
+/// Resolve `.liquid` filenames in a materialized template.
+///
+/// `foo.liquid` is renamed to `foo`. When a template ships both, the
+/// `.liquid` file wins — the rename replaces its plain twin, which is
+/// how a template overrides a file it also ships unrendered.
+///
+/// Runs for every source. Fetching used to do this two different ways
+/// — the local copy resolved suffixes inline while cloning resolved
+/// them afterwards — which is one rule with two implementations and
+/// two chances to drift. Materializing is now plain for both, and this
+/// is the single place the rule lives.
+fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
     for entry in fs::read_dir(dir.as_ref())? {
         let entry = entry?;
         let entry_type = entry.file_type()?;
@@ -330,6 +342,33 @@ mod tests {
         }
         fs::File::create(&path)?.write_all(contents.as_ref().as_ref())?;
         Ok(())
+    }
+
+    #[test]
+    fn strip_liquid_suffixes_renames_and_lets_liquid_win() {
+        let tmp = TempDir::new().unwrap();
+        create_file(&tmp, "plain.md", "plain only").unwrap();
+        create_file(&tmp, "rendered.md.liquid", "rendered only").unwrap();
+        // a template shipping both: the .liquid file overrides its twin
+        create_file(&tmp, "both.md", "the plain twin").unwrap();
+        create_file(&tmp, "both.md.liquid", "the liquid one").unwrap();
+        create_file(&tmp, "nested/deep.rs.liquid", "nested").unwrap();
+
+        strip_liquid_suffixes(tmp.path()).unwrap();
+
+        let read = |p: &str| fs::read_to_string(tmp.path().join(p)).unwrap();
+        assert_eq!(read("plain.md"), "plain only");
+        assert_eq!(read("rendered.md"), "rendered only");
+        assert_eq!(read("both.md"), "the liquid one", "the .liquid file wins");
+        assert_eq!(read("nested/deep.rs"), "nested", "recurses");
+
+        for gone in [
+            "rendered.md.liquid",
+            "both.md.liquid",
+            "nested/deep.rs.liquid",
+        ] {
+            assert!(!tmp.path().join(gone).exists(), "{gone} should be renamed");
+        }
     }
 
     #[test]
