@@ -1,7 +1,7 @@
 // Which of these a given test module needs depends on the `git` cargo
 // feature — most of the suite is gated on it, so re-exports that every
 // build uses can still look unused in a feature-off build.
-#![allow(unused_imports)]
+#![cfg_attr(not(feature = "git"), allow(unused_imports))]
 
 pub use crate::helpers::arg_builder::*;
 pub use crate::helpers::create_template;

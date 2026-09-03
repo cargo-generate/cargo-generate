@@ -83,7 +83,8 @@ cargo-generate = { version = "0.24", default-features = false }
 
 **The `generate(GenerateArgs)` API does not change when you do.** `GenerateArgs`, `TemplatePath`, `Vcs`, and every CLI flag exist and compile identically in both configurations — code that builds with default features builds unchanged with `default-features = false`, and `cargo generate --help` prints the same flags. It looks the same; it just does no git:
 
-* `--git <url>`, a favorite that resolves to a git URL, and a bare template argument that looks like a remote URL all fail with an error naming the `git` feature and how to enable it. Nothing is written to disk first.
+* `--git <url>`, a favorite that resolves to a git URL, and a bare template argument that looks like a remote URL all fail with an error naming the `git` feature and how to enable it, before anything is written to disk.
+* `--force-git-init` fails the same way. A template that asks for `vcs = "Git"` in its own `cargo-generate.toml` also fails, but only once the project has been placed — that request is not visible until the template has been read.
 * `--vcs git` fails the same way. The *default* VCS becomes `none` instead of `git`, so generating from a local path needs no extra flags.
 * `--path` templates, workspace membership, hooks, and rendering work exactly as they do with the feature on.
 

@@ -22,7 +22,10 @@ pub fn get_authors() -> Result<Authors> {
     /// config is a fallback nobody asked for, so it degrades instead of
     /// failing.
     fn read_git_config_string(key: &str) -> Option<String> {
-        let cwd = env::current_dir().ok()?;
+        // A missing cwd must not short-circuit the lookup: the global
+        // and system gitconfig are still readable, and `generate()`
+        // tolerates a deleted cwd elsewhere the same way.
+        let cwd = env::current_dir().unwrap_or_else(|_| ".".into());
         crate::git::read_config_string(key, &cwd)
     }
 

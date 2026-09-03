@@ -142,19 +142,19 @@ pub struct GenerateArgs {
 
     /// Use a different ssh identity
     ///
-    /// **Needs the `git` cargo feature.** The field exists in every
-    /// build — a `default-features = false` build declares and parses it
-    /// exactly the same way — but supplying a value fails with an error
-    /// telling you how to enable the feature.
+    /// **Only meaningful with a git source.** The field exists in every
+    /// build, including `default-features = false` ones, but it only
+    /// shapes how a template is cloned. Passing it alongside `--path`
+    /// is ignored, exactly as it is in a build with the feature on.
     #[arg(short = 'i', long = "identity", value_parser, value_name="IDENTITY", long_help = None, help_heading = heading::GIT_PARAMETERS)]
     pub ssh_identity: Option<PathBuf>,
 
     /// Use a different gitconfig file, if omitted the usual $HOME/.gitconfig will be used
     ///
-    /// **Needs the `git` cargo feature.** The field exists in every
-    /// build — a `default-features = false` build declares and parses it
-    /// exactly the same way — but supplying a value fails with an error
-    /// telling you how to enable the feature.
+    /// **Only meaningful with a git source.** The field exists in every
+    /// build, including `default-features = false` ones, but it only
+    /// shapes how a template is cloned. Passing it alongside `--path`
+    /// is ignored, exactly as it is in a build with the feature on.
     #[arg(long = "gitconfig", value_parser, value_name="GITCONFIG_FILE", long_help = None, help_heading = heading::GIT_PARAMETERS)]
     pub gitconfig: Option<PathBuf>,
 
@@ -192,10 +192,10 @@ pub struct GenerateArgs {
 
     /// Skip downloading git submodules (if there are any)
     ///
-    /// **Needs the `git` cargo feature.** The field exists in every
-    /// build — a `default-features = false` build declares and parses it
-    /// exactly the same way — but supplying a value fails with an error
-    /// telling you how to enable the feature.
+    /// **Only meaningful with a git source.** The field exists in every
+    /// build, including `default-features = false` ones, but it only
+    /// shapes how a template is cloned. Passing it alongside `--path`
+    /// is ignored, exactly as it is in a build with the feature on.
     #[arg(long, action, long_help = None, help_heading = heading::GIT_PARAMETERS)]
     pub skip_submodules: bool,
 
@@ -288,28 +288,28 @@ pub struct TemplatePath {
 
     /// Branch to use when installing from git
     ///
-    /// **Needs the `git` cargo feature.** The field exists in every
-    /// build — a `default-features = false` build declares and parses it
-    /// exactly the same way — but supplying a value fails with an error
-    /// telling you how to enable the feature.
+    /// **Only meaningful with a git source.** The field exists in every
+    /// build, including `default-features = false` ones, but it only
+    /// shapes how a template is cloned. Passing it alongside `--path`
+    /// is ignored, exactly as it is in a build with the feature on.
     #[arg(short, long, conflicts_with_all = ["revision", "tag"], long_help = None, help_heading = heading::GIT_PARAMETERS)]
     pub branch: Option<String>,
 
     /// Tag to use when installing from git
     ///
-    /// **Needs the `git` cargo feature.** The field exists in every
-    /// build — a `default-features = false` build declares and parses it
-    /// exactly the same way — but supplying a value fails with an error
-    /// telling you how to enable the feature.
+    /// **Only meaningful with a git source.** The field exists in every
+    /// build, including `default-features = false` ones, but it only
+    /// shapes how a template is cloned. Passing it alongside `--path`
+    /// is ignored, exactly as it is in a build with the feature on.
     #[arg(short, long, conflicts_with_all = ["revision", "branch"], long_help = None, help_heading = heading::GIT_PARAMETERS)]
     pub tag: Option<String>,
 
     /// Git revision to use when installing from git (e.g. a commit hash)
     ///
-    /// **Needs the `git` cargo feature.** The field exists in every
-    /// build — a `default-features = false` build declares and parses it
-    /// exactly the same way — but supplying a value fails with an error
-    /// telling you how to enable the feature.
+    /// **Only meaningful with a git source.** The field exists in every
+    /// build, including `default-features = false` ones, but it only
+    /// shapes how a template is cloned. Passing it alongside `--path`
+    /// is ignored, exactly as it is in a build with the feature on.
     #[arg(short, long, conflicts_with_all = ["tag", "branch"], alias = "rev", long_help = None, help_heading = heading::GIT_PARAMETERS)]
     pub revision: Option<String>,
 
