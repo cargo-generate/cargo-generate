@@ -372,7 +372,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "git")]
     #[test]
     fn classify_owner_repo_when_no_local_dir() {
         let cwd = tempfile::TempDir::new().unwrap();
@@ -656,7 +655,6 @@ mod tests {
         };
         assert_eq!(s.display_label(), "gh:o/r");
     }
-    #[cfg(feature = "git")]
     #[test]
     fn display_label_owner_repo() {
         let s = TemplateSource::GithubOwnerRepo {
@@ -680,7 +678,6 @@ mod tests {
         let s = TemplateSource::LocalAbsolute(PathBuf::from("/abs/t"));
         assert_eq!(s.display_label(), "/abs/t");
     }
-    #[cfg(feature = "git")]
     #[test]
     fn display_label_favorite_wraps_inner() {
         let s = TemplateSource::Favorite(Box::new(TemplateSource::GithubOwnerRepo {
@@ -736,7 +733,6 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "git")]
     #[test]
     fn is_remote_for_each_variant() {
         assert!(TemplateSource::HostShorthand {
