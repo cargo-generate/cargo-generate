@@ -98,7 +98,7 @@ pub fn resolve_http_proxy(gitconfig: impl AsRef<Path>) -> Result<HttpProxyConfig
 
 #[cfg(test)]
 mod test {
-    use crate::tmp_dir;
+    use crate::utils::tmp_dir;
 
     use super::*;
 
