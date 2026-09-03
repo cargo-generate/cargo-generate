@@ -2,12 +2,10 @@
 
 use std::path::Path;
 
-use tempfile::TempDir;
-
 use super::gix::RepoCloneBuilder;
+use crate::fetch::FetchedSource;
 
-/// Clone `git_url` into a fresh temp directory, returning it together
-/// with the branch that was checked out.
+/// Clone `git_url` into a fresh temp directory.
 ///
 /// # Errors
 ///
@@ -21,7 +19,7 @@ pub fn clone_git_template_into_temp(
     identity: Option<&Path>,
     gitconfig: Option<&Path>,
     skip_submodules: bool,
-) -> anyhow::Result<(TempDir, Option<String>)> {
+) -> anyhow::Result<FetchedSource> {
     let git_clone_dir = crate::utils::tmp_dir()?;
 
     let branch = RepoCloneBuilder::new(git_url)
@@ -35,5 +33,5 @@ pub fn clone_git_template_into_temp(
         .build()?
         .do_clone()?;
 
-    Ok((git_clone_dir, Some(branch)))
+    Ok(FetchedSource::new(git_clone_dir, Some(branch)))
 }

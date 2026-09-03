@@ -108,12 +108,11 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
         .template_values_mut()
         .extend(load_env_and_args_template_values(&args)?);
 
-    let (template_base_dir, template_dir, branch) =
-        fetch::prepare_local_template(&user_parsed_input)?;
+    let fetched = fetch::prepare_local_template(&user_parsed_input)?;
 
     // read configuration in the template
     let mut config = Config::from_path(
-        &locate_template_file(CONFIG_FILE_NAME, &template_base_dir, &template_dir).ok(),
+        &locate_template_file(CONFIG_FILE_NAME, fetched.root(), fetched.template_dir()).ok(),
     )?;
 
     // the `--init` parameter may also be set by the template itself
@@ -134,7 +133,12 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
 
     check_cargo_generate_version(&config)?;
 
-    let project_dir = expand_template(&template_dir, &mut config, &user_parsed_input, &args)?;
+    let project_dir = expand_template(
+        fetched.template_dir(),
+        &mut config,
+        &user_parsed_input,
+        &args,
+    )?;
     let (mut should_initialize_git, with_force) = {
         let vcs = &config
             .template
@@ -149,9 +153,10 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     };
 
     let target_path = if user_parsed_input.test() {
-        test_expanded_template(&template_dir, args.other_args)?
+        test_expanded_template(fetched.template_dir(), args.other_args)?
     } else {
-        let project_path = copy_expanded_template(template_dir, project_dir, user_parsed_input)?;
+        let project_path =
+            copy_expanded_template(fetched.template_dir(), project_dir, user_parsed_input)?;
 
         if !args.no_workspace {
             match workspace_member::add_to_workspace(&project_path)? {
@@ -185,7 +190,7 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
             style("Initializing a fresh Git repository").bold()
         );
 
-        git::init(&target_path, branch.as_deref(), with_force)?;
+        git::init(&target_path, fetched.branch(), with_force)?;
     }
 
     info!(
@@ -200,7 +205,7 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
 }
 
 fn copy_expanded_template(
-    template_dir: PathBuf,
+    template_dir: &Path,
     project_dir: PathBuf,
     user_parsed_input: UserParsedInput,
 ) -> Result<PathBuf> {

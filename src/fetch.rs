@@ -22,24 +22,70 @@ use crate::read_default_variable_value_from_template;
 use crate::user_parsed_input::{Source, UserParsedInput};
 use crate::utils::tmp_dir;
 
-pub fn prepare_local_template(
-    source_template: &UserParsedInput,
-) -> Result<(TempDir, PathBuf, Option<String>), anyhow::Error> {
-    let (temp_dir, branch) = get_source_template_into_temp(source_template.location())?;
+/// A template materialized into a temp directory.
+///
+/// Owns the temp directory: dropping a `FetchedSource` deletes the
+/// materialized template, so it has to outlive every path derived
+/// from it.
+#[derive(Debug)]
+pub struct FetchedSource {
+    root: TempDir,
+    template_dir: PathBuf,
+    branch: Option<String>,
+}
+
+impl FetchedSource {
+    /// A freshly materialized source, before sub-template resolution.
+    /// `template_dir` starts at the root and [`Self::narrow_to`]
+    /// moves it inward.
+    pub(crate) fn new(root: TempDir, branch: Option<String>) -> Self {
+        let template_dir = root.path().to_owned();
+        Self {
+            root,
+            template_dir,
+            branch,
+        }
+    }
+
+    /// Point at the sub-directory that is the actual template.
+    fn narrow_to(mut self, template_dir: PathBuf) -> Self {
+        self.template_dir = template_dir;
+        self
+    }
+
+    /// The temp directory holding the whole materialized source.
+    pub fn root(&self) -> &Path {
+        self.root.path()
+    }
+
+    /// The directory the template itself lives in — the root, or a
+    /// sub-template below it.
+    pub fn template_dir(&self) -> &Path {
+        &self.template_dir
+    }
+
+    /// The branch the source was on, when it could be determined.
+    pub fn branch(&self) -> Option<&str> {
+        self.branch.as_deref()
+    }
+}
+
+pub fn prepare_local_template(source_template: &UserParsedInput) -> Result<FetchedSource> {
+    let fetched = get_source_template_into_temp(source_template.location())?;
     let template_folder = resolve_template_dir(
-        &temp_dir,
+        fetched.root(),
         source_template.subfolder(),
         source_template.silent(),
     )?;
 
-    Ok((temp_dir, template_folder, branch))
+    Ok(fetched.narrow_to(template_folder))
 }
 
-fn get_source_template_into_temp(source: &Source) -> Result<(TempDir, Option<String>)> {
+fn get_source_template_into_temp(source: &Source) -> Result<FetchedSource> {
     match source {
         #[cfg(feature = "git")]
         Source::Git(git) => {
-            let result = git::clone_git_template_into_temp(
+            let fetched = git::clone_git_template_into_temp(
                 git.url(),
                 git.branch(),
                 git.tag(),
@@ -48,17 +94,17 @@ fn get_source_template_into_temp(source: &Source) -> Result<(TempDir, Option<Str
                 git.gitconfig(),
                 git.skip_submodules,
             );
-            if let Ok((ref temp_dir, _)) = result {
-                git::remove_history(temp_dir.path())?;
-                strip_liquid_suffixes(temp_dir.path())?;
+            if let Ok(ref fetched) = fetched {
+                git::remove_history(fetched.root())?;
+                strip_liquid_suffixes(fetched.root())?;
             };
-            result
+            fetched
         }
         Source::Local(path) => {
-            let temp_dir = tmp_dir()?;
-            copy_files_recursively(path, temp_dir.path(), false)?;
-            git::remove_history(temp_dir.path())?;
-            Ok((temp_dir, try_get_branch_from_path(path)))
+            let root = tmp_dir()?;
+            copy_files_recursively(path, root.path(), false)?;
+            git::remove_history(root.path())?;
+            Ok(FetchedSource::new(root, try_get_branch_from_path(path)))
         }
     }
 }
@@ -88,11 +134,11 @@ fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
 
 /// resolve the template location for the actual template to expand
 fn resolve_template_dir(
-    template_base_dir: &TempDir,
+    template_base_dir: &Path,
     subfolder: Option<&str>,
     silent: bool,
 ) -> Result<PathBuf> {
-    let template_dir = resolve_template_dir_subfolder(template_base_dir.path(), subfolder)?;
+    let template_dir = resolve_template_dir_subfolder(template_base_dir, subfolder)?;
     auto_locate_template_dir(template_dir, &mut |slots| {
         select_sub_template(slots, silent, |slots| {
             prompt_and_check_variable(slots, None)
@@ -372,7 +418,7 @@ mod tests {
         create_file(&tmp, "sub1/Cargo.toml", "")?;
         create_file(&tmp, "sub2/Cargo.toml", "")?;
 
-        let actual = resolve_template_dir(&tmp, None, true)?.canonicalize()?;
+        let actual = resolve_template_dir(tmp.path(), None, true)?.canonicalize()?;
         let expected = tmp.path().join("sub1").canonicalize()?;
 
         assert_eq!(expected, actual);
