@@ -1,16 +1,24 @@
-//! Facade over git-touching operations.
+//! Everything that touches git, behind one facade.
 //!
-//! * `history`, `tmp`, `feature` are always compiled — fs-only, no
-//!   `gix` needed, and called from the always-compiled `Local`
-//!   template path.
-//! * `gitconfig`, `init`, `utils` are the real runtime, compiled only
-//!   with the feature, as is branch detection from `crate::gix`.
-//! * `init` and `try_get_branch_from_path` additionally have stubs in
-//!   `feature`: `Vcs::Git` is part of the invariant-shape existing API
-//!   and exists in every build, and nothing reads an inferred branch
-//!   when there is no git to init. `clone_git_template_into_temp`
-//!   needs no stub — without the feature there is no `Source::Git` to
-//!   reach it.
+//! The `git` cargo feature decides what this module can *do*, never
+//! what it looks like: exported names and signatures are the same in
+//! both configurations, so callers carry no `#[cfg]`.
+//!
+//! Always compiled — fs-only, no `gix`, and on the plain-copy path
+//! that works without the feature:
+//! [`history`], [`tmp`], [`feature`].
+//!
+//! Feature-gated — the git runtime and its `gix` dependency:
+//! [`gitconfig`], [`gix`], [`init`], [`utils`], and branch detection.
+//!
+//! [`feature`] holds the "this build has no git" error and the
+//! stand-ins the always-compiled callers need: [`init`], because
+//! `Vcs::Git` is public API and exists in every build, plus
+//! `read_config_string` and `try_get_branch_from_path`, which return
+//! `None` — author lookup falls through to its environment-variable
+//! chain, and nothing reads an inferred branch when there is no git
+//! to init. Cloning needs no stand-in: without the feature there is
+//! no git source to reach it.
 
 mod feature;
 mod history;

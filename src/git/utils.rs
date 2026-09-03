@@ -1,3 +1,5 @@
+//! Clone entry point plus the path helpers it needs.
+
 use anyhow::Context;
 use anyhow::Result;
 use std::path::{Path, PathBuf};

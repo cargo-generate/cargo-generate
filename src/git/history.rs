@@ -1,14 +1,10 @@
-//! Remove a template's `.git` directory. Always compiled — every
-//! fetch path calls this once the template is materialized, so it
-//! must work with or without the `git` feature.
+//! Strip a materialized template's `.git` directory.
 //!
-//! Uses the `remove_dir_all` crate (not `std::fs::remove_dir_all`)
-//! because git repos on Windows have read-only pack files and deeply
-//! nested objects that trip the std version. Cargo itself uses this
-//! crate for the same reason.
-//!
-//! Wrapped in a short retry loop for the additional case where a
-//! just-cloned `.git` is still locked by whatever process wrote it.
+//! Always compiled: every fetch path calls this, with or without the
+//! `git` feature. Uses the `remove_dir_all` crate rather than
+//! `std::fs` — git repos on Windows carry read-only pack files that
+//! trip the std version, which is why cargo uses it too — and retries
+//! briefly when a just-cloned `.git` is still locked.
 
 use std::io;
 use std::path::Path;

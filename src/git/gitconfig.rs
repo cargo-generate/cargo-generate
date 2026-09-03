@@ -1,3 +1,8 @@
+//! Reading the user's git configuration.
+//!
+//! Locates the active `.gitconfig` and resolves the settings cloning
+//! honors: `url.<base>.insteadOf` rewrites and http/https/socks proxies.
+
 use crate::git::utils::home;
 use anyhow::Context;
 use anyhow::Result;

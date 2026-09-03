@@ -1,7 +1,8 @@
-//! gix-based replacement for the git2 clone path.
+//! Cloning, built on [`gix`](https://docs.rs/gix).
 //!
-//! Public API surface intentionally mirrors `crate::git::clone_tool::RepoCloneBuilder`
-//! so migrating call sites is a type-swap.
+//! [`RepoCloneBuilder`] configures a clone — branch, tag, revision,
+//! ssh identity, submodules, gitconfig `insteadOf` and proxy — and
+//! [`GitCloneCmd`] runs it.
 
 use std::num::NonZeroU32;
 use std::path::{Path, PathBuf};
