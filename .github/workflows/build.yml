@@ -75,6 +75,7 @@ jobs:
         cargo-cmd:
           - fmt --all -- --check
           - clippy --all-targets --all-features -- -D warnings
+          - clippy --all-targets --no-default-features -- -D warnings
     runs-on: ${{ matrix.version }}
     steps:
       - uses: actions/checkout@v7
