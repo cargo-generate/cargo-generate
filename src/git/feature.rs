@@ -83,7 +83,8 @@ pub fn init(
     _force: bool,
 ) -> anyhow::Result<()> {
     Err(feature_disabled(
-        "initializing a git repository for the generated project (`--vcs git`)",
+        "initializing a git repository for the generated project \
+         (`--vcs git`, or `vcs` in the template's or a favorite's config)",
     ))
 }
 

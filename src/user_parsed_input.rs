@@ -291,13 +291,23 @@ impl UserParsedInput {
     /// `cargo-generate.toml` is resolved much later, in `generate()`,
     /// and is caught by the `git::feature::init` stub instead.
     ///
+    /// `--force-git-init` is checked separately: it never reaches the
+    /// stub, because the fallback `Vcs::None` makes the init step a
+    /// no-op. Left unchecked it would be silently ignored, which is
+    /// the one thing an explicitly passed flag must never be.
+    ///
     /// # Errors
     ///
-    /// Returns an error when `--vcs git` was requested but this build
-    /// was compiled without the `git` cargo feature.
+    /// Returns an error when git was requested but this build was
+    /// compiled without the `git` cargo feature.
     pub fn ensure_git_feature_available(&self) -> anyhow::Result<()> {
         if self.vcs == Vcs::Git {
-            crate::git::ensure_available("`--vcs git`")?;
+            crate::git::ensure_available(
+                "git VCS initialization (`--vcs git`, or `vcs` in a favorite's config)",
+            )?;
+        }
+        if self.force_git_init {
+            crate::git::ensure_available("`--force-git-init`")?;
         }
         Ok(())
     }
@@ -833,6 +843,29 @@ mod tests {
         let parsed =
             UserParsedInput::try_from_args_and_config(AppConfig::default(), &args).unwrap();
         assert!(parsed.ensure_git_feature_available().is_err());
+    }
+
+    #[cfg(not(feature = "git"))]
+    #[test]
+    fn force_git_init_bails_without_the_git_feature() {
+        // Explicitly passed git input must never be silently ignored,
+        // even though the default VCS degraded to None.
+        let args = GenerateArgs {
+            template_path: crate::TemplatePath {
+                path: Some(".".into()),
+                ..crate::TemplatePath::default()
+            },
+            force_git_init: true,
+            ..Default::default()
+        };
+        let parsed =
+            UserParsedInput::try_from_args_and_config(AppConfig::default(), &args).unwrap();
+        let err = parsed
+            .ensure_git_feature_available()
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("--force-git-init"), "names the flag: {err}");
+        assert!(err.contains("`git` cargo feature"), "{err}");
     }
 
     #[cfg(not(feature = "git"))]
