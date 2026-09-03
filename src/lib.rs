@@ -31,8 +31,6 @@ mod emoji;
 mod favorites;
 mod filenames;
 mod git;
-#[cfg(feature = "git")]
-mod gix;
 mod hooks;
 mod ignore_me;
 mod include_exclude;
@@ -55,8 +53,6 @@ use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
 use copy::copy_files_recursively;
-#[cfg(feature = "git")]
-use copy::LIQUID_SUFFIX;
 use env_logger::fmt::Formatter;
 use fs_err as fs;
 use hooks::{execute_hooks, RhaiHooksContext};
@@ -296,6 +292,8 @@ fn get_source_template_into_temp(source: &Source) -> Result<(TempDir, Option<Str
 /// Only reachable from the `Source::Git` arm, which the `git` feature gates.
 #[cfg(feature = "git")]
 fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
+    use copy::LIQUID_SUFFIX;
+
     for entry in fs::read_dir(dir.as_ref())? {
         let entry = entry?;
         let entry_type = entry.file_type()?;

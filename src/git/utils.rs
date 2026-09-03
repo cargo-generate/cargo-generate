@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use tempfile::TempDir;
 
-use crate::gix::RepoCloneBuilder;
+use super::gix::RepoCloneBuilder;
 
 /// deals with `~/` and `$HOME/` prefixes
 pub fn canonicalize_path(p: impl AsRef<Path>) -> Result<PathBuf> {

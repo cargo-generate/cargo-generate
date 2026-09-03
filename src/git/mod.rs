@@ -25,23 +25,23 @@ pub use feature::feature_disabled;
 #[cfg(not(feature = "git"))]
 pub use feature::init;
 #[cfg(not(feature = "git"))]
+pub use feature::read_config_string;
+#[cfg(not(feature = "git"))]
 pub use feature::try_get_branch_from_path;
 
 #[cfg(feature = "git")]
 pub mod gitconfig;
 #[cfg(feature = "git")]
+pub mod gix;
+#[cfg(feature = "git")]
 mod init;
 #[cfg(feature = "git")]
 pub mod utils;
-
-#[cfg(feature = "git")]
-pub use crate::gix::try_get_branch_from_path;
 #[cfg(feature = "git")]
 pub use gitconfig::read_config_string;
+#[cfg(feature = "git")]
+pub use gix::try_get_branch_from_path;
 #[cfg(feature = "git")]
 pub use init::init;
 #[cfg(feature = "git")]
 pub use utils::clone_git_template_into_temp;
-
-#[cfg(not(feature = "git"))]
-pub use feature::read_config_string;
