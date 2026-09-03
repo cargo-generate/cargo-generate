@@ -418,7 +418,7 @@ fn any_proxy_env_var_set() -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::git::tmp_dir;
+    use crate::utils::tmp_dir;
 
     use super::*;
     use std::fs::metadata;

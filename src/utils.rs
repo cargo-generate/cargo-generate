@@ -1,5 +1,4 @@
-//! Tempdir helper. Always compiled — every fetch path needs it,
-//! regardless of the `git` feature.
+//! Small helpers with no home of their own.
 
 use tempfile::{Builder, TempDir};
 

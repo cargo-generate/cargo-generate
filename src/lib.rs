@@ -42,6 +42,7 @@ mod template_filters;
 mod template_source;
 mod template_variables;
 mod user_parsed_input;
+mod utils;
 mod workspace_member;
 
 pub use crate::app_config::{app_config_path, AppConfig};
@@ -73,10 +74,10 @@ use tempfile::TempDir;
 use user_parsed_input::{Source, UserParsedInput};
 use workspace_member::WorkspaceMemberStatus;
 
-use crate::git::tmp_dir;
 use crate::template_variables::{
     load_env_and_args_template_values, CrateName, ProjectDir, ProjectNameInput,
 };
+use crate::utils::tmp_dir;
 use crate::{project_variables::ConversionError, template_variables::ProjectName};
 
 use self::config::TemplateConfig;

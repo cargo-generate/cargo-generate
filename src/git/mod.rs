@@ -6,7 +6,7 @@
 //!
 //! Always compiled — fs-only, no `gix`, and on the plain-copy path
 //! that works without the feature:
-//! [`history`], [`tmp`], [`feature`].
+//! [`history`], [`feature`].
 //!
 //! Feature-gated — the git runtime and its `gix` dependency:
 //! [`gitconfig`], [`gix`], [`init`], [`utils`], and branch detection.
@@ -22,11 +22,9 @@
 
 mod feature;
 mod history;
-mod tmp;
 
 pub use feature::ensure_available;
 pub use history::remove_history;
-pub use tmp::tmp_dir;
 
 #[cfg(not(feature = "git"))]
 pub use feature::feature_disabled;

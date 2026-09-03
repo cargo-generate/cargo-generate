@@ -38,7 +38,7 @@ pub fn clone_git_template_into_temp(
     gitconfig: Option<&Path>,
     skip_submodules: bool,
 ) -> anyhow::Result<(TempDir, Option<String>)> {
-    let git_clone_dir = super::tmp_dir()?;
+    let git_clone_dir = crate::utils::tmp_dir()?;
 
     let branch = RepoCloneBuilder::new(git_url)
         .with_branch(branch)
