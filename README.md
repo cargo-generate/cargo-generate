@@ -74,7 +74,7 @@ cargo-generate exposes the following optional features:
 |---------|:-------:|--------------------------------------------------------------------------------------------------------------------------|
 | `git`   | ✔       | Fetching templates from git repositories (`--git`, git-backed favorites) and `--vcs git`. Pulls in `gix` and `reqwest`.    |
 
-**Library consumers** who only need local-path templates can opt out of the `git` feature and drop the entire gix/reqwest/openssl transitive tree:
+**Library consumers** who only need local-path templates can opt out of the `git` feature and drop the entire gix/reqwest/rustls transitive tree:
 
 ```toml
 [dependencies]
