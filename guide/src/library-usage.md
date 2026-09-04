@@ -79,11 +79,26 @@ repository. On success it returns the [`PathBuf`] of the generated project:
 
 ## Generating without git
 
-If your tool ships its own blueprint, there is nothing to clone — and no
+If your tool carries its own blueprint, there is nothing to clone — and no
 reason to carry a git implementation. [`examples/scaffold-from-blueprint/`][sc]
-is that shape in full: a `blueprint/` directory beside `src/`, a dependency
-line with `default-features = false`, and a template path anchored at the
-crate root.
+is that shape in full, with `default-features = false` on its dependency line.
+
+The blueprint is compiled into the binary, so the tool keeps working wherever
+it is installed:
+
+```rust
+{{#include ../../examples/scaffold-from-blueprint/src/main.rs:embed}}
+```
+
+cargo-generate reads templates from a directory, so the bytes are unpacked to
+a temporary one first. It has to outlive the call — dropping it takes the
+blueprint with it:
+
+```rust
+{{#include ../../examples/scaffold-from-blueprint/src/main.rs:unpack}}
+```
+
+From there it is an ordinary local-path generation:
 
 ```rust
 {{#include ../../examples/scaffold-from-blueprint/src/main.rs:build_args}}
@@ -92,11 +107,6 @@ crate root.
 `vcs: Some(Vcs::None)` is redundant without the `git` feature — that is
 already the default there — but stating it keeps the example working the same
 way whichever features are on.
-
-The blueprint is read from disk at runtime, so a tool built this way has to
-ship its `blueprint/` directory alongside the binary. Embedding the bytes
-instead (with `include_dir!` or similar) and unpacking them to a temporary
-directory works just as well and survives `cargo install`.
 
 ## Running the example
 
