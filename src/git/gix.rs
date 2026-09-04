@@ -1,7 +1,8 @@
-//! gix-based replacement for the git2 clone path.
+//! Cloning, built on [`gix`](https://docs.rs/gix).
 //!
-//! Public API surface intentionally mirrors `crate::git::clone_tool::RepoCloneBuilder`
-//! so migrating call sites is a type-swap.
+//! [`RepoCloneBuilder`] configures a clone — branch, tag, revision,
+//! ssh identity, submodules, gitconfig `insteadOf` and proxy — and
+//! [`GitCloneCmd`] runs it.
 
 use std::num::NonZeroU32;
 use std::path::{Path, PathBuf};
@@ -14,7 +15,8 @@ use gix::url;
 use log::{debug, info};
 
 use crate::emoji::WRENCH;
-use crate::git::{gitconfig, remove_history, utils};
+use crate::git::{gitconfig, remove_history};
+use crate::utils::canonicalize_path;
 
 type BranchName = String;
 
@@ -72,7 +74,7 @@ impl RepoCloneBuilder {
 
     pub fn with_ssh_identity(mut self, identity_path: Option<&Path>) -> Result<Self> {
         if let Some(identity_path) = identity_path {
-            let identity_path = utils::canonicalize_path(identity_path)?;
+            let identity_path = canonicalize_path(identity_path)?;
             info!(
                 "{} `{}` {}",
                 style("Using private key:").bold(),
@@ -112,7 +114,7 @@ impl RepoCloneBuilder {
     }
 
     pub fn with_destination(mut self, destination_path: impl AsRef<Path>) -> Result<Self> {
-        self.destination_path = Some(utils::canonicalize_path(destination_path.as_ref())?);
+        self.destination_path = Some(canonicalize_path(destination_path.as_ref())?);
         Ok(self)
     }
 
@@ -417,7 +419,7 @@ fn any_proxy_env_var_set() -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::git::tmp_dir;
+    use crate::utils::tmp_dir;
 
     use super::*;
     use std::fs::metadata;

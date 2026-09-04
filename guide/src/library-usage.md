@@ -10,13 +10,33 @@ drift out of sync.
 
 ## Depend on `cargo-generate`
 
-Add the crate to your `Cargo.toml`. Turning `default-features` off keeps the
-CLI-only feature gates out of your build:
+Add the crate to your `Cargo.toml`:
+
+```toml
+[dependencies]
+cargo-generate = "*"
+```
+
+### Cargo features
+
+| Feature | Default | Description                                                                                                                    |
+|---------|:-------:|----------------------------------------------------------------------------------------------------------------------------------|
+| `git`   | ✔       | Fetching templates from git repositories, and initializing a repository in the generated project. Pulls in `gix` and `reqwest`. |
+
+If your tool only ever generates from **local** templates, turning `git` off
+drops the whole gix/reqwest/rustls tree:
 
 ```toml
 [dependencies]
 cargo-generate = { version = "*", default-features = false }
 ```
+
+Your code does not change. [`GenerateArgs`], [`TemplatePath`] and [`Vcs`] keep
+every field, so whatever compiled with default features still compiles. What
+changes is at runtime: asking for a git template — as the example on this page
+does — or for a git repository in the generated project returns an error
+naming the feature rather than doing the work. Local-path templates, hooks,
+rendering and workspace membership are unaffected.
 
 ## Imports
 

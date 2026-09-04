@@ -10,4 +10,5 @@ It generates a project called "my-project" based on the wasm-pack template.
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cargo-generate = { path = "../..", default-features = false }
+# This example generates from a git URL, so it needs the default `git` feature.
+cargo-generate = { path = "../.." }

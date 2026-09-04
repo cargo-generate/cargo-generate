@@ -1,5 +1,6 @@
 use crate::helpers::prelude::*;
 
+#[cfg(feature = "git")]
 #[test]
 fn it_can_use_a_plain_folder() {
     let template = tempdir().with_default_manifest().build();
@@ -26,6 +27,7 @@ fn it_can_use_a_plain_folder() {
     assert_eq!(0, references);
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_can_use_a_specified_path() {
     let template = tempdir().with_default_manifest().build();
@@ -91,6 +93,7 @@ fn it_uses_the_default_subtemplate_in_silent_mode() {
     assert_eq!("sub1", dir.read("foobar-project/source.txt"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_substitutes_projectname_in_cargo_toml() {
     let template = tempdir().init_default_template().build();
@@ -111,6 +114,7 @@ fn it_substitutes_projectname_in_cargo_toml() {
         .contains("foobar-project"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_substitutes_authors_and_username() {
     let template = tempdir()
@@ -147,6 +151,7 @@ version = "0.1.0"
         .contains(r#"description = "A wonderful project by Author""#));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_substitutes_os_arch() {
     let template = tempdir()
@@ -172,6 +177,7 @@ fn it_substitutes_os_arch() {
     )));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_keeps_snake_case_projectname() {
     let template = tempdir().init_default_template().build();
@@ -192,6 +198,7 @@ fn it_keeps_snake_case_projectname() {
         .contains("foobar_project"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_substitutes_cratename_in_a_rust_file() {
     let template = tempdir()
@@ -220,6 +227,7 @@ extern crate {{crate_name}};
     assert!(!file.contains("foobar-project"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn short_commands_work() {
     let template = tempdir().init_default_template().build();
@@ -240,6 +248,7 @@ fn short_commands_work() {
         .contains("foobar-project"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_can_generate_inside_existing_repository() -> anyhow::Result<()> {
     let template = tempdir().init_default_template().build();
@@ -269,6 +278,7 @@ fn it_can_generate_inside_existing_repository() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_can_generate_into_cwd() -> anyhow::Result<()> {
     let template = tempdir().init_default_template().build();
@@ -295,6 +305,7 @@ fn it_can_generate_into_cwd() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_can_generate_into_existing_git_dir() -> anyhow::Result<()> {
     let template = tempdir().init_default_template().build();
@@ -320,6 +331,7 @@ fn it_can_generate_into_existing_git_dir() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_can_generate_at_given_path() -> anyhow::Result<()> {
     let template = tempdir().init_default_template().build();
@@ -341,6 +353,7 @@ fn it_can_generate_at_given_path() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_does_not_overwrite_existing_files() -> anyhow::Result<()> {
     let template = tempdir().init_default_template().build();
@@ -363,6 +376,7 @@ fn it_does_not_overwrite_existing_files() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_can_overwrite_files() -> anyhow::Result<()> {
     let template = tempdir().init_default_template().build();
@@ -386,6 +400,7 @@ fn it_can_overwrite_files() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_allows_user_defined_projectname_when_passing_force_flag() {
     let template = tempdir().init_default_template().build();
@@ -407,6 +422,7 @@ fn it_allows_user_defined_projectname_when_passing_force_flag() {
         .contains("foobar_project"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_removes_files_listed_in_genignore() {
     let template = tempdir()
@@ -439,6 +455,7 @@ fn it_removes_files_listed_in_genignore() {
     assert!(dir.exists("foobar-project/deleteme.trash").not());
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_prints_ignored_files_with_verbose() {
     let template = tempdir()
@@ -466,6 +483,7 @@ fn it_prints_ignored_files_with_verbose() {
         .stdout(predicates::str::contains("deleteme.trash").from_utf8());
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_always_removes_genignore_file() {
     let template = tempdir()
@@ -488,6 +506,7 @@ fn it_always_removes_genignore_file() {
     assert!(dir.exists("foobar-project/.genignore").not());
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_always_removes_cargo_ok_file() {
     let template = tempdir()
@@ -518,6 +537,7 @@ fn it_always_removes_cargo_ok_file() {
     assert!(dir.exists("foobar-project/.cargo-ok").not());
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_removes_genignore_files_before_substitution() {
     let template = tempdir()
@@ -549,6 +569,7 @@ fn it_removes_genignore_files_before_substitution() {
     assert!(dir.exists("foobar-project/.cicd_workflow").not());
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_does_not_remove_files_from_outside_project_dir() {
     let template = tempdir()
@@ -598,6 +619,7 @@ fn it_does_not_remove_files_from_outside_project_dir() {
     fs::remove_file(&dangerous_file).expect("failed to clean up test file");
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn errant_ignore_entry_doesnt_affect_template_files() {
     let template = tempdir()
@@ -639,6 +661,7 @@ fn errant_ignore_entry_doesnt_affect_template_files() {
     .is_file());
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_loads_a_submodule() {
     let submodule = tempdir()
@@ -679,6 +702,7 @@ fn it_loads_a_submodule() {
         .contains("*JUST A SUBMODULE*"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_allows_relative_paths() {
     let template = tempdir()
@@ -716,6 +740,7 @@ fn it_allows_relative_paths() {
         .contains("foobar-project"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_respects_template_branch_name() {
     let template = tempdir().file("index.html", "My Page").init_git().build();
@@ -747,6 +772,7 @@ fn it_respects_template_branch_name() {
         .stdout(predicates::str::contains("On branch gh-pages").from_utf8());
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_doesnt_warn_with_neither_config_nor_ignore() {
     let template = tempdir().init_default_template().build();
@@ -764,6 +790,7 @@ fn it_doesnt_warn_with_neither_config_nor_ignore() {
         .stdout(predicates::str::contains("Done!").from_utf8());
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_processes_dot_github_directory_files() {
     let template = tempdir()
@@ -784,6 +811,7 @@ fn it_processes_dot_github_directory_files() {
     assert_eq!(dir.read("foobar-project/.github/foo.txt"), "foobar-project");
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_ignore_tags_inside_raw_block() {
     let raw_body = r#"{{badges}}
@@ -824,6 +852,7 @@ _This README was generated with [cargo-readme](https://github.com/livioribeiro/c
     assert!(template.contains("{{license}}"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_uses_vsc_none_to_avoid_initializing_repository() {
     // Build and commit on branch named 'main'
@@ -847,6 +876,7 @@ fn it_uses_vsc_none_to_avoid_initializing_repository() {
     assert!(gix::open(dir.path().join("foobar-project")).is_err());
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_provides_crate_type_lib() {
     // Build and commit on branch named 'main'
@@ -877,6 +907,7 @@ version = "0.1.0"
     assert!(cargo_toml.contains("this is a lib"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_provides_crate_type_bin() {
     // Build and commit on branch named 'main'
@@ -906,6 +937,7 @@ version = "0.1.0"
     assert!(cargo_toml.contains("this is a bin"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_skips_substitution_for_random_garbage_in_cargo_toml() {
     let template = tempdir()
@@ -935,6 +967,7 @@ version = "0.1.0"
     assert!(dir.read("foobar-project/Cargo.toml").contains("fart"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_skips_substitution_for_unknown_variables_in_cargo_toml() {
     let template = tempdir()
@@ -974,6 +1007,7 @@ version = "0.1.0"
         .contains("{{ project-some-other-thing }}"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn error_message_for_invalid_repo_or_user() {
     let dir = tempdir().build();
@@ -990,6 +1024,7 @@ fn error_message_for_invalid_repo_or_user() {
         );
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn test_flag_with_github_shorthand_clones_remote() {
     // `cargo generate <owner/repo> --test` should attempt a github clone
@@ -1009,6 +1044,7 @@ fn test_flag_with_github_shorthand_clones_remote() {
         );
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_overrides_builtin_authors_placeholder_via_define() {
     let template = tempdir()
@@ -1046,6 +1082,7 @@ fn it_overrides_builtin_authors_placeholder_via_define() {
         .contains("authors = The Project Authors"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_overrides_builtin_os_arch_placeholder_via_define() {
     let template = tempdir()
@@ -1083,6 +1120,7 @@ fn it_overrides_builtin_os_arch_placeholder_via_define() {
         .contains("os-arch = custom-target"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_does_not_warn_when_define_matches_user_placeholder() {
     let template = tempdir()
@@ -1122,4 +1160,52 @@ fn it_does_not_warn_when_define_matches_user_placeholder() {
     assert!(dir
         .read("foobar-project/Cargo.toml")
         .contains("greeting = hello"));
+}
+
+/// The `git` cargo feature must not reshape the CLI. `--git` still parses
+/// in a feature-off build; it fails with the feature notice, not with a
+/// clap "unexpected argument" error, and writes nothing.
+#[cfg(not(feature = "git"))]
+#[test]
+fn git_flag_still_parses_and_reports_the_disabled_feature() {
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git("https://github.com/cargo-generate/cargo-generate.git")
+        .arg_name("foobar-project")
+        .current_dir(dir.path())
+        .assert()
+        .failure()
+        .stderr(
+            predicates::str::contains("`git` cargo feature")
+                .and(predicates::str::contains("unexpected argument").not())
+                .from_utf8(),
+        );
+
+    assert!(dir.path().join("foobar-project").exists().not());
+}
+
+/// Same for `--vcs git`: the flag and its value still parse, and the
+/// failure names the feature.
+#[cfg(not(feature = "git"))]
+#[test]
+fn vcs_git_flag_still_parses_and_reports_the_disabled_feature() {
+    let template = tempdir().with_default_manifest().build();
+    let dir = tempdir().build();
+
+    binary()
+        .arg_name("foobar-project")
+        .arg_path(template.path())
+        .arg("--vcs")
+        .arg("git")
+        .current_dir(dir.path())
+        .assert()
+        .failure()
+        .stderr(
+            predicates::str::contains("`git` cargo feature")
+                .and(predicates::str::contains("unexpected argument").not())
+                .from_utf8(),
+        );
+
+    assert!(dir.path().join("foobar-project").exists().not());
 }

@@ -9,7 +9,11 @@ use std::{
 use crate::absolute_path::AbsolutePathExt;
 use console::style;
 
-use crate::{app_config::AppConfig, template_variables::CrateType, GenerateArgs, Vcs};
+use crate::{
+    app_config::{AppConfig, FavoriteConfig},
+    template_variables::CrateType,
+    GenerateArgs, Vcs,
+};
 use log::warn;
 
 #[derive(Debug)]
@@ -34,7 +38,8 @@ impl UserParsedInputBuilder {
                     },
                     ..GenerateArgs::default()
                 },
-            ),
+            )
+            .expect("a `--path` template needs no git support"),
         }
     }
 
@@ -54,7 +59,7 @@ pub struct UserParsedInput {
     name: Option<String>,
 
     // from where clone or copy template?
-    template_location: TemplateLocation,
+    template_location: Source,
 
     destination: PathBuf,
 
@@ -87,8 +92,22 @@ impl UserParsedInput {
     /// # Panics
     /// This function assume that Args and AppConfig are verified earlier and are logically correct
     /// For example if both `--git` and `--path` are set this function will panic
-    pub fn try_from_args_and_config(app_config: AppConfig, args: &GenerateArgs) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the resolved input needs git but this build
+    /// was compiled without the `git` cargo feature.
+    pub fn try_from_args_and_config(
+        app_config: AppConfig,
+        args: &GenerateArgs,
+    ) -> anyhow::Result<Self> {
+        // A *default* degrades silently; an *explicit* `Vcs::Git` bails.
+        // Without the feature there is no git to init into, so the sensible
+        // default is None — nobody asked for git, nothing should fail.
+        #[cfg(feature = "git")]
         const DEFAULT_VCS: Vcs = Vcs::Git;
+        #[cfg(not(feature = "git"))]
+        const DEFAULT_VCS: Vcs = Vcs::None;
 
         let destination = args
             .destination
@@ -119,15 +138,16 @@ impl UserParsedInput {
 
         // --git
         if let Some(git_url) = args.template_path.git() {
-            let source = crate::template_source::TemplateSource::classify(
+            let template_location = git_source_from_args(
                 git_url.as_ref(),
+                args,
                 &app_config,
                 &cwd,
-            );
-            let clone_opts = clone_opts_from_args(args, ssh_identity.clone());
-            return Self {
+                ssh_identity.clone(),
+            )?;
+            return Ok(Self {
                 name: args.name.clone(),
-                template_location: source.into_git_template_location(&clone_opts),
+                template_location,
                 subfolder: args
                     .template_path
                     .subfolder()
@@ -143,12 +163,12 @@ impl UserParsedInput {
                 force: args.force,
                 test: args.template_path.test,
                 force_git_init: args.force_git_init,
-            };
+            });
         }
 
         // --path
         if let Some(path) = args.template_path.path() {
-            return Self {
+            return Ok(Self {
                 name: args.name.clone(),
                 template_location: path.as_ref().into(),
                 subfolder: args
@@ -166,7 +186,7 @@ impl UserParsedInput {
                 force: args.force,
                 test: args.template_path.test,
                 force_git_init: args.force_git_init,
-            };
+            });
         }
 
         // check if favorite is favorite configuration
@@ -175,44 +195,16 @@ impl UserParsedInput {
         if let Some(fav_cfg) = app_config.get_favorite_cfg(fav_name) {
             assert!(fav_cfg.git.is_none() || fav_cfg.path.is_none());
 
-            let temp_location = fav_cfg.git.as_ref().map_or_else(
-                || fav_cfg.path.as_ref().map(TemplateLocation::from).unwrap(),
-                |git_url| {
-                    let branch = args
-                        .template_path
-                        .branch()
-                        .map(|s| s.as_ref().to_owned())
-                        .or_else(|| fav_cfg.branch.clone());
-                    let tag = args
-                        .template_path
-                        .tag()
-                        .map(|s| s.as_ref().to_owned())
-                        .or_else(|| fav_cfg.tag.clone());
-                    let revision = args
-                        .template_path
-                        .revision()
-                        .map(|s| s.as_ref().to_owned())
-                        .or_else(|| fav_cfg.revision.clone());
-                    let git_user_input = GitUserInput::new(
-                        git_url,
-                        branch.as_ref(),
-                        tag.as_ref(),
-                        revision.as_ref(),
-                        ssh_identity,
-                        None,
-                        args.force_git_init,
-                        args.skip_submodules,
-                    );
-
-                    TemplateLocation::from(git_user_input)
-                },
-            );
+            let temp_location = match fav_cfg.git.as_ref() {
+                Some(git_url) => git_source_from_favorite(git_url, fav_cfg, args, ssh_identity)?,
+                None => Source::from(fav_cfg.path.as_ref().unwrap()),
+            };
 
             if let Some(fav_default_values) = &fav_cfg.values {
                 default_values.extend(fav_default_values.clone());
             }
 
-            return Self {
+            return Ok(Self {
                 name: args.name.clone(),
                 template_location: temp_location,
                 subfolder: args
@@ -239,21 +231,22 @@ impl UserParsedInput {
                 force: args.force,
                 test: args.template_path.test,
                 force_git_init: args.force_git_init,
-            };
+            });
         }
 
         // there is no specified favorite in configuration
         // auto_path with no configured favorite name → classify it
         let source = crate::template_source::TemplateSource::classify(fav_name, &app_config, &cwd);
         let clone_opts = clone_opts_from_args(args, ssh_identity);
-        let temp_location = source.into_template_location(&clone_opts);
+        let temp_location = source.into_source(&clone_opts)?;
 
         // Print information about what happened (preserve the existing warn!)
         let location_msg = match &temp_location {
-            TemplateLocation::Git(git_user_input) => {
+            #[cfg(feature = "git")]
+            Source::Git(git_user_input) => {
                 format!("git repository: {}", style(git_user_input.url()).bold())
             }
-            TemplateLocation::Path(path) => {
+            Source::Local(path) => {
                 format!("local path: {}", style(path.display()).bold())
             }
         };
@@ -263,7 +256,7 @@ impl UserParsedInput {
             location_msg
         );
 
-        Self {
+        Ok(Self {
             name: args.name.clone(),
             template_location: temp_location,
             subfolder: args
@@ -281,14 +274,49 @@ impl UserParsedInput {
             force: args.force,
             test: args.template_path.test,
             force_git_init: args.force_git_init,
+        })
+    }
+
+    /// Fail when the resolved input asks for a git VCS but this build
+    /// has no git support.
+    ///
+    /// Compiled unconditionally so both configurations run the same
+    /// control flow; with the `git` feature `ensure_available` is a
+    /// no-op returning `Ok(())`.
+    ///
+    /// `self.vcs == Vcs::Git` can only be true here when the user asked
+    /// for it explicitly — via `Vcs::Git` or a favorite's `vcs` key —
+    /// because the fallback without the feature is `Vcs::None`. A
+    /// template that requests `vcs = "Git"` in its own
+    /// `cargo-generate.toml` is resolved much later, in `generate()`,
+    /// and is caught by the `git::feature::init` stub instead.
+    ///
+    /// `force_git_init` is checked separately: it never reaches the
+    /// stub, because the fallback `Vcs::None` makes the init step a
+    /// no-op. Left unchecked it would be silently ignored, which is
+    /// the one thing an explicitly passed flag must never be.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when git was requested but this build was
+    /// compiled without the `git` cargo feature.
+    pub fn ensure_git_feature_available(&self) -> anyhow::Result<()> {
+        if self.vcs == Vcs::Git {
+            crate::git::ensure_available(
+                "git VCS initialization (`Vcs::Git`, or `vcs` in a favorite's config)",
+            )?;
         }
+        if self.force_git_init {
+            crate::git::ensure_available("`GenerateArgs::force_git_init`")?;
+        }
+        Ok(())
     }
 
     pub fn name(&self) -> Option<&str> {
         self.name.as_deref()
     }
 
-    pub const fn location(&self) -> &TemplateLocation {
+    pub const fn location(&self) -> &Source {
         &self.template_location
     }
 
@@ -346,8 +374,9 @@ impl UserParsedInput {
 }
 
 // Template should be cloned with git
+#[cfg(feature = "git")]
 #[derive(Debug)]
-pub struct GitUserInput {
+pub struct GitSource {
     url: String,
     branch: Option<String>,
     tag: Option<String>,
@@ -358,7 +387,8 @@ pub struct GitUserInput {
     pub skip_submodules: bool,
 }
 
-impl GitUserInput {
+#[cfg(feature = "git")]
+impl GitSource {
     #[allow(clippy::too_many_arguments)]
     fn new(
         url: &impl AsRef<str>,
@@ -382,8 +412,8 @@ impl GitUserInput {
         }
     }
 
-    /// Build a `GitUserInput` from a resolved URL and the cargo-generate
-    /// clone options. Used by `TemplateSource::into_template_location`.
+    /// Build a `GitSource` from a resolved URL and the cargo-generate
+    /// clone options. Used by `TemplateSource::into_source`.
     pub fn with_url_and_clone_opts(
         url: String,
         opts: &crate::template_source::CloneOptions,
@@ -425,6 +455,97 @@ impl GitUserInput {
     }
 }
 
+/// Build the [`Source`] for an explicit [`TemplatePath::git`].
+///
+/// # Errors
+///
+/// Never errors with the `git` feature enabled.
+#[cfg(feature = "git")]
+fn git_source_from_args(
+    git_url: &str,
+    args: &GenerateArgs,
+    app_config: &AppConfig,
+    cwd: &Path,
+    ssh_identity: Option<PathBuf>,
+) -> anyhow::Result<Source> {
+    let source = crate::template_source::TemplateSource::classify(git_url, app_config, cwd);
+    let clone_opts = clone_opts_from_args(args, ssh_identity);
+    source.into_git_source(&clone_opts)
+}
+
+/// See the `cfg(feature = "git")` twin above.
+///
+/// # Errors
+///
+/// Always errors: `--git` cannot be served by this build.
+#[cfg(not(feature = "git"))]
+fn git_source_from_args(
+    _git_url: &str,
+    _args: &GenerateArgs,
+    _app_config: &AppConfig,
+    _cwd: &Path,
+    _ssh_identity: Option<PathBuf>,
+) -> anyhow::Result<Source> {
+    Err(crate::git::feature_disabled("`TemplatePath::git`"))
+}
+
+/// Build the [`Source`] for a favorite whose config carries a git URL.
+///
+/// # Errors
+///
+/// Never errors with the `git` feature enabled.
+#[cfg(feature = "git")]
+fn git_source_from_favorite(
+    git_url: &str,
+    fav_cfg: &FavoriteConfig,
+    args: &GenerateArgs,
+    ssh_identity: Option<PathBuf>,
+) -> anyhow::Result<Source> {
+    let branch = args
+        .template_path
+        .branch()
+        .map(|s| s.as_ref().to_owned())
+        .or_else(|| fav_cfg.branch.clone());
+    let tag = args
+        .template_path
+        .tag()
+        .map(|s| s.as_ref().to_owned())
+        .or_else(|| fav_cfg.tag.clone());
+    let revision = args
+        .template_path
+        .revision()
+        .map(|s| s.as_ref().to_owned())
+        .or_else(|| fav_cfg.revision.clone());
+
+    Ok(Source::from(GitSource::new(
+        &git_url,
+        branch.as_ref(),
+        tag.as_ref(),
+        revision.as_ref(),
+        ssh_identity,
+        None,
+        args.force_git_init,
+        args.skip_submodules,
+    )))
+}
+
+/// See the `cfg(feature = "git")` twin above.
+///
+/// # Errors
+///
+/// Always errors: a git-backed favorite cannot be served by this build.
+#[cfg(not(feature = "git"))]
+fn git_source_from_favorite(
+    _git_url: &str,
+    _fav_cfg: &FavoriteConfig,
+    _args: &GenerateArgs,
+    _ssh_identity: Option<PathBuf>,
+) -> anyhow::Result<Source> {
+    Err(crate::git::feature_disabled(
+        "a favorite configured with a `git` URL",
+    ))
+}
+
 fn clone_opts_from_args(
     args: &GenerateArgs,
     ssh_identity: Option<PathBuf>,
@@ -440,52 +561,61 @@ fn clone_opts_from_args(
     }
 }
 
-// Distinguish between plain copy and clone
+/// Where a template comes from.
+///
+/// # Cargo features
+///
+/// The `Git` variant requires the `git` cargo feature. Without it the
+/// variant does not exist, so a git fetch cannot be expressed at all —
+/// deliberate, and the reason this API can be stricter than the
+/// `GenerateArgs` entry point, whose shape must stay invariant.
 #[derive(Debug)]
-pub enum TemplateLocation {
-    Git(GitUserInput),
-    Path(PathBuf),
+pub enum Source {
+    #[cfg(feature = "git")]
+    Git(GitSource),
+    Local(PathBuf),
 }
 
-impl From<GitUserInput> for TemplateLocation {
-    fn from(source: GitUserInput) -> Self {
+#[cfg(feature = "git")]
+impl From<GitSource> for Source {
+    fn from(source: GitSource) -> Self {
         Self::Git(source)
     }
 }
 
-impl From<PathBuf> for TemplateLocation {
+impl From<PathBuf> for Source {
     fn from(source: PathBuf) -> Self {
-        Self::Path(source)
+        Self::Local(source)
     }
 }
 
-impl From<&PathBuf> for TemplateLocation {
+impl From<&PathBuf> for Source {
     fn from(source: &PathBuf) -> Self {
-        Self::Path(source.clone())
+        Self::Local(source.clone())
     }
 }
 
-impl From<&std::path::Path> for TemplateLocation {
+impl From<&std::path::Path> for Source {
     fn from(source: &std::path::Path) -> Self {
-        Self::Path(PathBuf::from(source))
+        Self::Local(PathBuf::from(source))
     }
 }
 
-impl From<&str> for TemplateLocation {
+impl From<&str> for Source {
     fn from(source: &str) -> Self {
-        Self::Path(PathBuf::from(source))
+        Self::Local(PathBuf::from(source))
     }
 }
 
-impl From<String> for TemplateLocation {
+impl From<String> for Source {
     fn from(source: String) -> Self {
-        Self::Path(PathBuf::from(source))
+        Self::Local(PathBuf::from(source))
     }
 }
 
-impl From<&String> for TemplateLocation {
+impl From<&String> for Source {
     fn from(source: &String) -> Self {
-        Self::Path(PathBuf::from(source))
+        Self::Local(PathBuf::from(source))
     }
 }
 
@@ -494,7 +624,8 @@ mod tests {
     use super::*;
 
     /// Helper to build a `GenerateArgs` with `--git <value>` and resolve via `try_from_args_and_config`,
-    /// returning the resolved git URL from the resulting `TemplateLocation`.
+    /// returning the resolved git URL from the resulting `Source`.
+    #[cfg(feature = "git")]
     fn resolve_git_flag(git_value: &str) -> String {
         let args = GenerateArgs {
             destination: Some(PathBuf::from("/tmp")),
@@ -504,13 +635,15 @@ mod tests {
             },
             ..GenerateArgs::default()
         };
-        let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
+        let parsed =
+            UserParsedInput::try_from_args_and_config(AppConfig::default(), &args).unwrap();
         match parsed.location() {
-            TemplateLocation::Git(git) => git.url().to_owned(),
-            TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
+            Source::Git(git) => git.url().to_owned(),
+            Source::Local(p) => panic!("expected Git location, got Path: {p:?}"),
         }
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_full_url() {
         // cargo generate --git https://github.com/username-on-github/mytemplate.git
@@ -520,6 +653,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_org_repo_shorthand() {
         // cargo generate --git username-on-github/mytemplate
@@ -529,6 +663,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_gh_prefix() {
         // cargo generate --git gh:username-on-github/mytemplate
@@ -538,6 +673,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_gl_prefix() {
         // cargo generate --git gl:username-on-gitlab/mytemplate
@@ -547,6 +683,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_bb_prefix() {
         // cargo generate --git bb:username-on-bitbucket/mytemplate
@@ -556,6 +693,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_sr_prefix() {
         // cargo generate --git sr:username-on-sourcehut/mytemplate
@@ -565,6 +703,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_relative_path_resolves_to_local_directory() {
         // When --git receives a relative path like `./example-templates/hooks`
@@ -580,20 +719,22 @@ mod tests {
             ..GenerateArgs::default()
         };
 
-        let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
+        let parsed =
+            UserParsedInput::try_from_args_and_config(AppConfig::default(), &args).unwrap();
 
         match parsed.location() {
-            TemplateLocation::Git(git) => {
+            Source::Git(git) => {
                 assert!(
                     git.url().ends_with("example-templates/hooks"),
                     "expected url ending in example-templates/hooks, got {}",
                     git.url()
                 );
             }
-            TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
+            Source::Local(p) => panic!("expected Git location, got Path: {p:?}"),
         }
     }
 
+    #[cfg(feature = "git")]
     #[test]
     fn git_flag_local_path_takes_precedence_over_org_repo() {
         // When --git receives a value matching the org/repo shape that also
@@ -608,16 +749,162 @@ mod tests {
             ..GenerateArgs::default()
         };
 
-        let parsed = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args);
+        let parsed =
+            UserParsedInput::try_from_args_and_config(AppConfig::default(), &args).unwrap();
         match parsed.location() {
-            TemplateLocation::Git(git) => {
+            Source::Git(git) => {
                 assert!(
                     git.url().ends_with("example-templates/hooks"),
                     "expected url ending in example-templates/hooks, got {}",
                     git.url()
                 );
             }
-            TemplateLocation::Path(p) => panic!("expected Git location, got Path: {p:?}"),
+            Source::Local(p) => panic!("expected Git location, got Path: {p:?}"),
         }
+    }
+
+    #[cfg(not(feature = "git"))]
+    #[test]
+    fn git_url_bails_without_the_git_feature() {
+        let args = GenerateArgs {
+            template_path: crate::TemplatePath {
+                git: Some("https://github.com/o/r.git".into()),
+                ..crate::TemplatePath::default()
+            },
+            ..GenerateArgs::default()
+        };
+        let err = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args)
+            .unwrap_err()
+            .to_string();
+        assert!(
+            err.contains("TemplatePath::git"),
+            "names the field that was set: {err}"
+        );
+        assert!(err.contains("`git` cargo feature"), "{err}");
+    }
+
+    #[cfg(not(feature = "git"))]
+    #[test]
+    fn remote_bare_argument_bails_without_the_git_feature() {
+        let args = GenerateArgs {
+            template_path: crate::TemplatePath {
+                auto_path: Some("https://github.com/o/r.git".into()),
+                ..crate::TemplatePath::default()
+            },
+            ..GenerateArgs::default()
+        };
+        let err = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args)
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("`git` cargo feature"), "{err}");
+        assert!(
+            !err.contains("TemplatePath::git"),
+            "the caller set auto_path, not git: {err}"
+        );
+    }
+
+    #[cfg(not(feature = "git"))]
+    #[test]
+    fn git_backed_favorite_bails_without_the_git_feature() {
+        use crate::app_config::FavoriteConfig;
+        use std::collections::HashMap;
+
+        let mut favorites = HashMap::new();
+        favorites.insert(
+            "myfave".to_owned(),
+            FavoriteConfig {
+                git: Some("https://github.com/o/r.git".to_owned()),
+                ..FavoriteConfig::default()
+            },
+        );
+        let app_config = AppConfig {
+            favorites: Some(favorites),
+            ..AppConfig::default()
+        };
+        let args = GenerateArgs {
+            template_path: crate::TemplatePath {
+                favorite: Some("myfave".into()),
+                ..crate::TemplatePath::default()
+            },
+            ..GenerateArgs::default()
+        };
+        let err = UserParsedInput::try_from_args_and_config(app_config, &args)
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("favorite"), "names the favorite: {err}");
+        assert!(err.contains("`git` cargo feature"), "{err}");
+    }
+
+    #[cfg(not(feature = "git"))]
+    #[test]
+    fn explicit_vcs_git_bails_without_the_git_feature() {
+        let args = GenerateArgs {
+            template_path: crate::TemplatePath {
+                path: Some(".".into()),
+                ..crate::TemplatePath::default()
+            },
+            vcs: Some(Vcs::Git),
+            ..GenerateArgs::default()
+        };
+        let parsed =
+            UserParsedInput::try_from_args_and_config(AppConfig::default(), &args).unwrap();
+        assert!(parsed.ensure_git_feature_available().is_err());
+    }
+
+    #[cfg(not(feature = "git"))]
+    #[test]
+    fn force_git_init_bails_without_the_git_feature() {
+        // Explicitly passed git input must never be silently ignored,
+        // even though the default VCS degraded to None.
+        let args = GenerateArgs {
+            template_path: crate::TemplatePath {
+                path: Some(".".into()),
+                ..crate::TemplatePath::default()
+            },
+            force_git_init: true,
+            ..Default::default()
+        };
+        let parsed =
+            UserParsedInput::try_from_args_and_config(AppConfig::default(), &args).unwrap();
+        let err = parsed
+            .ensure_git_feature_available()
+            .unwrap_err()
+            .to_string();
+        assert!(
+            err.contains("force_git_init"),
+            "names the field that was set: {err}"
+        );
+        assert!(err.contains("`git` cargo feature"), "{err}");
+    }
+
+    #[cfg(not(feature = "git"))]
+    #[test]
+    fn local_path_is_fine_without_the_git_feature() {
+        let args = GenerateArgs {
+            template_path: crate::TemplatePath {
+                path: Some(".".into()),
+                ..crate::TemplatePath::default()
+            },
+            ..GenerateArgs::default()
+        };
+        let parsed =
+            UserParsedInput::try_from_args_and_config(AppConfig::default(), &args).unwrap();
+        assert_eq!(parsed.vcs(), Vcs::None, "default VCS degrades to None");
+        parsed.ensure_git_feature_available().unwrap();
+    }
+
+    #[cfg(feature = "git")]
+    #[test]
+    fn git_url_is_fine_with_the_git_feature() {
+        let args = GenerateArgs {
+            template_path: crate::TemplatePath {
+                git: Some("https://github.com/o/r.git".into()),
+                ..crate::TemplatePath::default()
+            },
+            ..GenerateArgs::default()
+        };
+        let parsed =
+            UserParsedInput::try_from_args_and_config(AppConfig::default(), &args).unwrap();
+        parsed.ensure_git_feature_available().unwrap();
     }
 }

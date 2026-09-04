@@ -4,8 +4,11 @@
 use std::path::PathBuf;
 
 /// Options threaded into git clones for remote sources. Local sources
-/// ignore these. Used by `TemplateSource::into_template_location`.
+/// ignore these. Used by `TemplateSource::into_source`.
 #[derive(Debug, Clone, Default)]
+// Read only when building a `GitSource`; without the `git` feature the
+// struct is still threaded through `into_source` for signature parity.
+#[cfg_attr(not(feature = "git"), allow(dead_code))]
 pub struct CloneOptions {
     pub branch: Option<String>,
     pub tag: Option<String>,
@@ -37,6 +40,7 @@ pub enum TemplateSource {
 }
 
 impl GitHost {
+    #[cfg_attr(not(feature = "git"), allow(dead_code))]
     pub fn to_url(self, owner_repo: &str) -> String {
         match self {
             Self::GitHub => format!("https://github.com/{owner_repo}.git"),
@@ -195,53 +199,93 @@ impl TemplateSource {
         }
     }
 
-    /// Adapter producing the legacy `TemplateLocation`. `clone_opts` are
-    /// threaded through to `GitUserInput::new` for remote variants;
-    /// ignored for local variants. Once consumers migrate, this method
-    /// goes away.
-    pub fn into_template_location(
+    /// Adapter producing a `Source`. `clone_opts` are threaded through
+    /// to `GitSource::new` for remote variants; ignored for local
+    /// variants.
+    ///
+    /// # Errors
+    ///
+    /// Never errors with the `git` feature enabled. See the
+    /// `cfg(not(feature = "git"))` twin below.
+    #[cfg(feature = "git")]
+    pub fn into_source(
         self,
         clone_opts: &CloneOptions,
-    ) -> crate::user_parsed_input::TemplateLocation {
-        use crate::user_parsed_input::{GitUserInput, TemplateLocation};
-        match self {
-            Self::HostShorthand { host, owner_repo } => TemplateLocation::Git(
-                GitUserInput::with_url_and_clone_opts(host.to_url(&owner_repo), clone_opts),
+    ) -> anyhow::Result<crate::user_parsed_input::Source> {
+        use crate::user_parsed_input::{GitSource, Source};
+        Ok(match self {
+            Self::HostShorthand { host, owner_repo } => Source::Git(
+                GitSource::with_url_and_clone_opts(host.to_url(&owner_repo), clone_opts),
             ),
             Self::GithubOwnerRepo { owner, repo } => {
-                TemplateLocation::Git(GitUserInput::with_url_and_clone_opts(
+                Source::Git(GitSource::with_url_and_clone_opts(
                     GitHost::GitHub.to_url(&format!("{owner}/{repo}")),
                     clone_opts,
                 ))
             }
             Self::RemoteUrl(url) => {
-                TemplateLocation::Git(GitUserInput::with_url_and_clone_opts(url, clone_opts))
+                Source::Git(GitSource::with_url_and_clone_opts(url, clone_opts))
             }
-            Self::LocalAbsolute(p) | Self::LocalRelative(p) => TemplateLocation::Path(p),
-            Self::Favorite(inner) => inner.into_template_location(clone_opts),
+            Self::LocalAbsolute(p) | Self::LocalRelative(p) => Source::Local(p),
+            Self::Favorite(inner) => inner.into_source(clone_opts)?,
+        })
+    }
+
+    /// See the `cfg(feature = "git")` twin above. Local sources still
+    /// resolve; anything that would need a clone bails, naming what the
+    /// user actually typed rather than the classifier that noticed.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the source resolves to a remote git
+    /// repository, which this build cannot fetch.
+    #[cfg(not(feature = "git"))]
+    pub fn into_source(
+        self,
+        // Threaded through only for signature parity with the twin above;
+        // nothing in this build reads it.
+        _clone_opts: &CloneOptions,
+    ) -> anyhow::Result<crate::user_parsed_input::Source> {
+        use crate::user_parsed_input::Source;
+        match self {
+            Self::LocalAbsolute(p) | Self::LocalRelative(p) => Ok(Source::Local(p)),
+            Self::HostShorthand { .. } | Self::GithubOwnerRepo { .. } | Self::RemoteUrl(_) => {
+                Err(crate::git::feature_disabled(
+                    "a template argument that resolves to a remote git repository",
+                ))
+            }
+            Self::Favorite(inner) => inner.into_source(_clone_opts),
         }
     }
 
-    /// Like `into_template_location` but forces local paths through git clone.
+    /// Like `into_source` but forces local paths through git clone.
     /// Used by the `--git` flag, which means "use git even for local paths"
     /// so that branch/tag/ssh-identity options are honoured.
-    pub fn into_git_template_location(
+    ///
+    /// Produces only git sources, so it exists with the feature only —
+    /// there is no feature-off twin to pair it with.
+    ///
+    /// # Errors
+    ///
+    /// Propagates errors from `into_source`.
+    #[cfg(feature = "git")]
+    pub fn into_git_source(
         self,
         clone_opts: &CloneOptions,
-    ) -> crate::user_parsed_input::TemplateLocation {
-        use crate::user_parsed_input::{GitUserInput, TemplateLocation};
+    ) -> anyhow::Result<crate::user_parsed_input::Source> {
+        use crate::user_parsed_input::{GitSource, Source};
         match self {
-            Self::LocalAbsolute(p) | Self::LocalRelative(p) => TemplateLocation::Git(
-                GitUserInput::with_url_and_clone_opts(p.display().to_string(), clone_opts),
-            ),
-            Self::Favorite(inner) => inner.into_git_template_location(clone_opts),
-            other => other.into_template_location(clone_opts),
+            Self::LocalAbsolute(p) | Self::LocalRelative(p) => Ok(Source::Git(
+                GitSource::with_url_and_clone_opts(p.display().to_string(), clone_opts),
+            )),
+            Self::Favorite(inner) => inner.into_git_source(clone_opts),
+            other => other.into_source(clone_opts),
         }
     }
 
-    #[cfg(test)]
-    fn into_template_location_for_test(self) -> crate::user_parsed_input::TemplateLocation {
-        self.into_template_location(&CloneOptions::default())
+    #[cfg(all(test, feature = "git"))]
+    fn into_source_for_test(self) -> crate::user_parsed_input::Source {
+        self.into_source(&CloneOptions::default()).unwrap()
     }
 
     /// Whether this source should be acquired by cloning vs copying.
@@ -643,44 +687,49 @@ mod tests {
         assert_eq!(s.display_label(), "favorite → o/r");
     }
 
-    use crate::user_parsed_input::TemplateLocation;
+    #[cfg(feature = "git")]
+    use crate::user_parsed_input::Source;
 
+    #[cfg(feature = "git")]
     #[test]
-    fn into_template_location_maps_host_shorthand_to_git_url() {
+    fn into_source_maps_host_shorthand_to_git_url() {
         let s = TemplateSource::HostShorthand {
             host: GitHost::GitHub,
             owner_repo: "o/r".to_owned(),
         };
-        match s.into_template_location_for_test() {
-            TemplateLocation::Git(g) => assert_eq!(g.url(), "https://github.com/o/r.git"),
-            TemplateLocation::Path(_) => panic!("expected Git"),
+        match s.into_source_for_test() {
+            Source::Git(g) => assert_eq!(g.url(), "https://github.com/o/r.git"),
+            Source::Local(_) => panic!("expected Git"),
         }
     }
+    #[cfg(feature = "git")]
     #[test]
-    fn into_template_location_maps_owner_repo_to_git_url() {
+    fn into_source_maps_owner_repo_to_git_url() {
         let s = TemplateSource::GithubOwnerRepo {
             owner: "o".to_owned(),
             repo: "r".to_owned(),
         };
-        match s.into_template_location_for_test() {
-            TemplateLocation::Git(g) => assert_eq!(g.url(), "https://github.com/o/r.git"),
-            TemplateLocation::Path(_) => panic!("expected Git"),
+        match s.into_source_for_test() {
+            Source::Git(g) => assert_eq!(g.url(), "https://github.com/o/r.git"),
+            Source::Local(_) => panic!("expected Git"),
         }
     }
+    #[cfg(feature = "git")]
     #[test]
-    fn into_template_location_maps_remote_url_verbatim() {
+    fn into_source_maps_remote_url_verbatim() {
         let s = TemplateSource::RemoteUrl("ssh://git@x/y.git".to_owned());
-        match s.into_template_location_for_test() {
-            TemplateLocation::Git(g) => assert_eq!(g.url(), "ssh://git@x/y.git"),
-            TemplateLocation::Path(_) => panic!("expected Git"),
+        match s.into_source_for_test() {
+            Source::Git(g) => assert_eq!(g.url(), "ssh://git@x/y.git"),
+            Source::Local(_) => panic!("expected Git"),
         }
     }
+    #[cfg(feature = "git")]
     #[test]
-    fn into_template_location_maps_local_to_path() {
+    fn into_source_maps_local_to_path() {
         let s = TemplateSource::LocalAbsolute(PathBuf::from("/abs"));
-        match s.into_template_location_for_test() {
-            TemplateLocation::Path(p) => assert_eq!(p, Path::new("/abs")),
-            TemplateLocation::Git(_) => panic!("expected Path"),
+        match s.into_source_for_test() {
+            Source::Local(p) => assert_eq!(p, Path::new("/abs")),
+            Source::Git(_) => panic!("expected Path"),
         }
     }
 

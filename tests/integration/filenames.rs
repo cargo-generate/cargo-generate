@@ -1,5 +1,6 @@
 use crate::helpers::prelude::*;
 
+#[cfg(feature = "git")]
 #[test]
 fn it_substitutes_filename() {
     let template = tempdir()
@@ -47,6 +48,7 @@ fn it_substitutes_filename() {
     );
 }
 
+#[cfg(feature = "git")]
 #[test]
 // TODO: this test fails on linux, for mysterious reasons
 #[cfg(not(target_os = "linux"))]

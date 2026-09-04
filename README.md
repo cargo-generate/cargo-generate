@@ -66,6 +66,13 @@ cargo generate gh:username-on-github/mytemplate # translates to https://github.c
 cargo help generate
 ```
 
+## Cargo features
+
+`git` is on by default and pulls in `gix` and `reqwest`. Library consumers who
+only generate from local templates can turn it off — see
+[Library Usage](https://cargo-generate.github.io/cargo-generate/library-usage.html)
+in the guide.
+
 ## License
 
 Licensed under either of

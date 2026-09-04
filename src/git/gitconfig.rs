@@ -1,4 +1,9 @@
-use crate::git::utils::home;
+//! Reading the user's git configuration.
+//!
+//! Locates the active `.gitconfig` and resolves the settings cloning
+//! honors: `url.<base>.insteadOf` rewrites and http/https/socks proxies.
+
+use crate::utils::home;
 use anyhow::Context;
 use anyhow::Result;
 use gix::config::{File as GitConfigParser, Source};
@@ -14,6 +19,21 @@ use std::path::{Path, PathBuf};
 pub struct HttpProxyConfig {
     pub proxy: Option<String>,
     pub no_proxy: Option<String>,
+}
+
+/// Look up `key` (e.g. `user.name`) via the repo config discovered from
+/// `cwd`, falling back to the system + global git config.
+///
+/// Returns `None` when the key is unset or no config can be read.
+pub fn read_config_string(key: &str, cwd: &Path) -> Option<String> {
+    if let Ok(repo) = gix::discover(cwd) {
+        if let Some(value) = repo.config_snapshot().string(key) {
+            return Some(value.to_string());
+        }
+    }
+    GitConfigParser::from_globals()
+        .ok()
+        .and_then(|file| file.string(key).map(|v| v.to_string()))
 }
 
 pub fn find_gitconfig() -> Result<Option<PathBuf>> {
@@ -78,7 +98,7 @@ pub fn resolve_http_proxy(gitconfig: impl AsRef<Path>) -> Result<HttpProxyConfig
 
 #[cfg(test)]
 mod test {
-    use crate::tmp_dir;
+    use crate::utils::tmp_dir;
 
     use super::*;
 

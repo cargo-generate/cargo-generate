@@ -4,6 +4,7 @@ const UNIX_MKDIR_ERROR_PATTERN: &str = r"System command `mkdir invalid_/.dir_nam
 
 // Regression test for #1671: hook scripts must be removed from the generated
 // output, and the removal must not touch a like-named file in the process CWD.
+#[cfg(feature = "git")]
 #[test]
 fn it_removes_hook_files_from_output_without_touching_cwd() {
     let template = tempdir()
@@ -50,6 +51,7 @@ fn it_removes_hook_files_from_output_without_touching_cwd() {
 // original report saw "OS Error 53 (Network Path was not found)" on Windows
 // in this exact shape (mirrors
 // https://github.com/Reloaded-Project/reloaded-templates-rust/blob/main/templates/general/pre-script.rhai).
+#[cfg(feature = "git")]
 #[test]
 fn it_renames_and_deletes_files_from_git_source() {
     let template = tempdir()
@@ -100,6 +102,7 @@ fn it_renames_and_deletes_files_from_git_source() {
     assert!(dir.read("script-project/LICENSE").contains("MIT"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_runs_all_hook_types() {
     let template = tempdir()
@@ -179,6 +182,7 @@ fn it_runs_all_hook_types() {
     assert!(dir.read("script-project/POST").contains("world"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_runs_system_commands() {
     let template = tempdir()
@@ -212,6 +216,7 @@ fn it_runs_system_commands() {
     assert!(dir.exists("script-project/touched_file"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_fails_to_prompt_for_system_commands_in_silent_mode() {
     let template = tempdir()
@@ -244,6 +249,7 @@ fn it_fails_to_prompt_for_system_commands_in_silent_mode() {
         .stderr(predicates::str::contains("--allow-commands").from_utf8());
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_fails_when_a_system_command_returns_non_zero_exit_code() {
     let template = tempdir()
@@ -294,6 +300,7 @@ fn unix_mkdir_error_pattern_accepts_gnu_and_bsd_output() {
     ));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_fails_when_it_cant_execute_system_command() {
     let template = tempdir()
@@ -335,6 +342,7 @@ fn it_fails_when_it_cant_execute_system_command() {
         );
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_can_change_case() {
     let template = tempdir()
@@ -379,6 +387,7 @@ fn it_can_change_case() {
         .stdout(predicates::str::contains("UpperCamelCase"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn can_change_variables_from_pre_hook() {
     let template = tempdir()
@@ -426,6 +435,7 @@ fn can_change_variables_from_pre_hook() {
     assert!(pre_test.contains("Q"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn init_hook_can_set_project_name() {
     let template = tempdir()
@@ -466,6 +476,7 @@ fn init_hook_can_set_project_name() {
         .contains("project_bar"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn init_hook_can_change_project_name_but_keeps_cli_name_for_destination() {
     let template = tempdir()
@@ -505,6 +516,7 @@ fn init_hook_can_change_project_name_but_keeps_cli_name_for_destination() {
     assert!(dir.read("foo/generated.txt").contains("bar"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn init_hook_can_change_project_name_but_keeps_init_destination() {
     let template = tempdir()
@@ -545,6 +557,7 @@ fn init_hook_can_change_project_name_but_keeps_init_destination() {
     assert!(dir.read("generated.txt").contains("bar"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn rhai_filter_invokes_rhai_script() {
     let template = tempdir()
@@ -578,6 +591,7 @@ fn rhai_filter_invokes_rhai_script() {
         .contains("content from RHAI"));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn date_works() {
     let template = tempdir()
@@ -626,6 +640,7 @@ fn date_works() {
     );
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn missing_rhai_filter_fails_prints_warnings() {
     let template = tempdir()
@@ -655,6 +670,7 @@ fn missing_rhai_filter_fails_prints_warnings() {
         .contains(r#"{{"filter-script.rhai"|rhai}}"#));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn should_echo_something() {
     let template = tempdir()
@@ -698,6 +714,7 @@ fn should_echo_something() {
 //      dir) and rewrites `PLACEHOLDER_VERSION` -> `1.84.1`
 //   3. templating runs on the mutated content, expanding `{{project-name}}`
 //   4. the final destination file contains both changes
+#[cfg(feature = "git")]
 #[test]
 #[cfg(unix)]
 fn it_intercepts_and_mutates_template_files_from_pre_hook() {

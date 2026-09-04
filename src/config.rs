@@ -134,7 +134,7 @@ pub fn locate_template_configs(base_dir: &Path) -> Result<Vec<PathBuf>> {
 #[cfg(test)]
 mod tests {
     use crate::tests::create_file;
-    use crate::tmp_dir;
+    use crate::utils::tmp_dir;
 
     use super::*;
     use std::fs::File;

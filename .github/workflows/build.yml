@@ -47,6 +47,7 @@ jobs:
       fail-fast: false
       matrix:
         version: ["macos-latest", "ubuntu-latest", "windows-latest"]
+        features: ["", "--no-default-features"]
     runs-on: ${{ matrix.version }}
     steps:
       - uses: actions/checkout@v7
@@ -63,7 +64,7 @@ jobs:
         run: echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
       - if: matrix.version != 'windows-latest'
         uses: mozilla-actions/sccache-action@v0.0.11
-      - run: cargo check
+      - run: cargo check ${{ matrix.features }}
 
   lint:
     name: lint
@@ -74,6 +75,7 @@ jobs:
         cargo-cmd:
           - fmt --all -- --check
           - clippy --all-targets --all-features -- -D warnings
+          - clippy --all-targets --no-default-features -- -D warnings
     runs-on: ${{ matrix.version }}
     steps:
       - uses: actions/checkout@v7
@@ -162,6 +164,18 @@ jobs:
         if: ${{ github.event_name == 'pull_request' || matrix.version == 'windows-latest' }}
         shell: bash
         run: cargo test --verbose --all --locked
+        env:
+          RUST_LOG: debug
+          RUST_BACKTRACE: full
+
+      - name: cargo test (no default features)
+        # Stable only — nightly is continue-on-error, so it would add noise
+        # without gating anything. All three platforms, though: the helpers
+        # that stay compiled without the feature are the fs ones, and they
+        # are exactly where the platforms differ.
+        if: ${{ matrix.rust == 'stable' }}
+        shell: bash
+        run: cargo test --verbose --all --locked --no-default-features
         env:
           RUST_LOG: debug
           RUST_BACKTRACE: full

@@ -1,7 +1,9 @@
 use crate::helpers::prelude::*;
 
+#[cfg(feature = "git")]
 use cargo_generate::Vcs;
 
+#[cfg(feature = "git")]
 fn create_favorite_config(
     name: &str,
     template_path: &Project,
@@ -33,6 +35,7 @@ fn create_favorite_config(
     (project, path)
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn favorite_with_git_becomes_subfolder() {
     let favorite_template = create_template("favorite-template");
@@ -125,6 +128,7 @@ fn favorite_with_subfolder() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn it_can_use_favorites() {
     let favorite_template = create_template("favorite-template");
@@ -147,6 +151,7 @@ fn it_can_use_favorites() {
         .contains(r#"description = "favorite-template""#));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn a_favorite_can_set_vcs_to_none_by_default() {
     let favorite_template = create_template("favorite-template");
@@ -167,6 +172,7 @@ fn a_favorite_can_set_vcs_to_none_by_default() {
     assert!(gix::open(working_dir.path().join("favorite-project")).is_err());
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn favorites_default_to_git_if_not_defined() {
     let favorite_template = create_template("favorite-template");
@@ -187,6 +193,7 @@ fn favorites_default_to_git_if_not_defined() {
         );
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn favorites_can_use_default_values() {
     let favorite_template_dir = tempdir()
@@ -239,6 +246,7 @@ fn favorites_can_use_default_values() {
         .contains(r#"description = "Hello World""#));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn favorites_default_value_can_be_overridden_by_environment() {
     let values_dir = tempdir()
@@ -305,6 +313,7 @@ fn favorites_default_value_can_be_overridden_by_environment() {
         .contains(r#"description = "Overridden value""#));
 }
 
+#[cfg(feature = "git")]
 #[test]
 fn favorite_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
     let template = tempdir()
