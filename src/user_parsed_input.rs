@@ -101,7 +101,7 @@ impl UserParsedInput {
         app_config: AppConfig,
         args: &GenerateArgs,
     ) -> anyhow::Result<Self> {
-        // A *default* degrades silently; an *explicit* `--vcs git` bails.
+        // A *default* degrades silently; an *explicit* `Vcs::Git` bails.
         // Without the feature there is no git to init into, so the sensible
         // default is None — nobody asked for git, nothing should fail.
         #[cfg(feature = "git")]
@@ -285,13 +285,13 @@ impl UserParsedInput {
     /// no-op returning `Ok(())`.
     ///
     /// `self.vcs == Vcs::Git` can only be true here when the user asked
-    /// for it explicitly — via `--vcs git` or a favorite's `vcs` key —
+    /// for it explicitly — via `Vcs::Git` or a favorite's `vcs` key —
     /// because the fallback without the feature is `Vcs::None`. A
     /// template that requests `vcs = "Git"` in its own
     /// `cargo-generate.toml` is resolved much later, in `generate()`,
     /// and is caught by the `git::feature::init` stub instead.
     ///
-    /// `--force-git-init` is checked separately: it never reaches the
+    /// `force_git_init` is checked separately: it never reaches the
     /// stub, because the fallback `Vcs::None` makes the init step a
     /// no-op. Left unchecked it would be silently ignored, which is
     /// the one thing an explicitly passed flag must never be.
@@ -303,11 +303,11 @@ impl UserParsedInput {
     pub fn ensure_git_feature_available(&self) -> anyhow::Result<()> {
         if self.vcs == Vcs::Git {
             crate::git::ensure_available(
-                "git VCS initialization (`--vcs git`, or `vcs` in a favorite's config)",
+                "git VCS initialization (`Vcs::Git`, or `vcs` in a favorite's config)",
             )?;
         }
         if self.force_git_init {
-            crate::git::ensure_available("`--force-git-init`")?;
+            crate::git::ensure_available("`GenerateArgs::force_git_init`")?;
         }
         Ok(())
     }
@@ -455,7 +455,7 @@ impl GitSource {
     }
 }
 
-/// Build the [`Source`] for an explicit `--git <url>`.
+/// Build the [`Source`] for an explicit [`TemplatePath::git`].
 ///
 /// # Errors
 ///
@@ -486,7 +486,7 @@ fn git_source_from_args(
     _cwd: &Path,
     _ssh_identity: Option<PathBuf>,
 ) -> anyhow::Result<Source> {
-    Err(crate::git::feature_disabled("`--git <url>`"))
+    Err(crate::git::feature_disabled("`TemplatePath::git`"))
 }
 
 /// Build the [`Source`] for a favorite whose config carries a git URL.
@@ -776,7 +776,10 @@ mod tests {
         let err = UserParsedInput::try_from_args_and_config(AppConfig::default(), &args)
             .unwrap_err()
             .to_string();
-        assert!(err.contains("--git"), "names what the user typed: {err}");
+        assert!(
+            err.contains("TemplatePath::git"),
+            "names the field that was set: {err}"
+        );
         assert!(err.contains("`git` cargo feature"), "{err}");
     }
 
@@ -794,7 +797,10 @@ mod tests {
             .unwrap_err()
             .to_string();
         assert!(err.contains("`git` cargo feature"), "{err}");
-        assert!(!err.contains("--git"), "user never typed --git: {err}");
+        assert!(
+            !err.contains("TemplatePath::git"),
+            "the caller set auto_path, not git: {err}"
+        );
     }
 
     #[cfg(not(feature = "git"))]
@@ -864,7 +870,10 @@ mod tests {
             .ensure_git_feature_available()
             .unwrap_err()
             .to_string();
-        assert!(err.contains("--force-git-init"), "names the flag: {err}");
+        assert!(
+            err.contains("force_git_init"),
+            "names the field that was set: {err}"
+        );
         assert!(err.contains("`git` cargo feature"), "{err}");
     }
 

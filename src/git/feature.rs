@@ -1,4 +1,10 @@
-//! What "built without the `git` feature" means to a user.
+//! What "built without the `git` feature" means, and what to do
+//! about it.
+//!
+//! Only a library consumer can reach any of this — the CLI always
+//! ships with default features — so the wording addresses them: it
+//! names the API member that was supplied and the Cargo.toml line
+//! that fixes it, not command-line flags.
 //!
 //! Always compiled, so the wording has exactly one definition and
 //! call sites need no `#[cfg]` of their own.
@@ -6,20 +12,20 @@
 /// Error returned when git-requiring input reaches a build compiled
 /// without the `git` feature.
 ///
-/// `what` names the offending input from the *user's* point of view
-/// — `"--git <url>"`, `"--vcs git"` — not the internal function that
-/// happened to notice.
+/// `what` names the offending input as the caller expressed it —
+/// `"TemplatePath::git"`, `"Vcs::Git"`, or a phrase for input that
+/// came from a config file — not the internal function that happened
+/// to notice.
 #[cfg(not(feature = "git"))]
 pub fn feature_disabled(what: &str) -> anyhow::Error {
     anyhow::anyhow!(
-        "{what} requires git support, but this build of cargo-generate was compiled \
+        "{what} needs git support, but this build of cargo-generate was compiled \
          without the `git` cargo feature.\n\
          \n\
-         To enable it:\n\
-         \x20 * as a binary:  cargo install cargo-generate          (default features include `git`)\n\
-         \x20 * as a library: cargo-generate = {{ version = \"…\", features = [\"git\"] }}\n\
+         Enable it in your Cargo.toml:\n\
+         \x20   cargo-generate = {{ version = \"…\", features = [\"git\"] }}\n\
          \n\
-         Templates from a local path (`--path`) work without the feature."
+         Templates from a local path work without it."
     )
 }
 
@@ -83,8 +89,8 @@ pub fn init(
     _force: bool,
 ) -> anyhow::Result<()> {
     Err(feature_disabled(
-        "initializing a git repository for the generated project \
-         (`--vcs git`, or `vcs` in the template's or a favorite's config)",
+        "initializing a git repository in the generated project \
+         (`Vcs::Git`, or `vcs` in the template's or a favorite's config)",
     ))
 }
 
@@ -107,15 +113,15 @@ mod tests {
     #[cfg(feature = "git")]
     #[test]
     fn ensure_available_is_ok_with_the_feature() {
-        assert!(ensure_available("`--vcs git`").is_ok());
+        assert!(ensure_available("`Vcs::Git`").is_ok());
     }
 
     #[cfg(not(feature = "git"))]
     #[test]
     fn ensure_available_errors_without_the_feature() {
-        let err = ensure_available("`--vcs git`").unwrap_err().to_string();
+        let err = ensure_available("`Vcs::Git`").unwrap_err().to_string();
         assert!(
-            err.contains("`--vcs git`"),
+            err.contains("`Vcs::Git`"),
             "names the offending input: {err}"
         );
         assert!(
