@@ -77,6 +77,37 @@ repository. On success it returns the [`PathBuf`] of the generated project:
 {{#include ../../examples/how-to-use-cargo-gen-as-library/src/main.rs:call}}
 ```
 
+## Generating without git
+
+If your tool carries its own blueprint, there is nothing to clone — and no
+reason to carry a git implementation. [`examples/scaffold-from-blueprint/`][sc]
+is that shape in full, with `default-features = false` on its dependency line.
+
+The blueprint is compiled into the binary, so the tool keeps working wherever
+it is installed:
+
+```rust
+{{#include ../../examples/scaffold-from-blueprint/src/main.rs:embed}}
+```
+
+cargo-generate reads templates from a directory, so the bytes are unpacked to
+a temporary one first. It has to outlive the call — dropping it takes the
+blueprint with it:
+
+```rust
+{{#include ../../examples/scaffold-from-blueprint/src/main.rs:unpack}}
+```
+
+From there it is an ordinary local-path generation:
+
+```rust
+{{#include ../../examples/scaffold-from-blueprint/src/main.rs:build_args}}
+```
+
+`vcs: Some(Vcs::None)` is redundant without the `git` feature — that is
+already the default there — but stating it keeps the example working the same
+way whichever features are on.
+
 ## Running the example
 
 From a checkout of this repository:
@@ -90,6 +121,7 @@ This creates a `my-project/` directory in the current folder, the same result
 you would get from running `cargo generate` on the command line.
 
 [ex]: https://github.com/cargo-generate/cargo-generate/tree/main/examples/how-to-use-cargo-gen-as-library
+[sc]: https://github.com/cargo-generate/cargo-generate/tree/main/examples/scaffold-from-blueprint
 [`GenerateArgs`]: https://docs.rs/cargo-generate/latest/cargo_generate/struct.GenerateArgs.html
 [`TemplatePath`]: https://docs.rs/cargo-generate/latest/cargo_generate/struct.TemplatePath.html
 [`Vcs`]: https://docs.rs/cargo-generate/latest/cargo_generate/enum.Vcs.html

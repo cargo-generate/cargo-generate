@@ -1,0 +1,4 @@
+[template]
+# The flag that lets this blueprint be generated without git support
+# landed in 0.25.0.
+cargo_generate_version = ">=0.25.0"

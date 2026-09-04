@@ -1,4 +1,6 @@
 /target
+# the example crates build in place; they are not workspace members
+examples/*/target/
 **/*.rs.bk
 /.vscode
 guide/book

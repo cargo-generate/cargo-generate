@@ -66,6 +66,19 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.11
       - run: cargo check ${{ matrix.features }}
 
+      # The example crates are not workspace members, so nothing else
+      # builds them. They each pin their own `default-features`, which
+      # is the point of them — check they still hold.
+      - name: check examples
+        if: matrix.features == ''
+        shell: bash
+        run: |
+          for ex in examples/*/; do
+            echo "::group::$ex"
+            cargo check --manifest-path "$ex/Cargo.toml" --locked
+            echo "::endgroup::"
+          done
+
   lint:
     name: lint
     strategy:
