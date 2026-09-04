@@ -168,8 +168,12 @@ jobs:
           RUST_LOG: debug
           RUST_BACKTRACE: full
 
-      - name: cargo test (no default features, ubuntu stable only)
-        if: ${{ matrix.version == 'ubuntu-latest' && matrix.rust == 'stable' }}
+      - name: cargo test (no default features)
+        # Stable only — nightly is continue-on-error, so it would add noise
+        # without gating anything. All three platforms, though: the helpers
+        # that stay compiled without the feature are the fs ones, and they
+        # are exactly where the platforms differ.
+        if: ${{ matrix.rust == 'stable' }}
         shell: bash
         run: cargo test --verbose --all --locked --no-default-features
         env:
