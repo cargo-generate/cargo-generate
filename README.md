@@ -68,18 +68,10 @@ cargo help generate
 
 ## Cargo features
 
-| Feature | Default | Description                                                                                                        |
-|---------|:-------:|--------------------------------------------------------------------------------------------------------------------|
-| `git`   | ✔       | Fetching templates from git repositories, and initializing a repository in the generated project. Pulls in `gix` and `reqwest`. |
-
-The CLI always ships with default features — this opt-out is for **library consumers** who embed cargo-generate and only generate from local templates. Turning `git` off drops the whole gix/reqwest/rustls tree:
-
-```toml
-[dependencies]
-cargo-generate = { version = "0.24", default-features = false }
-```
-
-Your code does not change. `GenerateArgs`, `TemplatePath` and `Vcs` keep every field, so whatever compiled with default features still compiles. What changes is at runtime: asking for a git template, or for a git repository in the generated project, returns an error naming the feature rather than doing the work. Local-path templates, hooks, rendering and workspace membership are unaffected.
+`git` is on by default and pulls in `gix` and `reqwest`. Library consumers who
+only generate from local templates can turn it off — see
+[Library Usage](https://cargo-generate.github.io/cargo-generate/library-usage.html)
+in the guide.
 
 ## License
 
