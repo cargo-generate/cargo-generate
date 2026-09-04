@@ -22,6 +22,10 @@ use crate::read_default_variable_value_from_template;
 use crate::user_parsed_input::{Source, UserParsedInput};
 use crate::utils::tmp_dir;
 
+/// The suffix marking a file that should be rendered rather than copied
+/// verbatim: `README.md.liquid` becomes `README.md`.
+const LIQUID_SUFFIX: &str = ".liquid";
+
 /// A template materialized into a temp directory.
 ///
 /// Owns the temp directory: dropping a `FetchedSource` deletes the
@@ -111,10 +115,6 @@ fn get_source_template_into_temp(source: &Source) -> Result<FetchedSource> {
 
     Ok(fetched)
 }
-
-/// The suffix marking a file that should be rendered rather than copied
-/// verbatim: `README.md.liquid` becomes `README.md`.
-const LIQUID_SUFFIX: &str = ".liquid";
 
 /// Resolve `.liquid` filenames in a materialized template.
 ///
