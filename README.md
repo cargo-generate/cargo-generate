@@ -68,25 +68,18 @@ cargo help generate
 
 ## Cargo features
 
-cargo-generate exposes the following optional features:
+| Feature | Default | Description                                                                                                        |
+|---------|:-------:|--------------------------------------------------------------------------------------------------------------------|
+| `git`   | ✔       | Fetching templates from git repositories, and initializing a repository in the generated project. Pulls in `gix` and `reqwest`. |
 
-| Feature | Default | Description                                                                                                              |
-|---------|:-------:|--------------------------------------------------------------------------------------------------------------------------|
-| `git`   | ✔       | Fetching templates from git repositories (`--git`, git-backed favorites) and `--vcs git`. Pulls in `gix` and `reqwest`.    |
-
-**Library consumers** who only need local-path templates can opt out of the `git` feature and drop the entire gix/reqwest/rustls transitive tree:
+The CLI always ships with default features — this opt-out is for **library consumers** who embed cargo-generate and only generate from local templates. Turning `git` off drops the whole gix/reqwest/rustls tree:
 
 ```toml
 [dependencies]
 cargo-generate = { version = "0.24", default-features = false }
 ```
 
-**The `generate(GenerateArgs)` API does not change when you do.** `GenerateArgs`, `TemplatePath`, `Vcs`, and every CLI flag exist and compile identically in both configurations — code that builds with default features builds unchanged with `default-features = false`, and `cargo generate --help` prints the same flags. It looks the same; it just does no git:
-
-* `--git <url>`, a favorite that resolves to a git URL, and a bare template argument that looks like a remote URL all fail with an error naming the `git` feature and how to enable it, before anything is written to disk.
-* `--force-git-init` fails the same way. A template that asks for `vcs = "Git"` in its own `cargo-generate.toml` also fails, but only once the project has been placed — that request is not visible until the template has been read.
-* `--vcs git` fails the same way. The *default* VCS becomes `none` instead of `git`, so generating from a local path needs no extra flags.
-* `--path` templates, workspace membership, hooks, and rendering work exactly as they do with the feature on.
+Your code does not change. `GenerateArgs`, `TemplatePath` and `Vcs` keep every field, so whatever compiled with default features still compiles. What changes is at runtime: asking for a git template, or for a git repository in the generated project, returns an error naming the feature rather than doing the work. Local-path templates, hooks, rendering and workspace membership are unaffected.
 
 ## License
 
