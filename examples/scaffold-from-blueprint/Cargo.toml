@@ -1,0 +1,14 @@
+[package]
+name = "scaffold-from-blueprint"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = """
+Shows cargo-generate used as a template engine with the `git` feature turned
+off: the blueprint ships with the tool, so nothing needs cloning.
+"""
+
+[dependencies]
+# No git support: this tool only ever generates from its own bundled
+# blueprint, so the gix/reqwest/rustls tree is dead weight.
+cargo-generate = { path = "../..", default-features = false }
