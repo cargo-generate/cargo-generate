@@ -11,4 +11,7 @@ off: the blueprint ships with the tool, so nothing needs cloning.
 [dependencies]
 # No git support: this tool only ever generates from its own bundled
 # blueprint, so the gix/reqwest/rustls tree is dead weight.
-cargo-generate = { path = "../..", default-features = false }
+# `version` alongside `path` so this line reads the way a real
+# consumer would write it, and so CI resolves the same requirement the
+# blueprint below asks for.
+cargo-generate = { path = "../..", version = "0.25", default-features = false }
