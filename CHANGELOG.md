@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.24.0...HEAD)
 
+## [0.25.0] 2026-09-09
+
+### ✨ Features
+
+- Add an optional git feature flag ([#1772](https://github.com/cargo-generate/cargo-generate/issues/1772))
+
+### 📖 Documentation
+
+- Add an example that generates without git ([#1773](https://github.com/cargo-generate/cargo-generate/issues/1773))
+
+### 🛠️ Maintenance
+
+- Bump toml from 1.1.4+spec-1.1.0 to 1.1.5+spec-1.1.0 ([#1777](https://github.com/cargo-generate/cargo-generate/issues/1777))
+
+
 ## [0.24.0] 2026-08-31
 
 ### ✨ Features
