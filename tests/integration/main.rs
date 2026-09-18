@@ -3,6 +3,8 @@ mod helpers;
 // test modules go here
 mod basics;
 #[cfg(feature = "git")]
+mod cargo_fmt;
+#[cfg(feature = "git")]
 mod conditionals;
 mod config_file;
 mod filenames;
