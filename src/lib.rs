@@ -36,6 +36,7 @@ mod hooks;
 mod ignore_me;
 mod include_exclude;
 mod interactive;
+mod post_processing;
 mod progressbar;
 mod project_variables;
 mod template;
@@ -178,6 +179,10 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
                     // NoWorkspaceFound: not in a workspace, nothing to do.
                 }
             }
+        }
+
+        if post_processing::cargo_fmt::should_format(&config, args.no_fmt) {
+            post_processing::cargo_fmt::format_project(&project_path);
         }
 
         project_path
