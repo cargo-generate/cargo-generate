@@ -35,6 +35,8 @@ pub struct TemplateConfig {
     pub ignore: Option<Vec<String>>,
     pub vcs: Option<Vcs>,
     pub init: Option<bool>,
+    /// Opt out of the built-in `cargo fmt` step. Defaults to `true`.
+    pub fmt: Option<bool>,
 }
 
 #[derive(Deserialize, Debug, PartialEq, Clone)]
@@ -211,9 +213,24 @@ mod tests {
                 ignore: None,
                 vcs: None,
                 init: None,
+                fmt: None,
             })
         );
         assert!(config.placeholders.is_some());
+    }
+
+    #[test]
+    fn config_try_from_reads_template_fmt() {
+        let result = Config::try_from(
+            r#"
+            [template]
+            fmt = false
+            "#
+            .to_string(),
+        )
+        .unwrap();
+
+        assert_eq!(result.template.and_then(|t| t.fmt), Some(false));
     }
 
     #[test]
