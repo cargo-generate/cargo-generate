@@ -1,5 +1,6 @@
 use anyhow::Result;
 use indexmap::IndexMap;
+use log::warn;
 use semver::VersionReq;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
@@ -9,6 +10,11 @@ use std::{convert::TryFrom, io::ErrorKind};
 use crate::Vcs;
 
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
+
+/// A built-in hook. Unlike the other entries in `[hooks]` this is not a script
+/// file but an identifier for behaviour `cargo-generate` provides itself — the
+/// `cargo fmt` step that runs on the generated project.
+pub const NAMED_HOOK_CARGO_FMT: &str = "cargo-fmt";
 
 #[derive(Deserialize, Debug, PartialEq, Default, Clone)]
 pub struct Config {
@@ -75,25 +81,53 @@ impl Config {
         Ok(config)
     }
 
-    pub fn get_init_hooks(&self) -> Vec<String> {
+    fn raw_hooks(&self, select: fn(&HooksConfig) -> Option<&Vec<String>>) -> Vec<String> {
         self.hooks
             .as_ref()
-            .map(|h| h.init.clone().unwrap_or_default())
+            .and_then(select)
+            .cloned()
             .unwrap_or_default()
+    }
+
+    /// Script files only — built-in identifiers are not paths and must not be
+    /// evaluated or cleaned up as if they were.
+    fn script_hooks(hooks: Vec<String>) -> Vec<String> {
+        hooks
+            .into_iter()
+            .filter(|hook| hook != NAMED_HOOK_CARGO_FMT)
+            .collect()
+    }
+
+    /// A template author's typo must not break an end user's generation, so a
+    /// misplaced built-in identifier warns rather than failing.
+    fn warn_on_named_hooks(hooks: &[String], phase: &str) {
+        if hooks.iter().any(|hook| hook == NAMED_HOOK_CARGO_FMT) {
+            warn!("`{NAMED_HOOK_CARGO_FMT}` is only valid as a post hook, ignoring it in `{phase}`");
+        }
+    }
+
+    pub fn get_init_hooks(&self) -> Vec<String> {
+        let hooks = self.raw_hooks(|h| h.init.as_ref());
+        Self::warn_on_named_hooks(&hooks, "init");
+        Self::script_hooks(hooks)
     }
 
     pub fn get_pre_hooks(&self) -> Vec<String> {
-        self.hooks
-            .as_ref()
-            .map(|h| h.pre.clone().unwrap_or_default())
-            .unwrap_or_default()
+        let hooks = self.raw_hooks(|h| h.pre.as_ref());
+        Self::warn_on_named_hooks(&hooks, "pre");
+        Self::script_hooks(hooks)
     }
 
     pub fn get_post_hooks(&self) -> Vec<String> {
-        self.hooks
-            .as_ref()
-            .map(|h| h.post.clone().unwrap_or_default())
-            .unwrap_or_default()
+        Self::script_hooks(self.raw_hooks(|h| h.post.as_ref()))
+    }
+
+    /// Whether the template asked for the built-in `cargo fmt` step by listing
+    /// [`NAMED_HOOK_CARGO_FMT`] among its post hooks.
+    pub fn has_cargo_fmt_hook(&self) -> bool {
+        self.raw_hooks(|h| h.post.as_ref())
+            .iter()
+            .any(|hook| hook == NAMED_HOOK_CARGO_FMT)
     }
 
     pub fn get_hook_files(&self) -> Vec<String> {
@@ -217,6 +251,42 @@ mod tests {
             })
         );
         assert!(config.placeholders.is_some());
+    }
+
+    #[test]
+    fn post_hooks_exclude_the_cargo_fmt_identifier() {
+        let config = Config::try_from(
+            r#"
+            [hooks]
+            post = ["cargo-fmt", "post-script.rhai"]
+            "#
+            .to_string(),
+        )
+        .unwrap();
+
+        // the identifier is not a file, so it must not reach the rhai engine...
+        assert_eq!(config.get_post_hooks(), vec!["post-script.rhai".to_string()]);
+        // ...nor the hook-file cleanup...
+        assert_eq!(config.get_hook_files(), vec!["post-script.rhai".to_string()]);
+        // ...but it is still visible as a request to format.
+        assert!(config.has_cargo_fmt_hook());
+    }
+
+    #[test]
+    fn cargo_fmt_is_ignored_outside_post_hooks() {
+        let config = Config::try_from(
+            r#"
+            [hooks]
+            init = ["cargo-fmt"]
+            pre = ["cargo-fmt"]
+            "#
+            .to_string(),
+        )
+        .unwrap();
+
+        assert!(config.get_init_hooks().is_empty());
+        assert!(config.get_pre_hooks().is_empty());
+        assert!(!config.has_cargo_fmt_hook());
     }
 
     #[test]
