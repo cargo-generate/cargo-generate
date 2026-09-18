@@ -12,11 +12,14 @@ Then call the program from `post-script.rhai`, passing its arguments in an
 array:
 
 ```rhai
-system::command("cargo", ["fmt"]);
-
 let rustc_version = system::command("rustc", ["--version"]);
 print(`Generated with ${rustc_version}`);
 ```
+
+> Formatting the generated project needs no hook: `cargo-generate` runs
+> `cargo fmt` itself. See [Formatting](formatting.md). Running it from a hook
+> instead operates on the template's temporary working directory, which is
+> unreliable on Windows.
 
 Commands run in the template's working directory through `sh` on Unix and
 `cmd` on Windows, so available programs and shell syntax can vary by platform.

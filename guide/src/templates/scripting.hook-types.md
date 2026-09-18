@@ -29,4 +29,24 @@
 Why not later? Security, and the fact that a failing script still causes no errors in the users destination.
 
 
+### Named hooks
+
+> Available since version [0.26.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.26.0)
+
+Most entries in `[hooks]` are paths to `.rhai` files. One is not: `cargo-fmt`
+names the built-in formatting step rather than a script.
+
+```toml
+[hooks]
+post = ["cargo-fmt"]
+```
+
+It only has meaning in `post`; in `init` or `pre` it is ignored with a warning.
+Unlike a script hook it runs on the *final destination* rather than the
+template's working directory, so it is unaffected by the temp directory that
+script hooks see.
+
+Listing it re-enables formatting for a template that set `fmt = false`. See
+[Formatting](formatting.md).
+
 [`Rhai`]: https://rhai.rs/book/
