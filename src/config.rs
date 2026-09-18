@@ -102,7 +102,9 @@ impl Config {
     /// misplaced built-in identifier warns rather than failing.
     fn warn_on_named_hooks(hooks: &[String], phase: &str) {
         if hooks.iter().any(|hook| hook == NAMED_HOOK_CARGO_FMT) {
-            warn!("`{NAMED_HOOK_CARGO_FMT}` is only valid as a post hook, ignoring it in `{phase}`");
+            warn!(
+                "`{NAMED_HOOK_CARGO_FMT}` is only valid as a post hook, ignoring it in `{phase}`"
+            );
         }
     }
 
@@ -265,9 +267,15 @@ mod tests {
         .unwrap();
 
         // the identifier is not a file, so it must not reach the rhai engine...
-        assert_eq!(config.get_post_hooks(), vec!["post-script.rhai".to_string()]);
+        assert_eq!(
+            config.get_post_hooks(),
+            vec!["post-script.rhai".to_string()]
+        );
         // ...nor the hook-file cleanup...
-        assert_eq!(config.get_hook_files(), vec!["post-script.rhai".to_string()]);
+        assert_eq!(
+            config.get_hook_files(),
+            vec!["post-script.rhai".to_string()]
+        );
         // ...but it is still visible as a request to format.
         assert!(config.has_cargo_fmt_hook());
     }
