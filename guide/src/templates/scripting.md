@@ -14,7 +14,7 @@ pre = ["pre-script.rhai"]
 post = ["post-script.rhai"]
 ```
 
-Most entries name a script file. One does not: `cargo-fmt` is a built-in
+Most entries name a script file. One does not: `fmt` is a built-in
 identifier for the [formatting](formatting.md) step rather than a script. See
 [Hook types] for the details.
 

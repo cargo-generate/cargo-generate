@@ -2,34 +2,29 @@
 
 > Available since version [0.26.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.26.0)
 
-`cargo-generate` formats the generated project with `rustfmt`. Templates rarely
-produce rustfmt-clean output — conditionals and whitespace control make it hard
-to get right — and formatting is the first thing most people do after
-generating.
+`cargo-generate` formats the generated Rust files with `rustfmt`. Templates rarely produce
+rustfmt-clean output, as conditionals and whitespace control are tedious to get right.
 
-The step runs on the finished project in its final destination, after the
-template has been expanded and moved there.
+Formatting happens once the template has been expanded and moved to its final destination.
 
 ## What gets formatted
 
-Only the files this generation wrote, and only the Rust ones. That matters for
-`--init`, which expands a template into a directory that may already be
-somebody's project: a template that adds a controller or a db module gets its
-own files formatted, while the surrounding code is left exactly as it was.
+Only the files written by this run, and only those with a `.rs` extension.
 
-Each file is formatted against the edition of the cargo package it lands in, so
-a generated workspace whose members differ in edition is handled correctly.
+This matters for `--init`, where a template is expanded into a directory that may already hold a
+project. A template that adds a controller or a db module gets its own files formatted, while the
+surrounding code is left as it was.
 
-## When it does nothing
+Each file is formatted against the edition of the cargo package it lands in, so a generated
+workspace whose members use different editions is handled correctly.
 
-A template that generates no Rust files has nothing to format, and the step is
-a silent no-op. Templates that do not produce Rust code need no configuration.
-The same applies to Rust files generated outside any cargo project — with no
-manifest there is no edition to format them against.
+## When nothing happens
 
-Formatting never fails a generation. If the `rustfmt` component is not
-installed, or rustfmt rejects a file it cannot parse, `cargo-generate` warns and
-carries on with a generated project that is simply unformatted.
+A template that generates no `.rs` files has nothing to format. The same applies to Rust files
+generated outside of a cargo project, as there is no manifest to read an edition from.
+
+> ⚠️ NOTE: formatting never fails a generation. If the `rustfmt` component is missing, or `rustfmt`
+> rejects a file it cannot parse, `cargo-generate` warns and leaves the generated files unformatted.
 
 ## Opting out as a template author
 
@@ -38,8 +33,7 @@ carries on with a generated project that is simply unformatted.
 fmt = false
 ```
 
-Use this when the template's output is meant to be left alone — for instance
-when it ships deliberately-formatted fixtures.
+Use this when the template output is meant to be left exactly as written.
 
 ## Opting out as a user
 
@@ -47,27 +41,23 @@ when it ships deliberately-formatted fixtures.
 cargo generate --git https://github.com/example/template.git --no-fmt
 ```
 
-`--no-fmt` always wins, including over a template that asks for formatting.
+`--no-fmt` wins over anything the template asks for.
 
 ## Opting back in explicitly
 
-A template that has opted out can still request the built-in step by name:
+A template that has opted out may still request formatting by name:
 
 ```toml
 [template]
 fmt = false
 
 [hooks]
-post = ["cargo-fmt"]
+post = ["fmt"]
 ```
 
-`cargo-fmt` is not a script file. It is an identifier for the built-in step, and
-it takes precedence over `fmt = false`. See
-[Hook types](scripting.hook-types.md) for how it differs from a script hook.
+`fmt` is not a script file, it is an identifier for the built-in step, and it takes precedence
+over `fmt = false`. See [hook types](scripting.hook-types.md) for how it differs from a script hook.
 
-Because the bare name is reserved, a hook script cannot be called exactly
-`cargo-fmt`. Any other name works, `cargo-fmt.rhai` included. A template file
-named `cargo-fmt` is unaffected and is templated and copied like any other.
-
-This combination is uncommon — it exists so a template that opts out for one
-reason can still be explicit about wanting formatting back.
+The name `fmt` is reserved, so a hook script cannot use it. Any other name works, including
+`fmt.rhai`. A template file named `fmt` is unaffected, and is templated and copied like any other
+file.

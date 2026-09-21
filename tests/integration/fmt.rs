@@ -32,7 +32,7 @@ fn it_formats_the_generated_project_by_default() {
     let dir = tempdir().build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("fmt-project")
         .current_dir(dir.path())
         .assert()
@@ -47,7 +47,7 @@ fn it_does_not_format_when_no_fmt_is_given() {
     let dir = tempdir().build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("fmt-project")
         .arg("--no-fmt")
         .current_dir(dir.path())
@@ -66,7 +66,7 @@ fn it_does_not_format_when_the_template_opts_out() {
     let dir = tempdir().build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("fmt-project")
         .current_dir(dir.path())
         .assert()
@@ -85,12 +85,12 @@ fn it_formats_when_the_named_post_hook_is_listed() {
         fmt = false
 
         [hooks]
-        post = ["cargo-fmt"]
+        post = ["fmt"]
     "#}));
     let dir = tempdir().build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("fmt-project")
         .current_dir(dir.path())
         .assert()
@@ -103,12 +103,12 @@ fn it_formats_when_the_named_post_hook_is_listed() {
 fn no_fmt_beats_the_named_post_hook() {
     let template = template_with(Some(indoc! {r#"
         [hooks]
-        post = ["cargo-fmt"]
+        post = ["fmt"]
     "#}));
     let dir = tempdir().build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("fmt-project")
         .arg("--no-fmt")
         .current_dir(dir.path())
@@ -129,7 +129,7 @@ fn it_is_a_silent_no_op_without_a_manifest() {
     let dir = tempdir().build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("fmt-project")
         .current_dir(dir.path())
         .assert()
@@ -139,19 +139,19 @@ fn it_is_a_silent_no_op_without_a_manifest() {
     assert_eq!(dir.read("fmt-project/README.md"), "# fmt-project\n");
 }
 
-/// `cargo-fmt` is an identifier, not a filename, so a template file that
-/// happens to carry that name is templated and copied like any other.
+/// `fmt` is an identifier, not a filename, so a template file that happens to
+/// carry that name is templated and copied like any other.
 #[test]
-fn a_template_file_named_cargo_fmt_is_still_copied() {
+fn a_template_file_named_fmt_is_still_copied() {
     let template = tempdir()
         .with_default_manifest()
         .file("src/main.rs", UNFORMATTED_MAIN)
-        .file("cargo-fmt", "I belong to {{project-name}}\n")
+        .file("fmt", "I belong to {{project-name}}\n")
         .file(
             "cargo-generate.toml",
             indoc! {r#"
                 [hooks]
-                post = ["cargo-fmt"]
+                post = ["fmt"]
             "#},
         )
         .init_git()
@@ -159,35 +159,32 @@ fn a_template_file_named_cargo_fmt_is_still_copied() {
     let dir = tempdir().build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("fmt-project")
         .current_dir(dir.path())
         .assert()
         .success();
 
     // the file survived as content...
-    assert_eq!(
-        dir.read("fmt-project/cargo-fmt"),
-        "I belong to fmt-project\n"
-    );
+    assert_eq!(dir.read("fmt-project/fmt"), "I belong to fmt-project\n");
     // ...and the identifier still did its job
     assert_eq!(dir.read("fmt-project/src/main.rs"), FORMATTED_MAIN);
 }
 
 /// The identifier only shadows the bare name. A real hook script keeps working,
-/// including one named `cargo-fmt.rhai`.
+/// including one named `fmt.rhai`.
 #[test]
-fn a_hook_script_named_cargo_fmt_rhai_still_runs() {
+fn a_hook_script_named_fmt_rhai_still_runs() {
     let template = tempdir()
         .with_default_manifest()
         .file("src/main.rs", UNFORMATTED_MAIN)
-        .file("cargo-fmt.rhai", r#"file::rename("RENAME-ME", "renamed");"#)
+        .file("fmt.rhai", r#"file::rename("RENAME-ME", "renamed");"#)
         .file("RENAME-ME", "content")
         .file(
             "cargo-generate.toml",
             indoc! {r#"
                 [hooks]
-                post = ["cargo-fmt.rhai"]
+                post = ["fmt.rhai"]
             "#},
         )
         .init_git()
@@ -195,7 +192,7 @@ fn a_hook_script_named_cargo_fmt_rhai_still_runs() {
     let dir = tempdir().build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("fmt-project")
         .current_dir(dir.path())
         .assert()
@@ -204,7 +201,7 @@ fn a_hook_script_named_cargo_fmt_rhai_still_runs() {
     // the script ran...
     assert!(dir.exists("fmt-project/renamed"));
     // ...and was removed from the output like any hook file
-    assert!(!dir.exists("fmt-project/cargo-fmt.rhai"));
+    assert!(!dir.exists("fmt-project/fmt.rhai"));
     // it is not the identifier, so it did not request formatting on its own —
     // the default did
     assert_eq!(dir.read("fmt-project/src/main.rs"), FORMATTED_MAIN);
@@ -237,7 +234,7 @@ fn it_only_formats_the_files_it_generated_under_init() {
         .build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("whatever")
         .flag_init()
         .current_dir(existing.path())
@@ -272,7 +269,7 @@ fn a_rustfmt_failure_does_not_fail_generation() {
     let dir = tempdir().build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("fmt-project")
         .current_dir(dir.path())
         .assert()
@@ -321,7 +318,7 @@ fn it_does_not_reformat_an_enclosing_workspace() {
         .build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("fmt-project")
         .current_dir(workspace.path())
         .assert()
@@ -347,8 +344,8 @@ fn a_misplaced_identifier_warns_exactly_once_per_phase() {
             "cargo-generate.toml",
             indoc! {r#"
                 [hooks]
-                init = ["cargo-fmt"]
-                pre = ["cargo-fmt"]
+                init = ["fmt"]
+                pre = ["fmt"]
             "#},
         )
         .init_git()
@@ -356,7 +353,7 @@ fn a_misplaced_identifier_warns_exactly_once_per_phase() {
     let dir = tempdir().build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("fmt-project")
         .current_dir(dir.path())
         .assert()
@@ -417,7 +414,7 @@ fn each_file_is_formatted_against_its_own_package_edition() {
     let dir = tempdir().build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("ws-project")
         .current_dir(dir.path())
         .assert()
@@ -456,12 +453,12 @@ fn a_misplaced_identifier_does_not_request_formatting() {
         fmt = false
 
         [hooks]
-        init = ["cargo-fmt"]
+        init = ["fmt"]
     "#}));
     let dir = tempdir().build();
 
     binary()
-        .arg_git(template.path())
+        .arg_path(template.path())
         .arg_name("fmt-project")
         .current_dir(dir.path())
         .assert()
@@ -481,8 +478,6 @@ fn a_missing_rustfmt_does_not_fail_generation() {
     let empty = tempdir().build();
 
     binary()
-        // `--path` rather than `--git`: emptying PATH below also hides `git`,
-        // which the git transport shells out to.
         .arg_path(template.path())
         .arg_name("fmt-project")
         .current_dir(dir.path())
@@ -497,4 +492,25 @@ fn a_missing_rustfmt_does_not_fail_generation() {
         );
 
     assert_eq!(dir.read("fmt-project/src/main.rs"), EXPANDED_MAIN);
+}
+
+/// Formatting has nothing to do with the `git` feature, so the suite above runs
+/// in both build configurations. This one covers the remaining shape: a git
+/// source expands through a temp clone, which is the path
+/// <https://github.com/cargo-generate/cargo-generate/issues/1435> found broken
+/// on Windows. Formatting still happens on the destination.
+#[cfg(feature = "git")]
+#[test]
+fn it_formats_a_project_generated_from_a_git_source() {
+    let template = template_with(None);
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("fmt-project")
+        .current_dir(dir.path())
+        .assert()
+        .success();
+
+    assert_eq!(dir.read("fmt-project/src/main.rs"), FORMATTED_MAIN);
 }

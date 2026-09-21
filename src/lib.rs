@@ -184,8 +184,8 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
 
         // Only the files this run wrote: `--init` can expand a template into a
         // subtree of an existing project, whose other code is not ours to touch.
-        if post_processing::cargo_fmt::should_format(&config, args.no_fmt) {
-            post_processing::cargo_fmt::format_generated_files(&generated_files);
+        if post_processing::fmt::should_format(&config, args.no_fmt) {
+            post_processing::fmt::format_generated_files(&generated_files);
         }
 
         project_path

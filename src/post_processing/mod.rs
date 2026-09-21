@@ -4,4 +4,4 @@
 //! mechanism — no registry, no dispatch, no trait. A way to choose among many
 //! processors is worth building once a second one exists.
 
-pub mod cargo_fmt;
+pub mod fmt;

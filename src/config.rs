@@ -12,9 +12,12 @@ use crate::Vcs;
 pub const CONFIG_FILE_NAME: &str = "cargo-generate.toml";
 
 /// A built-in hook. Unlike the other entries in `[hooks]` this is not a script
-/// file but an identifier for behaviour `cargo-generate` provides itself — the
-/// `cargo fmt` step that runs on the generated project.
-pub const NAMED_HOOK_CARGO_FMT: &str = "cargo-fmt";
+/// file but an identifier for behaviour `cargo-generate` provides itself: the
+/// step that formats the generated files.
+///
+/// Named for the step rather than the tool it happens to invoke, matching
+/// `[template] fmt` and `--no-fmt`.
+pub const NAMED_HOOK_FMT: &str = "fmt";
 
 #[derive(Deserialize, Debug, PartialEq, Default, Clone)]
 pub struct Config {
@@ -94,7 +97,7 @@ impl Config {
     fn script_hooks(hooks: Vec<String>) -> Vec<String> {
         hooks
             .into_iter()
-            .filter(|hook| hook != NAMED_HOOK_CARGO_FMT)
+            .filter(|hook| hook != NAMED_HOOK_FMT)
             .collect()
     }
 
@@ -111,10 +114,8 @@ impl Config {
             ("init", self.raw_hooks(|h| h.init.as_ref())),
             ("pre", self.raw_hooks(|h| h.pre.as_ref())),
         ] {
-            if hooks.iter().any(|hook| hook == NAMED_HOOK_CARGO_FMT) {
-                warn!(
-                    "`{NAMED_HOOK_CARGO_FMT}` is only valid as a post hook, ignoring it in `{phase}`"
-                );
+            if hooks.iter().any(|hook| hook == NAMED_HOOK_FMT) {
+                warn!("`{NAMED_HOOK_FMT}` is only valid as a post hook, ignoring it in `{phase}`");
             }
         }
     }
@@ -131,13 +132,13 @@ impl Config {
         Self::script_hooks(self.raw_hooks(|h| h.post.as_ref()))
     }
 
-    /// Whether the template asked for the built-in `cargo fmt` step by listing
-    /// [`NAMED_HOOK_CARGO_FMT`] among its post hooks.
-    pub fn has_cargo_fmt_hook(&self) -> bool {
+    /// Whether the template asked for the built-in formatting step by listing
+    /// [`NAMED_HOOK_FMT`] among its post hooks.
+    pub fn has_fmt_hook(&self) -> bool {
         self.hooks
             .as_ref()
             .and_then(|hooks| hooks.post.as_ref())
-            .is_some_and(|post| post.iter().any(|hook| hook == NAMED_HOOK_CARGO_FMT))
+            .is_some_and(|post| post.iter().any(|hook| hook == NAMED_HOOK_FMT))
     }
 
     pub fn get_hook_files(&self) -> Vec<String> {
@@ -264,11 +265,11 @@ mod tests {
     }
 
     #[test]
-    fn post_hooks_exclude_the_cargo_fmt_identifier() {
+    fn post_hooks_exclude_the_fmt_identifier() {
         let config = Config::try_from(
             r#"
             [hooks]
-            post = ["cargo-fmt", "post-script.rhai"]
+            post = ["fmt", "post-script.rhai"]
             "#
             .to_string(),
         )
@@ -285,16 +286,16 @@ mod tests {
             vec!["post-script.rhai".to_string()]
         );
         // ...but it is still visible as a request to format.
-        assert!(config.has_cargo_fmt_hook());
+        assert!(config.has_fmt_hook());
     }
 
     #[test]
-    fn cargo_fmt_is_ignored_outside_post_hooks() {
+    fn fmt_is_ignored_outside_post_hooks() {
         let config = Config::try_from(
             r#"
             [hooks]
-            init = ["cargo-fmt"]
-            pre = ["cargo-fmt"]
+            init = ["fmt"]
+            pre = ["fmt"]
             "#
             .to_string(),
         )
@@ -302,7 +303,7 @@ mod tests {
 
         assert!(config.get_init_hooks().is_empty());
         assert!(config.get_pre_hooks().is_empty());
-        assert!(!config.has_cargo_fmt_hook());
+        assert!(!config.has_fmt_hook());
     }
 
     #[test]

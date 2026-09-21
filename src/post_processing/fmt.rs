@@ -29,13 +29,13 @@ const DEFAULT_EDITION: &str = "2015";
 
 /// Whether the generated project should be formatted.
 ///
-/// `--no-fmt` wins over everything; an explicit `cargo-fmt` post hook wins over
+/// `--no-fmt` wins over everything; an explicit `fmt` post hook wins over
 /// a template opting out; otherwise `[template] fmt` decides, defaulting to on.
 pub fn should_format(config: &Config, no_fmt: bool) -> bool {
     if no_fmt {
         return false;
     }
-    if config.has_cargo_fmt_hook() {
+    if config.has_fmt_hook() {
         return true;
     }
     config
@@ -196,7 +196,7 @@ mod tests {
         let config = config_from(
             r#"
             [hooks]
-            post = ["cargo-fmt"]
+            post = ["fmt"]
             "#,
         );
 
@@ -223,7 +223,7 @@ mod tests {
             fmt = false
 
             [hooks]
-            post = ["cargo-fmt"]
+            post = ["fmt"]
             "#,
         );
 
