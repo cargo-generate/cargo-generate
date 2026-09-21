@@ -1,4 +1,4 @@
-//! The built-in `cargo fmt` step that runs on the generated project.
+//! The built-in formatting step that runs on the generated project.
 //!
 //! Templates rarely produce rustfmt-clean output, so formatting is a courtesy
 //! `cargo-generate` performs itself. Two things make it safe to have on by

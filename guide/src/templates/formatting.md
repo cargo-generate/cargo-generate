@@ -2,7 +2,7 @@
 
 > Available since version [0.26.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.26.0)
 
-`cargo-generate` runs `cargo fmt` on the generated project. Templates rarely
+`cargo-generate` formats the generated project with `rustfmt`. Templates rarely
 produce rustfmt-clean output — conditionals and whitespace control make it hard
 to get right — and formatting is the first thing most people do after
 generating.
@@ -27,9 +27,9 @@ a silent no-op. Templates that do not produce Rust code need no configuration.
 The same applies to Rust files generated outside any cargo project — with no
 manifest there is no edition to format them against.
 
-Formatting never fails a generation. If `cargo` is not on `PATH`, the `rustfmt`
-component is not installed, or rustfmt rejects a file, `cargo-generate` warns
-and carries on with a generated project that is simply unformatted.
+Formatting never fails a generation. If the `rustfmt` component is not
+installed, or rustfmt rejects a file it cannot parse, `cargo-generate` warns and
+carries on with a generated project that is simply unformatted.
 
 ## Opting out as a template author
 

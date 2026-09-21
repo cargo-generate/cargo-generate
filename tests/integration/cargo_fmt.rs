@@ -370,3 +370,131 @@ fn a_misplaced_identifier_warns_exactly_once_per_phase() {
     // ignored there, but the default still formatted the output
     assert_eq!(dir.read("fmt-project/src/main.rs"), FORMATTED_MAIN);
 }
+
+/// Doc claim: "Each file is formatted against the edition of the cargo package
+/// it lands in, so a generated workspace whose members differ in edition is
+/// handled correctly."
+///
+/// The two files are mutually exclusive across editions — `async` is an
+/// identifier in 2015 and a keyword after it — so both coming out formatted is
+/// only possible if each was formatted against its own member's edition.
+#[test]
+fn each_file_is_formatted_against_its_own_package_edition() {
+    let template = tempdir()
+        .file(
+            "Cargo.toml",
+            indoc! {r#"
+                [workspace]
+                resolver = "2"
+                members = ["old", "new"]
+            "#},
+        )
+        .file(
+            "old/Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "old"
+                version = "0.1.0"
+                edition = "2015"
+            "#},
+        )
+        .file(
+            "old/src/lib.rs",
+            "pub fn f(){let async=1;println!(\"{}\",async);}\n",
+        )
+        .file(
+            "new/Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "new"
+                version = "0.1.0"
+                edition = "2021"
+            "#},
+        )
+        .file("new/src/lib.rs", "pub async fn g(){println!(\"g\");}\n")
+        .init_git()
+        .build();
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("ws-project")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        // neither member may have tripped over the other's edition
+        .stdout(predicates::str::contains("Could not format").not());
+
+    assert_eq!(
+        dir.read("ws-project/old/src/lib.rs"),
+        indoc! {r#"
+            pub fn f() {
+                let async = 1;
+                println!("{}", async);
+            }
+        "#}
+    );
+    assert_eq!(
+        dir.read("ws-project/new/src/lib.rs"),
+        indoc! {r#"
+            pub async fn g() {
+                println!("g");
+            }
+        "#}
+    );
+}
+
+/// Doc claim: in `init` or `pre` the identifier "is ignored with a warning".
+///
+/// The warning alone does not prove it is ignored — with formatting on by
+/// default the output looks the same either way. Pairing it with
+/// `fmt = false` is what makes "ignored" observable.
+#[test]
+fn a_misplaced_identifier_does_not_request_formatting() {
+    let template = template_with(Some(indoc! {r#"
+        [template]
+        fmt = false
+
+        [hooks]
+        init = ["cargo-fmt"]
+    "#}));
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("fmt-project")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("ignoring it in `init`"));
+
+    assert_eq!(dir.read("fmt-project/src/main.rs"), EXPANDED_MAIN);
+}
+
+/// Doc claim: "If rustfmt is not on `PATH` \[...\] `cargo-generate` warns and
+/// carries on with a generated project that is simply unformatted."
+#[test]
+fn a_missing_rustfmt_does_not_fail_generation() {
+    let template = template_with(None);
+    let dir = tempdir().build();
+
+    let empty = tempdir().build();
+
+    binary()
+        // `--path` rather than `--git`: emptying PATH below also hides `git`,
+        // which the git transport shells out to.
+        .arg_path(template.path())
+        .arg_name("fmt-project")
+        .current_dir(dir.path())
+        // an empty PATH is the cheapest stand-in for "the rustfmt component
+        // was never installed"
+        .env("PATH", empty.path())
+        .assert()
+        .success()
+        .stdout(
+            predicates::str::contains("Could not format the generated files")
+                .and(predicates::str::contains("Done!")),
+        );
+
+    assert_eq!(dir.read("fmt-project/src/main.rs"), EXPANDED_MAIN);
+}
