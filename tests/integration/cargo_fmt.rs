@@ -97,8 +97,6 @@ fn it_formats_when_the_named_post_hook_is_listed() {
         .success();
 
     assert_eq!(dir.read("fmt-project/src/main.rs"), FORMATTED_MAIN);
-    // the identifier is not a script file, so nothing named after it is emitted
-    assert!(!dir.exists("fmt-project/cargo-fmt"));
 }
 
 #[test]
@@ -139,4 +137,236 @@ fn it_is_a_silent_no_op_without_a_manifest() {
         .stdout(predicates::str::contains("Formatting the generated project").not());
 
     assert_eq!(dir.read("fmt-project/README.md"), "# fmt-project\n");
+}
+
+/// `cargo-fmt` is an identifier, not a filename, so a template file that
+/// happens to carry that name is templated and copied like any other.
+#[test]
+fn a_template_file_named_cargo_fmt_is_still_copied() {
+    let template = tempdir()
+        .with_default_manifest()
+        .file("src/main.rs", UNFORMATTED_MAIN)
+        .file("cargo-fmt", "I belong to {{project-name}}\n")
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [hooks]
+                post = ["cargo-fmt"]
+            "#},
+        )
+        .init_git()
+        .build();
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("fmt-project")
+        .current_dir(dir.path())
+        .assert()
+        .success();
+
+    // the file survived as content...
+    assert_eq!(
+        dir.read("fmt-project/cargo-fmt"),
+        "I belong to fmt-project\n"
+    );
+    // ...and the identifier still did its job
+    assert_eq!(dir.read("fmt-project/src/main.rs"), FORMATTED_MAIN);
+}
+
+/// The identifier only shadows the bare name. A real hook script keeps working,
+/// including one named `cargo-fmt.rhai`.
+#[test]
+fn a_hook_script_named_cargo_fmt_rhai_still_runs() {
+    let template = tempdir()
+        .with_default_manifest()
+        .file("src/main.rs", UNFORMATTED_MAIN)
+        .file("cargo-fmt.rhai", r#"file::rename("RENAME-ME", "renamed");"#)
+        .file("RENAME-ME", "content")
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [hooks]
+                post = ["cargo-fmt.rhai"]
+            "#},
+        )
+        .init_git()
+        .build();
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("fmt-project")
+        .current_dir(dir.path())
+        .assert()
+        .success();
+
+    // the script ran...
+    assert!(dir.exists("fmt-project/renamed"));
+    // ...and was removed from the output like any hook file
+    assert!(!dir.exists("fmt-project/cargo-fmt.rhai"));
+    // it is not the identifier, so it did not request formatting on its own —
+    // the default did
+    assert_eq!(dir.read("fmt-project/src/main.rs"), FORMATTED_MAIN);
+}
+
+/// Regression test: `--init` expands into an existing project, and the code
+/// already living there is not ours to reformat.
+#[test]
+fn it_only_formats_the_files_it_generated_under_init() {
+    let template = tempdir()
+        .file(
+            "src/generated.rs",
+            "pub fn generated(){println!(\"hi\");}\n",
+        )
+        .init_git()
+        .build();
+
+    // an existing crate with deliberately unformatted code of its own
+    let existing = tempdir()
+        .file(
+            "Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "existing"
+                version = "0.1.0"
+                edition = "2021"
+            "#},
+        )
+        .file("src/lib.rs", "pub fn theirs(){println!(\"theirs\");}\n")
+        .build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("whatever")
+        .flag_init()
+        .current_dir(existing.path())
+        .assert()
+        .success();
+
+    // what the template generated was formatted...
+    assert_eq!(
+        existing.read("src/generated.rs"),
+        indoc! {r#"
+            pub fn generated() {
+                println!("hi");
+            }
+        "#}
+    );
+    // ...and the user's own file was left exactly as it was
+    assert_eq!(
+        existing.read("src/lib.rs"),
+        "pub fn theirs(){println!(\"theirs\");}\n"
+    );
+}
+
+/// The guarantee that makes formatting-by-default acceptable: a generated
+/// project that rustfmt cannot parse is still a successful generation.
+#[test]
+fn a_rustfmt_failure_does_not_fail_generation() {
+    let template = tempdir()
+        .with_default_manifest()
+        .file("src/main.rs", "fn main( { this is not rust at all ;;;\n")
+        .init_git()
+        .build();
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("fmt-project")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(
+            predicates::str::contains("Could not format the generated files")
+                .and(predicates::str::contains("Done!")),
+        );
+
+    // the unformattable file is still there, verbatim
+    assert_eq!(
+        dir.read("fmt-project/src/main.rs"),
+        "fn main( { this is not rust at all ;;;\n"
+    );
+}
+
+/// The whole reason formatting is file-scoped rather than `cargo fmt --all`:
+/// the generated project is added to an enclosing workspace as a member, and
+/// that workspace's other crates must come through untouched.
+#[test]
+fn it_does_not_reformat_an_enclosing_workspace() {
+    let template = template_with(None);
+
+    let workspace = tempdir()
+        .file(
+            "Cargo.toml",
+            indoc! {r#"
+                [workspace]
+                resolver = "2"
+                members = ["existing"]
+            "#},
+        )
+        .file(
+            "existing/Cargo.toml",
+            indoc! {r#"
+                [package]
+                name = "existing"
+                version = "0.1.0"
+                edition = "2021"
+            "#},
+        )
+        .file(
+            "existing/src/lib.rs",
+            "pub fn sibling(){println!(\"s\");}\n",
+        )
+        .build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("fmt-project")
+        .current_dir(workspace.path())
+        .assert()
+        .success();
+
+    // the generated member was formatted...
+    assert_eq!(workspace.read("fmt-project/src/main.rs"), FORMATTED_MAIN);
+    // ...the pre-existing sibling was not
+    assert_eq!(
+        workspace.read("existing/src/lib.rs"),
+        "pub fn sibling(){println!(\"s\");}\n"
+    );
+}
+
+/// A misplaced identifier warns once per phase, not once per internal read of
+/// the hook lists.
+#[test]
+fn a_misplaced_identifier_warns_exactly_once_per_phase() {
+    let template = tempdir()
+        .with_default_manifest()
+        .file("src/main.rs", UNFORMATTED_MAIN)
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [hooks]
+                init = ["cargo-fmt"]
+                pre = ["cargo-fmt"]
+            "#},
+        )
+        .init_git()
+        .build();
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("fmt-project")
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stdout(
+            predicates::str::contains("ignoring it in `init`")
+                .count(1)
+                .and(predicates::str::contains("ignoring it in `pre`").count(1)),
+        );
+
+    // ignored there, but the default still formatted the output
+    assert_eq!(dir.read("fmt-project/src/main.rs"), FORMATTED_MAIN);
 }
