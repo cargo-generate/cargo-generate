@@ -86,10 +86,16 @@ pub fn format_generated_files(generated_files: &[PathBuf]) {
 /// over: it would reformat a user's pre-existing code under `--init`, and with
 /// `--all` it would reach into an enclosing workspace the generated project has
 /// just been added to as a member.
+///
+/// `skip_children` is what makes the file list mean what it says. Given a crate
+/// root, rustfmt otherwise walks its `mod` declarations and formats the whole
+/// module tree — which under `--init` reaches files we never wrote. Every file
+/// we *did* write is in this list already, so there is nothing to recurse for.
 fn run_rustfmt(edition: &str, files: &[&Path]) {
     let result = Command::new("rustfmt")
         .arg("--edition")
         .arg(edition)
+        .args(["--config", "skip_children=true"])
         .args(files)
         .output();
 
@@ -314,6 +320,30 @@ mod tests {
         format_generated_files(std::slice::from_ref(&source));
 
         assert_eq!(fs::read_to_string(&source).unwrap(), "fn main(){}\n");
+    }
+
+    #[test]
+    fn it_does_not_follow_mod_declarations_out_of_the_file_list() {
+        let tmp = tmp_dir().unwrap();
+        let root = manifest_with_source(
+            tmp.path(),
+            "[package]\nname = \"p\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        fs::write(&root, "mod theirs;\nfn main(){}\n").unwrap();
+        let child = tmp.path().join("src").join("theirs.rs");
+        fs::write(&child, "pub fn theirs(){}\n").unwrap();
+
+        format_generated_files(std::slice::from_ref(&root));
+
+        assert_eq!(
+            fs::read_to_string(&root).unwrap(),
+            "mod theirs;\nfn main() {}\n"
+        );
+        assert_eq!(
+            fs::read_to_string(&child).unwrap(),
+            "pub fn theirs(){}\n",
+            "a `mod` child we did not generate must not be reformatted"
+        );
     }
 
     #[test]
