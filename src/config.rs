@@ -98,26 +98,33 @@ impl Config {
             .collect()
     }
 
-    /// A template author's typo must not break an end user's generation, so a
-    /// misplaced built-in identifier warns rather than failing.
-    fn warn_on_named_hooks(hooks: &[String], phase: &str) {
-        if hooks.iter().any(|hook| hook == NAMED_HOOK_CARGO_FMT) {
-            warn!(
-                "`{NAMED_HOOK_CARGO_FMT}` is only valid as a post hook, ignoring it in `{phase}`"
-            );
+    /// Warn about built-in hook identifiers used where they mean nothing.
+    ///
+    /// Called once per generation rather than from the accessors below: those
+    /// are read several times each, and the warning count should track the
+    /// template's config, not our call sites.
+    ///
+    /// A template author's typo must not break an end user's generation, so
+    /// this warns rather than failing.
+    pub fn warn_about_misplaced_named_hooks(&self) {
+        for (phase, hooks) in [
+            ("init", self.raw_hooks(|h| h.init.as_ref())),
+            ("pre", self.raw_hooks(|h| h.pre.as_ref())),
+        ] {
+            if hooks.iter().any(|hook| hook == NAMED_HOOK_CARGO_FMT) {
+                warn!(
+                    "`{NAMED_HOOK_CARGO_FMT}` is only valid as a post hook, ignoring it in `{phase}`"
+                );
+            }
         }
     }
 
     pub fn get_init_hooks(&self) -> Vec<String> {
-        let hooks = self.raw_hooks(|h| h.init.as_ref());
-        Self::warn_on_named_hooks(&hooks, "init");
-        Self::script_hooks(hooks)
+        Self::script_hooks(self.raw_hooks(|h| h.init.as_ref()))
     }
 
     pub fn get_pre_hooks(&self) -> Vec<String> {
-        let hooks = self.raw_hooks(|h| h.pre.as_ref());
-        Self::warn_on_named_hooks(&hooks, "pre");
-        Self::script_hooks(hooks)
+        Self::script_hooks(self.raw_hooks(|h| h.pre.as_ref()))
     }
 
     pub fn get_post_hooks(&self) -> Vec<String> {
@@ -127,9 +134,10 @@ impl Config {
     /// Whether the template asked for the built-in `cargo fmt` step by listing
     /// [`NAMED_HOOK_CARGO_FMT`] among its post hooks.
     pub fn has_cargo_fmt_hook(&self) -> bool {
-        self.raw_hooks(|h| h.post.as_ref())
-            .iter()
-            .any(|hook| hook == NAMED_HOOK_CARGO_FMT)
+        self.hooks
+            .as_ref()
+            .and_then(|hooks| hooks.post.as_ref())
+            .is_some_and(|post| post.iter().any(|hook| hook == NAMED_HOOK_CARGO_FMT))
     }
 
     pub fn get_hook_files(&self) -> Vec<String> {

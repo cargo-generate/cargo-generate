@@ -184,9 +184,9 @@ pub struct GenerateArgs {
     #[arg(long, action, help_heading = heading::OUTPUT_PARAMETERS)]
     pub no_workspace: bool,
 
-    /// Skip running `cargo fmt` on the generated project. By default a
-    /// generated cargo project is formatted; projects without a Cargo.toml are
-    /// never formatted either way.
+    /// Skip formatting the generated files. By default the Rust files this
+    /// generation writes are formatted with rustfmt; files it did not write are
+    /// never touched either way.
     #[arg(long, action, help_heading = heading::OUTPUT_PARAMETERS)]
     pub no_fmt: bool,
 
