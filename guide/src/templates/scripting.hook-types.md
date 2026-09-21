@@ -46,6 +46,9 @@ Unlike a script hook it runs on the *final destination* rather than the
 template's working directory, so it is unaffected by the temp directory that
 script hooks see.
 
+The bare name is reserved, so it cannot also name a hook script; any other
+name, `cargo-fmt.rhai` included, behaves normally.
+
 Listing it re-enables formatting for a template that set `fmt = false`. See
 [Formatting](formatting.md).
 
