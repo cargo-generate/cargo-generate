@@ -14,6 +14,10 @@ pre = ["pre-script.rhai"]
 post = ["post-script.rhai"]
 ```
 
+Most entries name a script file. One does not: `fmt` is a built-in
+identifier for the [formatting](formatting.md) step rather than a script. See
+[Hook types] for the details.
+
 ## Running system commands
 
 Hooks can execute programs on the user's system. See [System commands] for
@@ -22,3 +26,4 @@ risks.
 
 [`Rhai`]: https://rhai.rs/book/
 [System commands]: scripting.system-commands.md
+[Hook types]: scripting.hook-types.md

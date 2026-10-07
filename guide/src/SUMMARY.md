@@ -14,6 +14,7 @@
   - [Include/Exclude](templates/include_exclude.md)
   - [Require Version](templates/require_version.md)
   - [Conditionals](templates/conditional.md)
+  - [Formatting](templates/formatting.md)
   - [Hooks](templates/scripting.md)
     - [Hook types](templates/scripting.hook-types.md)
     - [Rhai extensions](templates/scripting.rhai-extensions.md)
