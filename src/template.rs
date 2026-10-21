@@ -1,7 +1,6 @@
 use anyhow::{bail, Context, Result};
 use console::style;
 use indicatif::{MultiProgress, ProgressBar};
-use liquid::model::KString;
 use liquid::{Parser, ParserBuilder};
 use liquid_core::{Object, Value};
 use std::sync::{Arc, Mutex};
@@ -311,14 +310,13 @@ pub fn render_string_gracefully(
                     regex::Regex::new(r"(?P<p>.*requested\svariable=)(?P<v>.*)").unwrap();
                 let captures = requested_var.captures(msg.as_str()).unwrap();
                 if let Some(Some(req_var)) = captures.iter().last() {
-                    let missing_variable = KString::from(req_var.as_str().to_string());
                     // The missing variable might have been supplied by a rhai filter,
                     // if not, substitute an empty string before retrying
                     let _ = context
                         .lock()
                         .map_err(|_| liquid_core::Error::with_msg(PoisonError.to_string()))?
                         .borrow_mut()
-                        .entry(missing_variable)
+                        .entry(req_var.as_str().to_string())
                         .or_insert_with(|| Value::scalar("".to_string()));
                     return render_string_gracefully(context, parser, content);
                 }
