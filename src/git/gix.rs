@@ -212,7 +212,7 @@ impl GitCloneCmd {
 /// recorded (via `Submodule::head_id()`), recurse into it, then strip its `.git`
 /// dir — the template semantics of cargo-generate never want inner history.
 ///
-/// gix 0.87 has no high-level submodule init/update API (see gitoxide#2387);
+/// gix has no high-level submodule init/update API (see gitoxide#2387);
 /// this is our own take. The parent's ssh identity override is inherited so
 /// private submodules work when the parent clone did.
 fn init_and_update_submodules(
@@ -230,7 +230,7 @@ fn init_and_update_submodules(
         // empty right after clone (`git submodule init` is what populates it).
         // Templates want every declared submodule initialized.
         let sub_name = sub.name().to_string();
-        let sub_rel_path = gix::path::from_bstring(sub.path()?);
+        let sub_rel_path = gix::path::from_bstring(sub.path()?)?;
         let sub_abs_path = super_worktree.join(&sub_rel_path);
         let sub_url = resolve_submodule_url(super_url, sub.url()?);
         let sub_url_str = sub_url.to_bstring().to_string();

@@ -4,7 +4,7 @@ use log::{info, warn};
 use std::{
     fs::{copy, read_dir, remove_file, File},
     io::Read,
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 // Cache Directory Tagging Specification (https://bford.info/cachedir/).
@@ -25,14 +25,24 @@ pub fn is_cache_dir(dir: &Path) -> bool {
     file.read_exact(&mut buf).is_ok() && &buf == CACHEDIR_TAG_SIGNATURE
 }
 
+/// Copy `src` into `dst`, returning every file actually written.
+///
+/// The returned paths are what post-processing is allowed to touch: a file that
+/// was skipped because it already existed is somebody else's, not ours.
 pub fn copy_files_recursively(
     src: impl AsRef<Path>,
     dst: impl AsRef<Path>,
     overwrite: bool,
-) -> Result<()> {
-    let dst_path = dst.as_ref();
+) -> Result<Vec<PathBuf>> {
+    let mut copied = Vec::new();
+    copy_into(src.as_ref(), dst.as_ref(), overwrite, &mut copied)?;
+    Ok(copied)
+}
 
-    for src_entry in read_dir(src.as_ref())? {
+fn copy_into(src: &Path, dst: &Path, overwrite: bool, copied: &mut Vec<PathBuf>) -> Result<()> {
+    let dst_path = dst;
+
+    for src_entry in read_dir(src)? {
         let src_entry = src_entry?;
         let filename = src_entry.file_name().to_string_lossy().to_string();
         let entry_type = src_entry.file_type()?;
@@ -56,9 +66,9 @@ pub fn copy_files_recursively(
             if !dst_dir.exists() {
                 std::fs::create_dir(&dst_dir)?;
             }
-            copy_files_recursively(src_entry.path(), dst_dir, overwrite)?;
+            copy_into(&src_entry.path(), &dst_dir, overwrite, copied)?;
         } else if entry_type.is_file() {
-            copy_file(&src_entry.path(), dst_path, overwrite)?;
+            copy_file(&src_entry.path(), dst_path, overwrite, copied)?;
         } else {
             // todo: maybe we better emit a warning but continue processing the other files
             warn!(
@@ -81,14 +91,25 @@ pub fn copy_files_recursively(
 /// Knows nothing about `.liquid`: suffixes are resolved once in
 /// `crate::fetch`, on the materialized template, so every source goes
 /// through the same rule.
-fn copy_file(src_path: &Path, dst: &Path, overwrite: bool) -> Result<()> {
+fn copy_file(
+    src_path: &Path,
+    dst: &Path,
+    overwrite: bool,
+    copied: &mut Vec<PathBuf>,
+) -> Result<()> {
     let filename = src_path.file_name().unwrap().to_string_lossy().to_string();
-    safe_copy_skip_existing(src_path, &dst.join(filename), overwrite)
+    let dst_path = dst.join(filename);
+    if safe_copy_skip_existing(src_path, &dst_path, overwrite)? {
+        copied.push(dst_path);
+    }
+    Ok(())
 }
 
 /// Copy unless the destination exists and `overwrite` is unset, in
 /// which case warn and skip rather than erroring.
-fn safe_copy_skip_existing(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<()> {
+///
+/// Returns whether the file was written.
+fn safe_copy_skip_existing(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<bool> {
     if dst_path.exists() && !overwrite {
         warn!(
             "{} `{}` {}",
@@ -96,7 +117,7 @@ fn safe_copy_skip_existing(src_path: &Path, dst_path: &Path, overwrite: bool) ->
             style(dst_path.display()).bold(),
             style("and `--overwrite` was not passed")
         );
-        return Ok(());
+        return Ok(false);
     }
 
     if dst_path.exists() && overwrite {
@@ -106,7 +127,7 @@ fn safe_copy_skip_existing(src_path: &Path, dst_path: &Path, overwrite: bool) ->
         copy(src_path, dst_path)?;
     }
 
-    Ok(())
+    Ok(true)
 }
 
 #[cfg(test)]
@@ -124,7 +145,7 @@ mod tests {
         std::fs::write(&f2, "SECOND README").unwrap();
 
         assert!(
-            safe_copy_skip_existing(f1.as_path(), f2.as_path(), false).is_ok(),
+            !safe_copy_skip_existing(f1.as_path(), f2.as_path(), false).unwrap(),
             "we do not allow overwriting if file with same name already exists without the flag set"
         );
         assert_eq!(
@@ -133,7 +154,7 @@ mod tests {
             "the file should not be copied"
         );
         assert!(
-            safe_copy_skip_existing(f1.as_path(), f2.as_path(), true).is_ok(),
+            safe_copy_skip_existing(f1.as_path(), f2.as_path(), true).unwrap(),
             "we do allow overwriting if file with same name already exists without the flag set"
         );
         assert_eq!(
