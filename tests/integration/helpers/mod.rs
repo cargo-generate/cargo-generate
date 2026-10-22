@@ -12,6 +12,7 @@ pub mod fake_proxy;
 pub mod prelude;
 pub mod project;
 pub mod project_builder;
+pub mod rustfmt;
 
 pub fn create_template(description: &str) -> Project {
     tempdir()

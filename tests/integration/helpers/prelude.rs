@@ -8,6 +8,7 @@ pub use crate::helpers::create_template;
 pub use crate::helpers::fake_proxy::FakeProxy;
 pub use crate::helpers::project::Project;
 pub use crate::helpers::project_builder::tempdir;
+pub use crate::helpers::rustfmt::require_rustfmt;
 
 pub use assert_cmd::prelude::*;
 pub use indoc::indoc;

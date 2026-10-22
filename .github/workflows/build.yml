@@ -124,6 +124,8 @@ jobs:
           toolchain: ${{ matrix.rust }}
           default: true
           profile: minimal
+          # the formatting tests drive a real rustfmt; `minimal` ships none
+          components: rustfmt
       - name: disable sccache on windows (command-line length limit)
         if: matrix.version == 'windows-latest'
         shell: bash
