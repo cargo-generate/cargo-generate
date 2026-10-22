@@ -230,6 +230,29 @@ mod tests {
         assert!(should_format(&config, false));
     }
 
+    /// Panic with the cause when there is no working `rustfmt`, rather than
+    /// failing as a content mismatch. Mirrors the integration suite's helper of
+    /// the same name, which unit tests cannot reach.
+    fn require_rustfmt() {
+        let reason = match Command::new("rustfmt").arg("--version").output() {
+            Ok(output) if output.status.success() => return,
+            Ok(output) => {
+                let stderr = String::from_utf8_lossy(&output.stderr).trim().to_owned();
+                if stderr.is_empty() {
+                    format!("`rustfmt --version` exited with {}", output.status)
+                } else {
+                    stderr
+                }
+            }
+            Err(e) => e.to_string(),
+        };
+
+        panic!(
+            "this test needs a working rustfmt and there is none: {reason}\n\
+             install it with `rustup component add rustfmt`"
+        );
+    }
+
     /// `dir/Cargo.toml` with `manifest`, and a `src/main.rs` beneath it.
     fn manifest_with_source(dir: &Path, manifest: &str) -> PathBuf {
         fs::create_dir_all(dir.join("src")).unwrap();
@@ -324,6 +347,7 @@ mod tests {
 
     #[test]
     fn it_does_not_follow_mod_declarations_out_of_the_file_list() {
+        require_rustfmt();
         let tmp = tmp_dir().unwrap();
         let root = manifest_with_source(
             tmp.path(),
@@ -348,6 +372,7 @@ mod tests {
 
     #[test]
     fn it_formats_only_the_files_it_is_given() {
+        require_rustfmt();
         let tmp = tmp_dir().unwrap();
         let generated = manifest_with_source(
             tmp.path(),

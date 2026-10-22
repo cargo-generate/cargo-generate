@@ -28,6 +28,7 @@ fn template_with(config: Option<&str>) -> Project {
 
 #[test]
 fn it_formats_the_generated_project_by_default() {
+    require_rustfmt();
     let template = template_with(None);
     let dir = tempdir().build();
 
@@ -43,6 +44,7 @@ fn it_formats_the_generated_project_by_default() {
 
 #[test]
 fn it_does_not_format_when_no_fmt_is_given() {
+    require_rustfmt();
     let template = template_with(None);
     let dir = tempdir().build();
 
@@ -59,6 +61,7 @@ fn it_does_not_format_when_no_fmt_is_given() {
 
 #[test]
 fn it_does_not_format_when_the_template_opts_out() {
+    require_rustfmt();
     let template = template_with(Some(indoc! {r#"
         [template]
         fmt = false
@@ -80,6 +83,7 @@ fn it_does_not_format_when_the_template_opts_out() {
 /// the automatic behaviour, then hook formatting back in explicitly.
 #[test]
 fn it_formats_when_the_named_post_hook_is_listed() {
+    require_rustfmt();
     let template = template_with(Some(indoc! {r#"
         [template]
         fmt = false
@@ -101,6 +105,7 @@ fn it_formats_when_the_named_post_hook_is_listed() {
 
 #[test]
 fn no_fmt_beats_the_named_post_hook() {
+    require_rustfmt();
     let template = template_with(Some(indoc! {r#"
         [hooks]
         post = ["fmt"]
@@ -134,7 +139,7 @@ fn it_is_a_silent_no_op_without_a_manifest() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Formatting the generated project").not());
+        .stdout(predicates::str::contains("Formatting the generated files").not());
 
     assert_eq!(dir.read("fmt-project/README.md"), "# fmt-project\n");
 }
@@ -143,6 +148,7 @@ fn it_is_a_silent_no_op_without_a_manifest() {
 /// carry that name is templated and copied like any other.
 #[test]
 fn a_template_file_named_fmt_is_still_copied() {
+    require_rustfmt();
     let template = tempdir()
         .with_default_manifest()
         .file("src/main.rs", UNFORMATTED_MAIN)
@@ -175,6 +181,7 @@ fn a_template_file_named_fmt_is_still_copied() {
 /// including one named `fmt.rhai`.
 #[test]
 fn a_hook_script_named_fmt_rhai_still_runs() {
+    require_rustfmt();
     let template = tempdir()
         .with_default_manifest()
         .file("src/main.rs", UNFORMATTED_MAIN)
@@ -211,6 +218,7 @@ fn a_hook_script_named_fmt_rhai_still_runs() {
 /// already living there is not ours to reformat.
 #[test]
 fn it_only_formats_the_files_it_generated_under_init() {
+    require_rustfmt();
     let template = tempdir()
         .file(
             "src/generated.rs",
@@ -261,6 +269,7 @@ fn it_only_formats_the_files_it_generated_under_init() {
 /// project that rustfmt cannot parse is still a successful generation.
 #[test]
 fn a_rustfmt_failure_does_not_fail_generation() {
+    require_rustfmt();
     let template = tempdir()
         .with_default_manifest()
         .file("src/main.rs", "fn main( { this is not rust at all ;;;\n")
@@ -291,6 +300,7 @@ fn a_rustfmt_failure_does_not_fail_generation() {
 /// that workspace's other crates must come through untouched.
 #[test]
 fn it_does_not_reformat_an_enclosing_workspace() {
+    require_rustfmt();
     let template = template_with(None);
 
     let workspace = tempdir()
@@ -337,6 +347,7 @@ fn it_does_not_reformat_an_enclosing_workspace() {
 /// the hook lists.
 #[test]
 fn a_misplaced_identifier_warns_exactly_once_per_phase() {
+    require_rustfmt();
     let template = tempdir()
         .with_default_manifest()
         .file("src/main.rs", UNFORMATTED_MAIN)
@@ -377,6 +388,7 @@ fn a_misplaced_identifier_warns_exactly_once_per_phase() {
 /// only possible if each was formatted against its own member's edition.
 #[test]
 fn each_file_is_formatted_against_its_own_package_edition() {
+    require_rustfmt();
     let template = tempdir()
         .file(
             "Cargo.toml",
@@ -448,6 +460,7 @@ fn each_file_is_formatted_against_its_own_package_edition() {
 /// `fmt = false` is what makes "ignored" observable.
 #[test]
 fn a_misplaced_identifier_does_not_request_formatting() {
+    require_rustfmt();
     let template = template_with(Some(indoc! {r#"
         [template]
         fmt = false
@@ -472,6 +485,10 @@ fn a_misplaced_identifier_does_not_request_formatting() {
 /// carries on with a generated project that is simply unformatted."
 #[test]
 fn a_missing_rustfmt_does_not_fail_generation() {
+    // the guard looks contradictory here but is not: the empty `PATH` below
+    // hides rustfmt from the *child*, and that only proves anything if this
+    // machine has a rustfmt to hide in the first place.
+    require_rustfmt();
     let template = template_with(None);
     let dir = tempdir().build();
 
@@ -502,6 +519,7 @@ fn a_missing_rustfmt_does_not_fail_generation() {
 #[cfg(feature = "git")]
 #[test]
 fn it_formats_a_project_generated_from_a_git_source() {
+    require_rustfmt();
     let template = template_with(None);
     let dir = tempdir().build();
 
