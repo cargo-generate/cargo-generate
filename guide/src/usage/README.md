@@ -83,6 +83,26 @@ cargo generate --path $HOME/mytemplate # Use it locally
 
 > ⚠️ NOTE: `cargo-generate` will not allow to use the association `--path` and `--git` flags.
 
+## Trying the new interactive UI
+
+> Available since version [0.26.0](https://github.com/cargo-generate/cargo-generate/releases/tag/v0.26.0)
+
+A new interactive terminal UI built on [cliclack](https://github.com/fadeevab/cliclack) ships as a
+preview. The classic UI stays the default; opt in per run with `--try-new-ui`:
+
+```sh
+cargo generate --try-new-ui username-on-github/mytemplate
+```
+
+The new UI frames the whole run, from the prompts to the list of generated files, in one connected
+flow. Templates, placeholders and hooks behave the same in both UIs.
+
+On an interactive terminal the classic UI prints a one-line tip pointing at this flag. Set
+`CARGO_GENERATE_NO_TIP` to silence it; it is also skipped with `--silent`, `--list-favorites`,
+`NO_COLOR` or when stderr is not a terminal.
+
+When using `cargo-generate` as a library, set `GenerateArgs::try_new_ui` to get the same opt-in.
+
 ## Http(s) proxy
 
 New in version [0.7.0] is automatic proxy usage. So, if http(s)\_PROXY env variables are provided, they
