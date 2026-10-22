@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.24.0...HEAD)
 
+## [0.25.1] 2026-10-21
+[0.25.1]: https://github.com/cargo-generate/cargo-generate/compare/0.25.0...0.25.1
+
+### 🛠️ Maintenance
+
+- Update lock file and drop deprecated KString usage ([#1800](https://github.com/cargo-generate/cargo-generate/issues/1800))
+- Update gix to 0.89 and adapt to its Result-returning path API ([#1801](https://github.com/cargo-generate/cargo-generate/issues/1801))
+
+
 ## [0.25.0] 2026-09-15
 
 ### ✨ Features
