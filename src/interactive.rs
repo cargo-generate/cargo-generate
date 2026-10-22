@@ -3,17 +3,14 @@ use crate::{
     project_variables::{
         ArrayEntry, Choice, Prompt, StringEntry, StringKind, TemplateSlots, VarInfo,
     },
+    ui,
 };
 use anyhow::{anyhow, bail, Result};
 use console::style;
-use dialoguer::{theme::ColorfulTheme, MultiSelect, Select};
-use dialoguer::{Editor, Input};
 use liquid_core::Value;
-use log::warn;
 use std::{
     borrow::Cow,
     io::{stdin, Read},
-    ops::Index,
     str::FromStr,
 };
 
@@ -41,25 +38,15 @@ pub fn user_question(
     kind: &StringKind,
 ) -> Result<String> {
     match kind {
-        StringKind::String => {
-            let mut i = Input::<String>::new().with_prompt(&prompt.styled_with_default);
-            if let Some(s) = default {
-                i = i.default(s.to_owned());
-            }
-            i.interact().map_err(Into::<anyhow::Error>::into)
-        }
+        StringKind::String => ui::input(&prompt.raw, default.as_deref(), None),
         StringKind::Editor => {
-            println!("{} (in Editor)", prompt.styled_with_default);
-            Editor::new()
-                .edit(&prompt.with_default)?
+            ui::info(format!("{} (in Editor)", prompt.raw))?;
+            ui::editor(&prompt.with_default)?
                 .or_else(|| default.clone())
-                .ok_or(anyhow!("Aborted Editor without saving !"))
+                .ok_or_else(|| anyhow!("Aborted Editor without saving!"))
         }
         StringKind::Text => {
-            println!(
-                "{} (press Ctrl+d to stop reading)",
-                prompt.styled_with_default
-            );
+            ui::info(format!("{} (press Ctrl+d to stop reading)", prompt.raw))?;
             let mut buffer = String::new();
             stdin().read_to_string(&mut buffer)?;
             Ok(buffer)
@@ -96,12 +83,16 @@ pub fn prompt_and_check_variable(
 
 pub fn variable(variable: &TemplateSlots, provided_value: Option<&impl ToString>) -> Result<Value> {
     let user_entry = prompt_and_check_variable(variable, provided_value.map(|v| v.to_string()))?;
-    match &variable.var_info {
+    string_to_liquid_value(&user_entry, &variable.var_info)
+}
+
+fn string_to_liquid_value(user_entry: &str, var_info: &VarInfo) -> Result<Value> {
+    match var_info {
         VarInfo::Bool { .. } => {
             let as_bool = user_entry.parse::<bool>()?;
             Ok(Value::Scalar(as_bool.into()))
         }
-        VarInfo::String { .. } => Ok(Value::Scalar(user_entry.into())),
+        VarInfo::String { .. } => Ok(Value::Scalar(user_entry.to_string().into())),
         VarInfo::Array { .. } => {
             let items = if user_entry.is_empty() {
                 Vec::new()
@@ -141,40 +132,56 @@ fn handle_string_input(
                 .bold()
                 .red()
         )
-    };
-    let mut prompt: Cow<'_, Prompt> = Cow::Borrowed(prompt);
-    match &entry.regex {
-        Some(regex) => loop {
-            let user_entry = user_question(&prompt, &entry.default, &entry.kind)?;
-            if regex.is_match(&user_entry) {
-                break Ok(user_entry);
+    }
+
+    match &entry.kind {
+        StringKind::String => {
+            let validator = entry.regex.clone().map(|regex| {
+                let vn = var_name.to_string();
+                let v: ui::Validator = Box::new(move |val: &str| {
+                    if regex.is_match(val) {
+                        Ok(())
+                    } else {
+                        Err(format!("\"{val}\" is not a valid value for {vn}"))
+                    }
+                });
+                v
+            });
+            ui::input(&prompt.raw, entry.default.as_deref(), validator)
+        }
+        kind @ (StringKind::Editor | StringKind::Text) => {
+            let mut prompt: Cow<'_, Prompt> = Cow::Borrowed(prompt);
+            match &entry.regex {
+                Some(regex) => loop {
+                    let user_entry = user_question(&prompt, &entry.default, kind)?;
+                    if regex.is_match(&user_entry) {
+                        break Ok(user_entry);
+                    }
+                    match kind {
+                        StringKind::Editor => {
+                            prompt.to_mut().with_default = format!(
+                                "{}: \"{user_entry}\" is not a valid value for `{var_name}`",
+                                prompt
+                                    .with_default
+                                    .split_once(':')
+                                    .map(|t| t.0)
+                                    .unwrap_or(&prompt.with_default)
+                            );
+                        }
+                        _ => {
+                            ui::warning(format!(
+                                "\"{}\" is not a valid value for {}",
+                                user_entry, var_name
+                            ))?;
+                        }
+                    };
+                },
+                None => user_question(&prompt, &entry.default, kind),
             }
-            // the user won't see the error in stdout if in a editor
-            match entry.kind {
-                StringKind::Editor => {
-                    // Editor use with_default
-                    prompt.to_mut().with_default = format!(
-                        "{}: \"{user_entry}\" is not a valid value for `{var_name}`",
-                        prompt
-                            .with_default
-                            .split_once(':')
-                            .map(|t| t.0)
-                            .unwrap_or(&prompt.with_default)
-                    );
-                }
-                _ => {
-                    warn!(
-                        "{} \"{}\" {}",
-                        style("Sorry,").bold().red(),
-                        style(&user_entry).bold().yellow(),
-                        style(format!("is not a valid value for {var_name}"))
-                            .bold()
-                            .red()
-                    );
-                }
-            };
-        },
-        None => Ok(user_question(&prompt, &entry.default, &entry.kind)?),
+        }
+        StringKind::Choices(_) => {
+            unreachable!("StringKind::Choices should be handled in the parent")
+        }
     }
 }
 
@@ -202,19 +209,14 @@ fn handle_choice_input(
             }
         }
         None => {
-            let default = entry.default.as_ref().map_or(0, |default| {
-                choices
-                    .iter()
-                    .position(|c| &c.value == default)
-                    .unwrap_or(0)
-            });
-            let chosen = Select::with_theme(&ColorfulTheme::default())
-                .items(choices.iter().map(|c| &c.label).collect::<Vec<_>>())
-                .with_prompt(&prompt.styled)
-                .default(default)
-                .interact()?;
-
-            Ok(choices[chosen].value.clone())
+            let initial = entry
+                .default
+                .as_ref()
+                .and_then(|d| choices.iter().position(|c| &c.value == d))
+                .unwrap_or(0);
+            let labels: Vec<String> = choices.iter().map(|c| c.label.clone()).collect();
+            let idx = ui::select(&prompt.raw, &labels, initial)?;
+            Ok(choices[idx].value.clone())
         }
     }
 }
@@ -254,34 +256,18 @@ fn handle_multi_select_input(
     prompt: &Prompt,
 ) -> Result<String> {
     let val = match provided_value {
-        // value is just provided
         Some(value) => value,
-        // no value is provided so we have to be smarter
         None => {
-            let mut selected_by_default = Vec::<bool>::with_capacity(entry.choices.len());
-            match &entry.default {
-                // if no defaults are provided everything is disselected by default
-                None => {
-                    selected_by_default.resize(entry.choices.len(), false);
-                }
-                Some(default_choices) => {
-                    for choice in &entry.choices {
-                        selected_by_default.push(default_choices.contains(&choice.value));
-                    }
-                }
-            };
-
-            let choice_indices = MultiSelect::with_theme(&ColorfulTheme::default())
-                .items(entry.choices.iter().map(|c| &c.label).collect::<Vec<_>>())
-                .with_prompt(&prompt.styled)
-                .defaults(&selected_by_default)
-                .interact()?;
-
-            choice_indices
+            let flags: Vec<bool> = entry
+                .choices
                 .iter()
-                .filter_map(|idx| entry.choices.get(*idx))
-                .map(|c| c.value.clone())
-                .collect::<Vec<String>>()
+                .map(|c| entry.default.as_ref().is_some_and(|d| d.contains(&c.value)))
+                .collect();
+            let labels: Vec<String> = entry.choices.iter().map(|c| c.label.clone()).collect();
+            ui::multiselect(&prompt.raw, &labels, &flags)?
+                .into_iter()
+                .map(|i| entry.choices[i].value.clone())
+                .collect::<Vec<_>>()
                 .join(LIST_SEP)
         }
     };
@@ -317,14 +303,170 @@ fn handle_bool_input(
             Ok(value.to_string())
         }
         None => {
-            let choices = [false.to_string(), true.to_string()];
-            let chosen = Select::with_theme(&ColorfulTheme::default())
-                .items(&choices)
-                .with_prompt(&prompt.styled)
-                .default(usize::from(default.unwrap_or(false)))
-                .interact()?;
-
-            Ok(choices.index(chosen).to_string())
+            let chosen = ui::confirm(&prompt.raw, default.unwrap_or(false))?;
+            Ok(chosen.to_string())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // --- parse_list ---
+
+    #[test]
+    fn parse_list_empty_string() {
+        assert!(parse_list("").is_empty());
+    }
+
+    #[test]
+    fn parse_list_single_item() {
+        assert_eq!(parse_list("foo"), vec!["foo"]);
+    }
+
+    #[test]
+    fn parse_list_multiple_items() {
+        assert_eq!(parse_list("a,b,c"), vec!["a", "b", "c"]);
+    }
+
+    #[test]
+    fn parse_list_trailing_comma() {
+        assert_eq!(parse_list("a,b,"), vec!["a", "b"]);
+    }
+
+    #[test]
+    fn parse_list_leading_comma() {
+        assert_eq!(parse_list(",a,b"), vec!["a", "b"]);
+    }
+
+    #[test]
+    fn parse_list_consecutive_commas() {
+        assert_eq!(parse_list("a,,b"), vec!["a", "b"]);
+    }
+
+    // --- check_provided_selections ---
+
+    #[test]
+    fn check_selections_all_valid() {
+        let choices = vec![Choice::new("a"), Choice::new("b"), Choice::new("c")];
+        assert_eq!(
+            check_provided_selections("a,c", &choices),
+            Ok(vec!["a".into(), "c".into()])
+        );
+    }
+
+    #[test]
+    fn check_selections_some_invalid() {
+        let choices = vec![Choice::new("a"), Choice::new("b")];
+        assert_eq!(
+            check_provided_selections("a,x,y", &choices),
+            Err(vec!["x".into(), "y".into()])
+        );
+    }
+
+    #[test]
+    fn check_selections_all_invalid() {
+        let choices = vec![Choice::new("a")];
+        assert_eq!(
+            check_provided_selections("x,y", &choices),
+            Err(vec!["x".into(), "y".into()])
+        );
+    }
+
+    #[test]
+    fn check_selections_empty_input() {
+        let choices = vec![Choice::new("a")];
+        assert_eq!(check_provided_selections("", &choices), Ok(Vec::new()));
+    }
+
+    #[test]
+    fn check_selections_single_valid() {
+        let choices = vec![Choice::new("a"), Choice::new("b")];
+        assert_eq!(
+            check_provided_selections("b", &choices),
+            Ok(vec!["b".into()])
+        );
+    }
+
+    // --- string_to_liquid_value ---
+
+    #[test]
+    fn liquid_value_bool_true() {
+        let info = VarInfo::Bool { default: None };
+        let val = string_to_liquid_value("true", &info).unwrap();
+        assert_eq!(val, Value::Scalar(true.into()));
+    }
+
+    #[test]
+    fn liquid_value_bool_false() {
+        let info = VarInfo::Bool { default: None };
+        let val = string_to_liquid_value("false", &info).unwrap();
+        assert_eq!(val, Value::Scalar(false.into()));
+    }
+
+    #[test]
+    fn liquid_value_bool_invalid() {
+        let info = VarInfo::Bool { default: None };
+        assert!(string_to_liquid_value("not_a_bool", &info).is_err());
+    }
+
+    #[test]
+    fn liquid_value_string() {
+        let info = VarInfo::String {
+            entry: Box::new(StringEntry {
+                default: None,
+                kind: StringKind::String,
+                regex: None,
+            }),
+        };
+        let val = string_to_liquid_value("hello", &info).unwrap();
+        assert_eq!(val, Value::Scalar("hello".to_string().into()));
+    }
+
+    #[test]
+    fn liquid_value_array_multiple() {
+        let info = VarInfo::Array {
+            entry: Box::new(ArrayEntry {
+                default: None,
+                choices: vec![],
+            }),
+        };
+        let val = string_to_liquid_value("a,b,c", &info).unwrap();
+        assert_eq!(
+            val,
+            Value::Array(vec![
+                Value::Scalar("a".to_string().into()),
+                Value::Scalar("b".to_string().into()),
+                Value::Scalar("c".to_string().into()),
+            ])
+        );
+    }
+
+    #[test]
+    fn liquid_value_array_empty() {
+        let info = VarInfo::Array {
+            entry: Box::new(ArrayEntry {
+                default: None,
+                choices: vec![],
+            }),
+        };
+        let val = string_to_liquid_value("", &info).unwrap();
+        assert_eq!(val, Value::Array(vec![]));
+    }
+
+    #[test]
+    fn liquid_value_array_single() {
+        let info = VarInfo::Array {
+            entry: Box::new(ArrayEntry {
+                default: None,
+                choices: vec![],
+            }),
+        };
+        let val = string_to_liquid_value("only", &info).unwrap();
+        assert_eq!(
+            val,
+            Value::Array(vec![Value::Scalar("only".to_string().into())])
+        );
     }
 }

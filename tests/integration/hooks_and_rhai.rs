@@ -170,8 +170,8 @@ fn it_runs_all_hook_types() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("init-script has run").from_utf8())
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("init-script has run").from_utf8())
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("script-project/PRE"));
     assert!(dir.exists("script-project/POST"));
@@ -211,7 +211,7 @@ fn it_runs_system_commands() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("script-project/touched_file"));
 }
@@ -377,14 +377,14 @@ fn it_can_change_case() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("kebab-case"))
-        .stdout(predicates::str::contains("lowerCamelCase"))
-        .stdout(predicates::str::contains("PascalCase"))
-        .stdout(predicates::str::contains("SHOUTY-KEBAB-CASE"))
-        .stdout(predicates::str::contains("SHOUTY_SNAKE_CASE"))
-        .stdout(predicates::str::contains("snake_case"))
-        .stdout(predicates::str::contains("Title Case"))
-        .stdout(predicates::str::contains("UpperCamelCase"));
+        .stderr(predicates::str::contains("kebab-case"))
+        .stderr(predicates::str::contains("lowerCamelCase"))
+        .stderr(predicates::str::contains("PascalCase"))
+        .stderr(predicates::str::contains("SHOUTY-KEBAB-CASE"))
+        .stderr(predicates::str::contains("SHOUTY_SNAKE_CASE"))
+        .stderr(predicates::str::contains("snake_case"))
+        .stderr(predicates::str::contains("Title Case"))
+        .stderr(predicates::str::contains("UpperCamelCase"));
 }
 
 #[cfg(feature = "git")]
@@ -427,7 +427,7 @@ fn can_change_variables_from_pre_hook() {
         .arg("multi=a,b")
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("script-project/PRE-TEST"));
     let pre_test = dir.read("script-project/PRE-TEST");
@@ -468,7 +468,7 @@ fn init_hook_can_set_project_name() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("project-bar/generated.txt"));
     assert!(dir
@@ -510,7 +510,7 @@ fn init_hook_can_change_project_name_but_keeps_cli_name_for_destination() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("foo/generated.txt"));
     assert!(dir.read("foo/generated.txt").contains("bar"));
@@ -551,7 +551,7 @@ fn init_hook_can_change_project_name_but_keeps_init_destination() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("generated.txt"));
     assert!(dir.read("generated.txt").contains("bar"));
@@ -584,7 +584,7 @@ fn rhai_filter_invokes_rhai_script() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done"));
+        .stderr(predicates::str::contains("Done"));
 
     assert!(dir
         .read("filter-project/file_to_expand.txt")
@@ -629,7 +629,7 @@ fn date_works() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir.exists("generated.txt"), "generated.txt didn't exist");
     let content = dir.read("generated.txt");
@@ -661,7 +661,7 @@ fn missing_rhai_filter_fails_prints_warnings() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains(
+        .stderr(predicates::str::contains(
             "Filter script filter-script.rhai not found",
         ));
 
@@ -699,7 +699,7 @@ fn should_echo_something() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("picard").from_utf8());
+        .stderr(predicates::str::contains("picard").from_utf8());
 }
 
 // Reproduction for https://github.com/cargo-generate/cargo-generate/issues/1388:

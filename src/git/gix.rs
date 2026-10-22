@@ -12,10 +12,11 @@ use console::style;
 use gix::prepare_clone;
 use gix::remote::fetch::Shallow;
 use gix::url;
-use log::{debug, info};
+use log::debug;
 
 use crate::emoji::WRENCH;
 use crate::git::{gitconfig, remove_history};
+use crate::ui;
 use crate::utils::canonicalize_path;
 
 type BranchName = String;
@@ -75,14 +76,14 @@ impl RepoCloneBuilder {
     pub fn with_ssh_identity(mut self, identity_path: Option<&Path>) -> Result<Self> {
         if let Some(identity_path) = identity_path {
             let identity_path = canonicalize_path(identity_path)?;
-            info!(
+            let _ = ui::info(format!(
                 "{} `{}` {}",
                 style("Using private key:").bold(),
                 style(format_args!("{}", identity_path.display()))
                     .bold()
                     .yellow(),
                 style("for git-ssh checkout").bold()
-            );
+            ));
             self.identity_file = Some(identity_path);
         }
         Ok(self)

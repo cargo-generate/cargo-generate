@@ -36,7 +36,7 @@ fn it_should_not_rewrite_manifest_when_new_member_is_already_covered_by_glob() {
         .current_dir(workspace_project.path().join("crates"))
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(workspace_project.exists("crates/a/Cargo.toml"));
 
@@ -86,7 +86,7 @@ fn it_should_skip_workspace_when_target_matches_workspace_exclude() {
         .current_dir(workspace_project.path().join("crates"))
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     // the new project was created…
     assert!(workspace_project.exists("crates/a/Cargo.toml"));
@@ -130,7 +130,7 @@ fn it_should_add_a_new_project_to_the_workspace_members() {
         .current_dir(workspace_project.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(workspace_project.exists("a/Cargo.toml"));
     assert!(workspace_project
@@ -194,7 +194,7 @@ fn it_should_add_a_new_project_from_a_nested_directory_to_the_workspace_members(
         .current_dir(workspace_project.path().join("crates"))
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(workspace_project.exists("crates/a/Cargo.toml"));
     assert!(workspace_project
@@ -246,7 +246,7 @@ fn it_should_skip_workspace_when_no_workspace_flag_is_set() {
         .current_dir(workspace_project.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(workspace_project.exists("a/Cargo.toml"));
     assert!(workspace_project

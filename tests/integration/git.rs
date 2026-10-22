@@ -15,7 +15,7 @@ fn it_allows_a_git_branch_to_be_specified() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/Cargo.toml")
@@ -35,7 +35,7 @@ fn it_allows_a_git_tag_to_be_specified() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/Cargo.toml")
@@ -55,7 +55,7 @@ fn it_allows_a_git_revision_to_be_specified() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(dir
         .read("foobar-project/Cargo.toml")
@@ -73,7 +73,7 @@ fn it_removes_git_history() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let repo = gix::open(dir.path().join("foobar-project")).unwrap();
     let references = repo.references().unwrap().all().unwrap().count();
@@ -91,7 +91,7 @@ fn it_removes_git_history_also_on_local_templates() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let target_path = dir.target_path("xyz");
     let repo = gix::open(target_path).unwrap();
@@ -118,7 +118,7 @@ fn it_should_init_an_empty_git_repo_even_when_starting_from_a_repo_when_forced()
         .current_dir(target.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(target.read("foo/Cargo.toml").contains(r#"name = "foo""#));
     assert!(target.exists("foo/.git"));

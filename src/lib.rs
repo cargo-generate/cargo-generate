@@ -37,12 +37,14 @@ mod ignore_me;
 mod include_exclude;
 mod interactive;
 mod post_processing;
+#[cfg(not(feature = "ui-next"))]
 mod progressbar;
 mod project_variables;
 mod template;
 mod template_filters;
 mod template_source;
 mod template_variables;
+mod ui;
 mod user_parsed_input;
 mod utils;
 mod workspace_member;
@@ -61,7 +63,6 @@ use hooks::{execute_hooks, RhaiHooksContext};
 use ignore_me::remove_dir_files;
 use interactive::LIST_SEP;
 use log::Record;
-use log::{info, warn};
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::{
     cell::RefCell,
@@ -73,6 +74,59 @@ use std::{
 };
 use user_parsed_input::UserParsedInput;
 use workspace_member::WorkspaceMemberStatus;
+
+/// Shorten a path for display: replace home dir with `~/`, abbreviate all
+/// intermediate directories to their first character, but keep the last
+/// two components (parent + leaf) intact.
+///
+/// Example: `/Users/me/workspaces/rust/cargo-generate-org/cargo-generate/foo`
+///       -> `~/w/r/c/cargo-generate/foo`
+fn shorten_path(path: &Path) -> String {
+    let home_dir = home::home_dir();
+    let path = home_dir
+        .as_ref()
+        .and_then(|home| {
+            path.strip_prefix(home)
+                .ok()
+                .map(|p| PathBuf::from("~").join(p))
+        })
+        .unwrap_or_else(|| path.to_path_buf());
+
+    let components: Vec<&std::ffi::OsStr> = path
+        .components()
+        .filter_map(|c| match c {
+            std::path::Component::Normal(s) => Some(s),
+            _ => None,
+        })
+        .collect();
+
+    let len = components.len();
+    if len <= 2 {
+        return path.display().to_string();
+    }
+
+    // keep_count = 2: parent dir + leaf name
+    let keep_count = 2;
+    let mut parts: Vec<String> = Vec::with_capacity(len);
+
+    // Check if path started with ~
+    let has_tilde = path.starts_with("~");
+
+    for (i, comp) in components.iter().enumerate() {
+        let s = comp.to_string_lossy();
+        if i == 0 && has_tilde && s == "~" {
+            parts.push("~".to_string());
+        } else if i < len - keep_count {
+            // abbreviate to first char
+            parts.push(s.chars().next().unwrap_or('.').to_string());
+        } else {
+            parts.push(s.to_string());
+        }
+    }
+
+    let sep = std::path::MAIN_SEPARATOR;
+    parts.join(&sep.to_string())
+}
 
 use crate::template_variables::{
     load_env_and_args_template_values, CrateName, ProjectDir, ProjectNameInput,
@@ -88,17 +142,44 @@ pub fn log_formatter(
     buf: &mut Formatter,
     record: &Record,
 ) -> std::result::Result<(), std::io::Error> {
-    let prefix = match record.level() {
-        log::Level::Error => format!("{} ", emoji::ERROR),
-        log::Level::Warn => format!("{} ", emoji::WARN),
-        _ => "".to_string(),
-    };
+    writeln!(buf, "{}", record.args())
+}
 
-    writeln!(buf, "{}{}", prefix, record.args())
+#[cfg(feature = "ui-next")]
+fn random_intro() -> &'static str {
+    const INTROS: &[&str] = &[
+        "🦀 Let's get Rusty!",
+        "🧪 Brewing a fresh project...",
+        "🚀 Generating awesomeness...",
+        "🍳 Cooking up a new project...",
+        "⚡ Forging your next masterpiece...",
+    ];
+    INTROS[fastrand::usize(..INTROS.len())]
+}
+
+#[cfg(not(feature = "ui-next"))]
+const fn random_intro() -> &'static str {
+    "cargo generate"
 }
 
 /// # Panics
 pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
+    ui::intro(random_intro())?;
+
+    match generate_inner(args) {
+        Ok(path) => Ok(path),
+        Err(e) => {
+            let msg = format!("{e:#}");
+            let msg = msg
+                .trim_start_matches(emoji::ERROR.to_string().as_str())
+                .trim();
+            let _ = ui::outro_cancel(msg);
+            Err(e)
+        }
+    }
+}
+
+fn generate_inner(args: GenerateArgs) -> Result<PathBuf> {
     let app_config = AppConfig::try_from(app_config_path(&args.config)?.as_path())?;
 
     // mash AppConfig and CLI arguments together into UserParsedInput
@@ -124,10 +205,7 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
         .unwrap_or(false)
         && !user_parsed_input.init
     {
-        warn!(
-            "{}",
-            style("Template specifies --init, while not specified on the command line. Output location is affected!").bold().red(),
-        );
+        ui::warning("Template specifies --init, while not specified on the command line. Output location is affected!")?;
 
         user_parsed_input.init = true;
     };
@@ -164,12 +242,10 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
             match workspace_member::add_to_workspace(&project_path)? {
                 WorkspaceMemberStatus::Added(workspace_cargo_toml) => {
                     should_initialize_git = with_force;
-                    info!(
-                        "{} {} `{}`",
-                        emoji::WRENCH,
-                        style("Project added as member to workspace").bold(),
-                        style(workspace_cargo_toml.display()).bold().yellow(),
-                    );
+                    ui::info(format!(
+                        "Project added as member to workspace `{}`",
+                        workspace_cargo_toml.display()
+                    ))?;
                 }
                 WorkspaceMemberStatus::AlreadyCoveredByGlob(_)
                 | WorkspaceMemberStatus::Excluded(_)
@@ -192,22 +268,14 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     };
 
     if should_initialize_git {
-        info!(
-            "{} {}",
-            emoji::WRENCH,
-            style("Initializing a fresh Git repository").bold()
-        );
-
+        ui::info("Initializing a fresh Git repository")?;
         git::init(&target_path, fetched.branch(), with_force)?;
     }
 
-    info!(
-        "{} {} {} {}",
-        emoji::SPARKLE,
-        style("Done!").bold().green(),
-        style("New project created").bold(),
-        style(&target_path.display()).underlined()
-    );
+    ui::outro(format!(
+        "Done! New project created {}",
+        shorten_path(&target_path)
+    ))?;
 
     Ok(target_path)
 }
@@ -219,13 +287,10 @@ fn copy_expanded_template(
     project_dir: PathBuf,
     user_parsed_input: UserParsedInput,
 ) -> Result<(PathBuf, Vec<PathBuf>)> {
-    info!(
-        "{} {} `{}`{}",
-        emoji::WRENCH,
-        style("Moving generated files into:").bold(),
-        style(project_dir.display()).bold().yellow(),
-        style("...").bold()
-    );
+    ui::info(format!(
+        "Moving generated files into: {}",
+        shorten_path(&project_dir)
+    ))?;
     let generated_files =
         copy_files_recursively(template_dir, &project_dir, user_parsed_input.overwrite())?;
 
@@ -233,13 +298,7 @@ fn copy_expanded_template(
 }
 
 fn test_expanded_template(template_dir: &Path, args: Option<Vec<String>>) -> Result<PathBuf> {
-    info!(
-        "{} {}{}{}",
-        emoji::WRENCH,
-        style("Running \"").bold(),
-        style("cargo test"),
-        style("\" ...").bold(),
-    );
+    ui::info("Running \"cargo test\" ...")?;
     let (cmd, cmd_args) = std::env::var("CARGO_GENERATE_TEST_CMD").map_or_else(
         |_| (String::from("cargo"), vec![String::from("test")]),
         |env_test_cmd| {
@@ -315,26 +374,12 @@ fn expand_template(
 
     set_project_name_variables(&liquid_object, &destination, &project_name, &crate_name)?;
 
-    info!(
-        "{} {} {}",
-        emoji::WRENCH,
-        style(format!("Destination: {destination}")).bold(),
-        style("...").bold()
-    );
-    info!(
-        "{} {} {}",
-        emoji::WRENCH,
-        style(format!("project-name: {project_name}")).bold(),
-        style("...").bold()
-    );
-    project_variables::show_project_variables_with_value(&liquid_object, config);
-
-    info!(
-        "{} {} {}",
-        emoji::WRENCH,
-        style("Generating template").bold(),
-        style("...").bold()
-    );
+    ui::info(format!(
+        "Destination: {}",
+        shorten_path(destination.as_ref())
+    ))?;
+    ui::info(format!("project-name: {project_name}"))?;
+    project_variables::show_project_variables_with_value(&liquid_object, config)?;
 
     // evaluate config for placeholders and and any that are undefined
     fill_placeholders_and_merge_conditionals(
@@ -359,7 +404,6 @@ fn expand_template(
     let mut template_config = config.template.take().unwrap_or_default();
 
     ignore_me::remove_unneeded_files(template_dir, &template_config.ignore, args.verbose)?;
-    let mut pbar = progressbar::new();
 
     let rhai_filter_files = Arc::new(Mutex::new(vec![]));
     let rhai_engine = create_liquid_engine(
@@ -376,7 +420,6 @@ fn expand_template(
         &liquid_object,
         rhai_engine,
         &rhai_filter_files,
-        &mut pbar,
         args.quiet,
     );
 
@@ -385,7 +428,7 @@ fn expand_template(
         Err(e) => {
             // Don't print the error twice
             if !args.quiet && args.continue_on_error {
-                warn!("{e}");
+                let _ = ui::warning(format!("{e}"));
             }
             if !args.continue_on_error {
                 return Err(e);
@@ -470,15 +513,9 @@ pub(crate) fn add_missing_provided_values(
         };
 
         if already_present && is_builtin {
-            info!(
-                "{} {}",
-                emoji::WARN,
-                style(format!(
-                    "Overriding builtin placeholder `{k}` with value from `--define`"
-                ))
-                .bold()
-                .yellow(),
-            );
+            let _ = ui::warning(format!(
+                "Overriding builtin placeholder `{k}` with value from `--define`"
+            ));
         }
 
         liquid_object
@@ -514,11 +551,7 @@ pub(crate) fn read_default_variable_value_from_template(
         _ => return Err(()),
     };
     let (key, value) = (&slot.var_name, &default_value);
-    info!(
-        "{} {} (default value from template)",
-        emoji::WRENCH,
-        style(format!("{key}: {value:?}")).bold(),
-    );
+    let _ = ui::info(format!("{key}: {value:?} (default value from template)"));
     Ok(default_value)
 }
 

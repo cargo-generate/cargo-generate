@@ -12,9 +12,8 @@ use console::style;
 use crate::{
     app_config::{AppConfig, FavoriteConfig},
     template_variables::CrateType,
-    GenerateArgs, Vcs,
+    ui, GenerateArgs, Vcs,
 };
-use log::warn;
 
 #[derive(Debug)]
 #[cfg(test)]
@@ -240,7 +239,6 @@ impl UserParsedInput {
         let clone_opts = clone_opts_from_args(args, ssh_identity);
         let temp_location = source.into_source(&clone_opts)?;
 
-        // Print information about what happened (preserve the existing warn!)
         let location_msg = match &temp_location {
             #[cfg(feature = "git")]
             Source::Git(git_user_input) => {
@@ -250,11 +248,11 @@ impl UserParsedInput {
                 format!("local path: {}", style(path.display()).bold())
             }
         };
-        warn!(
+        let _ = ui::warning(format!(
             "Favorite `{}` not found in config, using it as a {}",
             style(&fav_name).bold(),
             location_msg
-        );
+        ));
 
         Ok(Self {
             name: args.name.clone(),

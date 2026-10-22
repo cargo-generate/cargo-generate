@@ -1,6 +1,5 @@
 use anyhow::Result;
 use indexmap::IndexMap;
-use log::warn;
 use semver::VersionReq;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
@@ -115,7 +114,9 @@ impl Config {
             ("pre", self.raw_hooks(|h| h.pre.as_ref())),
         ] {
             if hooks.iter().any(|hook| hook == NAMED_HOOK_FMT) {
-                warn!("`{NAMED_HOOK_FMT}` is only valid as a post hook, ignoring it in `{phase}`");
+                let _ = crate::ui::warning(format!(
+                    "`{NAMED_HOOK_FMT}` is only valid as a post hook, ignoring it in `{phase}`"
+                ));
             }
         }
     }

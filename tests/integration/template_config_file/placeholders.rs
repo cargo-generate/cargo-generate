@@ -36,7 +36,7 @@ fn it_prompts_for_placeholders_in_the_config_file_defined_order() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::is_match(r"defaults.*\n.*mcu").unwrap());
+        .stderr(predicates::str::is_match(r"(?s)defaults.*mcu").unwrap());
 }
 
 #[test]

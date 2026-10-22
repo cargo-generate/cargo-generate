@@ -19,7 +19,7 @@ fn it_should_fail_if_a_identity_file_does_not_exist() {
         .current_dir(dir.path())
         .assert()
         .failure()
-        .stderr(predicates::str::contains("Error: path does not exist: id_foobarbak").from_utf8());
+        .stderr(predicates::str::contains("path does not exist: id_foobarbak").from_utf8());
 }
 
 #[test]
@@ -32,7 +32,7 @@ fn it_should_support_a_public_repo() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let cargo_toml = dir.read("foobar-project/Cargo.toml");
     assert!(cargo_toml.contains("foobar-project"));
@@ -54,7 +54,7 @@ fn it_should_retrieve_the_private_key_from_ssh_agent() {
             .current_dir(dir.path())
             .assert()
             .success()
-            .stdout(predicates::str::contains("Done!").from_utf8());
+            .stderr(predicates::str::contains("Done!").from_utf8());
 
         let cargo_toml = dir.read("foobar-project/Cargo.toml");
         assert!(cargo_toml.contains("foobar-project"));

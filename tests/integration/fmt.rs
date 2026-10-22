@@ -139,7 +139,7 @@ fn it_is_a_silent_no_op_without_a_manifest() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Formatting the generated files").not());
+        .stderr(predicates::str::contains("Formatting the generated files").not());
 
     assert_eq!(dir.read("fmt-project/README.md"), "# fmt-project\n");
 }
@@ -283,7 +283,7 @@ fn a_rustfmt_failure_does_not_fail_generation() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(
+        .stderr(
             predicates::str::contains("Could not format the generated files")
                 .and(predicates::str::contains("Done!")),
         );
@@ -369,7 +369,7 @@ fn a_misplaced_identifier_warns_exactly_once_per_phase() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(
+        .stderr(
             predicates::str::contains("ignoring it in `init`")
                 .count(1)
                 .and(predicates::str::contains("ignoring it in `pre`").count(1)),
@@ -432,7 +432,7 @@ fn each_file_is_formatted_against_its_own_package_edition() {
         .assert()
         .success()
         // neither member may have tripped over the other's edition
-        .stdout(predicates::str::contains("Could not format").not());
+        .stderr(predicates::str::contains("Could not format").not());
 
     assert_eq!(
         dir.read("ws-project/old/src/lib.rs"),
@@ -476,7 +476,7 @@ fn a_misplaced_identifier_does_not_request_formatting() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("ignoring it in `init`"));
+        .stderr(predicates::str::contains("ignoring it in `init`"));
 
     assert_eq!(dir.read("fmt-project/src/main.rs"), EXPANDED_MAIN);
 }
@@ -503,7 +503,7 @@ fn a_missing_rustfmt_does_not_fail_generation() {
         .env("PATH", empty.path())
         .assert()
         .success()
-        .stdout(
+        .stderr(
             predicates::str::contains("Could not format the generated files")
                 .and(predicates::str::contains("Done!")),
         );
