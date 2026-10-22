@@ -1,6 +1,6 @@
 use crate::helpers::prelude::*;
 
-/// Deliberately mis-formatted, so that "was it formatted?" is unambiguous.
+/// Deliberately not rustfmt-clean, so that "was it formatted?" is unambiguous.
 const UNFORMATTED_MAIN: &str = "fn main(){println!(\"{{project-name}}\");}\n";
 
 /// The same file once rustfmt has had it, for the generated `fmt-project`.
