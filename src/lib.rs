@@ -36,6 +36,7 @@ mod hooks;
 mod ignore_me;
 mod include_exclude;
 mod interactive;
+mod post_processing;
 mod progressbar;
 mod project_variables;
 mod template;
@@ -132,6 +133,7 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     };
 
     check_cargo_generate_version(&config)?;
+    config.warn_about_misplaced_named_hooks();
 
     let project_dir = expand_template(
         fetched.template_dir(),
@@ -155,7 +157,7 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     let target_path = if user_parsed_input.test() {
         test_expanded_template(fetched.template_dir(), args.other_args)?
     } else {
-        let project_path =
+        let (project_path, generated_files) =
             copy_expanded_template(fetched.template_dir(), project_dir, user_parsed_input)?;
 
         if !args.no_workspace {
@@ -178,6 +180,12 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
                     // NoWorkspaceFound: not in a workspace, nothing to do.
                 }
             }
+        }
+
+        // Only the files this run wrote: `--init` can expand a template into a
+        // subtree of an existing project, whose other code is not ours to touch.
+        if post_processing::fmt::should_format(&config, args.no_fmt) {
+            post_processing::fmt::format_generated_files(&generated_files);
         }
 
         project_path
@@ -204,11 +212,13 @@ pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
     Ok(target_path)
 }
 
+/// Move the expansion into place, returning the destination and every file
+/// actually written there.
 fn copy_expanded_template(
     template_dir: &Path,
     project_dir: PathBuf,
     user_parsed_input: UserParsedInput,
-) -> Result<PathBuf> {
+) -> Result<(PathBuf, Vec<PathBuf>)> {
     info!(
         "{} {} `{}`{}",
         emoji::WRENCH,
@@ -216,9 +226,10 @@ fn copy_expanded_template(
         style(project_dir.display()).bold().yellow(),
         style("...").bold()
     );
-    copy_files_recursively(template_dir, &project_dir, user_parsed_input.overwrite())?;
+    let generated_files =
+        copy_files_recursively(template_dir, &project_dir, user_parsed_input.overwrite())?;
 
-    Ok(project_dir)
+    Ok((project_dir, generated_files))
 }
 
 fn test_expanded_template(template_dir: &Path, args: Option<Vec<String>>) -> Result<PathBuf> {

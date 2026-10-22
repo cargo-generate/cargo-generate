@@ -6,6 +6,7 @@ mod basics;
 mod conditionals;
 mod config_file;
 mod filenames;
+mod fmt;
 #[cfg(feature = "git")]
 mod git;
 #[cfg(feature = "git")]

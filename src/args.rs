@@ -184,6 +184,12 @@ pub struct GenerateArgs {
     #[arg(long, action, help_heading = heading::OUTPUT_PARAMETERS)]
     pub no_workspace: bool,
 
+    /// Skip formatting the generated files. By default the Rust files this
+    /// generation writes are formatted with rustfmt; files it did not write are
+    /// never touched either way.
+    #[arg(long, action, help_heading = heading::OUTPUT_PARAMETERS)]
+    pub no_fmt: bool,
+
     /// All args after "--" on the command line.
     #[arg(skip)]
     pub other_args: Option<Vec<String>>,
@@ -215,6 +221,7 @@ impl Default for GenerateArgs {
             overwrite: false,
             skip_submodules: false,
             no_workspace: false,
+            no_fmt: false,
             other_args: None,
         }
     }
