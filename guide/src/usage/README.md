@@ -103,6 +103,18 @@ On an interactive terminal the classic UI prints a one-line tip pointing at this
 
 When using `cargo-generate` as a library, set `GenerateArgs::try_new_ui` to get the same opt-in.
 
+### Leaving the new UI out of the build
+
+The new UI and its dependencies come with the default `new-ui` feature flag. To install without
+them, disable the default features and enable the `git` feature again, which is the other default:
+
+```sh
+cargo install cargo-generate --locked --no-default-features --features git
+```
+
+Such a build still accepts `--try-new-ui`, so existing scripts keep working; it prints a warning and
+uses the classic UI.
+
 ## Http(s) proxy
 
 New in version [0.7.0] is automatic proxy usage. So, if http(s)\_PROXY env variables are provided, they
