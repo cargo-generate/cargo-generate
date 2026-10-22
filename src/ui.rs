@@ -2,7 +2,8 @@
 //!
 //! Two backends are available:
 //! - `ui_classic` (default): dialoguer + plain println/eprintln with `console` styling.
-//! - `ui_next` (opt-in via `--try-new-ui`): [`cliclack`] structured output.
+//! - `ui_next` (opt-in via `--try-new-ui`, needs the `new-ui` feature):
+//!   [`cliclack`] structured output.
 //!
 //! The backend is picked at runtime through a process-wide switch rather than
 //! threaded through every call-site, so shared code stays backend-agnostic.
@@ -13,10 +14,21 @@ use std::sync::atomic::{AtomicBool, Ordering};
 static NEXT: AtomicBool = AtomicBool::new(false);
 
 /// Select the cliclack backend for all subsequent output and prompts.
+///
+/// Builds without the `new-ui` feature still accept the request, so scripts
+/// passing `--try-new-ui` keep working; they warn and stay classic.
 pub fn use_next(enabled: bool) {
+    #[cfg(not(feature = "new-ui"))]
+    if enabled {
+        let _ = ui_classic::warning(
+            "--try-new-ui has no effect: this build has no `new-ui` feature, using the classic UI",
+        );
+        return;
+    }
     NEXT.store(enabled, Ordering::Relaxed);
 }
 
+#[cfg(feature = "new-ui")]
 pub fn is_next() -> bool {
     NEXT.load(Ordering::Relaxed)
 }
@@ -134,6 +146,7 @@ mod ui_classic {
     }
 }
 
+#[cfg(feature = "new-ui")]
 mod ui_next {
     use super::{Result, Validator};
 
@@ -256,13 +269,13 @@ mod ui_next {
 }
 
 macro_rules! dispatch {
-    ($f:ident($($arg:expr),*)) => {
+    ($f:ident($($arg:expr),*)) => {{
+        #[cfg(feature = "new-ui")]
         if is_next() {
-            ui_next::$f($($arg),*)
-        } else {
-            ui_classic::$f($($arg),*)
+            return ui_next::$f($($arg),*);
         }
-    };
+        ui_classic::$f($($arg),*)
+    }};
 }
 
 pub fn intro(msg: impl AsRef<str>) -> Result<()> {

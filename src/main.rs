@@ -29,12 +29,13 @@ fn main() -> Result<()> {
 }
 
 /// Show a tip inviting users to try the upcoming cliclack-based UI.
-/// Runs only when the classic backend is active and the invocation looks
-/// interactive.
+/// Runs only when the classic backend is active, the build can offer the new
+/// one, and the invocation looks interactive.
 fn print_ui_next_tip(args: &cargo_generate::GenerateArgs) {
     use std::io::IsTerminal;
 
-    if args.try_new_ui
+    if !cfg!(feature = "new-ui")
+        || args.try_new_ui
         || args.silent
         || args.list_favorites
         || std::env::var_os("CARGO_GENERATE_NO_TIP").is_some()

@@ -144,6 +144,7 @@ pub fn log_formatter(
     writeln!(buf, "{}", record.args())
 }
 
+#[cfg(feature = "new-ui")]
 fn random_intro() -> &'static str {
     if !ui::is_next() {
         return "cargo generate";
@@ -156,6 +157,11 @@ fn random_intro() -> &'static str {
         "⚡ Forging your next masterpiece...",
     ];
     INTROS[fastrand::usize(..INTROS.len())]
+}
+
+#[cfg(not(feature = "new-ui"))]
+const fn random_intro() -> &'static str {
+    "cargo generate"
 }
 
 /// # Panics

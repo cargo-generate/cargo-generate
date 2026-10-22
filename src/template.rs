@@ -20,6 +20,7 @@ use crate::template_filters::*;
 use crate::template_variables::{
     get_authors, get_os_arch, Authors, CrateName, ProjectDir, ProjectName,
 };
+#[cfg(feature = "new-ui")]
 use crate::ui;
 use crate::user_parsed_input::UserParsedInput;
 
@@ -112,6 +113,7 @@ fn is_within_cargo_project(project_dir: &Path) -> bool {
         .any(|folder| folder.join("Cargo.toml").exists())
 }
 
+#[cfg(feature = "new-ui")]
 enum FileResult {
     Done(String),
     Skipped(String),
@@ -151,12 +153,19 @@ pub fn walk_dir(
     rhai_filter_files: &Arc<Mutex<Vec<PathBuf>>>,
     quiet: bool,
 ) -> Result<()> {
-    let walk = if ui::is_next() {
-        walk_dir_next
-    } else {
-        walk_dir_classic
-    };
-    walk(
+    #[cfg(feature = "new-ui")]
+    if ui::is_next() {
+        return walk_dir_next(
+            template_config,
+            project_dir,
+            hook_files,
+            liquid_object,
+            rhai_engine,
+            rhai_filter_files,
+            quiet,
+        );
+    }
+    walk_dir_classic(
         template_config,
         project_dir,
         hook_files,
@@ -309,6 +318,7 @@ fn walk_dir_classic(
 
 /// ui-next backend: batch the per-file outcome into a single cliclack note
 /// box at the end of the walk so it plays nice with the surrounding frame.
+#[cfg(feature = "new-ui")]
 #[allow(clippy::too_many_arguments)]
 fn walk_dir_next(
     template_config: &mut TemplateConfig,

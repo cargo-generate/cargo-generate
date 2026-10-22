@@ -1232,6 +1232,7 @@ fn it_renders_the_classic_ui_by_default() {
         );
 }
 
+#[cfg(feature = "new-ui")]
 #[test]
 fn it_renders_the_new_ui_with_try_new_ui() {
     let template = tempdir().with_default_manifest().build();
@@ -1249,4 +1250,25 @@ fn it_renders_the_new_ui_with_try_new_ui() {
     assert!(dir
         .read("foobar-project/Cargo.toml")
         .contains("foobar-project"));
+}
+
+#[cfg(not(feature = "new-ui"))]
+#[test]
+fn it_falls_back_to_the_classic_ui_without_the_new_ui_feature() {
+    let template = tempdir().with_default_manifest().build();
+    let dir = tempdir().build();
+
+    binary()
+        .arg("--try-new-ui")
+        .arg_name("foobar-project")
+        .arg_path(template.path())
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stderr(
+            predicates::str::contains("--try-new-ui has no effect")
+                .and(predicates::str::contains("Generating template").not())
+                .and(predicates::str::contains("Done!"))
+                .from_utf8(),
+        );
 }
