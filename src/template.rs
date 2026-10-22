@@ -20,7 +20,6 @@ use crate::template_filters::*;
 use crate::template_variables::{
     get_authors, get_os_arch, Authors, CrateName, ProjectDir, ProjectName,
 };
-#[cfg(feature = "ui-next")]
 use crate::ui;
 use crate::user_parsed_input::UserParsedInput;
 
@@ -113,7 +112,6 @@ fn is_within_cargo_project(project_dir: &Path) -> bool {
         .any(|folder| folder.join("Cargo.toml").exists())
 }
 
-#[cfg(feature = "ui-next")]
 enum FileResult {
     Done(String),
     Skipped(String),
@@ -143,11 +141,36 @@ fn template_entries(project_dir: &Path) -> Vec<DirEntry> {
         .collect()
 }
 
-/// Classic backend: live per-file spinner with `[NNN/TTT]` prefix via
-/// indicatif MultiProgress. Matches the historical cargo-generate output.
-#[cfg(not(feature = "ui-next"))]
 #[allow(clippy::too_many_arguments)]
 pub fn walk_dir(
+    template_config: &mut TemplateConfig,
+    project_dir: &Path,
+    hook_files: &[String],
+    liquid_object: &LiquidObjectResource,
+    rhai_engine: Parser,
+    rhai_filter_files: &Arc<Mutex<Vec<PathBuf>>>,
+    quiet: bool,
+) -> Result<()> {
+    let walk = if ui::is_next() {
+        walk_dir_next
+    } else {
+        walk_dir_classic
+    };
+    walk(
+        template_config,
+        project_dir,
+        hook_files,
+        liquid_object,
+        rhai_engine,
+        rhai_filter_files,
+        quiet,
+    )
+}
+
+/// Classic backend: live per-file spinner with `[NNN/TTT]` prefix via
+/// indicatif MultiProgress. Matches the historical cargo-generate output.
+#[allow(clippy::too_many_arguments)]
+fn walk_dir_classic(
     template_config: &mut TemplateConfig,
     project_dir: &Path,
     hook_files: &[String],
@@ -286,9 +309,8 @@ pub fn walk_dir(
 
 /// ui-next backend: batch the per-file outcome into a single cliclack note
 /// box at the end of the walk so it plays nice with the surrounding frame.
-#[cfg(feature = "ui-next")]
 #[allow(clippy::too_many_arguments)]
-pub fn walk_dir(
+fn walk_dir_next(
     template_config: &mut TemplateConfig,
     project_dir: &Path,
     hook_files: &[String],

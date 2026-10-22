@@ -1,7 +1,3 @@
-// The classic UI symbols carry `#[deprecated]` markers so downstream users
-// see them, but internal callers here are just wiring the active backend.
-#![allow(deprecated)]
-
 use anyhow::Result;
 use cargo_generate::{generate, list_favorites, Cli};
 use clap::Parser;
@@ -32,14 +28,14 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-/// Show a one-time tip inviting users to try the upcoming cliclack-based UI.
+/// Show a tip inviting users to try the upcoming cliclack-based UI.
 /// Runs only when the classic backend is active and the invocation looks
 /// interactive.
-#[cfg(not(feature = "ui-next"))]
 fn print_ui_next_tip(args: &cargo_generate::GenerateArgs) {
     use std::io::IsTerminal;
 
-    if args.silent
+    if args.try_new_ui
+        || args.silent
         || args.list_favorites
         || std::env::var_os("CARGO_GENERATE_NO_TIP").is_some()
         || std::env::var_os("NO_COLOR").is_some()
@@ -50,12 +46,9 @@ fn print_ui_next_tip(args: &cargo_generate::GenerateArgs) {
 
     eprintln!(
         "\x1b[33m💡 tip:\x1b[0m a new interactive UI is coming. Try it early:\n     \
-         cargo install --features=ui-next --locked cargo-generate\n"
+         cargo generate --try-new-ui\n"
     );
 }
-
-#[cfg(feature = "ui-next")]
-fn print_ui_next_tip(_args: &cargo_generate::GenerateArgs) {}
 
 fn resolve_args() -> cargo_generate::GenerateArgs {
     let (args, other_args): (Vec<_>, Vec<_>) = {

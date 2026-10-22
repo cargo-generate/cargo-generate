@@ -2,11 +2,24 @@
 //!
 //! Two backends are available:
 //! - `ui_classic` (default): dialoguer + plain println/eprintln with `console` styling.
-//! - `ui_next` (behind the `ui-next` feature): [`cliclack`] structured output.
+//! - `ui_next` (opt-in via `--try-new-ui`): [`cliclack`] structured output.
 //!
-//! Public entry points keep identical signatures so call-sites don't branch.
+//! The backend is picked at runtime through a process-wide switch rather than
+//! threaded through every call-site, so shared code stays backend-agnostic.
 
 use anyhow::Result;
+use std::sync::atomic::{AtomicBool, Ordering};
+
+static NEXT: AtomicBool = AtomicBool::new(false);
+
+/// Select the cliclack backend for all subsequent output and prompts.
+pub fn use_next(enabled: bool) {
+    NEXT.store(enabled, Ordering::Relaxed);
+}
+
+pub fn is_next() -> bool {
+    NEXT.load(Ordering::Relaxed)
+}
 
 /// Optional inline validator for text input widgets.
 ///
@@ -14,7 +27,6 @@ use anyhow::Result;
 /// with `msg` shown to the user.
 pub type Validator = Box<dyn Fn(&str) -> std::result::Result<(), String> + 'static>;
 
-#[cfg(not(feature = "ui-next"))]
 mod ui_classic {
     use super::{Result, Validator};
     use crate::emoji;
@@ -122,7 +134,6 @@ mod ui_classic {
     }
 }
 
-#[cfg(feature = "ui-next")]
 mod ui_next {
     use super::{Result, Validator};
 
@@ -244,7 +255,58 @@ mod ui_next {
     }
 }
 
-#[cfg(not(feature = "ui-next"))]
-pub use ui_classic::*;
-#[cfg(feature = "ui-next")]
-pub use ui_next::*;
+macro_rules! dispatch {
+    ($f:ident($($arg:expr),*)) => {
+        if is_next() {
+            ui_next::$f($($arg),*)
+        } else {
+            ui_classic::$f($($arg),*)
+        }
+    };
+}
+
+pub fn intro(msg: impl AsRef<str>) -> Result<()> {
+    dispatch!(intro(msg))
+}
+
+pub fn outro(msg: impl AsRef<str>) -> Result<()> {
+    dispatch!(outro(msg))
+}
+
+pub fn outro_cancel(msg: impl AsRef<str>) -> Result<()> {
+    dispatch!(outro_cancel(msg))
+}
+
+pub fn info(msg: impl AsRef<str>) -> Result<()> {
+    dispatch!(info(msg))
+}
+
+pub fn warning(msg: impl AsRef<str>) -> Result<()> {
+    dispatch!(warning(msg))
+}
+
+pub fn note(title: impl AsRef<str>, content: impl AsRef<str>) -> Result<()> {
+    dispatch!(note(title, content))
+}
+
+pub fn input(prompt: &str, default: Option<&str>, validate: Option<Validator>) -> Result<String> {
+    dispatch!(input(prompt, default, validate))
+}
+
+/// Returns the index of the chosen item.
+pub fn select(prompt: &str, choices: &[String], initial: usize) -> Result<usize> {
+    dispatch!(select(prompt, choices, initial))
+}
+
+/// Returns the indices of the chosen items.
+pub fn multiselect(prompt: &str, choices: &[String], initial_flags: &[bool]) -> Result<Vec<usize>> {
+    dispatch!(multiselect(prompt, choices, initial_flags))
+}
+
+pub fn confirm(prompt: &str, default: bool) -> Result<bool> {
+    dispatch!(confirm(prompt, default))
+}
+
+pub fn editor(initial: &str) -> Result<Option<String>> {
+    dispatch!(editor(initial))
+}

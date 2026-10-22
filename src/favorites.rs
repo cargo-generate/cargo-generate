@@ -7,6 +7,7 @@ use crate::{
 use anyhow::Result;
 
 pub fn list_favorites(args: &GenerateArgs) -> Result<()> {
+    ui::use_next(args.try_new_ui);
     let app_config: AppConfig = app_config_path(&args.config)?.as_path().try_into()?;
 
     let data = {

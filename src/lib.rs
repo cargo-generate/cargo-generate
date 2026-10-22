@@ -37,7 +37,6 @@ mod ignore_me;
 mod include_exclude;
 mod interactive;
 mod post_processing;
-#[cfg(not(feature = "ui-next"))]
 mod progressbar;
 mod project_variables;
 mod template;
@@ -145,8 +144,10 @@ pub fn log_formatter(
     writeln!(buf, "{}", record.args())
 }
 
-#[cfg(feature = "ui-next")]
 fn random_intro() -> &'static str {
+    if !ui::is_next() {
+        return "cargo generate";
+    }
     const INTROS: &[&str] = &[
         "🦀 Let's get Rusty!",
         "🧪 Brewing a fresh project...",
@@ -157,13 +158,9 @@ fn random_intro() -> &'static str {
     INTROS[fastrand::usize(..INTROS.len())]
 }
 
-#[cfg(not(feature = "ui-next"))]
-const fn random_intro() -> &'static str {
-    "cargo generate"
-}
-
 /// # Panics
 pub fn generate(args: GenerateArgs) -> Result<PathBuf> {
+    ui::use_next(args.try_new_ui);
     ui::intro(random_intro())?;
 
     match generate_inner(args) {

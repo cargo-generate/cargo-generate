@@ -190,6 +190,10 @@ pub struct GenerateArgs {
     #[arg(long, action, help_heading = heading::OUTPUT_PARAMETERS)]
     pub no_fmt: bool,
 
+    /// Opt in to the new interactive terminal UI preview.
+    #[arg(long, action, help_heading = heading::OUTPUT_PARAMETERS)]
+    pub try_new_ui: bool,
+
     /// All args after "--" on the command line.
     #[arg(skip)]
     pub other_args: Option<Vec<String>>,
@@ -222,6 +226,7 @@ impl Default for GenerateArgs {
             skip_submodules: false,
             no_workspace: false,
             no_fmt: false,
+            try_new_ui: false,
             other_args: None,
         }
     }

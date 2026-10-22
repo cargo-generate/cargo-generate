@@ -1213,3 +1213,40 @@ fn vcs_git_flag_still_parses_and_reports_the_disabled_feature() {
 
     assert!(dir.path().join("foobar-project").exists().not());
 }
+
+#[test]
+fn it_renders_the_classic_ui_by_default() {
+    let template = tempdir().with_default_manifest().build();
+    let dir = tempdir().build();
+
+    binary()
+        .arg_name("foobar-project")
+        .arg_path(template.path())
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stderr(
+            predicates::str::contains("Done!")
+                .and(predicates::str::contains("Generating template").not())
+                .from_utf8(),
+        );
+}
+
+#[test]
+fn it_renders_the_new_ui_with_try_new_ui() {
+    let template = tempdir().with_default_manifest().build();
+    let dir = tempdir().build();
+
+    binary()
+        .arg("--try-new-ui")
+        .arg_name("foobar-project")
+        .arg_path(template.path())
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stderr(predicates::str::contains("Generating template").from_utf8());
+
+    assert!(dir
+        .read("foobar-project/Cargo.toml")
+        .contains("foobar-project"));
+}
