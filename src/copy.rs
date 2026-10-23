@@ -1,6 +1,6 @@
+use crate::ui;
 use anyhow::{Ok, Result};
 use console::style;
-use log::{info, warn};
 use std::{
     fs::{copy, read_dir, remove_file, File},
     io::Read,
@@ -56,10 +56,10 @@ fn copy_into(src: &Path, dst: &Path, overwrite: bool, copied: &mut Vec<PathBuf>)
             // them wastes seconds to minutes on a template with a warm build.
             // See https://github.com/cargo-generate/cargo-generate/issues/1600
             if is_cache_dir(&src_entry.path()) {
-                info!(
+                let _ = ui::info(format!(
                     "Skipping cache directory (CACHEDIR.TAG): `{}`",
                     src_entry.path().display()
-                );
+                ));
                 continue;
             }
             let dst_dir = dst_path.join(filename);
@@ -71,14 +71,14 @@ fn copy_into(src: &Path, dst: &Path, overwrite: bool, copied: &mut Vec<PathBuf>)
             copy_file(&src_entry.path(), dst_path, overwrite, copied)?;
         } else {
             // todo: maybe we better emit a warning but continue processing the other files
-            warn!(
+            let _ = ui::warning(format!(
                 "{} {} `{}`",
                 crate::emoji::WARN,
                 style("[Skipping] Symbolic links not supported")
                     .bold()
                     .red(),
                 style(src_entry.path().display()).bold(),
-            )
+            ));
         }
     }
 
@@ -111,12 +111,12 @@ fn copy_file(
 /// Returns whether the file was written.
 fn safe_copy_skip_existing(src_path: &Path, dst_path: &Path, overwrite: bool) -> Result<bool> {
     if dst_path.exists() && !overwrite {
-        warn!(
+        let _ = ui::warning(format!(
             "{} `{}` {}",
             style("[Skipping] File already exists").bold().yellow(),
             style(dst_path.display()).bold(),
             style("and `--overwrite` was not passed")
-        );
+        ));
         return Ok(false);
     }
 

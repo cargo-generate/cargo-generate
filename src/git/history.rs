@@ -41,10 +41,10 @@ pub fn remove_history(project_dir: &Path) -> io::Result<()> {
                     "The process cannot access the file because it is being used by another process.",
                 ) {
                     let wait_for = Duration::from_secs(2_u64.pow(u32::from(attempt - 1)));
-                    log::warn!(
+                    let _ = crate::ui::warning(format!(
                         "`.git` cleanup failed with a Windows process-lock error. \
                          Retry in {wait_for:?}"
-                    );
+                    ));
                     sleep(wait_for);
                 } else {
                     return Err(e);

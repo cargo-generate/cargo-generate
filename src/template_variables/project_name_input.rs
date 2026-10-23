@@ -4,10 +4,10 @@ use anyhow::anyhow;
 use console::style;
 use liquid::ValueView;
 
+use crate::ui;
 use crate::{
     emoji, interactive, template::LiquidObjectResource, user_parsed_input::UserParsedInput,
 };
-use log::warn;
 
 #[derive(Debug)]
 pub struct ProjectNameInput(pub(crate) String);
@@ -27,14 +27,14 @@ impl TryFrom<(&LiquidObjectResource, &UserParsedInput)> for ProjectNameInput {
                 let v = v.as_scalar().to_kstr().into_string();
                 if let Some(n) = user_parsed_input.name() {
                     if n != v {
-                        warn!(
+                        let _ = ui::warning(format!(
                             "{} `{}` {} `{}`{}",
                             style("Project name changed by template, from").bold(),
                             style(n).bold().yellow(),
                             style("to").bold(),
                             style(&v).bold().green(),
                             style("...").bold()
-                        );
+                        ));
                     }
                 }
                 v

@@ -1,5 +1,6 @@
 #![allow(clippy::box_default)]
 
+use crate::ui;
 use ::liquid_core::error::Error;
 use anyhow::Result;
 use console::style;
@@ -10,7 +11,6 @@ use heck::{
 use liquid::model;
 use liquid_core::{parser::FilterArguments, Filter, ParseFilter, Runtime, Value, ValueView};
 use liquid_derive::FilterReflection;
-use log::warn;
 use std::{
     path::PathBuf,
     sync::{Arc, Mutex},
@@ -163,13 +163,13 @@ impl Filter for RhaiFilter {
         match engine.eval_file::<String>(file_path) {
             Ok(r) => Ok(Value::Scalar(model::Scalar::from(r))),
             Err(err) => {
-                warn!(
+                let _ = ui::warning(format!(
                     "{} {} {} {}",
                     style("Filter script").bold().yellow(),
                     style(&script_name).bold().red(),
                     style("not found or failed:").bold().yellow(),
                     style(err.to_string()).bold().red(),
-                );
+                ));
                 Err(liquid_core::Error::with_msg(format!(
                     "Filter script {script_name} not found or failed: {err}"
                 )))

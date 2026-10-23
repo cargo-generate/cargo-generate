@@ -10,9 +10,11 @@ use rhai::module_resolvers::FileModuleResolver;
 use rhai::EvalAltResult;
 use std::path::Path;
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 
 use crate::emoji;
 use crate::template::LiquidObjectResource;
+use crate::ui;
 
 mod context;
 mod env_mod;
@@ -32,7 +34,17 @@ pub fn execute_hooks(context: &RhaiHooksContext, scripts: &[String]) -> Result<(
     Ok(())
 }
 
-fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engine) -> Result<()> {
+fn evaluate_scripts(
+    template_dir: &Path,
+    scripts: &[String],
+    mut engine: rhai::Engine,
+) -> Result<()> {
+    let printed = PrintSink::default();
+    engine.on_print({
+        let sink = printed.clone();
+        move |line| sink.push(line)
+    });
+
     for script in scripts {
         let script: PathBuf = template_dir.join(script);
 
@@ -47,31 +59,25 @@ fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engin
                     style(script.display()).yellow(),
                 )
             })?;
+
+        let lines = printed.drain();
+        if !lines.is_empty() {
+            let content = lines
+                .iter()
+                .map(|line| format!("  {line}"))
+                .collect::<Vec<_>>()
+                .join("\n");
+            ui::note(format!("Script: {}", script.display()), content)?;
+        }
+
         match result.into_string() {
             Ok(output) => {
                 if !output.is_empty() {
-                    println!(
-                        "{} {} {}",
-                        emoji::SPARKLE,
-                        style(format!(
-                            "Script `{}` executed successfully and returned output:",
-                            script.display()
-                        ))
-                        .bold()
-                        .green(),
-                        style(output).yellow()
-                    );
-                } else {
-                    println!(
-                        "{} {}",
-                        emoji::WRENCH,
-                        style(format!(
-                            "Script `{}` executed successfully with no output.",
-                            script.display()
-                        ))
-                        .bold()
-                        .green()
-                    );
+                    ui::info(format!(
+                        "Script `{}` returned: {}",
+                        script.display(),
+                        output
+                    ))?;
                 }
             }
             Err(e) => {
@@ -85,6 +91,30 @@ fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engin
     }
 
     Ok(())
+}
+
+/// Thread-safe buffer for `rhai` `print()` output.
+///
+/// `Engine::on_print` requires a `Send + Sync` closure, so the buffer lives
+/// behind an `Arc<Mutex<_>>`. Poisoning is not treated as fatal — a script
+/// panicking mid-print just loses its own captured lines.
+#[derive(Default, Clone)]
+struct PrintSink(Arc<Mutex<Vec<String>>>);
+
+impl PrintSink {
+    fn push(&self, line: &str) {
+        if let Ok(mut buf) = self.0.lock() {
+            buf.push(line.to_owned());
+        }
+    }
+
+    /// Returns everything captured so far and empties the buffer.
+    fn drain(&self) -> Vec<String> {
+        self.0
+            .lock()
+            .map(|mut buf| std::mem::take(&mut *buf))
+            .unwrap_or_default()
+    }
 }
 
 pub fn evaluate_script<T: Clone + 'static>(

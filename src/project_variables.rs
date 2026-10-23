@@ -1,18 +1,17 @@
 use anyhow::Result;
+use console::style;
 use indexmap::IndexMap;
 use liquid_core::model::map::Entry;
 use liquid_core::{Value, ValueView};
-use log::info;
 use regex::Regex;
 use thiserror::Error;
 
-use crate::emoji;
-use console::style;
-
 use crate::{
     config::{Config, TemplateSlotsTable},
+    emoji,
     interactive::LIST_SEP,
     template::LiquidObjectResource,
+    ui,
 };
 
 #[derive(Debug)]
@@ -23,8 +22,9 @@ pub struct TemplateSlots {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Prompt {
-    pub(crate) _raw: String,
+    pub(crate) raw: String,
     pub(crate) styled: String,
     pub(crate) styled_with_default: String,
     pub(crate) with_default: String,
@@ -32,7 +32,7 @@ pub struct Prompt {
 impl Prompt {
     pub(crate) fn new(prompt: impl Into<String>, default: Option<String>) -> Self {
         let prompt = prompt.into();
-        let styled = format!("{} {}", emoji::SHRUG, style(&prompt).bold(),);
+        let styled = format!("{} {}", emoji::SHRUG, style(&prompt).bold());
         let styled_with_default = format!(
             "{styled}{}",
             default
@@ -48,7 +48,7 @@ impl Prompt {
                 .unwrap_or_default()
         );
         Self {
-            _raw: prompt,
+            raw: prompt,
             styled,
             styled_with_default,
             with_default,
@@ -214,7 +214,10 @@ const RESERVED_NAMES: [&str; 7] = [
     "is_init",
 ];
 
-pub fn show_project_variables_with_value(template_object: &LiquidObjectResource, config: &Config) {
+pub fn show_project_variables_with_value(
+    template_object: &LiquidObjectResource,
+    config: &Config,
+) -> Result<()> {
     let template_slots = config
         .placeholders
         .as_ref()
@@ -222,25 +225,24 @@ pub fn show_project_variables_with_value(template_object: &LiquidObjectResource,
         .unwrap_or_else(|| Ok(IndexMap::new()))
         .unwrap_or_default();
 
-    template_slots
+    for (k, v) in template_slots
         .iter()
         .filter(|(k, _)| template_object.lock().unwrap().borrow().contains_key(**k))
-        .for_each(|(k, v)| {
-            let name = v.var_name.as_str();
-            let value = template_object
-                .lock()
-                .unwrap()
-                .borrow()
-                .get(*k)
-                .unwrap()
-                .to_kstr()
-                .to_string();
-            info!(
-                "{} {} (placeholder provided by cli argument)",
-                emoji::WRENCH,
-                style(format!("{name}: {value:?}")).bold(),
-            )
-        });
+    {
+        let name = v.var_name.as_str();
+        let value = template_object
+            .lock()
+            .unwrap()
+            .borrow()
+            .get(*k)
+            .unwrap()
+            .to_kstr()
+            .to_string();
+        ui::info(format!(
+            "{name}: {value:?} (placeholder provided by cli argument)"
+        ))?;
+    }
+    Ok(())
 }
 
 /// For each defined placeholder, try to add it with value as a variable to the template_object.

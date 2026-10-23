@@ -18,11 +18,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use console::style;
-use log::{info, warn};
-
 use crate::config::Config;
-use crate::emoji;
+use crate::ui;
 
 /// Cargo's own default when a manifest states no edition.
 const DEFAULT_EDITION: &str = "2015";
@@ -69,11 +66,7 @@ pub fn format_generated_files(generated_files: &[PathBuf]) {
         return;
     }
 
-    info!(
-        "{} {}",
-        emoji::WRENCH,
-        style("Formatting the generated files").bold()
-    );
+    let _ = ui::info("Formatting the generated files");
 
     for (edition, files) in by_edition {
         run_rustfmt(&edition, &files);
@@ -106,7 +99,6 @@ fn run_rustfmt(edition: &str, files: &[&Path]) {
     }
 }
 
-/// `log_formatter` already prefixes warnings with the warning emoji.
 fn warn_fmt_failed(reason: &str) {
     let reason = reason.trim();
     let detail = if reason.is_empty() {
@@ -115,10 +107,7 @@ fn warn_fmt_failed(reason: &str) {
         reason.to_owned()
     };
 
-    warn!(
-        "{}",
-        style(format!("Could not format the generated files: {detail}")).yellow()
-    );
+    let _ = ui::warning(format!("Could not format the generated files: {detail}"));
 }
 
 /// The edition `file` should be formatted against, or `None` when it belongs to

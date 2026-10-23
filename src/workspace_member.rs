@@ -1,7 +1,7 @@
+use crate::ui;
 use anyhow::{anyhow, Context, Result};
 use cargo_util_schemas::manifest::TomlManifest;
 use glob::Pattern;
-use log::warn;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -34,11 +34,11 @@ pub fn add_to_workspace(member_path: &Path) -> Result<WorkspaceMemberStatus> {
     let relative_member_path = workspace.relative_path_for(member_path)?;
 
     if workspace.is_excluded(&relative_member_path) {
-        warn!(
+        let _ = ui::warning(format!(
             "Project `{}` matches `workspace.exclude` in {}; skipping workspace membership.",
             relative_member_path,
             workspace.cargo_toml_path.display()
-        );
+        ));
         return Ok(WorkspaceMemberStatus::Excluded(workspace.cargo_toml_path));
     }
 

@@ -45,6 +45,7 @@ fn public_args(git_url: String, destination: PathBuf) -> GenerateArgs {
         skip_submodules: false,
         no_workspace: false,
         no_fmt: false,
+        try_new_ui: false,
     }
 }
 

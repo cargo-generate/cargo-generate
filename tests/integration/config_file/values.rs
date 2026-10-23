@@ -32,7 +32,7 @@ fn it_accepts_default_template_values() {
         .current_dir(working_dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     assert!(working_dir
         .read("my-project/random.toml")
@@ -83,7 +83,7 @@ fn it_accepts_template_values_file_from_environment() {
         )
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let random_toml = dbg!(dir.read("foobar-project/random.toml"));
     assert!(random_toml.contains("value = \"env-file-value\""));
@@ -129,7 +129,7 @@ fn it_accepts_bool_in_file() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
     assert!(dir.exists("foobar-project/included").not());
 }
 
@@ -166,7 +166,7 @@ fn it_accepts_individual_template_values_from_environment() {
         .env("CARGO_GENERATE_VALUE_MY_VALUE", "env-def-value")
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let random_toml = dbg!(dir.read("foobar-project/random.toml"));
     assert!(random_toml.contains("value = \"env-def-value\""));
@@ -203,7 +203,7 @@ fn it_accepts_template_values_file_via_flag() {
         .env("CARGO_GENERATE_VALUE_MY_VALUE", "env-def-value")
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let random_toml = dbg!(dir.read("foobar-project/random.toml"));
     assert!(random_toml.contains("value = \"file-value\""));
@@ -241,7 +241,7 @@ fn it_accepts_individual_template_values_via_flag() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let random_toml = dbg!(dir.read("foobar-project/random.toml"));
     assert!(random_toml.contains("value = \"def-value\""));
@@ -279,7 +279,7 @@ fn it_accepts_empty_define_variables() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let random_toml = dbg!(dir.read("foobar-project/random.toml"));
     assert!(random_toml.contains("value = \"\""));
@@ -310,7 +310,7 @@ fn it_accepts_values_via_long_option() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let cargo_toml = dir.read("foobar-project/Cargo.toml");
     assert!(cargo_toml.contains("content of my-value"));
@@ -341,7 +341,7 @@ fn it_accepts_values_via_short_option() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let cargo_toml = dir.read("foobar-project/Cargo.toml");
     assert!(cargo_toml.contains("content of my-value"));
@@ -381,7 +381,7 @@ fn cli_value_overrides_others() {
         .current_dir(dir.path())
         .assert()
         .success()
-        .stdout(predicates::str::contains("Done!").from_utf8());
+        .stderr(predicates::str::contains("Done!").from_utf8());
 
     let cargo_toml = dir.read("foobar-project/Cargo.toml");
     assert!(cargo_toml.contains("content of cli-value"));
