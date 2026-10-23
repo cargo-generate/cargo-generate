@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/cargo-generate/cargo-generate/compare/0.24.0...HEAD)
 
+## [0.26.0] 2026-10-23
+[0.26.0]: https://github.com/cargo-generate/cargo-generate/compare/0.25.1...0.26.0
+
+### ✨ Features
+
+- Format the generated files with rustfmt by default ([#1785](https://github.com/cargo-generate/cargo-generate/issues/1785))
+- Add --try-new-ui to opt into the cliclack terminal UI ([#1622](https://github.com/cargo-generate/cargo-generate/issues/1622))
+
+
 ## [0.25.1] 2026-10-21
 [0.25.1]: https://github.com/cargo-generate/cargo-generate/compare/0.25.0...0.25.1
 
