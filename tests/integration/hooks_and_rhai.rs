@@ -762,3 +762,36 @@ fn it_intercepts_and_mutates_template_files_from_pre_hook() {
         "liquid expansion did not run on mutated content: {final_content:?}",
     );
 }
+
+#[cfg(feature = "git")]
+#[test]
+fn it_shows_what_a_failing_script_printed() {
+    let template = tempdir()
+        .file(
+            "init-script.rhai",
+            indoc! {r#"
+                print("checking the toolchain");
+                abort("toolchain missing");
+            "#},
+        )
+        .file(
+            "cargo-generate.toml",
+            indoc! {r#"
+                [hooks]
+                init = ["init-script.rhai"]
+            "#},
+        )
+        .init_git()
+        .build();
+
+    let dir = tempdir().build();
+
+    binary()
+        .arg_git(template.path())
+        .arg_name("script-project")
+        .current_dir(dir.path())
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("checking the toolchain").from_utf8())
+        .stderr(predicates::str::contains("toolchain missing").from_utf8());
+}
