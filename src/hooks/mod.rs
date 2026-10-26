@@ -29,27 +29,29 @@ pub use context::RhaiHooksContext;
 pub fn execute_hooks(context: &RhaiHooksContext, scripts: &[String]) -> Result<()> {
     debug!("executing rhai with context: {context:?}");
 
-    let engine = create_rhai_engine(context);
-    evaluate_scripts(&context.working_directory, scripts, engine)?;
-    Ok(())
+    let printed = PrintSink::default();
+    let mut engine = build_rhai_engine(context, &printed);
+    engine.on_print({
+        let sink = printed.clone();
+        move |line| sink.push(line)
+    });
+    evaluate_scripts(&context.working_directory, scripts, &engine, &printed)
 }
 
 fn evaluate_scripts(
     template_dir: &Path,
     scripts: &[String],
-    mut engine: rhai::Engine,
+    engine: &rhai::Engine,
+    printed: &PrintSink,
 ) -> Result<()> {
-    let printed = PrintSink::default();
-    engine.on_print({
-        let sink = printed.clone();
-        move |line| sink.push(line)
-    });
-
     for script in scripts {
         let script: PathBuf = template_dir.join(script);
+        printed.begin(&script);
 
-        let result = engine
-            .eval_file::<rhai::Dynamic>(script.clone())
+        let result = engine.eval_file::<rhai::Dynamic>(script.clone());
+        // Show what the script printed before its error, as that output is often what explains it.
+        let flushed = printed.flush();
+        let result = result
             .map_err(|e| anyhow::anyhow!(e.to_string()))
             .with_context(|| {
                 format!(
@@ -59,16 +61,7 @@ fn evaluate_scripts(
                     style(script.display()).yellow(),
                 )
             })?;
-
-        let lines = printed.drain();
-        if !lines.is_empty() {
-            let content = lines
-                .iter()
-                .map(|line| format!("  {line}"))
-                .collect::<Vec<_>>()
-                .join("\n");
-            ui::note(format!("Script: {}", script.display()), content)?;
-        }
+        flushed.map_err(|e| anyhow::anyhow!(e.to_string()))?;
 
         match result.into_string() {
             Ok(output) => {
@@ -93,27 +86,56 @@ fn evaluate_scripts(
     Ok(())
 }
 
-/// Thread-safe buffer for `rhai` `print()` output.
+/// Thread-safe buffer for `rhai` `print()` output of the running script.
+///
+/// Lines are grouped into one note per script rather than printed one by one. Hook functions
+/// that prompt call [`PrintSink::flush`] first, so the script's explanation shows above the prompt.
 ///
 /// `Engine::on_print` requires a `Send + Sync` closure, so the buffer lives
-/// behind an `Arc<Mutex<_>>`. Poisoning is not treated as fatal — a script
+/// behind an `Arc<Mutex<_>>`. Poisoning is not treated as fatal - a script
 /// panicking mid-print just loses its own captured lines.
 #[derive(Default, Clone)]
-struct PrintSink(Arc<Mutex<Vec<String>>>);
+pub struct PrintSink(Arc<Mutex<Printed>>);
+
+#[derive(Default)]
+struct Printed {
+    script: PathBuf,
+    lines: Vec<String>,
+}
 
 impl PrintSink {
-    fn push(&self, line: &str) {
-        if let Ok(mut buf) = self.0.lock() {
-            buf.push(line.to_owned());
+    fn begin(&self, script: &Path) {
+        if let Ok(mut printed) = self.0.lock() {
+            printed.script = script.to_path_buf();
+            printed.lines.clear();
         }
     }
 
-    /// Returns everything captured so far and empties the buffer.
-    fn drain(&self) -> Vec<String> {
-        self.0
+    fn push(&self, line: &str) {
+        if let Ok(mut printed) = self.0.lock() {
+            printed.lines.push(line.to_owned());
+        }
+    }
+
+    /// Shows everything captured so far as a note and empties the buffer.
+    pub fn flush(&self) -> HookResult<()> {
+        let Some((script, lines)) = self
+            .0
             .lock()
-            .map(|mut buf| std::mem::take(&mut *buf))
-            .unwrap_or_default()
+            .ok()
+            .map(|mut printed| (printed.script.clone(), std::mem::take(&mut printed.lines)))
+        else {
+            return Ok(());
+        };
+        if lines.is_empty() {
+            return Ok(());
+        }
+        let content = lines
+            .iter()
+            .map(|line| format!("  {line}"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        ui::note(format!("Script: {}", script.display()), content).map_err(|e| e.to_string().into())
     }
 }
 
@@ -143,14 +165,19 @@ pub fn evaluate_script<T: Clone + 'static>(
 }
 
 pub fn create_rhai_engine(context: &RhaiHooksContext) -> rhai::Engine {
+    build_rhai_engine(context, &PrintSink::default())
+}
+
+fn build_rhai_engine(context: &RhaiHooksContext, printed: &PrintSink) -> rhai::Engine {
     let mut engine = rhai::Engine::new();
 
-    let var_mod = variable_mod::create_module(&context.liquid_object);
+    let var_mod = variable_mod::create_module(&context.liquid_object, printed);
     let file_mod = file_mod::create_module(&context.working_directory);
     let system_mod = system_mod::create_module(
         context.working_directory.clone(),
         context.allow_commands,
         context.silent,
+        printed,
     );
     let env_mod = env_mod::create_module(Environment {
         working_directory: context.working_directory.clone(),

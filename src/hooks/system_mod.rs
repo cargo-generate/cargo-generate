@@ -12,24 +12,38 @@ use crate::{
     project_variables::{Choice, StringEntry, StringKind, TemplateSlots, VarInfo},
 };
 
-use super::HookResult;
+use super::{HookResult, PrintSink};
 
 /// Creates the system module, containing the `command` function,
 /// which allows you to run system command.
-pub fn create_module(working_directory: PathBuf, allow_commands: bool, silent: bool) -> Module {
+pub fn create_module(
+    working_directory: PathBuf,
+    allow_commands: bool,
+    silent: bool,
+    printed: &PrintSink,
+) -> Module {
     let mut module = Module::new();
 
     let cwd = working_directory.clone();
+    let sink = printed.clone();
     FuncRegistration::new("command").set_into_module(
         &mut module,
         move |name: &str, commands_args: rhai::Array| {
-            run_command(&cwd, name, commands_args, allow_commands, silent)
+            run_command(&cwd, name, commands_args, allow_commands, silent, &sink)
         },
     );
 
     let cwd = working_directory.clone();
+    let sink = printed.clone();
     FuncRegistration::new("command").set_into_module(&mut module, move |name: &str| {
-        run_command(&cwd, name, rhai::Array::new(), allow_commands, silent)
+        run_command(
+            &cwd,
+            name,
+            rhai::Array::new(),
+            allow_commands,
+            silent,
+            &sink,
+        )
     });
 
     module.set_native_fn("date", get_utc_date);
@@ -43,6 +57,7 @@ fn run_command(
     args: rhai::Array,
     allow_commands: bool,
     silent: bool,
+    printed: &PrintSink,
 ) -> HookResult<Dynamic> {
     let args: Vec<String> = args.into_iter().map(|arg| arg.to_string()).collect();
 
@@ -57,6 +72,9 @@ fn run_command(
         format!("{name} {}", args.join(" "))
     };
 
+    if !allow_commands {
+        printed.flush()?;
+    }
     // If the user specified the --allow-commands flag, don't prompt.
     let should_run = allow_commands
         || {
@@ -254,7 +272,12 @@ mod tests {
     fn test_get_utc_date() {
         let tmp_dir = TempDir::new().unwrap();
         let mut engine = Engine::new();
-        let module = super::create_module(tmp_dir.path().to_path_buf(), true, true);
+        let module = super::create_module(
+            tmp_dir.path().to_path_buf(),
+            true,
+            true,
+            &crate::hooks::PrintSink::default(),
+        );
         engine.register_static_module("system", module.into());
 
         let result = engine.eval::<rhai::Map>(r#"system::date()"#).unwrap();

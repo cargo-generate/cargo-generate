@@ -7,9 +7,9 @@ use crate::interactive::prompt_and_check_variable;
 use crate::project_variables::{Choice, StringEntry, StringKind, TemplateSlots, VarInfo};
 use crate::template::LiquidObjectResource;
 
-use super::{HookResult, PoisonError};
+use super::{HookResult, PoisonError, PrintSink};
 
-pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
+pub fn create_module(liquid_object: &LiquidObjectResource, printed: &PrintSink) -> Module {
     let mut module = Module::new();
 
     module.set_native_fn("is_set", {
@@ -96,7 +96,9 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
     });
 
     module.set_native_fn("prompt", {
+        let printed = printed.clone();
         move |prompt: &str, default_value: bool| -> HookResult<bool> {
+            printed.flush()?;
             let value = prompt_and_check_variable(
                 &TemplateSlots {
                     prompt: prompt.into(),
@@ -116,7 +118,9 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
     });
 
     module.set_native_fn("prompt", {
+        let printed = printed.clone();
         move |prompt: &str| -> HookResult<String> {
+            printed.flush()?;
             let value = prompt_and_check_variable(
                 &TemplateSlots {
                     prompt: prompt.into(),
@@ -140,7 +144,9 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
     });
 
     module.set_native_fn("prompt", {
+        let printed = printed.clone();
         move |prompt: &str, default_value: &str| -> HookResult<String> {
+            printed.flush()?;
             let value = prompt_and_check_variable(
                 &TemplateSlots {
                     prompt: prompt.into(),
@@ -164,7 +170,9 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
     });
 
     module.set_native_fn("prompt", {
+        let printed = printed.clone();
         move |prompt: &str, default_value: &str, regex: &str| -> HookResult<String> {
+            printed.flush()?;
             let value = prompt_and_check_variable(
                 &TemplateSlots {
                     prompt: prompt.into(),
@@ -188,7 +196,9 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
     });
 
     module.set_native_fn("prompt", {
+        let printed = printed.clone();
         move |prompt: &str, default_value: &str, choices: rhai::Array| -> HookResult<String> {
+            printed.flush()?;
             let value = prompt_and_check_variable(
                 &TemplateSlots {
                     prompt: prompt.into(),
@@ -326,7 +336,7 @@ mod tests {
         let mut engine = rhai::Engine::new();
         let liquid_object = Arc::new(Mutex::new(RefCell::new(Object::new())));
 
-        let module = create_module(&liquid_object);
+        let module = create_module(&liquid_object, &PrintSink::default());
         engine.register_static_module("variable", module.into());
 
         engine
@@ -368,7 +378,7 @@ mod tests {
         );
 
         let liquid_object = Arc::new(Mutex::new(RefCell::new(obj)));
-        let module = create_module(&liquid_object);
+        let module = create_module(&liquid_object, &PrintSink::default());
         engine.register_static_module("variable", module.into());
 
         // Test is_set() on array variable
@@ -402,7 +412,7 @@ mod tests {
         let mut engine = rhai::Engine::new();
         let liquid_object = Arc::new(Mutex::new(RefCell::new(Object::new())));
 
-        let module = create_module(&liquid_object);
+        let module = create_module(&liquid_object, &PrintSink::default());
         engine.register_static_module("variable", module.into());
 
         // Test is_set() on non-existent variable
