@@ -18,7 +18,7 @@ dialoguer = "~0.12"
 env_logger = "~0.11"
 fastrand = { version = "~2.5", optional = true }
 fs-err = "~3.3"
-gix = { version = "~0.89", default-features = false, optional = true, features = [
+gix = { version = "~0.90", default-features = false, optional = true, features = [
     "sha1",
     "revision",
     "worktree-mutation",
