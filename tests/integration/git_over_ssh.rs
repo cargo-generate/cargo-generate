@@ -86,7 +86,7 @@ fn it_should_use_a_ssh_key_provided_by_identity_argument() {
             .current_dir(dir.path())
             .assert()
             .success()
-            .stdout(
+            .stderr(
                 predicates::str::contains("Using private key:")
                     .and(predicates::str::contains(
                         private_key.as_str().replace("~/", ""),
