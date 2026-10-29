@@ -30,9 +30,9 @@ env:
   # clears RUSTC_WRAPPER and skips the sccache-action install.
   SCCACHE_GHA_ENABLED: "true"
   RUSTC_WRAPPER: "sccache"
-  # Fork and Dependabot PRs get no repo secrets, so only they skip the SSH
-  # e2e tests; same-repo PRs run them to catch breakage before the queue.
-  SSH_E2E: ${{ github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]') }}
+  # Fork and Dependabot PRs get no repo secrets; keying on the secret itself
+  # beats guessing from event, repo or actor.
+  SSH_E2E: ${{ secrets.CARGO_GENERATE_E2E_SSH_PRIVATE_KEY != '' }}
 
 jobs:
   typos:
