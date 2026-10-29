@@ -30,6 +30,9 @@ env:
   # clears RUSTC_WRAPPER and skips the sccache-action install.
   SCCACHE_GHA_ENABLED: "true"
   RUSTC_WRAPPER: "sccache"
+  # Fork and Dependabot PRs get no repo secrets, so only they skip the SSH
+  # e2e tests; same-repo PRs run them to catch breakage before the queue.
+  SSH_E2E: ${{ github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]') }}
 
 jobs:
   typos:
@@ -137,7 +140,7 @@ jobs:
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
       - name: install ssh key
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ env.SSH_E2E == 'true' }}
         shell: bash
         run: |
           mkdir -p $HOME/.ssh
@@ -148,7 +151,7 @@ jobs:
           chmod 644 $HOME/.ssh/known_hosts
 
       - name: start ssh-agent on windows
-        if: ${{ github.event_name != 'pull_request' && matrix.version == 'windows-latest' }}
+        if: ${{ env.SSH_E2E == 'true' && matrix.version == 'windows-latest' }}
         run: |
           Get-Service ssh-agent | Set-Service -StartupType Manual
           Start-Service ssh-agent
@@ -156,7 +159,7 @@ jobs:
           ssh-add $ENV:UserProfile\.ssh\id_rsa
 
       - name: start ssh-agent
-        if: ${{ github.event_name != 'pull_request' && matrix.version != 'windows-latest' }}
+        if: ${{ env.SSH_E2E == 'true' && matrix.version != 'windows-latest' }}
         shell: bash
         run: |
           eval `ssh-agent`
@@ -166,7 +169,7 @@ jobs:
           ssh-add -l
 
       - name: cargo test (with e2e tests with ssh key)
-        if: ${{ github.event_name != 'pull_request' && matrix.version != 'windows-latest' }}
+        if: ${{ env.SSH_E2E == 'true' && matrix.version != 'windows-latest' }}
         shell: bash
         run: cargo test --verbose --all --locked
         env:
@@ -176,7 +179,7 @@ jobs:
           RUSTFLAGS: "--cfg e2e_tests_with_ssh_key"
 
       - name: cargo test (no e2e tests with ssh key)
-        if: ${{ github.event_name == 'pull_request' || matrix.version == 'windows-latest' }}
+        if: ${{ env.SSH_E2E != 'true' || matrix.version == 'windows-latest' }}
         shell: bash
         run: cargo test --verbose --all --locked
         env:
@@ -224,7 +227,7 @@ jobs:
           echo SSH_AUTH_SOCK="$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
           echo SSH_AGENT_PID="$SSH_AGENT_PID" >> "$GITHUB_ENV"
       - name: install ssh key
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ env.SSH_E2E == 'true' }}
         shell: bash
         run: |
           mkdir -p $HOME/.ssh
@@ -238,13 +241,13 @@ jobs:
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate code coverage
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ env.SSH_E2E == 'true' }}
         run: cargo llvm-cov --all-features --workspace  --codecov --output-path codecov.json
         env:
           CARGO_GENERATE_E2E_SSH_PRIVATE_KEY: ~/.ssh/id_rsa
           RUSTFLAGS: "--cfg e2e_tests_with_ssh_key"
       - name: Generate code coverage
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ env.SSH_E2E != 'true' }}
         run: cargo llvm-cov --all-features --workspace  --codecov --output-path codecov.json
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7.1.1
