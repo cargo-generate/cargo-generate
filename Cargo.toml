@@ -12,13 +12,13 @@ include = ["src/**/*", "LICENSE-*", "*.md"]
 anstyle = "~1.0"
 anyhow = "~1.0"
 clap = { version = "~4.6", features = ["derive", "wrap_help"] }
-cliclack = { version = "~0.3", optional = true }
+cliclack = { version = "~0.5", optional = true }
 console = "~0.16"
 dialoguer = "~0.12"
 env_logger = "~0.11"
 fastrand = { version = "~2.5", optional = true }
 fs-err = "~3.3"
-gix = { version = "~0.89", default-features = false, optional = true, features = [
+gix = { version = "~0.90", default-features = false, optional = true, features = [
     "sha1",
     "revision",
     "worktree-mutation",
@@ -41,7 +41,7 @@ regex = "~1.12"
 # the transitive reqwest that gix's blocking-http-transport-reqwest-* pulls in for our proxy support feature.
 reqwest = { version = "~0.13", default-features = false, features = ["socks"], optional = true }
 remove_dir_all = "~1.0"
-rhai = "~1.26"
+rhai = "~1.27"
 sanitize-filename = "~0.6"
 semver = { version = "~1.0", features = ["serde"] }
 serde = { version = "~1.0", features = ["derive"] }
