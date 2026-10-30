@@ -78,6 +78,9 @@ jobs:
         run: |
           for ex in examples/*/; do
             echo "::group::$ex"
+            # Our own path-dep entry follows the root version, which release
+            # PRs bump; every other dependency stays strictly locked.
+            cargo update --manifest-path "$ex/Cargo.toml" -p cargo-generate
             cargo check --manifest-path "$ex/Cargo.toml" --locked
             echo "::endgroup::"
           done
