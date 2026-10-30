@@ -14,7 +14,7 @@ off: the blueprint is compiled into the binary, so nothing needs cloning.
 # `version` alongside `path` so this line reads the way a real
 # consumer would write it, and so CI resolves the same requirement the
 # blueprint below asks for.
-cargo-generate = { path = "../..", version = "0.25", default-features = false }
+cargo-generate = { path = "../..", version = ">=0.25", default-features = false }
 
 # The blueprint is baked into the binary and unpacked at runtime, so the
 # tool works wherever it is installed.
