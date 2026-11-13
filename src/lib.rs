@@ -241,7 +241,13 @@ fn generate_inner(args: GenerateArgs) -> Result<PathBuf> {
         let (project_path, generated_files) =
             copy_expanded_template(fetched.template_dir(), project_dir, user_parsed_input)?;
 
-        if !args.no_workspace {
+        let no_workspace = args.no_workspace
+            || config
+                .template
+                .as_ref()
+                .and_then(|template| template.no_workspace)
+                .unwrap_or(false);
+        if !no_workspace {
             match workspace_member::add_to_workspace(&project_path)? {
                 WorkspaceMemberStatus::Added(workspace_cargo_toml) => {
                     should_initialize_git = with_force;

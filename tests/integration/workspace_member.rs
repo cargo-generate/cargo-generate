@@ -215,6 +215,63 @@ fn it_should_add_a_new_project_from_a_nested_directory_to_the_workspace_members(
 }
 
 #[test]
+fn it_should_honor_the_templates_no_workspace_setting() {
+    for (no_workspace, cli_flag, should_add_member) in [
+        (true, false, false),
+        (false, false, true),
+        (false, true, false),
+    ] {
+        let workspace_manifest = "[workspace]\nmembers = [\"existing\"]\n";
+        let workspace_project = tempdir()
+            .file("Cargo.toml", workspace_manifest)
+            .file(
+                "existing/Cargo.toml",
+                "[package]\nname = \"existing\"\nversion = \"0.1.0\"\n",
+            )
+            .file("existing/src/lib.rs", "")
+            .init_git()
+            .build();
+        let template = tempdir()
+            .file(
+                "cargo-generate.toml",
+                format!("[template]\nno_workspace = {no_workspace}\n"),
+            )
+            .file(
+                "Cargo.toml",
+                "[package]\nname = \"{{project-name}}\"\nversion = \"0.1.0\"\n",
+            )
+            .file("src/lib.rs", "pub fn generated() {}\n")
+            .init_git()
+            .build();
+
+        let mut command = binary();
+        command.arg_name("generated").arg_path(template.path());
+        if cli_flag {
+            command.flag_no_workspace();
+        }
+        command
+            .current_dir(workspace_project.path())
+            .assert()
+            .success();
+
+        assert!(workspace_project.exists("generated/src/lib.rs"));
+        let manifest = workspace_project.read("Cargo.toml");
+        let parsed: toml::Value = toml::from_str(&manifest).unwrap();
+        let members = parsed["workspace"]["members"].as_array().unwrap();
+        assert_eq!(
+            members
+                .iter()
+                .any(|member| member.as_str() == Some("generated")),
+            should_add_member,
+            "no_workspace={no_workspace}, cli_flag={cli_flag}"
+        );
+        if !should_add_member {
+            assert_eq!(manifest, workspace_manifest);
+        }
+    }
+}
+
+#[test]
 fn it_should_skip_workspace_when_no_workspace_flag_is_set() {
     let workspace_project = tempdir()
         .file(

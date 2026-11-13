@@ -43,6 +43,8 @@ pub struct TemplateConfig {
     pub ignore: Option<Vec<String>>,
     pub vcs: Option<Vcs>,
     pub init: Option<bool>,
+    /// Opt out of automatic workspace registration. Defaults to `false`.
+    pub no_workspace: Option<bool>,
     /// Opt out of the built-in `cargo fmt` step. Defaults to `true`.
     pub fmt: Option<bool>,
 }
@@ -259,6 +261,7 @@ mod tests {
                 ignore: None,
                 vcs: None,
                 init: None,
+                no_workspace: None,
                 fmt: None,
             })
         );
