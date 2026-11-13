@@ -75,6 +75,22 @@ Following are filters that `cargo-generate` expands the `liquid` language with.
   `"We are not in the least afraid of ruins."` => `"WeAreNotInTheLeastAfraidOfRuins"`
 
 
+## Workspace membership
+
+> Available since version 0.27.0
+
+By default, a generated project is added to an enclosing Cargo workspace. A template can opt out
+of this automatic registration in its `cargo-generate.toml`:
+
+```toml
+[template]
+no_workspace = true
+```
+
+This leaves the enclosing workspace's `Cargo.toml` unchanged, just like the `--no-workspace` CLI
+flag. Omitting the setting or setting it to `false` keeps the default behavior. The CLI flag still
+disables registration when the template sets `no_workspace = false`.
+
 ## Templates by the community
 
 It's encouraged to classify your template repository [with a GitHub topic](https://docs.github.com/en/github/administering-a-repository/managing-repository-settings/classifying-your-repository-with-topics) labeled `cargo-generate`.
