@@ -27,6 +27,16 @@ type HookResult<T> = std::result::Result<T, Box<EvalAltResult>>;
 pub use context::RhaiHooksContext;
 
 pub fn execute_hooks(context: &RhaiHooksContext, scripts: &[String]) -> Result<()> {
+    execute_hooks_from_directory(context, scripts, &context.working_directory)
+}
+
+/// Read scripts and imports from the temporary template while resolving file
+/// operations and system commands against the context working directory.
+pub fn execute_hooks_from_directory(
+    context: &RhaiHooksContext,
+    scripts: &[String],
+    script_directory: &Path,
+) -> Result<()> {
     debug!("executing rhai with context: {context:?}");
 
     let printed = PrintSink::default();
@@ -35,7 +45,10 @@ pub fn execute_hooks(context: &RhaiHooksContext, scripts: &[String]) -> Result<(
         let sink = printed.clone();
         move |line| sink.push(line)
     });
-    evaluate_scripts(&context.working_directory, scripts, &engine, &printed)
+    if script_directory != context.working_directory {
+        engine.set_module_resolver(FileModuleResolver::new_with_path(script_directory));
+    }
+    evaluate_scripts(script_directory, scripts, &engine, &printed)
 }
 
 fn evaluate_scripts(

@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::template::LiquidObjectResource;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RhaiHooksContext {
     pub liquid_object: LiquidObjectResource,
     pub allow_commands: bool,

@@ -2,6 +2,7 @@ use crate::ui;
 use anyhow::{Ok, Result};
 use console::style;
 use std::{
+    collections::HashSet,
     fs::{copy, read_dir, remove_file, File},
     io::Read,
     path::{Path, PathBuf},
@@ -35,15 +36,51 @@ pub fn copy_files_recursively(
     overwrite: bool,
 ) -> Result<Vec<PathBuf>> {
     let mut copied = Vec::new();
-    copy_into(src.as_ref(), dst.as_ref(), overwrite, &mut copied)?;
+    copy_into(
+        src.as_ref(),
+        dst.as_ref(),
+        overwrite,
+        &mut copied,
+        &HashSet::new(),
+    )?;
     Ok(copied)
 }
 
-fn copy_into(src: &Path, dst: &Path, overwrite: bool, copied: &mut Vec<PathBuf>) -> Result<()> {
+/// Copy an expansion without its retained hook scripts. Canonical paths also
+/// exclude hooks configured with relative components such as hooks/../final.rhai.
+pub fn copy_files_recursively_excluding(
+    src: &Path,
+    dst: &Path,
+    overwrite: bool,
+    excluded: &[PathBuf],
+) -> Result<Vec<PathBuf>> {
+    if excluded.is_empty() {
+        return copy_files_recursively(src, dst, overwrite);
+    }
+    let src = src.canonicalize()?;
+    let excluded = excluded
+        .iter()
+        .filter_map(|path| path.canonicalize().ok())
+        .collect();
+    let mut copied = Vec::new();
+    copy_into(&src, dst, overwrite, &mut copied, &excluded)?;
+    Ok(copied)
+}
+
+fn copy_into(
+    src: &Path,
+    dst: &Path,
+    overwrite: bool,
+    copied: &mut Vec<PathBuf>,
+    excluded: &HashSet<PathBuf>,
+) -> Result<()> {
     let dst_path = dst;
 
     for src_entry in read_dir(src)? {
         let src_entry = src_entry?;
+        if excluded.contains(&src_entry.path()) {
+            continue;
+        }
         let filename = src_entry.file_name().to_string_lossy().to_string();
         let entry_type = src_entry.file_type()?;
 
@@ -66,7 +103,7 @@ fn copy_into(src: &Path, dst: &Path, overwrite: bool, copied: &mut Vec<PathBuf>)
             if !dst_dir.exists() {
                 std::fs::create_dir(&dst_dir)?;
             }
-            copy_into(&src_entry.path(), &dst_dir, overwrite, copied)?;
+            copy_into(&src_entry.path(), &dst_dir, overwrite, copied, excluded)?;
         } else if entry_type.is_file() {
             copy_file(&src_entry.path(), dst_path, overwrite, copied)?;
         } else {
