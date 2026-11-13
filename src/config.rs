@@ -31,6 +31,7 @@ pub struct HooksConfig {
     pub init: Option<Vec<String>>,
     pub pre: Option<Vec<String>>,
     pub post: Option<Vec<String>>,
+    pub r#final: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Debug, PartialEq, Eq, Default, Clone)]
@@ -112,6 +113,7 @@ impl Config {
         for (phase, hooks) in [
             ("init", self.raw_hooks(|h| h.init.as_ref())),
             ("pre", self.raw_hooks(|h| h.pre.as_ref())),
+            ("final", self.raw_hooks(|h| h.r#final.as_ref())),
         ] {
             if hooks.iter().any(|hook| hook == NAMED_HOOK_FMT) {
                 let _ = crate::ui::warning(format!(
@@ -133,6 +135,10 @@ impl Config {
         Self::script_hooks(self.raw_hooks(|h| h.post.as_ref()))
     }
 
+    pub fn get_final_hooks(&self) -> Vec<String> {
+        Self::script_hooks(self.raw_hooks(|h| h.r#final.as_ref()))
+    }
+
     /// Whether the template asked for the built-in formatting step by listing
     /// [`NAMED_HOOK_FMT`] among its post hooks.
     pub fn has_fmt_hook(&self) -> bool {
@@ -146,6 +152,7 @@ impl Config {
         let mut pre = self.get_init_hooks();
         pre.append(&mut self.get_pre_hooks());
         pre.append(&mut self.get_post_hooks());
+        pre.append(&mut self.get_final_hooks());
         pre
     }
 }

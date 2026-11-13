@@ -56,16 +56,16 @@ pub use args::*;
 use anyhow::{anyhow, bail, Result};
 use config::{Config, CONFIG_FILE_NAME};
 use console::style;
-use copy::copy_files_recursively;
+use copy::copy_files_recursively_excluding;
 use env_logger::fmt::Formatter;
-use hooks::{execute_hooks, RhaiHooksContext};
+use hooks::{execute_hooks, execute_hooks_from_directory, RhaiHooksContext};
 use ignore_me::remove_dir_files;
 use interactive::LIST_SEP;
 use log::Record;
 use project_variables::{StringEntry, TemplateSlots, VarInfo};
 use std::{
     cell::RefCell,
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     env,
     io::Write,
     path::{Path, PathBuf},
@@ -216,7 +216,7 @@ fn generate_inner(args: GenerateArgs) -> Result<PathBuf> {
     check_cargo_generate_version(&config)?;
     config.warn_about_misplaced_named_hooks();
 
-    let project_dir = expand_template(
+    let (project_dir, hook_context) = expand_template(
         fetched.template_dir(),
         &mut config,
         &user_parsed_input,
@@ -235,11 +235,34 @@ fn generate_inner(args: GenerateArgs) -> Result<PathBuf> {
         )
     };
 
-    let target_path = if user_parsed_input.test() {
+    let final_hooks = config.get_final_hooks();
+    let retained_hook_files = if final_hooks.is_empty() {
+        Vec::new()
+    } else {
+        config
+            .get_hook_files()
+            .into_iter()
+            .map(|file| fetched.template_dir().join(file))
+            .collect()
+    };
+    let is_test = user_parsed_input.test();
+    let target_path = if is_test {
+        if !final_hooks.is_empty() {
+            let context = RhaiHooksContext {
+                destination_directory: fetched.template_dir().to_owned(),
+                ..hook_context.clone()
+            };
+            execute_hooks(&context, &final_hooks)?;
+        }
+        remove_dir_files(retained_hook_files.iter(), false);
         test_expanded_template(fetched.template_dir(), args.other_args)?
     } else {
-        let (project_path, generated_files) =
-            copy_expanded_template(fetched.template_dir(), project_dir, user_parsed_input)?;
+        let (project_path, generated_files) = copy_expanded_template(
+            fetched.template_dir(),
+            project_dir,
+            user_parsed_input,
+            &retained_hook_files,
+        )?;
 
         if !args.no_workspace {
             match workspace_member::add_to_workspace(&project_path)? {
@@ -275,6 +298,15 @@ fn generate_inner(args: GenerateArgs) -> Result<PathBuf> {
         git::init(&target_path, fetched.branch(), with_force)?;
     }
 
+    if !is_test && !final_hooks.is_empty() {
+        let context = RhaiHooksContext {
+            working_directory: target_path.clone(),
+            destination_directory: target_path.clone(),
+            ..hook_context
+        };
+        execute_hooks_from_directory(&context, &final_hooks, fetched.template_dir())?;
+    }
+
     ui::outro(format!(
         "Done! New project created {}",
         shorten_path(&target_path)
@@ -289,13 +321,18 @@ fn copy_expanded_template(
     template_dir: &Path,
     project_dir: PathBuf,
     user_parsed_input: UserParsedInput,
+    retained_hook_files: &[PathBuf],
 ) -> Result<(PathBuf, Vec<PathBuf>)> {
     ui::info(format!(
         "Moving generated files into: {}",
         shorten_path(&project_dir)
     ))?;
-    let generated_files =
-        copy_files_recursively(template_dir, &project_dir, user_parsed_input.overwrite())?;
+    let generated_files = copy_files_recursively_excluding(
+        template_dir,
+        &project_dir,
+        user_parsed_input.overwrite(),
+        retained_hook_files,
+    )?;
 
     Ok((project_dir, generated_files))
 }
@@ -350,7 +387,7 @@ fn expand_template(
     config: &mut Config,
     user_parsed_input: &UserParsedInput,
     args: &GenerateArgs,
-) -> Result<PathBuf> {
+) -> Result<(PathBuf, RhaiHooksContext)> {
     let liquid_object = create_liquid_object(user_parsed_input)?;
     let context = RhaiHooksContext {
         liquid_object: liquid_object.clone(),
@@ -442,7 +479,7 @@ fn expand_template(
     // run post-hooks
     execute_hooks(&context, &config.get_post_hooks())?;
 
-    // remove all hook and filter files as they are never part of the template output.
+    // Remove hook and filter files no longer needed after expansion.
     // Hook files are configured as relative names, so anchor them to `template_dir`;
     // `remove_dir_files` checks `Path::exists`, which would otherwise resolve them
     // against the process CWD (the rhai filter files are already absolute).
@@ -452,16 +489,32 @@ fn expand_template(
         .iter()
         .cloned()
         .collect::<Vec<_>>();
+    // Final hooks execute after the copy. Keep their temporary sources and
+    // earlier hook modules available, but exclude them from the output.
+    let retained_hook_files: HashSet<_> = if config.get_final_hooks().is_empty() {
+        HashSet::new()
+    } else {
+        all_hook_files
+            .iter()
+            .filter_map(|file| template_dir.join(file).canonicalize().ok())
+            .collect()
+    };
     remove_dir_files(
         all_hook_files
             .into_iter()
             .map(|hook_file| template_dir.join(hook_file))
-            .chain(rhai_filter_files),
+            .chain(rhai_filter_files)
+            .filter(|file| {
+                retained_hook_files.is_empty()
+                    || !file
+                        .canonicalize()
+                        .is_ok_and(|path| retained_hook_files.contains(&path))
+            }),
         false,
     );
 
     config.template.replace(template_config);
-    Ok(destination.as_ref().to_owned())
+    Ok((destination.as_ref().to_owned(), context))
 }
 
 /// Builtin placeholder names that are pre-populated by cargo-generate.

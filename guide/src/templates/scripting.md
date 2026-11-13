@@ -1,4 +1,4 @@
-# Init/Pre/Post Scripts
+# Init/Pre/Post/Final Scripts
 
 `cargo-generate` can run scripts in the [`Rhai`] language as part of the template expansion.
 
@@ -12,6 +12,7 @@ To configure the use of hooks, write a `hooks` section in the `cargo-generate.to
 init = ["init-script.rhai"]
 pre = ["pre-script.rhai"]
 post = ["post-script.rhai"]
+final = ["final-script.rhai"]
 ```
 
 Most entries name a script file. One does not: `fmt` is a built-in
