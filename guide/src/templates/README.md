@@ -77,6 +77,8 @@ Following are filters that `cargo-generate` expands the `liquid` language with.
 
 ## Workspace membership
 
+> Available since version 0.27.0
+
 By default, a generated project is added to an enclosing Cargo workspace. A template can opt out
 of this automatic registration in its `cargo-generate.toml`:
 
