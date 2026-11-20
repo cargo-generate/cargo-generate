@@ -1,8 +1,13 @@
 ## Hook types
 
+Init, pre, and post hook scripts run against a temporary copy of the template.
+During these phases, relative paths in `file::` calls and the working directory
+for [system commands] refer to this copy.
+
 ### Init
 
-- Init hooks are executed before anything else.
+- Init hooks run before project names are finalized and before template
+  placeholders and conditional configuration are evaluated.
 - The variables `crate_type`/`authors`/`username`/`os-arch` and `is_init` are available.
 - The variable `project-name` *may* be available.
 
@@ -17,17 +22,20 @@
 
 ### Pre
 
-- Pre hooks are run *after all placeholders mentioned in cargo-generate.toml has been resolved*.
-- The hooks are free to add additional variables, but its too late to influence the conditional system.
+Pre hooks run after Cargo Generate resolves placeholders in `cargo-generate.toml`
+and applies conditional configuration, and before Liquid expands template file
+names and contents.
 
-  This is a side effect of conditionals influencing the hooks - so placeholders need to be evaluated before the hooks are known.
+Use a pre hook to set variables for Liquid rendering or to rename or remove
+files before expansion. Conditional configuration has already been applied at
+this point. The [hooks example] uses a pre hook to replace `README.md` with
+another file before expansion.
 
 ### Post
 
-- Post hooks are run after template expansion, but *before final output is moved to the final destination*.
-
-Why not later? Security, and the fact that a failing script still causes no errors in the users destination.
-
+Post hooks run after Liquid expands file names and contents in the temporary
+copy. Use a post hook to work with the rendered names or contents. Cargo Generate
+copies the files to the destination after the post hooks succeed.
 
 ### Named hooks
 
@@ -48,4 +56,5 @@ post = ["fmt"]
 - The name is reserved, so a hook script cannot use it. Any other name, `fmt.rhai` included,
   behaves normally.
 
-[`Rhai`]: https://rhai.rs/book/
+[hooks example]: https://github.com/cargo-generate/cargo-generate/tree/main/example-templates/hooks
+[system commands]: scripting.system-commands.md
