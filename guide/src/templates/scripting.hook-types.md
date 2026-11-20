@@ -1,8 +1,8 @@
 ## Hook types
 
-Rhai hook scripts run against a temporary copy of the template. Relative paths
-in `file::` calls and the working directory for [system commands] refer to this
-copy throughout generation.
+Init, pre, and post hook scripts run against a temporary copy of the template.
+During these phases, relative paths in `file::` calls and the working directory
+for [system commands] refer to this copy.
 
 ### Init
 
