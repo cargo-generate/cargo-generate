@@ -61,7 +61,7 @@ new-ui = ["dep:cliclack", "dep:fastrand"]
 
 [dev-dependencies]
 assert_cmd = "~2.1"
-bstr = "~1.13"
+bstr = "~1.14"
 indoc = "~2.0"
 predicates = "~3.1"
 url = "~2.5"
